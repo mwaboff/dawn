@@ -143,10 +143,22 @@
       0 0 40px rgba(212, 160, 86, 0.6),
       0 4px 20px rgba(0, 0, 0, 0.8);
   }
+  25% {
+    text-shadow:
+      0 0 45px rgba(212, 160, 86, 0.7),
+      0 0 65px rgba(212, 160, 86, 0.3),
+      0 4px 20px rgba(0, 0, 0, 0.8);
+  }
   50% {
     text-shadow:
       0 0 60px rgba(212, 160, 86, 0.8),
       0 0 80px rgba(212, 160, 86, 0.4),
+      0 4px 20px rgba(0, 0, 0, 0.8);
+  }
+  75% {
+    text-shadow:
+      0 0 35px rgba(212, 160, 86, 0.5),
+      0 0 55px rgba(212, 160, 86, 0.2),
       0 4px 20px rgba(0, 0, 0, 0.8);
   }
 }
@@ -357,7 +369,7 @@
 
 .feature-title {
   font-size: 1.75rem;
-  color: var(--color-wood);
+  color: var(--color-parchment);
   text-align: center;
   margin-bottom: 1rem;
   font-weight: 700;
@@ -366,10 +378,10 @@
 
 .feature-description {
   font-size: 1.0625rem;
-  color: var(--color-text-dark);
+  color: var(--color-text-light);
   text-align: center;
   line-height: 1.7;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* Responsive Design */
@@ -407,6 +419,7 @@
   .hero-cta {
     flex-direction: column;
     gap: 1rem;
+    align-items: center;
   }
 
   .btn {

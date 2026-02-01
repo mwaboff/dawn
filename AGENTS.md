@@ -2,6 +2,31 @@ This is a website called Oh Sheet. This is the front-end for a site that provide
 
 You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
 
+## Technology Stack
+
+- **Angular** 21.1.0 (standalone components, signals)
+- **TypeScript** with strict configuration (ES2022 target)
+- **Tailwind CSS** 4.1.12 via `@tailwindcss/postcss`
+- **Vitest** 4.0.8 for unit testing
+- **Backend API** at `http://localhost:8080/api` (see `docs/BACKEND_API_REFERENCE.md`)
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── app.ts              # Root component
+│   ├── app.config.ts       # Application configuration
+│   ├── app.routes.ts       # Routing configuration
+│   ├── app.html            # Root template
+│   └── app.css             # Root component styles
+├── main.ts                 # Bootstrap entry point
+├── styles.css              # Global styles (Tailwind import)
+└── index.html              # HTML entry point
+docs/
+└── BACKEND_API_REFERENCE.md # API documentation
+```
+
 ## TypeScript Best Practices
 
 - Use strict type checking
@@ -11,7 +36,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 ## Angular Best Practices
 
 - Always use standalone components over NgModules
-- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
+- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v21.
 - Use signals for state management
 - Implement lazy loading for feature routes
 - Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
@@ -55,3 +80,19 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## API Integration
+
+- Backend uses JWT authentication stored in HttpOnly cookies
+- Include credentials in all HTTP requests: `{ withCredentials: true }`
+- Use HTTP interceptors for auth handling and 401 redirects
+- Pagination uses `page` and `size` query parameters (default: page 0, size 20)
+- Use `expand` query param to include related objects in responses
+- See `docs/BACKEND_API_REFERENCE.md` for endpoint details
+
+## Testing
+
+- Use Vitest for unit tests (run with `npm test`)
+- Test files use `.spec.ts` suffix
+- Use `TestBed.configureTestingModule()` for component setup
+- Import standalone components directly in test configuration
