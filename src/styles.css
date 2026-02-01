@@ -1,3 +1,43 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 @import "tailwindcss";
+
+:root {
+  /* Warm Tavern Color Palette */
+  --color-bg-dark: #1a1412;
+  --color-bg-darker: #151110;
+  --color-accent: #d4a056;
+  --color-accent-bright: #e6b56d;
+  --color-parchment: #f5e6d3;
+  --color-text-light: #faf7f4;
+  --color-text-dark: #2d241f;
+  --color-wood: #3a2817;
+
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Lora', serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-light);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg-dark);
+}
