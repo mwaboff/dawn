@@ -5,6 +5,27 @@
     </a>
     <div class="nav-links">
       @if (authService.isLoggedIn()) {
+        <div class="nav-create-container">
+          <button
+            type="button"
+            class="nav-create-btn"
+            (click)="toggleDropdown()"
+            aria-label="Create menu"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isDropdownOpen()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          @if (isDropdownOpen()) {
+            <div class="nav-dropdown" role="menu">
+              <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCharacter()">
+                Create Character
+              </button>
+            </div>
+          }
+        </div>
         <button type="button" class="nav-link" (click)="onProfile()">Profile</button>
         <button type="button" class="nav-link nav-link-secondary" (click)="onLogout()">Logout</button>
       } @else {
