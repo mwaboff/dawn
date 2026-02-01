@@ -1,0 +1,124 @@
+/* Navigation */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(26, 20, 18, 0.4);
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid rgba(212, 160, 86, 0.1);
+  transition: all 0.3s ease;
+}
+
+.nav.scrolled {
+  background: rgba(26, 20, 18, 0.95);
+  border-bottom: 1px solid rgba(212, 160, 86, 0.2);
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  transition: all 0.3s ease;
+}
+
+.nav-logo:hover {
+  color: var(--color-accent-bright);
+  text-shadow: 0 0 20px rgba(212, 160, 86, 0.4);
+}
+
+.nav-logo:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-link {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  letter-spacing: 0.05em;
+}
+
+.nav-link:hover {
+  color: var(--color-accent);
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.nav-link-auth {
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-bright) 100%);
+  color: var(--color-bg-dark);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.nav-link-auth:hover {
+  color: var(--color-bg-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(212, 160, 86, 0.4);
+}
+
+.nav-link-secondary {
+  padding: 0.5rem 1.25rem;
+  background: transparent;
+  border: 1px solid rgba(212, 160, 86, 0.4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-link-secondary:hover {
+  background: rgba(212, 160, 86, 0.1);
+  border-color: var(--color-accent);
+}
+
+/* Mobile Navigation */
+@media (max-width: 768px) {
+  .nav-container {
+    padding: 1rem 1.5rem;
+  }
+
+  .nav-logo {
+    font-size: 1.5rem;
+  }
+
+  .nav-links {
+    gap: 1rem;
+  }
+
+  .nav-link {
+    font-size: 0.875rem;
+  }
+
+  .nav-link-auth {
+    padding: 0.375rem 1rem;
+  }
+}

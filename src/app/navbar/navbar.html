@@ -1,0 +1,15 @@
+<nav class="nav" [class.scrolled]="isScrolled()">
+  <div class="nav-container">
+    <a href="/" class="nav-logo" aria-label="Oh Sheet Home">
+      Oh Sheet
+    </a>
+    <div class="nav-links">
+      @if (authService.isLoggedIn()) {
+        <a href="/profile" class="nav-link">Profile</a>
+        <button type="button" class="nav-link nav-link-secondary" (click)="onLogout()">Logout</button>
+      } @else {
+        <a href="/auth" class="nav-link nav-link-auth">Login / Sign Up</a>
+      }
+    </div>
+  </div>
+</nav>

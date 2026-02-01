@@ -1,0 +1,133 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-tabs" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'login'"
+        [class.active]="activeTab() === 'login'"
+        (click)="setTab('login')"
+        class="auth-tab"
+      >
+        Login
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'signup'"
+        [class.active]="activeTab() === 'signup'"
+        (click)="setTab('signup')"
+        class="auth-tab"
+      >
+        Sign up
+      </button>
+    </div>
+
+    @if (activeTab() === 'login') {
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form" role="tabpanel">
+        @if (loginError()) {
+          <div class="form-error" role="alert">
+            {{ loginError() }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="login-username-email" class="form-label">Email or Username</label>
+          <input
+            id="login-username-email"
+            type="text"
+            formControlName="usernameOrEmail"
+            class="form-input"
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="login-password" class="form-label">Password</label>
+          <input
+            id="login-password"
+            type="password"
+            formControlName="password"
+            class="form-input"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="auth-submit" [disabled]="!loginForm.valid || isLoading()">
+          @if (isLoading()) {
+            Logging in...
+          } @else {
+            Login
+          }
+        </button>
+      </form>
+    }
+
+    @if (activeTab() === 'signup') {
+      <form [formGroup]="signupForm" (ngSubmit)="onSignup()" class="auth-form" role="tabpanel">
+        @if (signupError()) {
+          <div class="form-error" role="alert">
+            {{ signupError() }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label for="signup-username" class="form-label">Username</label>
+          <input
+            id="signup-username"
+            type="text"
+            formControlName="username"
+            class="form-input"
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-email" class="form-label">Email</label>
+          <input
+            id="signup-email"
+            type="email"
+            formControlName="email"
+            class="form-input"
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-password" class="form-label">Password</label>
+          <input
+            id="signup-password"
+            type="password"
+            formControlName="password"
+            class="form-input"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="signup-confirm" class="form-label">Confirm Password</label>
+          <input
+            id="signup-confirm"
+            type="password"
+            formControlName="confirmPassword"
+            class="form-input"
+            [class.input-error]="showPasswordMismatch"
+            autocomplete="new-password"
+            (blur)="onConfirmPasswordBlur()"
+          />
+          @if (showPasswordMismatch) {
+            <span class="field-error" role="alert">Passwords do not match</span>
+          }
+        </div>
+
+        <button type="submit" class="auth-submit" [disabled]="!signupForm.valid || isLoading()">
+          @if (isLoading()) {
+            Signing up...
+          } @else {
+            Sign up
+          }
+        </button>
+      </form>
+    }
+  </div>
+</div>
