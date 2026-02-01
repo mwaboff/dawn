@@ -1,8 +1,10 @@
 import { inject } from '@angular/core';
 import { CanActivateFn } from '@angular/router';
+import { map } from 'rxjs';
 import { AuthService } from './auth.service';
 
 export const authSessionGuard: CanActivateFn = () => {
-  inject(AuthService).checkSession();
-  return true;
+  return inject(AuthService).checkSession().pipe(
+    map(() => true)
+  );
 };

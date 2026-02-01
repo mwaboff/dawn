@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 
 export interface UserResponse {
   id: number;
@@ -61,14 +61,17 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
-  checkSession(): void {
-    const hasAuthCookie = document.cookie
-      .split('; ')
-      .some(cookie => cookie.startsWith('AUTH_TOKEN='));
-
-    if (!hasAuthCookie && this.isLoggedIn()) {
-      this.currentUser.set(null);
-    }
+  checkSession(): Observable<void> {
+    return this.http.get<UserResponse>(`${API_URL}/users/me`, { withCredentials: true }).pipe(
+      tap(user => this.currentUser.set(user)),
+      map(() => undefined),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.currentUser.set(null);
+        }
+        return of(undefined);
+      })
+    );
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

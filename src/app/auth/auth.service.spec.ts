@@ -154,57 +154,46 @@ describe('AuthService', () => {
   });
 
   describe('checkSession', () => {
-    beforeEach(() => {
-      Object.defineProperty(document, 'cookie', {
-        writable: true,
-        value: ''
-      });
-    });
+    it('should update user state when session is valid', () => {
+      service.checkSession().subscribe();
 
-    it('should clear user state when AUTH_TOKEN cookie is missing and user is logged in', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
-
-      expect(service.isLoggedIn()).toBe(true);
-
-      document.cookie = '';
-      service.checkSession();
-
-      expect(service.isLoggedIn()).toBe(false);
-      expect(service.user()).toBeNull();
-    });
-
-    it('should not clear user state when AUTH_TOKEN cookie exists', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
-
-      expect(service.isLoggedIn()).toBe(true);
-
-      document.cookie = 'AUTH_TOKEN=abc123';
-      service.checkSession();
+      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
+      expect(req.request.method).toBe('GET');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(mockUser);
 
       expect(service.isLoggedIn()).toBe(true);
       expect(service.user()).toEqual(mockUser);
     });
 
-    it('should do nothing when already logged out', () => {
-      expect(service.isLoggedIn()).toBe(false);
+    it('should clear user state when session is expired (401)', () => {
+      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
+      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
 
-      document.cookie = '';
-      service.checkSession();
+      expect(service.isLoggedIn()).toBe(true);
+
+      service.checkSession().subscribe();
+
+      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
+      req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
 
       expect(service.isLoggedIn()).toBe(false);
       expect(service.user()).toBeNull();
     });
 
-    it('should handle AUTH_TOKEN among multiple cookies', () => {
+    it('should keep user state on non-401 errors', () => {
       service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
       httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
 
-      document.cookie = 'other=value; AUTH_TOKEN=abc123; another=test';
-      service.checkSession();
+      expect(service.isLoggedIn()).toBe(true);
+
+      service.checkSession().subscribe();
+
+      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
+      req.flush({ message: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
 
       expect(service.isLoggedIn()).toBe(true);
+      expect(service.user()).toEqual(mockUser);
     });
   });
 });
