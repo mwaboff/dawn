@@ -15,7 +15,7 @@ interface Feature {
 export class Home {
   readonly features: Feature[] = [
     {
-      icon: 'sword-shield',
+      icon: 'pen-paper',
       title: 'Create Characters',
       description: 'Build and manage your Daggerheart heroes. Track stats, abilities, and level up as you play.'
     },
