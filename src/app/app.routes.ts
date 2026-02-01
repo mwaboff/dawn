@@ -13,6 +13,10 @@ export const routes: Routes = [
       {
         path: 'auth',
         loadComponent: () => import('./auth/auth').then(m => m.Auth)
+      },
+      {
+        path: 'create-character',
+        loadComponent: () => import('./create-character/create-character').then(m => m.CreateCharacter)
       }
     ]
   }
