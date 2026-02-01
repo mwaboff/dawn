@@ -61,6 +61,16 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
+  checkSession(): void {
+    const hasAuthCookie = document.cookie
+      .split('; ')
+      .some(cookie => cookie.startsWith('AUTH_TOKEN='));
+
+    if (!hasAuthCookie && this.isLoggedIn()) {
+      this.currentUser.set(null);
+    }
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     return throwError(() => error);
   }
