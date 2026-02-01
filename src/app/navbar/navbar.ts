@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
@@ -10,6 +11,7 @@ import { AuthService } from '../auth/auth.service';
 })
 export class Navbar {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly router = inject(Router);
   private readonly isBrowser: boolean;
   readonly authService = inject(AuthService);
 
@@ -34,6 +36,13 @@ export class Navbar {
   }
 
   onLogout(): void {
-    // TODO: Implement logout logic
+    this.authService.logout().subscribe({
+      next: () => this.router.navigate(['/']),
+      error: () => this.router.navigate(['/'])
+    });
+  }
+
+  onProfile(): void {
+    // TODO: Implement profile navigation
   }
 }
