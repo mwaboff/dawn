@@ -7,7 +7,11 @@ import { AuthService } from '../auth/auth.service';
   selector: 'app-navbar',
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:click)': 'onDocumentClick($event)',
+    '(document:keydown)': 'onKeydown($event)'
+  }
 })
 export class Navbar {
   private readonly platformId = inject(PLATFORM_ID);
@@ -17,6 +21,7 @@ export class Navbar {
 
   readonly scrollY = signal(0);
   readonly isScrolled = computed(() => this.scrollY() > 10);
+  readonly isDropdownOpen = signal(false);
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -33,6 +38,33 @@ export class Navbar {
         this.scrollY();
       });
     }
+  }
+
+  toggleDropdown(): void {
+    this.isDropdownOpen.update(open => !open);
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen.set(false);
+  }
+
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const dropdownContainer = target.closest('.nav-create-container');
+    if (!dropdownContainer && this.isDropdownOpen()) {
+      this.closeDropdown();
+    }
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.isDropdownOpen()) {
+      this.closeDropdown();
+    }
+  }
+
+  onCreateCharacter(): void {
+    this.router.navigate(['/create-character']);
+    this.closeDropdown();
   }
 
   onLogout(): void {

@@ -1,7 +1,24 @@
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { routes } from './app.routes';
 import { authSessionGuard } from './auth/auth-session.guard';
 
 describe('App Routes', () => {
+  let router: Router;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
+    });
+    router = TestBed.inject(Router);
+  });
+
   it('should have authSessionGuard on root route', () => {
     const rootRoute = routes.find(r => r.path === '');
     expect(rootRoute).toBeDefined();
@@ -24,5 +41,12 @@ describe('App Routes', () => {
     const rootRoute = routes.find(r => r.path === '');
     const authRoute = rootRoute?.children?.find(r => r.path === 'auth');
     expect(authRoute).toBeDefined();
+  });
+
+  it('should have create-character route', () => {
+    const createCharRoute = router.config[0]?.children?.find(
+      r => r.path === 'create-character'
+    );
+    expect(createCharRoute).toBeDefined();
   });
 });
