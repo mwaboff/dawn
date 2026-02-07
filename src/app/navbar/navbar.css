@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(26, 20, 18, 0.4);
+  background: rgba(26, 20, 18, 0.7);
   backdrop-filter: blur(2px);
   border-bottom: 1px solid rgba(212, 160, 86, 0.1);
   transition: all 0.3s ease;

@@ -1,20 +1,4 @@
 <div class="create-character-container">
-  <!-- Desktop: Folder Tabs on Right -->
-  <div class="desktop-tabs">
-    @for (tab of tabs; track tab.id) {
-      <button
-        type="button"
-        [class.active]="activeTab() === tab.id"
-        (click)="selectTab(tab.id)"
-        class="folder-tab"
-        [attr.aria-label]="'Navigate to ' + tab.label + ' tab'"
-        [attr.aria-current]="activeTab() === tab.id ? 'page' : null"
-      >
-        {{ tab.label }}
-      </button>
-    }
-  </div>
-
   <!-- Mobile: Hamburger Menu -->
   <div class="mobile-header">
     <button
@@ -62,6 +46,21 @@
   <main class="content-area" role="main">
     <!-- Parchment Container -->
     <div class="parchment-container">
+      <!-- Desktop: Folder Tabs on Right -->
+      <div class="desktop-tabs">
+        @for (tab of tabs; track tab.id) {
+          <button
+            type="button"
+            [class.active]="activeTab() === tab.id"
+            (click)="selectTab(tab.id)"
+            class="folder-tab"
+            [attr.aria-label]="'Navigate to ' + tab.label + ' tab'"
+            [attr.aria-current]="activeTab() === tab.id ? 'page' : null"
+          >
+            {{ tab.label }}
+          </button>
+        }
+      </div>
       <!-- Name and Pronouns (Always Visible) -->
       <form [formGroup]="characterForm" class="character-info-form">
         <div class="form-row">

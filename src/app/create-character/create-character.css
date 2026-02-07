@@ -4,6 +4,13 @@
   min-height: 100vh;
   background-color: #f5e6d3; /* Warm parchment background */
   padding: 1rem;
+  padding-top: 5rem; /* Space for fixed navbar (mobile) */
+}
+
+@media (min-width: 768px) {
+  .create-character-container {
+    padding-top: 6rem; /* Increased space for fixed navbar (desktop) */
+  }
 }
 
 /* Desktop Folder Tabs */
@@ -11,37 +18,37 @@
   display: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   .desktop-tabs {
     display: flex;
     flex-direction: column;
-    position: fixed;
-    right: 0;
+    position: absolute;
+    left: 100%;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
-    gap: 0;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
   }
 
   .folder-tab {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
     background-color: #d4a574;
     color: #3e2723;
     border: 2px solid #8b5e34;
-    border-right: none;
-    border-radius: 0.5rem 0 0 0.5rem;
-    padding: 1rem 0.75rem;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    min-height: 120px;
     font-size: 0.875rem;
+    white-space: nowrap;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .folder-tab:hover {
     background-color: #e0b887;
-    transform: rotate(180deg) translateX(0.25rem);
+    transform: translateX(0.25rem) scale(1.02);
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
   }
 
   .folder-tab:focus-visible {
@@ -51,9 +58,9 @@
 
   .folder-tab.active {
     background-color: #f5e6d3;
-    border-right: 2px solid #8b5e34;
-    transform: rotate(180deg) translateX(0.5rem);
+    transform: translateX(0.5rem) scale(1.05);
     font-weight: 700;
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -65,7 +72,7 @@
   margin-bottom: 1rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   .mobile-header {
     display: none;
   }
@@ -128,7 +135,7 @@
   left: 0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
   .mobile-drawer {
     display: none;
   }
@@ -173,14 +180,9 @@
   margin: 0 auto;
 }
 
-@media (min-width: 768px) {
-  .content-area {
-    margin-right: 160px; /* Space for folder tabs */
-  }
-}
-
 /* Parchment Container */
 .parchment-container {
+  position: relative;
   background-color: #faf6f0;
   border: 2px solid #8b5e34;
   border-radius: 0.5rem;
