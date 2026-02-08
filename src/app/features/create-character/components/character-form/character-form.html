@@ -1,0 +1,45 @@
+<form [formGroup]="characterForm" class="character-info-form">
+  <div class="form-row">
+    <div class="form-field">
+      <label for="character-name" class="form-label">
+        Character Name
+        <span class="required-indicator" aria-label="required">*</span>
+      </label>
+      <input
+        id="character-name"
+        type="text"
+        formControlName="name"
+        class="form-input"
+        [class.invalid]="isFieldInvalid('name')"
+        [attr.aria-invalid]="isFieldInvalid('name')"
+        [attr.aria-describedby]="isFieldInvalid('name') ? 'name-error' : null"
+      />
+      @if (isFieldInvalid('name')) {
+        <span id="name-error" class="error-message" role="alert">
+          Character name is required
+        </span>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="character-pronouns" class="form-label">
+        Pronouns
+        <span class="required-indicator" aria-label="required">*</span>
+      </label>
+      <input
+        id="character-pronouns"
+        type="text"
+        formControlName="pronouns"
+        class="form-input"
+        [class.invalid]="isFieldInvalid('pronouns')"
+        [attr.aria-invalid]="isFieldInvalid('pronouns')"
+        [attr.aria-describedby]="isFieldInvalid('pronouns') ? 'pronouns-error' : null"
+      />
+      @if (isFieldInvalid('pronouns')) {
+        <span id="pronouns-error" class="error-message" role="alert">
+          Pronouns are required
+        </span>
+      }
+    </div>
+  </div>
+</form>

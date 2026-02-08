@@ -1,0 +1,58 @@
+<!-- Mobile: Hamburger Menu -->
+<div class="mobile-header">
+  <button
+    type="button"
+    class="hamburger-button"
+    (click)="toggleMobileDrawer()"
+    aria-label="Toggle navigation menu"
+    [attr.aria-expanded]="isDrawerOpen()"
+  >
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+  <h1 class="mobile-title">Create Character</h1>
+</div>
+
+<!-- Mobile: Slide-out Drawer -->
+@if (isDrawerOpen()) {
+  <div
+    class="mobile-drawer-overlay"
+    (click)="closeMobileDrawer()"
+    role="presentation"
+  ></div>
+}
+<nav
+  class="mobile-drawer"
+  [class.open]="isDrawerOpen()"
+  [attr.aria-hidden]="!isDrawerOpen()"
+>
+  @for (tab of tabs(); track tab.id) {
+    <button
+      type="button"
+      [class.active]="activeTab() === tab.id"
+      (click)="selectTab(tab.id)"
+      class="drawer-item"
+      [attr.aria-label]="'Navigate to ' + tab.label + ' tab'"
+      [attr.aria-current]="activeTab() === tab.id ? 'page' : null"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</nav>
+
+<!-- Desktop: Folder Tabs -->
+<div class="desktop-tabs">
+  @for (tab of tabs(); track tab.id) {
+    <button
+      type="button"
+      [class.active]="activeTab() === tab.id"
+      (click)="selectTab(tab.id)"
+      class="folder-tab"
+      [attr.aria-label]="'Navigate to ' + tab.label + ' tab'"
+      [attr.aria-current]="activeTab() === tab.id ? 'page' : null"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</div>

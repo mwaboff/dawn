@@ -3,7 +3,7 @@ import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { routes } from './app.routes';
-import { authSessionGuard } from './auth/auth-session.guard';
+import { authSessionGuard } from './core/guards/auth-session.guard';
 
 describe('App Routes', () => {
   let router: Router;

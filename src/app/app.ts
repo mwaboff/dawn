@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Navbar } from './navbar/navbar';
-import { Footer } from './footer/footer';
+import { Navbar } from './layout/navbar/navbar';
+import { Footer } from './layout/footer/footer';
 
 @Component({
   selector: 'app-root',

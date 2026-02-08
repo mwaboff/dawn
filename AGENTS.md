@@ -14,11 +14,16 @@ This is a website called **Oh Sheet** — a front-end for tools that help Dagger
 src/
 ├── app/
 │   ├── app.ts / app.config.ts / app.routes.ts / app.html / app.css
-│   ├── auth/            # Authentication (service, guard, component)
-│   ├── create-character/ # Character creation feature
-│   ├── navbar/          # Navigation component
-│   ├── footer/          # Footer component
-│   └── home/            # Home page feature
+│   ├── core/
+│   │   ├── services/    # Shared services (auth.service)
+│   │   └── guards/      # Route guards (auth-session.guard)
+│   ├── features/
+│   │   ├── auth/        # Authentication UI (login/signup)
+│   │   ├── home/        # Home page
+│   │   └── create-character/  # Character creation
+│   └── layout/
+│       ├── navbar/      # Navigation component
+│       └── footer/      # Footer component
 ├── main.ts              # Bootstrap entry point
 ├── styles.css           # Global styles (Tailwind import)
 └── index.html           # HTML entry point
@@ -34,10 +39,10 @@ Each feature directory follows: `{feature}.ts`, `{feature}.html`, `{feature}.css
 npm start                                   # Dev server at http://localhost:4200
 npm test                                    # All tests (watch mode)
 npm run test:run                            # All tests once (no watch)
-npm run test:only -- src/app/navbar/        # Tests for a specific directory
+npm run test:only -- src/app/layout/navbar/  # Tests for a specific directory
 npm run test:coverage                       # Tests with coverage report
 npm run lint                                # Lint entire project
-npm run lint:only -- 'src/app/navbar/**'    # Lint a specific component
+npm run lint:only -- 'src/app/layout/navbar/**'  # Lint a specific component
 npm run lint:fix                            # Lint and auto-fix
 npm run build                               # Production build (outputs to dist/)
 ```

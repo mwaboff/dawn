@@ -4,7 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 import { authSessionGuard } from './auth-session.guard';
-import { AuthService } from './auth.service';
+import { AuthService } from '../services/auth.service';
 
 describe('authSessionGuard', () => {
   let authService: AuthService;

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authSessionGuard } from './auth/auth-session.guard';
+import { authSessionGuard } from './core/guards/auth-session.guard';
 
 export const routes: Routes = [
   {
@@ -8,15 +8,15 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./home/home').then(m => m.Home)
+        loadComponent: () => import('./features/home/home').then(m => m.Home)
       },
       {
         path: 'auth',
-        loadComponent: () => import('./auth/auth').then(m => m.Auth)
+        loadComponent: () => import('./features/auth/auth').then(m => m.Auth)
       },
       {
         path: 'create-character',
-        loadComponent: () => import('./create-character/create-character').then(m => m.CreateCharacter)
+        loadComponent: () => import('./features/create-character/create-character').then(m => m.CreateCharacter)
       }
     ]
   }
