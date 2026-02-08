@@ -2,7 +2,7 @@ This is a website called **Oh Sheet** — a front-end for tools that help Dagger
 
 ## Critical Considerations
 
-**MANDATORY VALIDATIONS:** After all code changes, you MUST validate tests are successful (all green), lint checks are successful (all green), and the application builds successfully.
+**MANDATORY:** After all code changes, you MUST validate tests are successful (all green), lint checks are successful (all green), and the application builds successfully.
 
 ## Technology Stack
 
@@ -32,7 +32,7 @@ src/
 ├── styles.css           # Global styles (Tailwind import)
 └── index.html           # HTML entry point
 docs/
-└── BACKEND_API_REFERENCE.md
+└── BACKEND_API_REFERENCE.md  # Use when implementing backend integration
 ```
 
 Each feature directory follows: `{feature}.ts`, `{feature}.html`, `{feature}.css`, `{feature}.spec.ts`
