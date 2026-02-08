@@ -1,5 +1,9 @@
 This is a website called **Oh Sheet** — a front-end for tools that help Daggerheart players create Characters, level them up, and run games.
 
+## Critical Considerations
+
+**MANDATORY VALIDATIONS:** After all code changes, you MUST validate tests are successful (all green), lint checks are successful (all green), and the application builds successfully.
+
 ## Technology Stack
 
 - **Angular** 21.1.0 (standalone components, signals)
