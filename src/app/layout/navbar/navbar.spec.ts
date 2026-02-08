@@ -5,7 +5,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { Navbar } from './navbar';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 
 describe('Navbar', () => {
   let component: Navbar;

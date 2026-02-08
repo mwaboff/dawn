@@ -1,0 +1,43 @@
+/* Container */
+.create-character-container {
+  position: relative;
+  min-height: 100vh;
+  background-color: #f5e6d3;
+  padding: 1rem;
+  padding-top: 5rem;
+}
+
+@media (min-width: 768px) {
+  .create-character-container {
+    padding-top: 6rem;
+  }
+}
+
+/* Content Area */
+.content-area {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Parchment Container */
+.parchment-container {
+  position: relative;
+  background-color: #faf6f0;
+  border: 2px solid #8b5e34;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Content */
+.tab-content {
+  min-height: 400px;
+}
+
+.placeholder-text {
+  color: #6d4c41;
+  font-style: italic;
+  font-size: 1.125rem;
+  text-align: center;
+  margin-top: 4rem;
+}
