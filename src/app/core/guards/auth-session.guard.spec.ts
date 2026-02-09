@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { firstValueFrom, of } from 'rxjs';
+import { Observable, firstValueFrom, of } from 'rxjs';
 import { authSessionGuard } from './auth-session.guard';
 import { AuthService } from '../services/auth.service';
 
@@ -34,7 +34,7 @@ describe('authSessionGuard', () => {
 
     await TestBed.runInInjectionContext(async () => {
       const result = authSessionGuard(mockRoute, mockState);
-      await firstValueFrom(result as any);
+      await firstValueFrom(result as Observable<boolean>);
     });
 
     expect(checkSessionSpy).toHaveBeenCalled();
@@ -43,7 +43,7 @@ describe('authSessionGuard', () => {
   it('should return true after session check completes', async () => {
     const resultPromise = TestBed.runInInjectionContext(() => {
       const result = authSessionGuard(mockRoute, mockState);
-      return firstValueFrom(result as any);
+      return firstValueFrom(result as Observable<boolean>);
     });
 
     httpMock.expectOne('http://localhost:8080/api/users/me').flush({});
@@ -55,7 +55,7 @@ describe('authSessionGuard', () => {
   it('should return true even when session check fails', async () => {
     const resultPromise = TestBed.runInInjectionContext(() => {
       const result = authSessionGuard(mockRoute, mockState);
-      return firstValueFrom(result as any);
+      return firstValueFrom(result as Observable<boolean>);
     });
 
     httpMock.expectOne('http://localhost:8080/api/users/me')

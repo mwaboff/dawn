@@ -15,6 +15,7 @@ type AuthTab = 'login' | 'signup';
 export class Auth {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
   readonly activeTab = signal<AuthTab>('login');
   readonly loginError = signal<string | null>(null);
@@ -25,7 +26,7 @@ export class Auth {
   readonly loginForm: FormGroup;
   readonly signupForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.loginForm = this.fb.group({
       usernameOrEmail: ['', [Validators.required]],
       password: ['', [Validators.required]]
@@ -89,8 +90,12 @@ export class Auth {
       this.isLoading.set(true);
       this.signupError.set(null);
 
-      const { confirmPassword, ...registerData } = this.signupForm.value;
-      this.authService.register(registerData).subscribe({
+      const formValue = this.signupForm.value;
+      this.authService.register({
+        username: formValue.username,
+        email: formValue.email,
+        password: formValue.password
+      }).subscribe({
         next: () => {
           this.isLoading.set(false);
           this.router.navigate(['/']);

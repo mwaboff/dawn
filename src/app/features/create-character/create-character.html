@@ -14,7 +14,15 @@
       <div class="tab-content" role="region" [attr.aria-label]="activeTab() + ' section'">
         @switch (activeTab()) {
           @case ('class') {
-            <p class="placeholder-text">Class selection coming soon...</p>
+            <div class="card-grid">
+              @for (card of allMockCards; track card.id) {
+                <app-daggerheart-card
+                  [card]="card"
+                  [selected]="isCardSelected(card)"
+                  (cardClicked)="onCardClicked($event)"
+                />
+              }
+            </div>
           }
           @case ('heritage') {
             <p class="placeholder-text">Heritage selection coming soon...</p>
