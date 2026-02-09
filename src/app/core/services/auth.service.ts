@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 
@@ -34,7 +34,7 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly user = computed(() => this.currentUser());
 
-  constructor(private http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   login(request: LoginRequest): Observable<UserResponse> {
     return this.http.post<UserResponse>(`${API_URL}/auth/login`, request, { withCredentials: true }).pipe(

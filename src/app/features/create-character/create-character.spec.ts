@@ -75,8 +75,8 @@ describe('CreateCharacter', () => {
       expect(tabContent?.getAttribute('aria-label')).toBe('heritage section');
     });
 
-    it('should render placeholder text for each tab', () => {
-      const tabIds = ['class', 'heritage', 'traits'] as const;
+    it('should render placeholder text for tabs without content', () => {
+      const tabIds = ['heritage', 'traits'] as const;
 
       tabIds.forEach((tabId) => {
         component.onTabSelected(tabId);
@@ -86,6 +86,14 @@ describe('CreateCharacter', () => {
         expect(placeholder).toBeTruthy();
         expect(placeholder?.textContent).toContain('coming soon');
       });
+    });
+
+    it('should render card components on the class tab', () => {
+      component.onTabSelected('class');
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const cards = compiled.querySelectorAll('app-daggerheart-card');
+      expect(cards.length).toBeGreaterThan(0);
     });
   });
 });
