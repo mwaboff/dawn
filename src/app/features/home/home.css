@@ -355,9 +355,19 @@
   transition: all 0.4s ease;
 }
 
+.feature-icon[data-icon="pen-paper"] {
+  transform: rotate(-90deg);
+  transition: none;
+}
+
 .feature-card:hover .feature-icon {
   transform: scale(1.1) rotate(5deg);
   filter: drop-shadow(0 6px 20px rgba(212, 160, 86, 0.5));
+}
+
+.feature-card:hover .feature-icon[data-icon="pen-paper"] {
+  transform: scale(1.1) rotate(-85deg);
+  transition: all 0.4s ease;
 }
 
 .feature-icon svg {

@@ -25,6 +25,9 @@ export class CreateCharacter {
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
   private readonly selectedCardId = signal<number | null>(null);
+  private readonly completedStepsSignal = signal<Set<TabId>>(new Set());
+
+  readonly completedSteps = this.completedStepsSignal.asReadonly();
 
   readonly allMockCards: CardData[] = [
     ...MOCK_CLASS_CARDS,
@@ -36,16 +39,59 @@ export class CreateCharacter {
   ];
 
   onTabSelected(tabId: TabId): void {
-    this.activeTab.set(tabId);
+    if (this.isTabReachable(tabId)) {
+      this.activeTab.set(tabId);
+    }
   }
 
   onCardClicked(card: CardData): void {
-    this.selectedCardId.set(
-      this.selectedCardId() === card.id ? null : card.id
-    );
+    const currentSelection = this.selectedCardId();
+    const isDeselecting = currentSelection === card.id;
+
+    this.selectedCardId.set(isDeselecting ? null : card.id);
+
+    if (isDeselecting) {
+      // Deselecting: invalidate current step and all subsequent steps
+      this.invalidateFromStep(this.activeTab());
+    } else {
+      // Selecting: mark current step as complete
+      this.markStepComplete(this.activeTab());
+    }
   }
 
   isCardSelected(card: CardData): boolean {
     return this.selectedCardId() === card.id;
+  }
+
+  private markStepComplete(tabId: TabId): void {
+    const updated = new Set(this.completedStepsSignal());
+    updated.add(tabId);
+    this.completedStepsSignal.set(updated);
+  }
+
+  private invalidateFromStep(tabId: TabId): void {
+    const tabIndex = this.tabs.findIndex((t) => t.id === tabId);
+    const updated = new Set(this.completedStepsSignal());
+
+    // Remove this step and all subsequent steps
+    for (let i = tabIndex; i < this.tabs.length; i++) {
+      updated.delete(this.tabs[i].id);
+    }
+
+    this.completedStepsSignal.set(updated);
+  }
+
+  private isTabReachable(tabId: TabId): boolean {
+    const targetIndex = this.tabs.findIndex((t) => t.id === tabId);
+    const currentIndex = this.tabs.findIndex((t) => t.id === this.activeTab());
+
+    // Always allow backward navigation
+    if (targetIndex <= currentIndex) return true;
+
+    // Forward: all steps before the target must be completed
+    for (let i = 0; i < targetIndex; i++) {
+      if (!this.completedStepsSignal().has(this.tabs[i].id)) return false;
+    }
+    return true;
   }
 }

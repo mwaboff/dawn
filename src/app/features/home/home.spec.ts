@@ -27,7 +27,7 @@ describe('Home', () => {
   it('should have Characters feature', () => {
     const charactersFeature = component.features.find(f => f.title === 'Create Characters');
     expect(charactersFeature).toBeDefined();
-    expect(charactersFeature?.icon).toBe('sword-shield');
+    expect(charactersFeature?.icon).toBe('pen-paper');
     expect(charactersFeature?.description).toContain('Build and manage your Daggerheart heroes');
   });
 

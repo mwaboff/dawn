@@ -7,13 +7,22 @@
         role="tab"
         class="chapter-marker"
         [class.active]="activeTab() === tab.id"
+        [class.completed]="isTabCompleted(tab.id)"
+        [class.disabled]="isTabDisabled(tab.id)"
         [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-disabled]="isTabDisabled(tab.id)"
         [attr.aria-label]="'Step ' + (i + 1) + ': ' + tab.label"
         [id]="'tab-' + tab.id"
         [attr.aria-controls]="'panel-' + tab.id"
         (click)="selectTab(tab.id)"
       >
-        <span class="marker-pip" aria-hidden="true">{{ i + 1 }}</span>
+        <span class="marker-pip" aria-hidden="true">
+          @if (isTabCompleted(tab.id) && activeTab() !== tab.id) {
+            ✓
+          } @else {
+            {{ i + 1 }}
+          }
+        </span>
         <span class="marker-label">{{ tab.label }}</span>
       </button>
     }
@@ -39,7 +48,7 @@
   <button
     type="button"
     class="arrow-button arrow-next"
-    [disabled]="isLastStep()"
+    [disabled]="isNextDisabled()"
     [attr.aria-label]="'Go to next step: ' + nextLabel()"
     (click)="goToNext()"
   >

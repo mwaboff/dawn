@@ -9,6 +9,7 @@ import { Tab, TabId, CHARACTER_TABS } from '../../models/create-character.model'
     <app-tab-nav
       [tabs]="tabs"
       [activeTab]="activeTab()"
+      [completedSteps]="completedSteps()"
       (tabSelected)="onTabSelected($event)"
     />
   `,
@@ -17,6 +18,7 @@ import { Tab, TabId, CHARACTER_TABS } from '../../models/create-character.model'
 class TestHost {
   tabs: Tab[] = CHARACTER_TABS;
   activeTab = signal<TabId>('class');
+  completedSteps = signal<Set<TabId>>(new Set());
   selectedTab: TabId | null = null;
 
   onTabSelected(tabId: TabId): void {
@@ -74,6 +76,10 @@ describe('TabNav', () => {
 
   describe('Tab Selection', () => {
     it('should emit tabSelected when a marker is clicked', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
       const heritageMarker = markers.find(
@@ -85,6 +91,8 @@ describe('TabNav', () => {
     });
 
     it('should apply active class to current marker', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -95,6 +103,8 @@ describe('TabNav', () => {
     });
 
     it('should remove active class from previously active marker', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -125,6 +135,8 @@ describe('TabNav', () => {
     });
 
     it('should set aria-selected on active marker', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -164,6 +176,8 @@ describe('TabNav', () => {
     });
 
     it('should have aria-label on previous button referencing previous step', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -187,6 +201,8 @@ describe('TabNav', () => {
     });
 
     it('should enable previous button when not on first step', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -196,6 +212,12 @@ describe('TabNav', () => {
     });
 
     it('should disable next button on last step', () => {
+      // Mark all steps as complete so connections is reachable
+      const allCompleted = new Set<TabId>([
+        'class', 'heritage', 'traits', 'additional-info', 'starting-equipment',
+        'background', 'experiences', 'domain-cards', 'connections',
+      ]);
+      host.completedSteps.set(allCompleted);
       host.activeTab.set('connections');
       hostFixture.detectChanges();
 
@@ -204,13 +226,21 @@ describe('TabNav', () => {
       expect(nextBtn.disabled).toBe(true);
     });
 
-    it('should enable next button when not on last step', () => {
+    it('should enable next button when not on last step and current step is complete', () => {
+      // Mark class as complete so next button is enabled
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       expect(nextBtn.disabled).toBe(false);
     });
 
     it('should navigate to next step when next button is clicked', () => {
+      // Mark class as complete so next button works
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
 
@@ -219,6 +249,8 @@ describe('TabNav', () => {
     });
 
     it('should navigate to previous step when previous button is clicked', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
@@ -236,6 +268,8 @@ describe('TabNav', () => {
     });
 
     it('should update indicator label when step changes', () => {
+      // Mark class and heritage as complete so traits is reachable
+      host.completedSteps.set(new Set(['class', 'heritage']));
       host.activeTab.set('traits');
       hostFixture.detectChanges();
 
@@ -251,6 +285,8 @@ describe('TabNav', () => {
     });
 
     it('should show previous step label in previous button', () => {
+      // Mark class and heritage as complete so traits is reachable
+      host.completedSteps.set(new Set(['class', 'heritage']));
       host.activeTab.set('traits');
       hostFixture.detectChanges();
 
@@ -280,7 +316,15 @@ describe('TabNav', () => {
       expect(host.selectedTab).toBeNull();
     });
 
-    it('should navigate sequentially through all steps', () => {
+    it('should navigate sequentially through all steps when all are completed', () => {
+      // Mark all steps as completed
+      const allCompleted = new Set<TabId>([
+        'class', 'heritage', 'traits', 'additional-info', 'starting-equipment',
+        'background', 'experiences', 'domain-cards', 'connections',
+      ]);
+      host.completedSteps.set(allCompleted);
+      hostFixture.detectChanges();
+
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: TabId[] = [
@@ -296,6 +340,206 @@ describe('TabNav', () => {
     });
   });
 
+  describe('Step Completion and Gating', () => {
+    it('should disable next button when current step is not completed', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      expect(nextBtn.disabled).toBe(true);
+    });
+
+    it('should enable next button when current step is completed', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      expect(nextBtn.disabled).toBe(false);
+    });
+
+    it('should not emit tabSelected when clicking a disabled tab', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const traitsMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Traits'
+      ) as HTMLButtonElement;
+
+      host.selectedTab = null;
+      traitsMarker.click();
+
+      // Should not navigate because traits is disabled (heritage not completed)
+      expect(host.selectedTab).toBeNull();
+    });
+
+    it('should emit tabSelected when clicking a non-disabled tab', () => {
+      // Complete class step
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLButtonElement;
+
+      heritageMarker.click();
+
+      expect(host.selectedTab).toBe('heritage');
+    });
+
+    it('should apply disabled class to unreachable future tabs', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const traitsMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Traits'
+      ) as HTMLElement;
+
+      expect(traitsMarker.classList.contains('disabled')).toBe(true);
+    });
+
+    it('should not apply disabled class to current and previous tabs', () => {
+      host.completedSteps.set(new Set(['class', 'heritage']));
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const classMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Class'
+      ) as HTMLElement;
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLElement;
+
+      expect(classMarker.classList.contains('disabled')).toBe(false);
+      expect(heritageMarker.classList.contains('disabled')).toBe(false);
+    });
+
+    it('should apply completed class to completed tabs', () => {
+      host.completedSteps.set(new Set(['class']));
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const classMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Class'
+      ) as HTMLElement;
+
+      expect(classMarker.classList.contains('completed')).toBe(true);
+    });
+
+    it('should not apply completed class to incomplete tabs', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLElement;
+
+      expect(heritageMarker.classList.contains('completed')).toBe(false);
+    });
+
+    it('should set aria-disabled attribute on disabled tabs', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const traitsMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Traits'
+      ) as HTMLElement;
+
+      expect(traitsMarker.getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('should not set aria-disabled on reachable tabs', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLElement;
+
+      expect(heritageMarker.getAttribute('aria-disabled')).toBe('false');
+    });
+
+    it('should display checkmark for completed tabs that are not active', () => {
+      host.completedSteps.set(new Set(['class']));
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const classMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Class'
+      ) as HTMLElement;
+      const pip = classMarker.querySelector('.marker-pip');
+
+      expect(pip?.textContent?.trim()).toBe('✓');
+    });
+
+    it('should display number for incomplete tabs', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLElement;
+      const pip = heritageMarker.querySelector('.marker-pip');
+
+      expect(pip?.textContent?.trim()).toBe('2');
+    });
+
+    it('should display number for active tab even if completed', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const classMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Class'
+      ) as HTMLElement;
+      const pip = classMarker.querySelector('.marker-pip');
+
+      expect(pip?.textContent?.trim()).toBe('1');
+    });
+
+    it('should not disable next button when on last step even if completed', () => {
+      host.completedSteps.set(new Set(['connections']));
+      host.activeTab.set('connections');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      expect(nextBtn.disabled).toBe(true);
+    });
+
+    it('should not prevent clicking next when step is completed', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      nextBtn.click();
+      expect(host.selectedTab).toBe('heritage');
+    });
+
+    it('should allow previous navigation regardless of completion state', () => {
+      host.completedSteps.set(new Set(['class']));
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+
+      expect(prevBtn.disabled).toBe(false);
+
+      prevBtn.click();
+      expect(host.selectedTab).toBe('class');
+    });
+  });
+
   describe('Auto-scroll', () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -308,6 +552,8 @@ describe('TabNav', () => {
     it('should call scrollIntoView on the active tab when activeTab changes', () => {
       const scrollIntoViewMock = vi.fn();
 
+      // Mark class as complete so heritage and traits are reachable
+      host.completedSteps.set(new Set(['class', 'heritage']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
       vi.advanceTimersByTime(0);
@@ -332,6 +578,10 @@ describe('TabNav', () => {
     });
 
     it('should scroll when navigating via the next arrow', () => {
+      // Mark class as complete so next button works
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
 
@@ -353,6 +603,8 @@ describe('TabNav', () => {
     });
 
     it('should scroll when navigating via the previous arrow', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
       vi.advanceTimersByTime(0);
@@ -376,6 +628,8 @@ describe('TabNav', () => {
     });
 
     it('should not error when the scroll container is not available', () => {
+      // Mark class as complete so heritage is reachable
+      host.completedSteps.set(new Set(['class']));
       expect(() => {
         host.activeTab.set('heritage');
         hostFixture.detectChanges();

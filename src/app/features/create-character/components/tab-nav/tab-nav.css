@@ -148,6 +148,34 @@
   font-weight: 600;
 }
 
+/* Disabled/locked marker */
+.chapter-marker.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.chapter-marker.disabled .marker-pip {
+  border-color: var(--trail-muted);
+  background-color: var(--trail-warm-bg);
+  color: var(--trail-muted);
+}
+
+.chapter-marker.disabled .marker-label {
+  color: var(--trail-muted);
+}
+
+/* Completed marker */
+.chapter-marker.completed .marker-pip {
+  background-color: var(--trail-gold);
+  border-color: var(--trail-gold-bright);
+  color: var(--trail-ink);
+}
+
+.chapter-marker.completed .marker-label {
+  color: var(--trail-ink);
+}
+
 /* Desktop: spread items evenly */
 @media (min-width: 900px) {
   .trail-scroll {
