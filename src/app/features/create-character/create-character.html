@@ -1,17 +1,22 @@
 <div class="create-character-container">
-  <app-tab-nav
-    [tabs]="tabs"
-    [activeTab]="activeTab()"
-    (tabSelected)="onTabSelected($event)"
-  />
-
   <!-- Main Content Area -->
   <main class="content-area" role="main">
     <div class="parchment-container">
       <app-character-form />
 
-      <!-- Tab Content Placeholder -->
-      <div class="tab-content" role="region" [attr.aria-label]="activeTab() + ' section'">
+      <app-tab-nav
+        [tabs]="tabs"
+        [activeTab]="activeTab()"
+        (tabSelected)="onTabSelected($event)"
+      />
+
+      <!-- Tab Content -->
+      <div
+        class="tab-content"
+        role="tabpanel"
+        [id]="'panel-' + activeTab()"
+        [attr.aria-labelledby]="'tab-' + activeTab()"
+      >
         @switch (activeTab()) {
           @case ('class') {
             <div class="card-grid">

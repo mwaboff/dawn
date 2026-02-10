@@ -61,18 +61,19 @@ describe('CreateCharacter', () => {
       expect(characterForm).toBeTruthy();
     });
 
-    it('should have role="region" on tab content', () => {
+    it('should have role="tabpanel" on tab content', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       const tabContent = compiled.querySelector('.tab-content');
-      expect(tabContent?.getAttribute('role')).toBe('region');
+      expect(tabContent?.getAttribute('role')).toBe('tabpanel');
     });
 
-    it('should have descriptive aria-label on tab content region', () => {
+    it('should link tab panel to its tab via aria-labelledby', () => {
       component.onTabSelected('heritage');
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
       const tabContent = compiled.querySelector('.tab-content');
-      expect(tabContent?.getAttribute('aria-label')).toBe('heritage section');
+      expect(tabContent?.getAttribute('aria-labelledby')).toBe('tab-heritage');
+      expect(tabContent?.id).toBe('panel-heritage');
     });
 
     it('should render placeholder text for tabs without content', () => {

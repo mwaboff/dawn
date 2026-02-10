@@ -45,168 +45,364 @@ describe('TabNav', () => {
   });
 
   describe('Initial State', () => {
-    it('should render all 9 desktop folder tabs', () => {
+    it('should render all 9 chapter markers', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const desktopTabs = compiled.querySelectorAll('.desktop-tabs .folder-tab');
-      expect(desktopTabs.length).toBe(9);
+      const markers = compiled.querySelectorAll('.chapter-marker');
+      expect(markers.length).toBe(9);
     });
 
-    it('should render all 9 mobile drawer items', () => {
+    it('should display step numbers in marker pips', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const drawerItems = compiled.querySelectorAll('.mobile-drawer .drawer-item');
-      expect(drawerItems.length).toBe(9);
-    });
-  });
-
-  describe('Mobile Drawer', () => {
-    it('should toggle drawer when hamburger is clicked', () => {
-      const compiled = hostFixture.nativeElement as HTMLElement;
-      const hamburger = compiled.querySelector('.hamburger-button') as HTMLButtonElement;
-
-      expect(compiled.querySelector('.mobile-drawer.open')).toBeFalsy();
-
-      hamburger.click();
-      hostFixture.detectChanges();
-      expect(compiled.querySelector('.mobile-drawer.open')).toBeTruthy();
-
-      hamburger.click();
-      hostFixture.detectChanges();
-      expect(compiled.querySelector('.mobile-drawer.open')).toBeFalsy();
+      const pips = compiled.querySelectorAll('.marker-pip');
+      expect(pips[0].textContent?.trim()).toBe('1');
+      expect(pips[8].textContent?.trim()).toBe('9');
     });
 
-    it('should show overlay when drawer is open', () => {
+    it('should display tab labels in marker labels', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const hamburger = compiled.querySelector('.hamburger-button') as HTMLButtonElement;
-
-      expect(compiled.querySelector('.mobile-drawer-overlay')).toBeFalsy();
-
-      hamburger.click();
-      hostFixture.detectChanges();
-      expect(compiled.querySelector('.mobile-drawer-overlay')).toBeTruthy();
+      const labels = compiled.querySelectorAll('.marker-label');
+      expect(labels[0].textContent?.trim()).toBe('Class');
+      expect(labels[1].textContent?.trim()).toBe('Heritage');
     });
 
-    it('should close drawer when overlay is clicked', () => {
+    it('should render the connecting trail line', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const hamburger = compiled.querySelector('.hamburger-button') as HTMLButtonElement;
-
-      hamburger.click();
-      hostFixture.detectChanges();
-
-      const overlay = compiled.querySelector('.mobile-drawer-overlay') as HTMLDivElement;
-      overlay.click();
-      hostFixture.detectChanges();
-
-      expect(compiled.querySelector('.mobile-drawer.open')).toBeFalsy();
-    });
-
-    it('should close drawer when a tab is selected from drawer', () => {
-      const compiled = hostFixture.nativeElement as HTMLElement;
-      const hamburger = compiled.querySelector('.hamburger-button') as HTMLButtonElement;
-
-      hamburger.click();
-      hostFixture.detectChanges();
-
-      const items = Array.from(compiled.querySelectorAll('.mobile-drawer .drawer-item'));
-      const traitsItem = items.find((item) => item.textContent?.trim() === 'Traits') as HTMLButtonElement;
-      traitsItem.click();
-      hostFixture.detectChanges();
-
-      expect(compiled.querySelector('.mobile-drawer.open')).toBeFalsy();
+      const trailLine = compiled.querySelector('.trail-line');
+      expect(trailLine).toBeTruthy();
     });
   });
 
   describe('Tab Selection', () => {
-    it('should emit tabSelected when desktop tab is clicked', () => {
+    it('should emit tabSelected when a marker is clicked', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const tabs = Array.from(compiled.querySelectorAll('.desktop-tabs .folder-tab'));
-      const heritageTab = tabs.find((tab) => tab.textContent?.trim() === 'Heritage') as HTMLButtonElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      ) as HTMLButtonElement;
 
-      heritageTab.click();
+      heritageMarker.click();
       expect(host.selectedTab).toBe('heritage');
     });
 
-    it('should emit tabSelected when mobile drawer item is clicked', () => {
-      const compiled = hostFixture.nativeElement as HTMLElement;
-      const items = Array.from(compiled.querySelectorAll('.mobile-drawer .drawer-item'));
-      const traitsItem = items.find((item) => item.textContent?.trim() === 'Traits') as HTMLButtonElement;
-
-      traitsItem.click();
-      expect(host.selectedTab).toBe('traits');
-    });
-
-    it('should apply active class to current desktop tab', () => {
+    it('should apply active class to current marker', () => {
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const activeTabs = compiled.querySelectorAll('.desktop-tabs .folder-tab.active');
-      expect(activeTabs.length).toBe(1);
-      expect(activeTabs[0].textContent?.trim()).toBe('Heritage');
+      const activeMarkers = compiled.querySelectorAll('.chapter-marker.active');
+      expect(activeMarkers.length).toBe(1);
+      expect(activeMarkers[0].querySelector('.marker-label')?.textContent?.trim()).toBe('Heritage');
     });
 
-    it('should apply active class to current mobile drawer item', () => {
-      host.activeTab.set('traits');
+    it('should remove active class from previously active marker', () => {
+      host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const activeItems = compiled.querySelectorAll('.mobile-drawer .drawer-item.active');
-      expect(activeItems.length).toBe(1);
-      expect(activeItems[0].textContent?.trim()).toBe('Traits');
+      const markers = compiled.querySelectorAll('.chapter-marker');
+      const classMarker = markers[0];
+      expect(classMarker.classList.contains('active')).toBe(false);
     });
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA labels on desktop tabs', () => {
+    it('should have tablist role on nav container', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const firstTab = compiled.querySelector('.desktop-tabs .folder-tab');
-      expect(firstTab?.getAttribute('aria-label')).toBe('Navigate to Class tab');
+      const nav = compiled.querySelector('[role="tablist"]');
+      expect(nav).toBeTruthy();
     });
 
-    it('should have proper ARIA labels on mobile drawer items', () => {
+    it('should have tab role on each marker', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const firstItem = compiled.querySelector('.mobile-drawer .drawer-item');
-      expect(firstItem?.getAttribute('aria-label')).toBe('Navigate to Class tab');
+      const markers = compiled.querySelectorAll('[role="tab"]');
+      expect(markers.length).toBe(9);
     });
 
-    it('should set aria-current on active desktop tab', () => {
+    it('should have descriptive aria-labels with step numbers', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const firstMarker = compiled.querySelector('.chapter-marker');
+      expect(firstMarker?.getAttribute('aria-label')).toBe('Step 1: Class');
+    });
+
+    it('should set aria-selected on active marker', () => {
       host.activeTab.set('heritage');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const tabs = Array.from(compiled.querySelectorAll('.desktop-tabs .folder-tab'));
-      const heritageTab = tabs.find((tab) => tab.textContent?.trim() === 'Heritage');
-      expect(heritageTab?.getAttribute('aria-current')).toBe('page');
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      );
+      expect(heritageMarker?.getAttribute('aria-selected')).toBe('true');
     });
 
-    it('should set aria-current on active mobile drawer item', () => {
+    it('should not set aria-selected on inactive markers', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
+      const heritageMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      );
+      expect(heritageMarker?.getAttribute('aria-selected')).toBe('false');
+    });
+
+    it('should have aria-controls linking to tab panel', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const firstMarker = compiled.querySelector('.chapter-marker');
+      expect(firstMarker?.getAttribute('aria-controls')).toBe('panel-class');
+    });
+
+    it('should have an accessible label on the nav element', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nav = compiled.querySelector('.chapter-trail');
+      expect(nav?.getAttribute('aria-label')).toBe('Character creation steps');
+    });
+
+    it('should have aria-label on next button referencing next step', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next');
+      expect(nextBtn?.getAttribute('aria-label')).toBe('Go to next step: Heritage');
+    });
+
+    it('should have aria-label on previous button referencing previous step', () => {
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev');
+      expect(prevBtn?.getAttribute('aria-label')).toBe('Go to previous step: Class');
+    });
+  });
+
+  describe('Arrow Navigation', () => {
+    it('should render previous and next arrow buttons', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.arrow-prev')).toBeTruthy();
+      expect(compiled.querySelector('.arrow-next')).toBeTruthy();
+    });
+
+    it('should disable previous button on first step', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+      expect(prevBtn.disabled).toBe(true);
+    });
+
+    it('should enable previous button when not on first step', () => {
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+      expect(prevBtn.disabled).toBe(false);
+    });
+
+    it('should disable next button on last step', () => {
+      host.activeTab.set('connections');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+      expect(nextBtn.disabled).toBe(true);
+    });
+
+    it('should enable next button when not on last step', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+      expect(nextBtn.disabled).toBe(false);
+    });
+
+    it('should navigate to next step when next button is clicked', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      nextBtn.click();
+      expect(host.selectedTab).toBe('heritage');
+    });
+
+    it('should navigate to previous step when previous button is clicked', () => {
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+
+      prevBtn.click();
+      expect(host.selectedTab).toBe('class');
+    });
+
+    it('should display the current step label in the indicator', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const indicator = compiled.querySelector('.step-indicator');
+      expect(indicator?.textContent?.trim()).toBe('Class');
+    });
+
+    it('should update indicator label when step changes', () => {
       host.activeTab.set('traits');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const items = Array.from(compiled.querySelectorAll('.mobile-drawer .drawer-item'));
-      const traitsItem = items.find((item) => item.textContent?.trim() === 'Traits');
-      expect(traitsItem?.getAttribute('aria-current')).toBe('page');
+      const indicator = compiled.querySelector('.step-indicator');
+      expect(indicator?.textContent?.trim()).toBe('Traits');
     });
 
-    it('should have aria-expanded on hamburger button', () => {
+    it('should show next step label in next button', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const hamburger = compiled.querySelector('.hamburger-button');
-      expect(hamburger?.getAttribute('aria-expanded')).toBe('false');
-
-      (hamburger as HTMLButtonElement).click();
-      hostFixture.detectChanges();
-      expect(hamburger?.getAttribute('aria-expanded')).toBe('true');
+      const nextText = compiled.querySelector('.arrow-next .arrow-text');
+      expect(nextText?.textContent?.trim()).toBe('Heritage');
     });
 
-    it('should have aria-hidden on mobile drawer', () => {
-      const compiled = hostFixture.nativeElement as HTMLElement;
-      const drawer = compiled.querySelector('.mobile-drawer');
-      expect(drawer?.getAttribute('aria-hidden')).toBe('true');
-
-      const hamburger = compiled.querySelector('.hamburger-button') as HTMLButtonElement;
-      hamburger.click();
+    it('should show previous step label in previous button', () => {
+      host.activeTab.set('traits');
       hostFixture.detectChanges();
-      expect(drawer?.getAttribute('aria-hidden')).toBe('false');
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevText = compiled.querySelector('.arrow-prev .arrow-text');
+      expect(prevText?.textContent?.trim()).toBe('Heritage');
+    });
+
+    it('should not navigate when previous is clicked on first step', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+
+      host.selectedTab = null;
+      prevBtn.click();
+      expect(host.selectedTab).toBeNull();
+    });
+
+    it('should not navigate when next is clicked on last step', () => {
+      host.activeTab.set('connections');
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      host.selectedTab = null;
+      nextBtn.click();
+      expect(host.selectedTab).toBeNull();
+    });
+
+    it('should navigate sequentially through all steps', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+      const expectedOrder: TabId[] = [
+        'heritage', 'traits', 'additional-info', 'starting-equipment',
+        'background', 'experiences', 'domain-cards', 'connections',
+      ];
+
+      expectedOrder.forEach((expectedTab) => {
+        nextBtn.click();
+        hostFixture.detectChanges();
+        expect(host.activeTab()).toBe(expectedTab);
+      });
+    });
+  });
+
+  describe('Auto-scroll', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should call scrollIntoView on the active tab when activeTab changes', () => {
+      const scrollIntoViewMock = vi.fn();
+
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const heritageTab = compiled.querySelector('#tab-heritage') as HTMLElement;
+      heritageTab.scrollIntoView = scrollIntoViewMock;
+
+      host.activeTab.set('traits');
+      hostFixture.detectChanges();
+
+      const traitsTab = compiled.querySelector('#tab-traits') as HTMLElement;
+      traitsTab.scrollIntoView = scrollIntoViewMock;
+
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+
+    it('should scroll when navigating via the next arrow', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+
+      vi.advanceTimersByTime(0);
+
+      const scrollIntoViewMock = vi.fn();
+      const heritageTab = compiled.querySelector('#tab-heritage') as HTMLElement;
+      heritageTab.scrollIntoView = scrollIntoViewMock;
+
+      nextBtn.click();
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+
+    it('should scroll when navigating via the previous arrow', () => {
+      host.activeTab.set('heritage');
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const prevBtn = compiled.querySelector('.arrow-prev') as HTMLButtonElement;
+
+      const scrollIntoViewMock = vi.fn();
+      const classTab = compiled.querySelector('#tab-class') as HTMLElement;
+      classTab.scrollIntoView = scrollIntoViewMock;
+
+      prevBtn.click();
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+
+    it('should not error when the scroll container is not available', () => {
+      expect(() => {
+        host.activeTab.set('heritage');
+        hostFixture.detectChanges();
+        vi.advanceTimersByTime(0);
+      }).not.toThrow();
+    });
+  });
+
+  describe('Trail Line', () => {
+    it('should set trail line width based on scroll container', async () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const trailLine = compiled.querySelector('.trail-line') as HTMLElement;
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      const widthValue = trailLine.style.width;
+      expect(widthValue).toBeTruthy();
+      expect(widthValue).toMatch(/^\d+px$/);
+    });
+
+    it('should update trail line width when component initializes', async () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const trailLine = compiled.querySelector('.trail-line') as HTMLElement;
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(trailLine.style.width).not.toBe('');
     });
   });
 });
