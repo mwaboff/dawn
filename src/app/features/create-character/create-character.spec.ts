@@ -36,20 +36,20 @@ describe('CreateCharacter', () => {
     it('should change active tab when onTabSelected is called with a reachable tab', () => {
       const card = component.allMockCards[0];
 
-      // Complete class step to make heritage reachable
+      // Complete class step to make subclass reachable
       component.onCardClicked(card);
-      component.onTabSelected('heritage');
+      component.onTabSelected('subclass');
 
-      expect(component.activeTab()).toBe('heritage');
+      expect(component.activeTab()).toBe('subclass');
     });
 
     it('should allow backward navigation to previous tabs', () => {
       const card = component.allMockCards[0];
 
-      // Complete class and navigate to heritage
+      // Complete class and navigate to subclass
       component.onCardClicked(card);
-      component.onTabSelected('heritage');
-      expect(component.activeTab()).toBe('heritage');
+      component.onTabSelected('subclass');
+      expect(component.activeTab()).toBe('subclass');
 
       // Should be able to go back to class
       component.onTabSelected('class');
@@ -113,20 +113,20 @@ describe('CreateCharacter', () => {
 
       // Manually add future steps to completedSteps to simulate progression
       const updated = new Set(component.completedSteps());
-      updated.add('heritage');
-      updated.add('traits');
+      updated.add('subclass');
+      updated.add('ancestry');
       component['completedStepsSignal'].set(updated);
 
-      expect(component.completedSteps().has('heritage')).toBe(true);
-      expect(component.completedSteps().has('traits')).toBe(true);
+      expect(component.completedSteps().has('subclass')).toBe(true);
+      expect(component.completedSteps().has('ancestry')).toBe(true);
 
       // Deselect on step 1
       component.onCardClicked(card);
 
       // Step 1 and all future steps should be invalidated
       expect(component.completedSteps().has('class')).toBe(false);
-      expect(component.completedSteps().has('heritage')).toBe(false);
-      expect(component.completedSteps().has('traits')).toBe(false);
+      expect(component.completedSteps().has('subclass')).toBe(false);
+      expect(component.completedSteps().has('ancestry')).toBe(false);
     });
   });
 
@@ -134,7 +134,7 @@ describe('CreateCharacter', () => {
     it('should block forward navigation when current step is incomplete', () => {
       expect(component.activeTab()).toBe('class');
 
-      component.onTabSelected('heritage');
+      component.onTabSelected('subclass');
 
       // Should stay on class tab because it's not complete
       expect(component.activeTab()).toBe('class');
@@ -147,20 +147,20 @@ describe('CreateCharacter', () => {
       component.onCardClicked(card);
       expect(component.completedSteps().has('class')).toBe(true);
 
-      // Now should be able to navigate to heritage
-      component.onTabSelected('heritage');
-      expect(component.activeTab()).toBe('heritage');
+      // Now should be able to navigate to subclass
+      component.onTabSelected('subclass');
+      expect(component.activeTab()).toBe('subclass');
     });
 
     it('should always allow backward navigation', () => {
       const card = component.allMockCards[0];
 
-      // Complete class step and move to heritage
+      // Complete class step and move to subclass
       component.onCardClicked(card);
-      component.onTabSelected('heritage');
-      expect(component.activeTab()).toBe('heritage');
+      component.onTabSelected('subclass');
+      expect(component.activeTab()).toBe('subclass');
 
-      // Should be able to go back to class without completing heritage
+      // Should be able to go back to class without completing subclass
       component.onTabSelected('class');
       expect(component.activeTab()).toBe('class');
     });
@@ -171,13 +171,13 @@ describe('CreateCharacter', () => {
       // Complete class step
       component.onCardClicked(card);
 
-      // Should be able to navigate to heritage (next step)
-      component.onTabSelected('heritage');
-      expect(component.activeTab()).toBe('heritage');
+      // Should be able to navigate to subclass (next step)
+      component.onTabSelected('subclass');
+      expect(component.activeTab()).toBe('subclass');
 
-      // But should NOT be able to skip to traits without completing heritage
-      component.onTabSelected('traits');
-      expect(component.activeTab()).toBe('heritage');
+      // But should NOT be able to skip to ancestry without completing subclass
+      component.onTabSelected('ancestry');
+      expect(component.activeTab()).toBe('subclass');
     });
 
     it('should allow navigation to current tab', () => {
@@ -210,18 +210,18 @@ describe('CreateCharacter', () => {
     it('should link tab panel to its tab via aria-labelledby', () => {
       const card = component.allMockCards[0];
       component.onCardClicked(card);
-      component.onTabSelected('heritage');
+      component.onTabSelected('subclass');
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
       const tabContent = compiled.querySelector('.tab-content');
-      expect(tabContent?.getAttribute('aria-labelledby')).toBe('tab-heritage');
-      expect(tabContent?.id).toBe('panel-heritage');
+      expect(tabContent?.getAttribute('aria-labelledby')).toBe('tab-subclass');
+      expect(tabContent?.id).toBe('panel-subclass');
     });
 
     it('should render placeholder text for tabs without content', () => {
       const card = component.allMockCards[0];
       component.onCardClicked(card);
-      const tabIds = ['heritage', 'traits'] as const;
+      const tabIds = ['subclass', 'ancestry'] as const;
 
       component.onTabSelected(tabIds[0]);
       fixture.detectChanges();

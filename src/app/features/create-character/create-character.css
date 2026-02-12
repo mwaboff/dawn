@@ -1,56 +1,83 @@
-/* Container */
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
 .create-character-container {
   position: relative;
   min-height: 100vh;
-  background-color: #f5e6d3;
-  padding: 1rem;
-  padding-top: 5rem;
+  padding: 1.5rem;
+  padding-top: 5.5rem;
+  background:
+    linear-gradient(to bottom, rgba(26, 20, 18, 0.1) 0%, transparent 240px),
+    radial-gradient(ellipse at 30% 0%, rgba(180, 120, 50, 0.06) 0%, transparent 50%),
+    #ebe0d0;
 }
 
-@media (min-width: 768px) {
-  .create-character-container {
-    padding-top: 6rem;
-  }
+.page-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;
+  background-size: 200px;
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
-/* Content Area */
 .content-area {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Parchment Container */
 .parchment-container {
   position: relative;
-  background-color: #faf6f0;
-  border: 2px solid #8b5e34;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(170deg, #faf7f2 0%, #f5ede0 100%);
+  border: 1px solid #c9a87c;
+  border-top: 2px solid var(--color-accent, #d4a056);
+  border-radius: 4px;
+  padding: 2.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-/* Tab Content */
 .tab-content {
   min-height: 400px;
 }
 
 .placeholder-text {
-  color: #6d4c41;
+  color: #7a5c46;
   font-style: italic;
   font-size: 1.125rem;
   text-align: center;
   margin-top: 4rem;
 }
 
-/* Card Grid */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .create-character-container {
+    padding: 2rem;
+    padding-top: 6.5rem;
+  }
 }
 
 @media (max-width: 640px) {
   .card-grid {
     grid-template-columns: 1fr;
+  }
+  .parchment-container {
+    padding: 1.5rem;
+  }
+  .create-character-container {
+    padding: 0.75rem;
+    padding-top: 5rem;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,6 +22,16 @@ export class Auth {
   readonly signupError = signal<string | null>(null);
   readonly isLoading = signal(false);
   readonly confirmPasswordTouched = signal(false);
+
+  readonly title = computed(() =>
+    this.activeTab() === 'login' ? 'Welcome Back' : 'Join the Adventure'
+  );
+
+  readonly subtitle = computed(() =>
+    this.activeTab() === 'login'
+      ? 'Sign in to continue your adventure'
+      : 'Create an account to begin your journey'
+  );
 
   readonly loginForm: FormGroup;
   readonly signupForm: FormGroup;

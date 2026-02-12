@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { CharacterFormField } from '../../models/create-character.model';
+import { CharacterFormField, CharacterSelections } from '../../models/create-character.model';
 
 @Component({
   selector: 'app-character-form',
@@ -13,13 +13,20 @@ import { CharacterFormField } from '../../models/create-character.model';
 export class CharacterForm {
   private readonly fb = inject(FormBuilder);
 
+  readonly selections = input<CharacterSelections>({});
+
   readonly characterForm = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
-    pronouns: ['', [Validators.required]],
+    pronouns: [''],
   });
 
   isFieldInvalid(fieldName: CharacterFormField): boolean {
     const control = this.characterForm.controls[fieldName];
     return control.invalid && control.touched;
+  }
+
+  hasSelections(): boolean {
+    const s = this.selections();
+    return !!(s.class || s.subclass || s.ancestry || s.community);
   }
 }

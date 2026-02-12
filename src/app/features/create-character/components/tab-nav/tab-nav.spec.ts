@@ -64,7 +64,7 @@ describe('TabNav', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const labels = compiled.querySelectorAll('.marker-label');
       expect(labels[0].textContent?.trim()).toBe('Class');
-      expect(labels[1].textContent?.trim()).toBe('Heritage');
+      expect(labels[1].textContent?.trim()).toBe('Subclass');
     });
 
     it('should render the connecting trail line', () => {
@@ -76,36 +76,36 @@ describe('TabNav', () => {
 
   describe('Tab Selection', () => {
     it('should emit tabSelected when a marker is clicked', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLButtonElement;
 
-      heritageMarker.click();
-      expect(host.selectedTab).toBe('heritage');
+      subclassMarker.click();
+      expect(host.selectedTab).toBe('subclass');
     });
 
     it('should apply active class to current marker', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const activeMarkers = compiled.querySelectorAll('.chapter-marker.active');
       expect(activeMarkers.length).toBe(1);
-      expect(activeMarkers[0].querySelector('.marker-label')?.textContent?.trim()).toBe('Heritage');
+      expect(activeMarkers[0].querySelector('.marker-label')?.textContent?.trim()).toBe('Subclass');
     });
 
     it('should remove active class from previously active marker', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -135,26 +135,26 @@ describe('TabNav', () => {
     });
 
     it('should set aria-selected on active marker', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       );
-      expect(heritageMarker?.getAttribute('aria-selected')).toBe('true');
+      expect(subclassMarker?.getAttribute('aria-selected')).toBe('true');
     });
 
     it('should not set aria-selected on inactive markers', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       );
-      expect(heritageMarker?.getAttribute('aria-selected')).toBe('false');
+      expect(subclassMarker?.getAttribute('aria-selected')).toBe('false');
     });
 
     it('should have aria-controls linking to tab panel', () => {
@@ -172,13 +172,13 @@ describe('TabNav', () => {
     it('should have aria-label on next button referencing next step', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next');
-      expect(nextBtn?.getAttribute('aria-label')).toBe('Go to next step: Heritage');
+      expect(nextBtn?.getAttribute('aria-label')).toBe('Go to next step: Subclass');
     });
 
     it('should have aria-label on previous button referencing previous step', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -201,9 +201,9 @@ describe('TabNav', () => {
     });
 
     it('should enable previous button when not on first step', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -212,13 +212,13 @@ describe('TabNav', () => {
     });
 
     it('should disable next button on last step', () => {
-      // Mark all steps as complete so connections is reachable
+      // Mark all steps as complete so domain-cards is reachable
       const allCompleted = new Set<TabId>([
-        'class', 'heritage', 'traits', 'additional-info', 'starting-equipment',
-        'background', 'experiences', 'domain-cards', 'connections',
+        'class', 'subclass', 'ancestry', 'community', 'traits',
+        'starting-equipment', 'background', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
-      host.activeTab.set('connections');
+      host.activeTab.set('domain-cards');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -245,13 +245,13 @@ describe('TabNav', () => {
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
 
       nextBtn.click();
-      expect(host.selectedTab).toBe('heritage');
+      expect(host.selectedTab).toBe('subclass');
     });
 
     it('should navigate to previous step when previous button is clicked', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -268,8 +268,8 @@ describe('TabNav', () => {
     });
 
     it('should update indicator label when step changes', () => {
-      // Mark class and heritage as complete so traits is reachable
-      host.completedSteps.set(new Set(['class', 'heritage']));
+      // Mark class, subclass, ancestry, and community as complete so traits is reachable
+      host.completedSteps.set(new Set(['class', 'subclass', 'ancestry', 'community']));
       host.activeTab.set('traits');
       hostFixture.detectChanges();
 
@@ -281,18 +281,18 @@ describe('TabNav', () => {
     it('should show next step label in next button', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextText = compiled.querySelector('.arrow-next .arrow-text');
-      expect(nextText?.textContent?.trim()).toBe('Heritage');
+      expect(nextText?.textContent?.trim()).toBe('Subclass');
     });
 
     it('should show previous step label in previous button', () => {
-      // Mark class and heritage as complete so traits is reachable
-      host.completedSteps.set(new Set(['class', 'heritage']));
+      // Mark class, subclass, ancestry, and community as complete so traits is reachable
+      host.completedSteps.set(new Set(['class', 'subclass', 'ancestry', 'community']));
       host.activeTab.set('traits');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const prevText = compiled.querySelector('.arrow-prev .arrow-text');
-      expect(prevText?.textContent?.trim()).toBe('Heritage');
+      expect(prevText?.textContent?.trim()).toBe('Community');
     });
 
     it('should not navigate when previous is clicked on first step', () => {
@@ -305,7 +305,7 @@ describe('TabNav', () => {
     });
 
     it('should not navigate when next is clicked on last step', () => {
-      host.activeTab.set('connections');
+      host.activeTab.set('domain-cards');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -319,8 +319,8 @@ describe('TabNav', () => {
     it('should navigate sequentially through all steps when all are completed', () => {
       // Mark all steps as completed
       const allCompleted = new Set<TabId>([
-        'class', 'heritage', 'traits', 'additional-info', 'starting-equipment',
-        'background', 'experiences', 'domain-cards', 'connections',
+        'class', 'subclass', 'ancestry', 'community', 'traits',
+        'starting-equipment', 'background', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
       hostFixture.detectChanges();
@@ -328,8 +328,8 @@ describe('TabNav', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: TabId[] = [
-        'heritage', 'traits', 'additional-info', 'starting-equipment',
-        'background', 'experiences', 'domain-cards', 'connections',
+        'subclass', 'ancestry', 'community', 'traits',
+        'starting-equipment', 'background', 'experiences', 'domain-cards',
       ];
 
       expectedOrder.forEach((expectedTab) => {
@@ -368,7 +368,7 @@ describe('TabNav', () => {
       host.selectedTab = null;
       traitsMarker.click();
 
-      // Should not navigate because traits is disabled (heritage not completed)
+      // Should not navigate because traits is disabled (prior steps not completed)
       expect(host.selectedTab).toBeNull();
     });
 
@@ -379,13 +379,13 @@ describe('TabNav', () => {
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLButtonElement;
 
-      heritageMarker.click();
+      subclassMarker.click();
 
-      expect(host.selectedTab).toBe('heritage');
+      expect(host.selectedTab).toBe('subclass');
     });
 
     it('should apply disabled class to unreachable future tabs', () => {
@@ -399,8 +399,8 @@ describe('TabNav', () => {
     });
 
     it('should not apply disabled class to current and previous tabs', () => {
-      host.completedSteps.set(new Set(['class', 'heritage']));
-      host.activeTab.set('heritage');
+      host.completedSteps.set(new Set(['class', 'subclass']));
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -408,17 +408,17 @@ describe('TabNav', () => {
       const classMarker = markers.find(
         (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Class'
       ) as HTMLElement;
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLElement;
 
       expect(classMarker.classList.contains('disabled')).toBe(false);
-      expect(heritageMarker.classList.contains('disabled')).toBe(false);
+      expect(subclassMarker.classList.contains('disabled')).toBe(false);
     });
 
     it('should apply completed class to completed tabs', () => {
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -433,11 +433,11 @@ describe('TabNav', () => {
     it('should not apply completed class to incomplete tabs', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLElement;
 
-      expect(heritageMarker.classList.contains('completed')).toBe(false);
+      expect(subclassMarker.classList.contains('completed')).toBe(false);
     });
 
     it('should set aria-disabled attribute on disabled tabs', () => {
@@ -456,16 +456,16 @@ describe('TabNav', () => {
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLElement;
 
-      expect(heritageMarker.getAttribute('aria-disabled')).toBe('false');
+      expect(subclassMarker.getAttribute('aria-disabled')).toBe('false');
     });
 
     it('should display checkmark for completed tabs that are not active', () => {
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -481,10 +481,10 @@ describe('TabNav', () => {
     it('should display number for incomplete tabs', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = Array.from(compiled.querySelectorAll('.chapter-marker'));
-      const heritageMarker = markers.find(
-        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Heritage'
+      const subclassMarker = markers.find(
+        (m) => m.querySelector('.marker-label')?.textContent?.trim() === 'Subclass'
       ) as HTMLElement;
-      const pip = heritageMarker.querySelector('.marker-pip');
+      const pip = subclassMarker.querySelector('.marker-pip');
 
       expect(pip?.textContent?.trim()).toBe('2');
     });
@@ -504,8 +504,8 @@ describe('TabNav', () => {
     });
 
     it('should not disable next button when on last step even if completed', () => {
-      host.completedSteps.set(new Set(['connections']));
-      host.activeTab.set('connections');
+      host.completedSteps.set(new Set(['domain-cards']));
+      host.activeTab.set('domain-cards');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -522,12 +522,12 @@ describe('TabNav', () => {
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
 
       nextBtn.click();
-      expect(host.selectedTab).toBe('heritage');
+      expect(host.selectedTab).toBe('subclass');
     });
 
     it('should allow previous navigation regardless of completion state', () => {
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -552,15 +552,15 @@ describe('TabNav', () => {
     it('should call scrollIntoView on the active tab when activeTab changes', () => {
       const scrollIntoViewMock = vi.fn();
 
-      // Mark class as complete so heritage and traits are reachable
-      host.completedSteps.set(new Set(['class', 'heritage']));
-      host.activeTab.set('heritage');
+      // Mark class, subclass, ancestry, and community as complete so traits is reachable
+      host.completedSteps.set(new Set(['class', 'subclass', 'ancestry', 'community']));
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
       vi.advanceTimersByTime(0);
 
       const compiled = hostFixture.nativeElement as HTMLElement;
-      const heritageTab = compiled.querySelector('#tab-heritage') as HTMLElement;
-      heritageTab.scrollIntoView = scrollIntoViewMock;
+      const subclassTab = compiled.querySelector('#tab-subclass') as HTMLElement;
+      subclassTab.scrollIntoView = scrollIntoViewMock;
 
       host.activeTab.set('traits');
       hostFixture.detectChanges();
@@ -588,8 +588,8 @@ describe('TabNav', () => {
       vi.advanceTimersByTime(0);
 
       const scrollIntoViewMock = vi.fn();
-      const heritageTab = compiled.querySelector('#tab-heritage') as HTMLElement;
-      heritageTab.scrollIntoView = scrollIntoViewMock;
+      const subclassTab = compiled.querySelector('#tab-subclass') as HTMLElement;
+      subclassTab.scrollIntoView = scrollIntoViewMock;
 
       nextBtn.click();
       hostFixture.detectChanges();
@@ -603,9 +603,9 @@ describe('TabNav', () => {
     });
 
     it('should scroll when navigating via the previous arrow', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
-      host.activeTab.set('heritage');
+      host.activeTab.set('subclass');
       hostFixture.detectChanges();
       vi.advanceTimersByTime(0);
 
@@ -628,10 +628,10 @@ describe('TabNav', () => {
     });
 
     it('should not error when the scroll container is not available', () => {
-      // Mark class as complete so heritage is reachable
+      // Mark class as complete so subclass is reachable
       host.completedSteps.set(new Set(['class']));
       expect(() => {
-        host.activeTab.set('heritage');
+        host.activeTab.set('subclass');
         hostFixture.detectChanges();
         vi.advanceTimersByTime(0);
       }).not.toThrow();

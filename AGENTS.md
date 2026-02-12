@@ -62,3 +62,4 @@ npm run build                               # Production build (outputs to dist/
 - **Signals**: descriptive nouns (`mobileDrawerOpen`, `currentUser`); computed: predicates (`isLoggedIn`, `isScrolled`)
 - **Methods**: handlers `on{Event}()`, toggles `toggle{Feature}()`, setters `{verb}{Feature}()`
 - **Navigation**: always close dropdowns/modals before `router.navigate()`
+- **Comments**: Do not add large section/banner comments (e.g., `/* ========== Section ========== */` or `// --- Section ---`). Keep comments minimal and only where logic isn't self-evident.

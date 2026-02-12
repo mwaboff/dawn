@@ -1,9 +1,9 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
 import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
-import { CHARACTER_TABS, TabId } from './models/create-character.model';
+import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import {
   MOCK_CLASS_CARDS,
@@ -24,10 +24,20 @@ import {
 export class CreateCharacter {
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
-  private readonly selectedCardId = signal<number | null>(null);
+  private readonly selectedCards = signal<Partial<Record<TabId, CardData>>>({});
   private readonly completedStepsSignal = signal<Set<TabId>>(new Set());
 
   readonly completedSteps = this.completedStepsSignal.asReadonly();
+
+  readonly characterSelections = computed<CharacterSelections>(() => {
+    const cards = this.selectedCards();
+    return {
+      class: cards['class']?.name,
+      subclass: cards['subclass']?.name,
+      ancestry: cards['ancestry']?.name,
+      community: cards['community']?.name,
+    };
+  });
 
   readonly allMockCards: CardData[] = [
     ...MOCK_CLASS_CARDS,
@@ -45,22 +55,23 @@ export class CreateCharacter {
   }
 
   onCardClicked(card: CardData): void {
-    const currentSelection = this.selectedCardId();
-    const isDeselecting = currentSelection === card.id;
-
-    this.selectedCardId.set(isDeselecting ? null : card.id);
+    const currentTab = this.activeTab();
+    const cards = this.selectedCards();
+    const isDeselecting = cards[currentTab]?.id === card.id;
 
     if (isDeselecting) {
-      // Deselecting: invalidate current step and all subsequent steps
-      this.invalidateFromStep(this.activeTab());
+      const updated = { ...cards };
+      delete updated[currentTab];
+      this.selectedCards.set(updated);
+      this.invalidateFromStep(currentTab);
     } else {
-      // Selecting: mark current step as complete
-      this.markStepComplete(this.activeTab());
+      this.selectedCards.set({ ...cards, [currentTab]: card });
+      this.markStepComplete(currentTab);
     }
   }
 
   isCardSelected(card: CardData): boolean {
-    return this.selectedCardId() === card.id;
+    return Object.values(this.selectedCards()).some((selected) => selected?.id === card.id);
   }
 
   private markStepComplete(tabId: TabId): void {
@@ -71,14 +82,17 @@ export class CreateCharacter {
 
   private invalidateFromStep(tabId: TabId): void {
     const tabIndex = this.tabs.findIndex((t) => t.id === tabId);
-    const updated = new Set(this.completedStepsSignal());
+    const updatedSteps = new Set(this.completedStepsSignal());
+    const updatedCards = { ...this.selectedCards() };
 
     // Remove this step and all subsequent steps
     for (let i = tabIndex; i < this.tabs.length; i++) {
-      updated.delete(this.tabs[i].id);
+      updatedSteps.delete(this.tabs[i].id);
+      delete updatedCards[this.tabs[i].id];
     }
 
-    this.completedStepsSignal.set(updated);
+    this.completedStepsSignal.set(updatedSteps);
+    this.selectedCards.set(updatedCards);
   }
 
   private isTabReachable(tabId: TabId): boolean {
