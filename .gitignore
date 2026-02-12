@@ -7,7 +7,7 @@
 /dist
 /tmp
 /out-tsc
-/bazel-out
+/bazel-out/
 
 # Node
 /node_modules
