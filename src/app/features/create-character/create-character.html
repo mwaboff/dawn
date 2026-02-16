@@ -20,18 +20,74 @@
       >
         @switch (activeTab()) {
           @case ('class') {
-            <div class="card-grid">
-              @for (card of allMockCards; track card.id) {
-                <app-daggerheart-card
-                  [card]="card"
-                  [selected]="isCardSelected(card)"
-                  (cardClicked)="onCardClicked($event)"
-                />
-              }
-            </div>
+            @if (classCardsLoading()) {
+              <app-card-skeleton [count]="9" />
+            } @else if (classCardsError()) {
+              <app-card-error />
+            } @else {
+              <div class="card-grid card-grid--wide">
+                @for (card of classCards(); track card.id) {
+                  <app-daggerheart-card
+                    [card]="card"
+                    [selected]="isCardSelected(card)"
+                    [collapsibleFeatures]="true"
+                    layout="wide"
+                    (cardClicked)="onCardClicked($event)"
+                  />
+                }
+              </div>
+            }
           }
           @case ('subclass') {
-            <p class="placeholder-text">Subclass selection coming soon...</p>
+            @if (subclassCardsLoading()) {
+              <app-card-skeleton [count]="4" />
+            } @else if (subclassCardsError()) {
+              <app-card-error />
+            } @else {
+              <div class="card-grid card-grid--wide">
+                @for (path of subclassPaths(); track path.pathId) {
+                  <div class="tabbed-path" [attr.aria-label]="path.pathName + ' subclass path'">
+                    <div class="tabbed-path__tabs" role="tablist" [attr.aria-label]="path.pathName + ' levels'">
+                      <button
+                        class="tabbed-path__tab"
+                        [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+                        (click)="setPathLevelTab(path.pathId, 'FOUNDATION')"
+                        role="tab"
+                        [attr.aria-selected]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+                      >Foundation</button>
+                      @if (path.specialization) {
+                        <button
+                          class="tabbed-path__tab"
+                          [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+                          (click)="setPathLevelTab(path.pathId, 'SPECIALIZATION')"
+                          role="tab"
+                          [attr.aria-selected]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+                        >Specialization</button>
+                      }
+                      @if (path.mastery) {
+                        <button
+                          class="tabbed-path__tab"
+                          [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'MASTERY'"
+                          (click)="setPathLevelTab(path.pathId, 'MASTERY')"
+                          role="tab"
+                          [attr.aria-selected]="getPathLevelTab(path.pathId) === 'MASTERY'"
+                        >Mastery</button>
+                      }
+                    </div>
+
+                    @let activeCard = getPathCardForLevel(path, getPathLevelTab(path.pathId));
+                    @if (activeCard) {
+                      <app-daggerheart-card
+                        [card]="activeCard"
+                        [selected]="isCardSelected(path.foundation)"
+                        layout="wide"
+                        (cardClicked)="onCardClicked(path.foundation)"
+                      />
+                    }
+                  </div>
+                }
+              </div>
+            }
           }
           @case ('ancestry') {
             <p class="placeholder-text">Ancestry selection coming soon...</p>

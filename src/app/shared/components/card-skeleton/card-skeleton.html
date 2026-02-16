@@ -1,0 +1,24 @@
+<div class="skeleton-grid" aria-busy="true" aria-label="Loading cards">
+  @for (i of Array.from({ length: count() }); track $index) {
+    <div
+      class="skeleton-card"
+      [style.animation-delay]="($index * 0.12) + 's'"
+      aria-hidden="true"
+    >
+      <div class="skeleton-bar skeleton-bar--badge"></div>
+      <div class="skeleton-bar skeleton-bar--title"></div>
+      <div class="skeleton-bar skeleton-bar--subtitle"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-bar skeleton-bar--line"></div>
+        <div class="skeleton-bar skeleton-bar--line skeleton-bar--line-short"></div>
+        <div class="skeleton-bar skeleton-bar--line"></div>
+        <div class="skeleton-bar skeleton-bar--line skeleton-bar--line-medium"></div>
+      </div>
+      <div class="skeleton-tags">
+        <div class="skeleton-bar skeleton-bar--tag"></div>
+        <div class="skeleton-bar skeleton-bar--tag"></div>
+      </div>
+      <div class="skeleton-shimmer"></div>
+    </div>
+  }
+</div>

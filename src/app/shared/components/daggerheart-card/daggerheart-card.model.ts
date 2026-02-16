@@ -21,4 +21,5 @@ export interface CardData {
   subtitle?: string;
   tags?: string[];
   features?: CardFeature[];
+  metadata?: Record<string, unknown>;
 }
