@@ -24,22 +24,43 @@
     <div class="form-field">
       <label for="character-pronouns" class="form-label">
         Pronouns
-        <span class="required-indicator" aria-label="required">*</span>
       </label>
       <input
         id="character-pronouns"
         type="text"
         formControlName="pronouns"
         class="form-input"
-        [class.invalid]="isFieldInvalid('pronouns')"
-        [attr.aria-invalid]="isFieldInvalid('pronouns')"
-        [attr.aria-describedby]="isFieldInvalid('pronouns') ? 'pronouns-error' : null"
+        placeholder="e.g. they/them"
       />
-      @if (isFieldInvalid('pronouns')) {
-        <span id="pronouns-error" class="error-message" role="alert">
-          Pronouns are required
-        </span>
-      }
     </div>
   </div>
+
+  @if (hasSelections()) {
+    <div class="selections-summary" role="list" aria-label="Character selections">
+      @if (selections().class) {
+        <div class="selection-tag" role="listitem">
+          <span class="selection-label">Class</span>
+          <span class="selection-value">{{ selections().class }}</span>
+        </div>
+      }
+      @if (selections().subclass) {
+        <div class="selection-tag" role="listitem">
+          <span class="selection-label">Subclass</span>
+          <span class="selection-value">{{ selections().subclass }}</span>
+        </div>
+      }
+      @if (selections().ancestry) {
+        <div class="selection-tag" role="listitem">
+          <span class="selection-label">Ancestry</span>
+          <span class="selection-value">{{ selections().ancestry }}</span>
+        </div>
+      }
+      @if (selections().community) {
+        <div class="selection-tag" role="listitem">
+          <span class="selection-label">Community</span>
+          <span class="selection-value">{{ selections().community }}</span>
+        </div>
+      }
+    </div>
+  }
 </form>

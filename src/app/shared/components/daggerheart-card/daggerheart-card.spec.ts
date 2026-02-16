@@ -37,6 +37,9 @@ const MOCK_CARD_WITH_FEATURES: CardData = {
     <app-daggerheart-card
       [card]="card()"
       [selected]="selected()"
+      [disabled]="disabled()"
+      [layout]="layout()"
+      [collapsibleFeatures]="collapsibleFeatures()"
       (cardClicked)="onClicked($event)"
     />
   `,
@@ -44,6 +47,9 @@ const MOCK_CARD_WITH_FEATURES: CardData = {
 class TestHost {
   card = signal<CardData>(MOCK_CARD);
   selected = signal(false);
+  disabled = signal(false);
+  layout = signal<'default' | 'wide'>('default');
+  collapsibleFeatures = signal(false);
   clickedCard: CardData | null = null;
   onClicked(card: CardData): void {
     this.clickedCard = card;
@@ -77,6 +83,14 @@ describe('DaggerheartCard', () => {
   it('should render the card description', () => {
     const desc = fixture.nativeElement.querySelector('.card__description');
     expect(desc.textContent.trim()).toBe('Masters of captivation.');
+  });
+
+  it('should not render description when empty', () => {
+    host.card.set({ ...MOCK_CARD, description: '' });
+    fixture.detectChanges();
+
+    const desc = fixture.nativeElement.querySelector('.card__description');
+    expect(desc).toBeFalsy();
   });
 
   it('should render the subtitle when provided', () => {
@@ -200,7 +214,103 @@ describe('DaggerheartCard', () => {
     }
   });
 
-  describe('Collapsible Features', () => {
+  describe('Wide Layout', () => {
+    it('should apply card--wide class when layout is wide', () => {
+      host.layout.set('wide');
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--wide')).toBe(true);
+    });
+
+    it('should not apply card--wide class when layout is default', () => {
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--wide')).toBe(false);
+    });
+
+    it('should render all content in wide layout', () => {
+      host.layout.set('wide');
+      host.card.set(MOCK_CARD_WITH_FEATURES);
+      fixture.detectChanges();
+
+      const name = fixture.nativeElement.querySelector('.card__name');
+      expect(name.textContent.trim()).toBe('Bard');
+
+      const desc = fixture.nativeElement.querySelector('.card__description');
+      expect(desc.textContent.trim()).toBe('Masters of captivation.');
+
+      const features = fixture.nativeElement.querySelectorAll('.card__feature-item');
+      expect(features.length).toBe(2);
+    });
+
+    it('should still emit cardClicked in wide layout', () => {
+      host.layout.set('wide');
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      card.click();
+
+      expect(host.clickedCard).toEqual(MOCK_CARD);
+    });
+
+    it('should apply selected state in wide layout', () => {
+      host.layout.set('wide');
+      host.selected.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--wide')).toBe(true);
+      expect(card.classList.contains('card--selected')).toBe(true);
+    });
+  });
+
+  describe('Disabled State', () => {
+    it('should add card--disabled class when disabled is true', () => {
+      host.disabled.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--disabled')).toBe(true);
+    });
+
+    it('should set tabindex to -1 when disabled', () => {
+      host.disabled.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.getAttribute('tabindex')).toBe('-1');
+    });
+
+    it('should set aria-disabled when disabled', () => {
+      host.disabled.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('should not emit cardClicked when disabled and clicked', () => {
+      host.disabled.set(true);
+      fixture.detectChanges();
+
+      const cardComponent = fixture.debugElement.children[0].componentInstance as DaggerheartCard;
+      cardComponent.onCardClick();
+
+      expect(host.clickedCard).toBeNull();
+    });
+
+    it('should not respond to keyboard events when disabled', () => {
+      host.disabled.set(true);
+      fixture.detectChanges();
+
+      const cardComponent = fixture.debugElement.children[0].componentInstance as DaggerheartCard;
+      cardComponent.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(host.clickedCard).toBeNull();
+    });
+  });
+
+  describe('Features', () => {
     it('should not render features section when no features', () => {
       const featuresSection = fixture.nativeElement.querySelector('.card__features');
       expect(featuresSection).toBeFalsy();
@@ -214,59 +324,23 @@ describe('DaggerheartCard', () => {
       expect(featuresSection).toBeFalsy();
     });
 
-    it('should render features toggle with correct count', () => {
+    it('should render all features visible by default when collapsibleFeatures is false', () => {
       host.card.set(MOCK_CARD_WITH_FEATURES);
       fixture.detectChanges();
 
-      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
-      expect(toggle).toBeTruthy();
-      expect(toggle.textContent).toContain('2 Features');
-    });
-
-    it('should show singular "Feature" for single feature', () => {
-      host.card.set({
-        ...MOCK_CARD,
-        features: [MOCK_CARD_WITH_FEATURES.features![0]],
-      });
-      fixture.detectChanges();
-
-      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
-      expect(toggle.textContent).toContain('1 Feature');
-      expect(toggle.textContent).not.toContain('Features');
-    });
-
-    it('should start with features collapsed', () => {
-      host.card.set(MOCK_CARD_WITH_FEATURES);
-      fixture.detectChanges();
-
-      const list = fixture.nativeElement.querySelector('.card__features-list');
-      expect(list.classList.contains('card__features-list--expanded')).toBe(false);
-    });
-
-    it('should expand features on toggle click', () => {
-      host.card.set(MOCK_CARD_WITH_FEATURES);
-      fixture.detectChanges();
-
-      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
-      toggle.click();
-      fixture.detectChanges();
+      const items = fixture.nativeElement.querySelectorAll('.card__feature-item');
+      expect(items.length).toBe(2);
 
       const list = fixture.nativeElement.querySelector('.card__features-list');
       expect(list.classList.contains('card__features-list--expanded')).toBe(true);
     });
 
-    it('should collapse features on second toggle click', () => {
+    it('should not render toggle button when collapsibleFeatures is false', () => {
       host.card.set(MOCK_CARD_WITH_FEATURES);
       fixture.detectChanges();
 
       const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
-      toggle.click();
-      fixture.detectChanges();
-      toggle.click();
-      fixture.detectChanges();
-
-      const list = fixture.nativeElement.querySelector('.card__features-list');
-      expect(list.classList.contains('card__features-list--expanded')).toBe(false);
+      expect(toggle).toBeFalsy();
     });
 
     it('should render feature items with name and description', () => {
@@ -299,11 +373,59 @@ describe('DaggerheartCard', () => {
       expect(featureTags.length).toBeGreaterThan(0);
       expect(featureTags[0].textContent.trim()).toBe('3 Hope');
     });
+  });
 
-    it('should not propagate toggle click to card click', () => {
+  describe('Collapsible Features', () => {
+    beforeEach(() => {
+      host.collapsibleFeatures.set(true);
       host.card.set(MOCK_CARD_WITH_FEATURES);
       fixture.detectChanges();
+    });
 
+    it('should render toggle button with correct count', () => {
+      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
+      expect(toggle).toBeTruthy();
+      expect(toggle.textContent).toContain('2 Features');
+    });
+
+    it('should show singular "Feature" for single feature', () => {
+      host.card.set({
+        ...MOCK_CARD,
+        features: [MOCK_CARD_WITH_FEATURES.features![0]],
+      });
+      fixture.detectChanges();
+
+      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
+      expect(toggle.textContent).toContain('1 Feature');
+      expect(toggle.textContent).not.toContain('Features');
+    });
+
+    it('should start with features collapsed', () => {
+      const list = fixture.nativeElement.querySelector('.card__features-list');
+      expect(list.classList.contains('card__features-list--expanded')).toBe(false);
+    });
+
+    it('should expand features on toggle click', () => {
+      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
+      toggle.click();
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.card__features-list');
+      expect(list.classList.contains('card__features-list--expanded')).toBe(true);
+    });
+
+    it('should collapse features on second toggle click', () => {
+      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
+      toggle.click();
+      fixture.detectChanges();
+      toggle.click();
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.card__features-list');
+      expect(list.classList.contains('card__features-list--expanded')).toBe(false);
+    });
+
+    it('should not propagate toggle click to card click', () => {
       const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
       toggle.click();
 
@@ -311,15 +433,46 @@ describe('DaggerheartCard', () => {
     });
 
     it('should have aria-expanded attribute on toggle', () => {
-      host.card.set(MOCK_CARD_WITH_FEATURES);
-      fixture.detectChanges();
-
       const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
       expect(toggle.getAttribute('aria-expanded')).toBe('false');
 
       toggle.click();
       fixture.detectChanges();
       expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    });
+  });
+
+  describe('Text Formatting', () => {
+    it('should convert newlines to line breaks in description', () => {
+      host.card.set({ ...MOCK_CARD, description: 'Line one\nLine two\nLine three' });
+      fixture.detectChanges();
+
+      const desc = fixture.nativeElement.querySelector('.card__description');
+      expect(desc.innerHTML).toContain('<br>');
+      expect(desc.textContent).toContain('Line one');
+      expect(desc.textContent).toContain('Line two');
+    });
+
+    it('should convert newlines to line breaks in feature descriptions', () => {
+      host.card.set({
+        ...MOCK_CARD,
+        features: [
+          { name: 'Ability', description: 'Effect one\nEffect two' },
+        ],
+      });
+      fixture.detectChanges();
+
+      const featureDesc = fixture.nativeElement.querySelector('.card__feature-description');
+      expect(featureDesc.innerHTML).toContain('<br>');
+    });
+
+    it('should escape HTML in descriptions', () => {
+      host.card.set({ ...MOCK_CARD, description: '<script>alert("xss")</script>' });
+      fixture.detectChanges();
+
+      const desc = fixture.nativeElement.querySelector('.card__description');
+      expect(desc.innerHTML).not.toContain('<script>');
+      expect(desc.textContent).toContain('<script>alert("xss")</script>');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UserResponse {
   id: number;
@@ -26,8 +27,6 @@ export interface RegisterRequest {
   avatarUrl?: string;
 }
 
-const API_URL = 'http://localhost:8080/api';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly currentUser = signal<UserResponse | null>(null);
@@ -37,21 +36,21 @@ export class AuthService {
   private readonly http = inject(HttpClient);
 
   login(request: LoginRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${API_URL}/auth/login`, request, { withCredentials: true }).pipe(
+    return this.http.post<UserResponse>(`${environment.apiUrl}/auth/login`, request, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user)),
       catchError(this.handleError)
     );
   }
 
   register(request: RegisterRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(`${API_URL}/auth/register`, request, { withCredentials: true }).pipe(
+    return this.http.post<UserResponse>(`${environment.apiUrl}/auth/register`, request, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user)),
       catchError(this.handleError)
     );
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${API_URL}/auth/logout`, {}, { withCredentials: true }).pipe(
+    return this.http.post<void>(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true }).pipe(
       tap(() => this.currentUser.set(null)),
       catchError(this.handleError)
     );
@@ -62,7 +61,7 @@ export class AuthService {
   }
 
   checkSession(): Observable<void> {
-    return this.http.get<UserResponse>(`${API_URL}/users/me`, { withCredentials: true }).pipe(
+    return this.http.get<UserResponse>(`${environment.apiUrl}/users/me`, { withCredentials: true }).pipe(
       tap(user => this.currentUser.set(user)),
       map(() => undefined),
       catchError((error: HttpErrorResponse) => {

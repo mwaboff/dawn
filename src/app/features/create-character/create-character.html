@@ -1,37 +1,102 @@
 <div class="create-character-container">
-  <app-tab-nav
-    [tabs]="tabs"
-    [activeTab]="activeTab()"
-    (tabSelected)="onTabSelected($event)"
-  />
+  <div class="page-grain" aria-hidden="true"></div>
 
-  <!-- Main Content Area -->
   <main class="content-area" role="main">
     <div class="parchment-container">
-      <app-character-form />
+      <app-character-form [selections]="characterSelections()" />
 
-      <!-- Tab Content Placeholder -->
-      <div class="tab-content" role="region" [attr.aria-label]="activeTab() + ' section'">
+      <app-tab-nav
+        [tabs]="tabs"
+        [activeTab]="activeTab()"
+        [completedSteps]="completedSteps()"
+        (tabSelected)="onTabSelected($event)"
+      />
+
+      <div
+        class="tab-content"
+        role="tabpanel"
+        [id]="'panel-' + activeTab()"
+        [attr.aria-labelledby]="'tab-' + activeTab()"
+      >
         @switch (activeTab()) {
           @case ('class') {
-            <div class="card-grid">
-              @for (card of allMockCards; track card.id) {
-                <app-daggerheart-card
-                  [card]="card"
-                  [selected]="isCardSelected(card)"
-                  (cardClicked)="onCardClicked($event)"
-                />
-              }
-            </div>
+            @if (classCardsLoading()) {
+              <app-card-skeleton [count]="9" />
+            } @else if (classCardsError()) {
+              <app-card-error />
+            } @else {
+              <div class="card-grid card-grid--wide">
+                @for (card of classCards(); track card.id) {
+                  <app-daggerheart-card
+                    [card]="card"
+                    [selected]="isCardSelected(card)"
+                    [collapsibleFeatures]="true"
+                    layout="wide"
+                    (cardClicked)="onCardClicked($event)"
+                  />
+                }
+              </div>
+            }
           }
-          @case ('heritage') {
-            <p class="placeholder-text">Heritage selection coming soon...</p>
+          @case ('subclass') {
+            @if (subclassCardsLoading()) {
+              <app-card-skeleton [count]="4" />
+            } @else if (subclassCardsError()) {
+              <app-card-error />
+            } @else {
+              <div class="card-grid card-grid--wide">
+                @for (path of subclassPaths(); track path.pathId) {
+                  <div class="tabbed-path" [attr.aria-label]="path.pathName + ' subclass path'">
+                    <div class="tabbed-path__tabs" role="tablist" [attr.aria-label]="path.pathName + ' levels'">
+                      <button
+                        class="tabbed-path__tab"
+                        [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+                        (click)="setPathLevelTab(path.pathId, 'FOUNDATION')"
+                        role="tab"
+                        [attr.aria-selected]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+                      >Foundation</button>
+                      @if (path.specialization) {
+                        <button
+                          class="tabbed-path__tab"
+                          [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+                          (click)="setPathLevelTab(path.pathId, 'SPECIALIZATION')"
+                          role="tab"
+                          [attr.aria-selected]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+                        >Specialization</button>
+                      }
+                      @if (path.mastery) {
+                        <button
+                          class="tabbed-path__tab"
+                          [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'MASTERY'"
+                          (click)="setPathLevelTab(path.pathId, 'MASTERY')"
+                          role="tab"
+                          [attr.aria-selected]="getPathLevelTab(path.pathId) === 'MASTERY'"
+                        >Mastery</button>
+                      }
+                    </div>
+
+                    @let activeCard = getPathCardForLevel(path, getPathLevelTab(path.pathId));
+                    @if (activeCard) {
+                      <app-daggerheart-card
+                        [card]="activeCard"
+                        [selected]="isCardSelected(path.foundation)"
+                        layout="wide"
+                        (cardClicked)="onCardClicked(path.foundation)"
+                      />
+                    }
+                  </div>
+                }
+              </div>
+            }
+          }
+          @case ('ancestry') {
+            <p class="placeholder-text">Ancestry selection coming soon...</p>
+          }
+          @case ('community') {
+            <p class="placeholder-text">Community selection coming soon...</p>
           }
           @case ('traits') {
             <p class="placeholder-text">Traits selection coming soon...</p>
-          }
-          @case ('additional-info') {
-            <p class="placeholder-text">Additional info coming soon...</p>
           }
           @case ('starting-equipment') {
             <p class="placeholder-text">Starting equipment coming soon...</p>
@@ -44,9 +109,6 @@
           }
           @case ('domain-cards') {
             <p class="placeholder-text">Domain cards coming soon...</p>
-          }
-          @case ('connections') {
-            <p class="placeholder-text">Connections coming soon...</p>
           }
         }
       </div>

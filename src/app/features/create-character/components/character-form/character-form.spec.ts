@@ -46,23 +46,20 @@ describe('CharacterForm', () => {
       expect(component.isFieldInvalid('name')).toBe(false);
     });
 
-    it('should mark pronouns as invalid when empty and touched', () => {
+    it('should not require pronouns', () => {
       const pronounsControl = component.characterForm.controls.pronouns;
-      pronounsControl.markAsTouched();
-      fixture.detectChanges();
-      expect(component.isFieldInvalid('pronouns')).toBe(true);
-    });
-
-    it('should mark pronouns as valid when filled', () => {
-      const pronounsControl = component.characterForm.controls.pronouns;
-      pronounsControl.setValue('he/him');
       pronounsControl.markAsTouched();
       fixture.detectChanges();
       expect(component.isFieldInvalid('pronouns')).toBe(false);
     });
 
-    it('should have form invalid when both fields are empty', () => {
+    it('should have form invalid when name is empty', () => {
       expect(component.characterForm.valid).toBe(false);
+    });
+
+    it('should have form valid when only name is filled', () => {
+      component.characterForm.patchValue({ name: 'Legolas' });
+      expect(component.characterForm.valid).toBe(true);
     });
 
     it('should have form valid when both fields are filled', () => {
@@ -100,12 +97,17 @@ describe('CharacterForm', () => {
       expect(errorMessage?.textContent?.trim()).toBe('Character name is required');
     });
 
-    it('should show error message for pronouns when invalid', () => {
-      component.characterForm.controls.pronouns.markAsTouched();
-      fixture.detectChanges();
+    it('should not show required indicator for pronouns', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      const errorMessage = compiled.querySelector('#pronouns-error');
-      expect(errorMessage?.textContent?.trim()).toBe('Pronouns are required');
+      const pronounsLabel = compiled.querySelector('label[for="character-pronouns"]');
+      const requiredStar = pronounsLabel?.querySelector('.required-indicator');
+      expect(requiredStar).toBeNull();
+    });
+
+    it('should show placeholder text on pronouns input', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const pronounsInput = compiled.querySelector('#character-pronouns') as HTMLInputElement;
+      expect(pronounsInput.placeholder).toBe('e.g. they/them');
     });
   });
 
@@ -118,28 +120,12 @@ describe('CharacterForm', () => {
       expect(nameInput?.getAttribute('aria-invalid')).toBe('true');
     });
 
-    it('should have aria-invalid on invalid pronouns input', () => {
-      component.characterForm.controls.pronouns.markAsTouched();
-      fixture.detectChanges();
-      const compiled = fixture.nativeElement as HTMLElement;
-      const pronounsInput = compiled.querySelector('#character-pronouns');
-      expect(pronounsInput?.getAttribute('aria-invalid')).toBe('true');
-    });
-
     it('should have aria-describedby linking to error message when name is invalid', () => {
       component.characterForm.controls.name.markAsTouched();
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
       const nameInput = compiled.querySelector('#character-name');
       expect(nameInput?.getAttribute('aria-describedby')).toBe('name-error');
-    });
-
-    it('should have aria-describedby linking to error message when pronouns are invalid', () => {
-      component.characterForm.controls.pronouns.markAsTouched();
-      fixture.detectChanges();
-      const compiled = fixture.nativeElement as HTMLElement;
-      const pronounsInput = compiled.querySelector('#character-pronouns');
-      expect(pronounsInput?.getAttribute('aria-describedby')).toBe('pronouns-error');
     });
 
     it('should have role="alert" on error messages', () => {
@@ -170,6 +156,107 @@ describe('CharacterForm', () => {
       pronounsInput.dispatchEvent(new Event('input'));
 
       expect(component.characterForm.controls.pronouns.value).toBe('they/them');
+    });
+  });
+
+  describe('Selections Display', () => {
+    it('should return false from hasSelections when no selections provided', () => {
+      expect(component.hasSelections()).toBe(false);
+    });
+
+    it('should not render selections summary when no selections exist', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const summary = compiled.querySelector('.selections-summary');
+      expect(summary).toBeNull();
+    });
+
+    it('should render class selection tag when class is selected', () => {
+      fixture.componentRef.setInput('selections', { class: 'Warrior' });
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const summary = compiled.querySelector('.selections-summary');
+      expect(summary).toBeTruthy();
+
+      const tags = compiled.querySelectorAll('.selection-tag');
+      expect(tags).toHaveLength(1);
+
+      const label = tags[0].querySelector('.selection-label');
+      const value = tags[0].querySelector('.selection-value');
+      expect(label?.textContent?.trim()).toBe('Class');
+      expect(value?.textContent?.trim()).toBe('Warrior');
+    });
+
+    it('should render multiple selection tags when multiple selections exist', () => {
+      fixture.componentRef.setInput('selections', {
+        class: 'Guardian',
+        subclass: 'Stalwart',
+        ancestry: 'Elf',
+        community: 'Highborne',
+      });
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tags = compiled.querySelectorAll('.selection-tag');
+      expect(tags).toHaveLength(4);
+    });
+
+    it('should display correct values for each selection type', () => {
+      fixture.componentRef.setInput('selections', {
+        class: 'Ranger',
+        ancestry: 'Dwarf',
+      });
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tags = compiled.querySelectorAll('.selection-tag');
+      expect(tags).toHaveLength(2);
+
+      const labels = Array.from(tags).map(
+        (tag) => tag.querySelector('.selection-label')?.textContent?.trim(),
+      );
+      const values = Array.from(tags).map(
+        (tag) => tag.querySelector('.selection-value')?.textContent?.trim(),
+      );
+
+      expect(labels).toEqual(['Class', 'Ancestry']);
+      expect(values).toEqual(['Ranger', 'Dwarf']);
+    });
+
+    it('should have accessible role="list" on selections summary', () => {
+      fixture.componentRef.setInput('selections', { class: 'Wizard' });
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const summary = compiled.querySelector('.selections-summary');
+      expect(summary?.getAttribute('role')).toBe('list');
+      expect(summary?.getAttribute('aria-label')).toBe('Character selections');
+    });
+
+    it('should have role="listitem" on each selection tag', () => {
+      fixture.componentRef.setInput('selections', { class: 'Sorcerer', subclass: 'Pyromancer' });
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tags = compiled.querySelectorAll('.selection-tag');
+      expect(tags).toHaveLength(2);
+      tags.forEach((tag) => {
+        expect(tag.getAttribute('role')).toBe('listitem');
+      });
+    });
+
+    it('should hide selections summary when selections are cleared', () => {
+      fixture.componentRef.setInput('selections', { class: 'Warrior' });
+      fixture.detectChanges();
+
+      let summary = fixture.nativeElement.querySelector('.selections-summary');
+      expect(summary).toBeTruthy();
+
+      fixture.componentRef.setInput('selections', {});
+      fixture.detectChanges();
+
+      summary = fixture.nativeElement.querySelector('.selections-summary');
+      expect(summary).toBeNull();
     });
   });
 });

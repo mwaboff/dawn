@@ -1,76 +1,103 @@
 <div
   class="card"
-  [class]="'card card--type-' + card().cardType"
+  [class]="'card card--type-' + card().cardType + (layout() === 'wide' ? ' card--wide' : '')"
   [class.card--selected]="selected()"
+  [class.card--disabled]="disabled()"
   [attr.aria-label]="card().name + ', ' + typeLabel(card().cardType) + ' card'"
   [attr.aria-pressed]="selected()"
+  [attr.aria-disabled]="disabled() || undefined"
   role="button"
-  tabindex="0"
+  [attr.tabindex]="disabled() ? -1 : 0"
   (click)="onCardClick()"
   (keydown)="onKeydown($event)"
 >
-  <!-- Type Badge -->
-  <span class="card__type-badge">{{ typeLabel(card().cardType) }}</span>
-
-  <!-- Card Header -->
-  <div class="card__header">
-    <h3 class="card__name">{{ card().name }}</h3>
-    @if (card().subtitle) {
-      <p class="card__subtitle">{{ card().subtitle }}</p>
-    }
-  </div>
-
-  <!-- Card Body -->
-  <div class="card__body">
-    <p class="card__description">{{ card().description }}</p>
-  </div>
-
-  <!-- Tags -->
-  @if (card().tags?.length) {
-    <div class="card__tags">
-      @for (tag of card().tags; track tag) {
-        <span class="card__tag">{{ tag }}</span>
+  <div class="card__content">
+    <!-- Card Header -->
+    <div class="card__header">
+      <h3 class="card__name">{{ card().name }}</h3>
+      @if (card().subtitle) {
+        <p class="card__subtitle">{{ card().subtitle }}</p>
       }
     </div>
-  }
 
-  <!-- Collapsible Features -->
-  @if (card().features?.length) {
-    <div class="card__features">
-      <button
-        class="card__features-toggle"
-        [attr.aria-expanded]="isFeaturesExpanded"
-        (click)="toggleFeatures($event)"
-        (keydown.enter)="toggleFeatures($event)"
-        (keydown.space)="toggleFeatures($event)"
-        type="button"
-      >
-        <span class="card__features-toggle-icon" [class.card__features-toggle-icon--expanded]="isFeaturesExpanded">&#9656;</span>
-        {{ card().features!.length }} {{ card().features!.length === 1 ? 'Feature' : 'Features' }}
-      </button>
-      <div class="card__features-list" [class.card__features-list--expanded]="isFeaturesExpanded">
-        @for (feature of card().features; track feature.name) {
-          <div class="card__feature-item">
-            <div class="card__feature-header">
-              <span class="card__feature-name">{{ feature.name }}</span>
-              @if (feature.subtitle) {
-                <span class="card__feature-subtitle">{{ feature.subtitle }}</span>
+    <!-- Card Body -->
+    <div class="card__body">
+      @if (card().description) {
+        <p class="card__description" [innerHTML]="formatText(card().description)"></p>
+      }
+
+      <!-- Tags -->
+      @if (card().tags?.length) {
+        <div class="card__tags">
+          @for (tag of card().tags; track tag) {
+            <span class="card__tag">{{ tag }}</span>
+          }
+        </div>
+      }
+
+      <!-- Features -->
+      @if (card().features?.length) {
+        <div class="card__features">
+          @if (collapsibleFeatures()) {
+            <button
+              class="card__features-toggle"
+              [attr.aria-expanded]="isFeaturesExpanded"
+              (click)="toggleFeatures($event)"
+              (keydown.enter)="toggleFeatures($event)"
+              (keydown.space)="toggleFeatures($event)"
+              type="button"
+            >
+              <span class="card__features-toggle-icon" [class.card__features-toggle-icon--expanded]="isFeaturesExpanded">&#9656;</span>
+              {{ card().features!.length }} {{ card().features!.length === 1 ? 'Feature' : 'Features' }}
+            </button>
+            <div class="card__features-list" [class.card__features-list--expanded]="isFeaturesExpanded">
+              @for (feature of card().features; track feature.name) {
+                <div class="card__feature-item">
+                  <div class="card__feature-header">
+                    <span class="card__feature-name">{{ feature.name }}</span>
+                    @if (feature.subtitle) {
+                      <span class="card__feature-subtitle">{{ feature.subtitle }}</span>
+                    }
+                  </div>
+                  <p class="card__feature-description" [innerHTML]="formatText(feature.description)"></p>
+                  @if (feature.tags?.length) {
+                    <div class="card__feature-tags">
+                      @for (tag of feature.tags; track tag) {
+                        <span class="card__feature-tag">{{ tag }}</span>
+                      }
+                    </div>
+                  }
+                </div>
               }
             </div>
-            <p class="card__feature-description">{{ feature.description }}</p>
-            @if (feature.tags?.length) {
-              <div class="card__feature-tags">
-                @for (tag of feature.tags; track tag) {
-                  <span class="card__feature-tag">{{ tag }}</span>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
+          } @else {
+            <div class="card__features-list card__features-list--expanded">
+              @for (feature of card().features; track feature.name) {
+                <div class="card__feature-item">
+                  <div class="card__feature-header">
+                    <span class="card__feature-name">{{ feature.name }}</span>
+                    @if (feature.subtitle) {
+                      <span class="card__feature-subtitle">{{ feature.subtitle }}</span>
+                    }
+                  </div>
+                  <p class="card__feature-description" [innerHTML]="formatText(feature.description)"></p>
+                  @if (feature.tags?.length) {
+                    <div class="card__feature-tags">
+                      @for (tag of feature.tags; track tag) {
+                        <span class="card__feature-tag">{{ tag }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
-  }
+  </div>
 
-  <!-- Design-specific decorative elements -->
+  <!-- Non-scrolling overlays -->
+  <span class="card__type-badge">{{ typeLabel(card().cardType) }}</span>
   <div class="card__decoration" aria-hidden="true"></div>
 </div>
