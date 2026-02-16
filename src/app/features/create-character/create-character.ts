@@ -2,18 +2,18 @@ import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } 
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
-import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
+import { SubclassPathSelector } from './components/subclass-path-selector/subclass-path-selector';
+import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
 import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { ClassService } from './services/class.service';
 import { SubclassService } from './services/subclass.service';
-import { SubclassLevel } from './models/subclass-api.model';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, DaggerheartCard, CardSkeleton, CardError],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,40 +36,17 @@ export class CreateCharacter implements OnInit {
   readonly subclassCards = signal<CardData[]>([]);
   readonly subclassCardsLoading = signal(false);
   readonly subclassCardsError = signal(false);
-  private readonly pathLevelTabs = signal<Map<number, SubclassLevel>>(new Map());
   private lastLoadedClassId: number | null = null;
 
-  readonly subclassPaths = computed(() => {
-    const cards = this.subclassCards();
-    const pathMap = new Map<number, { foundation?: CardData; specialization?: CardData; mastery?: CardData }>();
-
-    for (const card of cards) {
-      const pathId = card.metadata?.['subclassPathId'] as number;
-      const level = card.metadata?.['level'] as string;
-      if (!pathMap.has(pathId)) pathMap.set(pathId, {});
-      const path = pathMap.get(pathId)!;
-
-      if (level === 'FOUNDATION') path.foundation = card;
-      else if (level === 'SPECIALIZATION') path.specialization = card;
-      else if (level === 'MASTERY') path.mastery = card;
-    }
-
-    return Array.from(pathMap.entries())
-      .filter(([, p]) => p.foundation)
-      .map(([pathId, p]) => ({
-        pathId,
-        pathName: p.foundation!.name,
-        foundation: p.foundation!,
-        specialization: p.specialization,
-        mastery: p.mastery,
-      }));
-  });
+  readonly selectedClassCard = computed(() => this.selectedCards()['class']);
+  readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
     return {
       class: cards['class']?.name,
       subclass: cards['subclass']?.name,
+      domains: cards['subclass']?.subtitle,
       ancestry: cards['ancestry']?.name,
       community: cards['community']?.name,
     };
@@ -97,37 +74,16 @@ export class CreateCharacter implements OnInit {
       const updated = { ...cards };
       delete updated[currentTab];
       this.selectedCards.set(updated);
-      this.invalidateFromStep(currentTab);
+      this.invalidateSteps(currentTab, true);
     } else {
       const previousCard = cards[currentTab];
       this.selectedCards.set({ ...cards, [currentTab]: card });
       this.markStepComplete(currentTab);
 
       if (currentTab === 'class' && previousCard && previousCard.id !== card.id) {
-        this.invalidateDownstreamOnly(currentTab);
+        this.invalidateSteps(currentTab, false);
       }
     }
-  }
-
-  getPathLevelTab(pathId: number): SubclassLevel {
-    return this.pathLevelTabs().get(pathId) ?? 'FOUNDATION';
-  }
-
-  setPathLevelTab(pathId: number, level: SubclassLevel): void {
-    const updated = new Map(this.pathLevelTabs());
-    updated.set(pathId, level);
-    this.pathLevelTabs.set(updated);
-  }
-
-  getPathCardForLevel(path: { foundation: CardData; specialization?: CardData; mastery?: CardData }, level: SubclassLevel): CardData | undefined {
-    if (level === 'FOUNDATION') return path.foundation;
-    if (level === 'SPECIALIZATION') return path.specialization;
-    if (level === 'MASTERY') return path.mastery;
-    return undefined;
-  }
-
-  isCardSelected(card: CardData): boolean {
-    return Object.values(this.selectedCards()).some((selected) => selected?.id === card.id);
   }
 
   loadSubclassCards(): void {
@@ -178,26 +134,13 @@ export class CreateCharacter implements OnInit {
     this.completedStepsSignal.set(updated);
   }
 
-  private invalidateFromStep(tabId: TabId): void {
-    const tabIndex = this.tabs.findIndex((t) => t.id === tabId);
+  private invalidateSteps(fromTabId: TabId, inclusive: boolean): void {
+    const tabIndex = this.tabs.findIndex((t) => t.id === fromTabId);
+    const startIndex = inclusive ? tabIndex : tabIndex + 1;
     const updatedSteps = new Set(this.completedStepsSignal());
     const updatedCards = { ...this.selectedCards() };
 
-    for (let i = tabIndex; i < this.tabs.length; i++) {
-      updatedSteps.delete(this.tabs[i].id);
-      delete updatedCards[this.tabs[i].id];
-    }
-
-    this.completedStepsSignal.set(updatedSteps);
-    this.selectedCards.set(updatedCards);
-  }
-
-  private invalidateDownstreamOnly(tabId: TabId): void {
-    const tabIndex = this.tabs.findIndex((t) => t.id === tabId);
-    const updatedSteps = new Set(this.completedStepsSignal());
-    const updatedCards = { ...this.selectedCards() };
-
-    for (let i = tabIndex + 1; i < this.tabs.length; i++) {
+    for (let i = startIndex; i < this.tabs.length; i++) {
       updatedSteps.delete(this.tabs[i].id);
       delete updatedCards[this.tabs[i].id];
     }

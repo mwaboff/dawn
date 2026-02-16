@@ -51,13 +51,16 @@ describe('Navbar', () => {
       expect(navigateSpy).toHaveBeenCalledWith(['/']);
     });
 
-    it('should navigate to home on logout error', () => {
-      vi.spyOn(authService, 'logout').mockReturnValue(throwError(() => new Error('Logout failed')));
+    it('should log error and navigate to home on logout error', () => {
+      const error = new Error('Logout failed');
+      vi.spyOn(authService, 'logout').mockReturnValue(throwError(() => error));
       const navigateSpy = vi.spyOn(router, 'navigate');
+      const consoleSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
 
       component.onLogout();
 
       expect(authService.logout).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith('Logout failed:', error);
       expect(navigateSpy).toHaveBeenCalledWith(['/']);
     });
   });

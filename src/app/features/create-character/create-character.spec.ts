@@ -230,10 +230,10 @@ describe('CreateCharacter', () => {
       const card = component.classCards()[0];
 
       component.onCardClicked(card);
-      expect(component.isCardSelected(card)).toBe(true);
+      expect(component.selectedClassCard()?.id).toBe(card.id);
 
       component.onCardClicked(card);
-      expect(component.isCardSelected(card)).toBe(false);
+      expect(component.selectedClassCard()).toBeUndefined();
     });
 
     it('should only allow one card to be selected at a time', () => {
@@ -244,11 +244,10 @@ describe('CreateCharacter', () => {
       const card2 = component.classCards()[1];
 
       component.onCardClicked(card1);
-      expect(component.isCardSelected(card1)).toBe(true);
+      expect(component.selectedClassCard()?.id).toBe(card1.id);
 
       component.onCardClicked(card2);
-      expect(component.isCardSelected(card1)).toBe(false);
-      expect(component.isCardSelected(card2)).toBe(true);
+      expect(component.selectedClassCard()?.id).toBe(card2.id);
     });
 
     it('should store selected class card ID for subclass calls', () => {
@@ -428,7 +427,7 @@ describe('CreateCharacter', () => {
       fixture.detectChanges();
       flushSubclassCards();
 
-      const foundationCard = component.subclassPaths()[0].foundation;
+      const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
       component.onCardClicked(foundationCard);
       component.onTabSelected('ancestry');
       fixture.detectChanges();
@@ -437,6 +436,14 @@ describe('CreateCharacter', () => {
       const placeholder = compiled.querySelector('.placeholder-text');
       expect(placeholder).toBeTruthy();
       expect(placeholder?.textContent).toContain('coming soon');
+    });
+
+    it('should render CardSelectionGrid on the class tab', () => {
+      fixture.detectChanges();
+      flushClassCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-selection-grid')).toBeTruthy();
     });
 
     it('should render card components on the class tab after loading', () => {
@@ -493,26 +500,14 @@ describe('CreateCharacter', () => {
       fixture.detectChanges();
     });
 
-    it('should render level tabs for each path', () => {
+    it('should render SubclassPathSelector component', () => {
       fixture.detectChanges();
       flushClassCards();
       navigateToSubclassTab();
       flushSubclassCards();
 
       const compiled = fixture.nativeElement as HTMLElement;
-      const tabLists = compiled.querySelectorAll('.tabbed-path__tabs');
-      expect(tabLists.length).toBe(2);
-    });
-
-    it('should group cards by subclassPathId', () => {
-      fixture.detectChanges();
-      flushClassCards();
-      navigateToSubclassTab();
-      flushSubclassCards();
-
-      expect(component.subclassPaths().length).toBe(2);
-      expect(component.subclassPaths()[0].pathName).toBe('Troubadour');
-      expect(component.subclassPaths()[1].pathName).toBe('Wordsmith');
+      expect(compiled.querySelector('app-subclass-path-selector')).toBeTruthy();
     });
 
     it('should clear subclass selection when different class selected', () => {
@@ -521,7 +516,7 @@ describe('CreateCharacter', () => {
       navigateToSubclassTab();
       flushSubclassCards();
 
-      const foundationCard = component.subclassPaths()[0].foundation;
+      const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
       component.onCardClicked(foundationCard);
       expect(component.characterSelections().subclass).toBe('Troubadour');
 
@@ -534,15 +529,13 @@ describe('CreateCharacter', () => {
       expect(component.characterSelections().subclass).toBeUndefined();
     });
 
-    it('should render tabbed paths for each subclass', () => {
+    it('should pass subclass cards to SubclassPathSelector', () => {
       fixture.detectChanges();
       flushClassCards();
       navigateToSubclassTab();
       flushSubclassCards();
 
-      const compiled = fixture.nativeElement as HTMLElement;
-      const paths = compiled.querySelectorAll('.tabbed-path');
-      expect(paths.length).toBe(2);
+      expect(component.subclassCards().length).toBe(6);
     });
   });
 });

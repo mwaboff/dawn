@@ -1,0 +1,17 @@
+@if (loading()) {
+  <app-card-skeleton [count]="skeletonCount()" />
+} @else if (error()) {
+  <app-card-error />
+} @else {
+  <div class="card-grid" [class.card-grid--wide]="layout() === 'wide'">
+    @for (card of cards(); track card.id) {
+      <app-daggerheart-card
+        [card]="card"
+        [selected]="isCardSelected(card)"
+        [collapsibleFeatures]="collapsibleFeatures()"
+        [layout]="layout()"
+        (cardClicked)="cardSelected.emit($event)"
+      />
+    }
+  </div>
+}

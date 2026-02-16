@@ -84,15 +84,6 @@
 .card__features-toggle-icon--expanded { transform: rotate(90deg); }
 .card__features-list { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
 .card__features-list--expanded { max-height: 2000px; overflow: visible; }
-.card__feature-item { border-left: 2px solid var(--cd); margin: .5rem 0; padding: .4rem 0 .4rem .75rem; }
-.card__feature-header { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
-.card__feature-name { font-family: 'Cinzel', serif; font-size: .95rem; font-weight: 700; color: #faf7f4; }
-.card__feature-subtitle { font-family: 'Lora', serif; font-size: .85rem; color: var(--ca); opacity: .8; }
-.card__feature-description { font-family: 'Lora', serif; font-size: .95rem; line-height: 1.65; margin: .25rem 0 0; color: #ddd0c2; }
-.card__feature-tags { display: flex; gap: .4rem; margin-top: .25rem; }
-.card__feature-tag { font-family: 'Lora', serif; font-size: .8rem; font-weight: 600; color: var(--ca); text-transform: uppercase; letter-spacing: .06em; opacity: .8; }
-.card__feature-tag + .card__feature-tag::before { content: '\b7'; margin-right: .4rem; opacity: .4; }
-
 /* Wide variant */
 .card--wide { max-height: none; flex-direction: row; }
 .card--wide::before { display: none; }
@@ -113,7 +104,7 @@
 .card--wide .card__description { font-size: 1rem; }
 .card--wide .card__tags { margin-top: .75rem; padding-top: .5rem; }
 .card--wide .card__features { margin-top: .5rem; }
-.card--wide .card__features-list { columns: 2; column-gap: 1.5rem; }
+.card--wide .card__features-list { columns: 1; }
 .card--wide .card__feature-item { break-inside: avoid; }
 .card--wide .card__type-badge { top: .75rem; right: .75rem; bottom: auto; }
 .card--wide:hover { transform: translateY(-3px); }

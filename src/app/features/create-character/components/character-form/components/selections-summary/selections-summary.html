@@ -1,0 +1,34 @@
+@if (hasSelections()) {
+  <div class="selections-summary" role="list" aria-label="Character selections">
+    @if (selections().class) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Class</span>
+        <span class="selection-value">{{ selections().class }}</span>
+      </div>
+    }
+    @if (selections().subclass) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Subclass</span>
+        <span class="selection-value">{{ selections().subclass }}</span>
+      </div>
+    }
+    @if (selections().domains) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Domains</span>
+        <span class="selection-value">{{ selections().domains }}</span>
+      </div>
+    }
+    @if (selections().ancestry) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Ancestry</span>
+        <span class="selection-value">{{ selections().ancestry }}</span>
+      </div>
+    }
+    @if (selections().community) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Community</span>
+        <span class="selection-value">{{ selections().community }}</span>
+      </div>
+    }
+  </div>
+}

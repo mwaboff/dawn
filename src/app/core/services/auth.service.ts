@@ -2,30 +2,9 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { UserResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
 
-export interface UserResponse {
-  id: number;
-  username: string;
-  email: string;
-  avatarUrl?: string;
-  timezone?: string;
-  role: string;
-  createdAt: string;
-  lastModifiedAt: string;
-}
-
-export interface LoginRequest {
-  usernameOrEmail: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  username: string;
-  email: string;
-  password: string;
-  timezone?: string;
-  avatarUrl?: string;
-}
+export type { UserResponse, LoginRequest, RegisterRequest };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

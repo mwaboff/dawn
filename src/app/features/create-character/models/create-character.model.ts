@@ -19,6 +19,7 @@ export type CharacterFormField = 'name' | 'pronouns';
 export interface CharacterSelections {
   class?: string;
   subclass?: string;
+  domains?: string;
   ancestry?: string;
   community?: string;
 }

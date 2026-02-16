@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -33,10 +33,6 @@ export class Navbar {
       };
 
       window.addEventListener('scroll', handleScroll, { passive: true });
-
-      effect(() => {
-        this.scrollY();
-      });
     }
   }
 
@@ -70,7 +66,7 @@ export class Navbar {
   onLogout(): void {
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/']),
-      error: () => this.router.navigate(['/'])
+      error: (err) => { console.error('Logout failed:', err); this.router.navigate(['/']); }
     });
   }
 

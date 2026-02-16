@@ -1,11 +1,14 @@
 import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 
-import { CardData, CardType } from './daggerheart-card.model';
+import { CardData, CardType, CARD_TYPE_LABELS } from './daggerheart-card.model';
+import { escapeAndFormatHtml } from '../../utils/text.utils';
+import { CardFeatureItem } from './card-feature-item/card-feature-item';
 
 @Component({
   selector: 'app-daggerheart-card',
   templateUrl: './daggerheart-card.html',
   styleUrl: './daggerheart-card.css',
+  imports: [CardFeatureItem],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DaggerheartCard {
@@ -41,28 +44,10 @@ export class DaggerheartCard {
   }
 
   formatText(text: string): string {
-    const escaped = text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-    return escaped.replace(/\n/g, '<br>');
+    return escapeAndFormatHtml(text);
   }
 
   typeLabel(type: CardType): string {
-    switch (type) {
-      case 'class':
-        return 'Class';
-      case 'subclass':
-        return 'Subclass';
-      case 'heritage':
-        return 'Heritage';
-      case 'community':
-        return 'Community';
-      case 'ancestry':
-        return 'Ancestry';
-      case 'domain':
-        return 'Domain';
-    }
+    return CARD_TYPE_LABELS[type];
   }
 }

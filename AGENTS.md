@@ -25,6 +25,17 @@ src/
 │   │   ├── auth/        # Authentication UI (login/signup)
 │   │   ├── home/        # Home page
 │   │   └── create-character/  # Character creation
+│   ├── shared/
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── daggerheart-card/
+│   │   │   │   └── card-feature-item/  # Child component
+│   │   │   ├── card-skeleton/
+│   │   │   ├── card-error/
+│   │   │   └── card-selection-grid/    # Loading + error + card grid pattern
+│   │   ├── models/           # Shared TypeScript interfaces
+│   │   │   └── api.model.ts  # PaginatedResponse, etc.
+│   │   └── utils/            # Pure utility functions
+│   │       └── text.utils.ts # escapeAndFormatHtml, etc.
 │   └── layout/
 │       ├── navbar/      # Navigation component
 │       └── footer/      # Footer component
@@ -56,6 +67,7 @@ npm run build                               # Production build (outputs to dist/
 ### Files
 - Components: `{feature}.ts`, `{feature}.html`, `{feature}.css`
 - Services: `{feature}.service.ts` | Guards: `{feature}.guard.ts` | Tests: `{feature}.spec.ts`
+- Utilities: `{name}.utils.ts` | Models: `{name}.model.ts` or `{name}-api.model.ts` | Mappers: `{name}.mapper.ts`
 
 ### Code
 - **Access modifiers**: `readonly` for template-accessed injections, `private` for internals, `private readonly` for signal state
@@ -63,3 +75,6 @@ npm run build                               # Production build (outputs to dist/
 - **Methods**: handlers `on{Event}()`, toggles `toggle{Feature}()`, setters `{verb}{Feature}()`
 - **Navigation**: always close dropdowns/modals before `router.navigate()`
 - **Comments**: Do not add large section/banner comments (e.g., `/* ========== Section ========== */` or `// --- Section ---`). Keep comments minimal and only where logic isn't self-evident.
+- **Utility functions**: pure functions in `shared/utils/{name}.utils.ts` with corresponding `{name}.utils.spec.ts`
+- **Model files**: interfaces/types in `models/{name}.model.ts`; constants (lookup maps, config arrays) alongside their related types
+- **Child components**: nested under parent's `components/` directory; if reused across 2+ features, promote to `shared/components/`
