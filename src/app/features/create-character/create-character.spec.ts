@@ -6,6 +6,8 @@ import { CreateCharacter } from './create-character';
 import { CHARACTER_TABS } from './models/create-character.model';
 import { ClassResponse, PaginatedResponse } from './models/class-api.model';
 import { SubclassCardResponse } from './models/subclass-api.model';
+import { AncestryCardResponse } from './models/ancestry-api.model';
+import { CommunityCardResponse } from './models/community-api.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -69,6 +71,54 @@ const MOCK_SUBCLASSES = [
   buildSubclassCardResponse({ id: 202, name: 'Wordsmith Master', subclassPathId: 20, level: 'MASTERY' }),
 ];
 
+function buildAncestryCardResponse(overrides: Partial<AncestryCardResponse> = {}): AncestryCardResponse {
+  return {
+    id: 300,
+    name: 'Clank',
+    description: 'Clanks are sentient mechanical beings',
+    cardType: 'ANCESTRY',
+    expansionId: 1,
+    isOfficial: true,
+    featureIds: [],
+    features: [],
+    costTagIds: [],
+    costTags: [],
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+const MOCK_ANCESTRIES = [
+  buildAncestryCardResponse({ id: 300, name: 'Clank' }),
+  buildAncestryCardResponse({ id: 301, name: 'Firbolg' }),
+  buildAncestryCardResponse({ id: 302, name: 'Katari' }),
+];
+
+function buildCommunityCardResponse(overrides: Partial<CommunityCardResponse> = {}): CommunityCardResponse {
+  return {
+    id: 400,
+    name: 'Highborne',
+    description: 'A life of elegance and prestige',
+    cardType: 'COMMUNITY',
+    expansionId: 1,
+    isOfficial: true,
+    featureIds: [],
+    features: [],
+    costTagIds: [],
+    costTags: [],
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+const MOCK_COMMUNITIES = [
+  buildCommunityCardResponse({ id: 400, name: 'Highborne' }),
+  buildCommunityCardResponse({ id: 401, name: 'Orderborne' }),
+  buildCommunityCardResponse({ id: 402, name: 'Wanderborne' }),
+];
+
 describe('CreateCharacter', () => {
   let component: CreateCharacter;
   let fixture: ComponentFixture<CreateCharacter>;
@@ -119,10 +169,78 @@ describe('CreateCharacter', () => {
     fixture.detectChanges();
   }
 
+  function flushAncestryCards(ancestries: AncestryCardResponse[] = MOCK_ANCESTRIES): void {
+    const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/ancestry'));
+    req.flush({
+      content: ancestries,
+      page: 0,
+      size: 20,
+      totalElements: ancestries.length,
+      totalPages: 1,
+    });
+    fixture.detectChanges();
+  }
+
+  function flushAncestryCardsError(): void {
+    const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/ancestry'));
+    req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    fixture.detectChanges();
+  }
+
   function navigateToSubclassTab(): void {
     const card = component.classCards()[0];
     component.onCardClicked(card);
     component.onTabSelected('subclass');
+    fixture.detectChanges();
+  }
+
+  function navigateToAncestryTab(): void {
+    const card = component.classCards()[0];
+    component.onCardClicked(card);
+    component.onTabSelected('subclass');
+    fixture.detectChanges();
+    flushSubclassCards();
+
+    const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
+    component.onCardClicked(foundationCard);
+    component.onTabSelected('ancestry');
+    fixture.detectChanges();
+  }
+
+  function flushCommunityCards(communities: CommunityCardResponse[] = MOCK_COMMUNITIES): void {
+    const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/community'));
+    req.flush({
+      content: communities,
+      page: 0,
+      size: 20,
+      totalElements: communities.length,
+      totalPages: 1,
+    });
+    fixture.detectChanges();
+  }
+
+  function flushCommunityCardsError(): void {
+    const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/community'));
+    req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    fixture.detectChanges();
+  }
+
+  function navigateToCommunityTab(): void {
+    const classCard = component.classCards()[0];
+    component.onCardClicked(classCard);
+    component.onTabSelected('subclass');
+    fixture.detectChanges();
+    flushSubclassCards();
+
+    const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
+    component.onCardClicked(foundationCard);
+    component.onTabSelected('ancestry');
+    fixture.detectChanges();
+    flushAncestryCards();
+
+    const ancestryCard = component.ancestryCards()[0];
+    component.onCardClicked(ancestryCard);
+    component.onTabSelected('community');
     fixture.detectChanges();
   }
 
@@ -420,16 +538,12 @@ describe('CreateCharacter', () => {
     it('should render placeholder text for tabs without content', () => {
       fixture.detectChanges();
       flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
 
-      const card = component.classCards()[0];
-      component.onCardClicked(card);
-      component.onTabSelected('subclass');
-      fixture.detectChanges();
-      flushSubclassCards();
-
-      const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
-      component.onCardClicked(foundationCard);
-      component.onTabSelected('ancestry');
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+      component.onTabSelected('traits');
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
@@ -536,6 +650,224 @@ describe('CreateCharacter', () => {
       flushSubclassCards();
 
       expect(component.subclassCards().length).toBe(6);
+    });
+  });
+
+  describe('Ancestry Cards', () => {
+    it('should load ancestry cards when ancestry tab is selected', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      expect(component.ancestryCards().length).toBe(3);
+      expect(component.ancestryCardsLoading()).toBe(false);
+    });
+
+    it('should show loading state while ancestry cards are loading', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+
+      expect(component.ancestryCardsLoading()).toBe(true);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-skeleton')).toBeTruthy();
+
+      flushAncestryCards();
+    });
+
+    it('should show error state when ancestry fetch fails', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCardsError();
+
+      expect(component.ancestryCardsError()).toBe(true);
+      expect(component.ancestryCardsLoading()).toBe(false);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-error')).toBeTruthy();
+    });
+
+    it('should display ancestry cards on successful fetch', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelectorAll('app-daggerheart-card').length).toBe(3);
+    });
+
+    it('should render CardSelectionGrid on ancestry tab', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-selection-grid')).toBeTruthy();
+    });
+
+    it('should update selectedCards when ancestry card is clicked', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      const ancestryCard = component.ancestryCards()[0];
+      component.onCardClicked(ancestryCard);
+
+      expect(component.selectedAncestryCard()?.id).toBe(ancestryCard.id);
+      expect(component.characterSelections().ancestry).toBe('Clank');
+    });
+
+    it('should deselect ancestry when clicking selected card again', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      const ancestryCard = component.ancestryCards()[0];
+      component.onCardClicked(ancestryCard);
+      expect(component.selectedAncestryCard()?.id).toBe(ancestryCard.id);
+
+      component.onCardClicked(ancestryCard);
+      expect(component.selectedAncestryCard()).toBeUndefined();
+      expect(component.characterSelections().ancestry).toBeUndefined();
+    });
+
+    it('should not re-fetch if ancestry cards already loaded', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      expect(component.ancestryCards().length).toBe(3);
+
+      component.onTabSelected('class');
+      fixture.detectChanges();
+
+      component.onTabSelected('ancestry');
+      fixture.detectChanges();
+
+      httpTesting.expectNone(r => r.url.includes('/dh/cards/ancestry'));
+    });
+  });
+
+  describe('Community Cards', () => {
+    it('should load community cards when community tab is selected', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      expect(component.communityCards().length).toBe(3);
+      expect(component.communityCardsLoading()).toBe(false);
+    });
+
+    it('should show loading state while community cards are loading', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+
+      expect(component.communityCardsLoading()).toBe(true);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-skeleton')).toBeTruthy();
+
+      flushCommunityCards();
+    });
+
+    it('should show error state when community fetch fails', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCardsError();
+
+      expect(component.communityCardsError()).toBe(true);
+      expect(component.communityCardsLoading()).toBe(false);
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-error')).toBeTruthy();
+    });
+
+    it('should display community cards on successful fetch', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelectorAll('app-daggerheart-card').length).toBe(3);
+    });
+
+    it('should render CardSelectionGrid on community tab', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-selection-grid')).toBeTruthy();
+    });
+
+    it('should update selectedCards when community card is clicked', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+
+      expect(component.selectedCommunityCard()?.id).toBe(communityCard.id);
+      expect(component.characterSelections().community).toBe('Highborne');
+    });
+
+    it('should show selected community in characterSelections', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const communityCard = component.communityCards()[1];
+      component.onCardClicked(communityCard);
+
+      expect(component.characterSelections().community).toBe('Orderborne');
+    });
+
+    it('should deselect community when clicking selected card again', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+      expect(component.selectedCommunityCard()?.id).toBe(communityCard.id);
+
+      component.onCardClicked(communityCard);
+      expect(component.selectedCommunityCard()).toBeUndefined();
+      expect(component.characterSelections().community).toBeUndefined();
+    });
+
+    it('should not re-fetch if community cards already loaded', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      expect(component.communityCards().length).toBe(3);
+
+      component.onTabSelected('ancestry');
+      fixture.detectChanges();
+
+      component.onTabSelected('community');
+      fixture.detectChanges();
+
+      httpTesting.expectNone(r => r.url.includes('/dh/cards/community'));
     });
   });
 });

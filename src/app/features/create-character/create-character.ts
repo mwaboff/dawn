@@ -10,6 +10,8 @@ import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-char
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { ClassService } from './services/class.service';
 import { SubclassService } from './services/subclass.service';
+import { AncestryService } from './services/ancestry.service';
+import { CommunityService } from './services/community.service';
 
 @Component({
   selector: 'app-create-character',
@@ -21,6 +23,8 @@ import { SubclassService } from './services/subclass.service';
 export class CreateCharacter implements OnInit {
   private readonly classService = inject(ClassService);
   private readonly subclassService = inject(SubclassService);
+  private readonly ancestryService = inject(AncestryService);
+  private readonly communityService = inject(CommunityService);
 
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
@@ -38,8 +42,18 @@ export class CreateCharacter implements OnInit {
   readonly subclassCardsError = signal(false);
   private lastLoadedClassId: number | null = null;
 
+  readonly ancestryCards = signal<CardData[]>([]);
+  readonly ancestryCardsLoading = signal(false);
+  readonly ancestryCardsError = signal(false);
+
+  readonly communityCards = signal<CardData[]>([]);
+  readonly communityCardsLoading = signal(false);
+  readonly communityCardsError = signal(false);
+
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
+  readonly selectedAncestryCard = computed(() => this.selectedCards()['ancestry']);
+  readonly selectedCommunityCard = computed(() => this.selectedCards()['community']);
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
@@ -61,6 +75,12 @@ export class CreateCharacter implements OnInit {
       this.activeTab.set(tabId);
       if (tabId === 'subclass') {
         this.loadSubclassCards();
+      }
+      if (tabId === 'ancestry') {
+        this.loadAncestryCards();
+      }
+      if (tabId === 'community') {
+        this.loadCommunityCards();
       }
     }
   }
@@ -108,6 +128,46 @@ export class CreateCharacter implements OnInit {
       error: () => {
         this.subclassCardsError.set(true);
         this.subclassCardsLoading.set(false);
+      },
+    });
+  }
+
+  loadAncestryCards(): void {
+    if (this.ancestryCards().length > 0) {
+      return;
+    }
+
+    this.ancestryCardsLoading.set(true);
+    this.ancestryCardsError.set(false);
+
+    this.ancestryService.getAncestries().subscribe({
+      next: (cards) => {
+        this.ancestryCards.set(cards);
+        this.ancestryCardsLoading.set(false);
+      },
+      error: () => {
+        this.ancestryCardsError.set(true);
+        this.ancestryCardsLoading.set(false);
+      },
+    });
+  }
+
+  loadCommunityCards(): void {
+    if (this.communityCards().length > 0) {
+      return;
+    }
+
+    this.communityCardsLoading.set(true);
+    this.communityCardsError.set(false);
+
+    this.communityService.getCommunities().subscribe({
+      next: (cards) => {
+        this.communityCards.set(cards);
+        this.communityCardsLoading.set(false);
+      },
+      error: () => {
+        this.communityCardsError.set(true);
+        this.communityCardsLoading.set(false);
       },
     });
   }

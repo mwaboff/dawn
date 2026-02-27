@@ -45,10 +45,28 @@
             }
           }
           @case ('ancestry') {
-            <p class="placeholder-text">Ancestry selection coming soon...</p>
+            <app-card-selection-grid
+              [cards]="ancestryCards()"
+              [loading]="ancestryCardsLoading()"
+              [error]="ancestryCardsError()"
+              [selectedCard]="selectedAncestryCard()"
+              [skeletonCount]="6"
+              [collapsibleFeatures]="true"
+              layout="wide"
+              (cardSelected)="onCardClicked($event)"
+            />
           }
           @case ('community') {
-            <p class="placeholder-text">Community selection coming soon...</p>
+            <app-card-selection-grid
+              [cards]="communityCards()"
+              [loading]="communityCardsLoading()"
+              [error]="communityCardsError()"
+              [selectedCard]="selectedCommunityCard()"
+              [skeletonCount]="6"
+              [collapsibleFeatures]="true"
+              layout="wide"
+              (cardSelected)="onCardClicked($event)"
+            />
           }
           @case ('traits') {
             <p class="placeholder-text">Traits selection coming soon...</p>
