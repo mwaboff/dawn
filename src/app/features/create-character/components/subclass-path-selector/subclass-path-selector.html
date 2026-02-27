@@ -1,0 +1,43 @@
+<div class="card-grid card-grid--wide">
+  @for (path of subclassPaths(); track path.pathId) {
+    <div class="tabbed-path" [attr.aria-label]="path.pathName + ' subclass path'">
+      <div class="tabbed-path__tabs" role="tablist" [attr.aria-label]="path.pathName + ' levels'">
+        <button
+          class="tabbed-path__tab"
+          [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+          (click)="setPathLevelTab(path.pathId, 'FOUNDATION')"
+          role="tab"
+          [attr.aria-selected]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+        >Foundation</button>
+        @if (path.specialization) {
+          <button
+            class="tabbed-path__tab"
+            [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+            (click)="setPathLevelTab(path.pathId, 'SPECIALIZATION')"
+            role="tab"
+            [attr.aria-selected]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+          >Specialization</button>
+        }
+        @if (path.mastery) {
+          <button
+            class="tabbed-path__tab"
+            [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'MASTERY'"
+            (click)="setPathLevelTab(path.pathId, 'MASTERY')"
+            role="tab"
+            [attr.aria-selected]="getPathLevelTab(path.pathId) === 'MASTERY'"
+          >Mastery</button>
+        }
+      </div>
+
+      @let activeCard = getPathCardForLevel(path, getPathLevelTab(path.pathId));
+      @if (activeCard) {
+        <app-daggerheart-card
+          [card]="activeCard"
+          [selected]="isCardSelected(path.foundation)"
+          layout="wide"
+          (cardClicked)="cardSelected.emit(path.foundation)"
+        />
+      }
+    </div>
+  }
+</div>

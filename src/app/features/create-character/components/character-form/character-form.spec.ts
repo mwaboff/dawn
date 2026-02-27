@@ -159,104 +159,23 @@ describe('CharacterForm', () => {
     });
   });
 
-  describe('Selections Display', () => {
-    it('should return false from hasSelections when no selections provided', () => {
-      expect(component.hasSelections()).toBe(false);
-    });
-
-    it('should not render selections summary when no selections exist', () => {
+  describe('Selections Summary', () => {
+    it('should render the selections-summary child component', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      const summary = compiled.querySelector('.selections-summary');
-      expect(summary).toBeNull();
+      const summary = compiled.querySelector('app-selections-summary');
+      expect(summary).toBeTruthy();
     });
 
-    it('should render class selection tag when class is selected', () => {
+    it('should pass selections input to child component', () => {
       fixture.componentRef.setInput('selections', { class: 'Warrior' });
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
-      const summary = compiled.querySelector('.selections-summary');
+      const summary = compiled.querySelector('app-selections-summary');
       expect(summary).toBeTruthy();
 
       const tags = compiled.querySelectorAll('.selection-tag');
       expect(tags).toHaveLength(1);
-
-      const label = tags[0].querySelector('.selection-label');
-      const value = tags[0].querySelector('.selection-value');
-      expect(label?.textContent?.trim()).toBe('Class');
-      expect(value?.textContent?.trim()).toBe('Warrior');
-    });
-
-    it('should render multiple selection tags when multiple selections exist', () => {
-      fixture.componentRef.setInput('selections', {
-        class: 'Guardian',
-        subclass: 'Stalwart',
-        ancestry: 'Elf',
-        community: 'Highborne',
-      });
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const tags = compiled.querySelectorAll('.selection-tag');
-      expect(tags).toHaveLength(4);
-    });
-
-    it('should display correct values for each selection type', () => {
-      fixture.componentRef.setInput('selections', {
-        class: 'Ranger',
-        ancestry: 'Dwarf',
-      });
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const tags = compiled.querySelectorAll('.selection-tag');
-      expect(tags).toHaveLength(2);
-
-      const labels = Array.from(tags).map(
-        (tag) => tag.querySelector('.selection-label')?.textContent?.trim(),
-      );
-      const values = Array.from(tags).map(
-        (tag) => tag.querySelector('.selection-value')?.textContent?.trim(),
-      );
-
-      expect(labels).toEqual(['Class', 'Ancestry']);
-      expect(values).toEqual(['Ranger', 'Dwarf']);
-    });
-
-    it('should have accessible role="list" on selections summary', () => {
-      fixture.componentRef.setInput('selections', { class: 'Wizard' });
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const summary = compiled.querySelector('.selections-summary');
-      expect(summary?.getAttribute('role')).toBe('list');
-      expect(summary?.getAttribute('aria-label')).toBe('Character selections');
-    });
-
-    it('should have role="listitem" on each selection tag', () => {
-      fixture.componentRef.setInput('selections', { class: 'Sorcerer', subclass: 'Pyromancer' });
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement as HTMLElement;
-      const tags = compiled.querySelectorAll('.selection-tag');
-      expect(tags).toHaveLength(2);
-      tags.forEach((tag) => {
-        expect(tag.getAttribute('role')).toBe('listitem');
-      });
-    });
-
-    it('should hide selections summary when selections are cleared', () => {
-      fixture.componentRef.setInput('selections', { class: 'Warrior' });
-      fixture.detectChanges();
-
-      let summary = fixture.nativeElement.querySelector('.selections-summary');
-      expect(summary).toBeTruthy();
-
-      fixture.componentRef.setInput('selections', {});
-      fixture.detectChanges();
-
-      summary = fixture.nativeElement.querySelector('.selections-summary');
-      expect(summary).toBeNull();
     });
   });
 });

@@ -1,0 +1,16 @@
+<div class="card__feature-item">
+  <div class="card__feature-header">
+    <span class="card__feature-name">{{ feature().name }}</span>
+    @if (feature().subtitle) {
+      <span class="card__feature-subtitle">{{ feature().subtitle }}</span>
+    }
+  </div>
+  <p class="card__feature-description" [innerHTML]="formatText(feature().description)"></p>
+  @if (feature().tags?.length) {
+    <div class="card__feature-tags">
+      @for (tag of feature().tags; track tag) {
+        <span class="card__feature-tag">{{ tag }}</span>
+      }
+    </div>
+  }
+</div>

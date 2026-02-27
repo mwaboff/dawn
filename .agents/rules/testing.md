@@ -37,6 +37,14 @@ trigger: glob
 - Boundary values (min/max)
 - Error responses (401, 404, 500)
 
+## When Extracting Components
+
+When refactoring extracts a child component from a parent:
+- Move tests that directly test the extracted behavior into the child's spec file
+- Parent tests should verify the child component renders (exists in DOM) and receives correct inputs
+- Do NOT duplicate assertions — if the child spec tests feature rendering, the parent spec should NOT also test feature rendering details
+- Run `npm run test:run` after each extraction to catch broken selectors or missing imports
+
 ## Commands
 ```bash
 npm run test:only -- src/app/feature/   # Run tests for a specific feature

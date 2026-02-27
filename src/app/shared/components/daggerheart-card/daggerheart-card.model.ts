@@ -6,6 +6,15 @@ export type CardType =
   | 'ancestry'
   | 'domain';
 
+export const CARD_TYPE_LABELS: Record<CardType, string> = {
+  class: 'Class',
+  subclass: 'Subclass',
+  heritage: 'Heritage',
+  community: 'Community',
+  ancestry: 'Ancestry',
+  domain: 'Domain',
+};
+
 export interface CardFeature {
   name: string;
   description: string;

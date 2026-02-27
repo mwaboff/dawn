@@ -99,5 +99,5 @@ export class MyService {
 - JWT auth in HttpOnly cookies — always include `{ withCredentials: true }`
 - Pagination: `page` and `size` query params (default: page 0, size 20)
 - Use `expand` query param for related objects
-- Define request/response interfaces in the service file
+- Define request/response interfaces in a dedicated model file (`models/{entity}.model.ts`), not inline in the service file
 - See `docs/BACKEND_API_REFERENCE.md` for endpoints
