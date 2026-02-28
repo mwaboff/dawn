@@ -1,0 +1,110 @@
+:host { display: block; }
+.trait-selector { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.stepper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stepper-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.25rem 0.75rem;
+  background: linear-gradient(170deg, #faf7f2, #f0e4d0);
+  border: 1px solid #d8c8a8;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.stepper-card--assigned {
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(212, 160, 86, 0.15);
+}
+
+.stepper-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #3a2817;
+}
+
+.stepper-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2rem;
+  color: #c9a87c;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.stepper-card--assigned .stepper-value {
+  color: var(--color-accent);
+}
+
+.stepper-select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #3a2817;
+  background: #f5ede0;
+  border: 1px solid #c9a87c;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.stepper-select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.stepper-actions {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  color: #8a7060;
+  text-align: center;
+}
+
+.trait-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 2rem;
+}
+
+.reset-btn {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #7a5c46;
+  background: none;
+  border: 1px solid #c9a87c;
+  border-radius: 4px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reset-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.complete-badge {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5a8a3a;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 640px) {
+  .stepper-grid { grid-template-columns: repeat(2, 1fr); }
+}

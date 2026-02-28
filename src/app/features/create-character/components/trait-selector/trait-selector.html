@@ -1,0 +1,29 @@
+<div class="trait-selector">
+  <div class="stepper-grid">
+    @for (trait of traits; track trait.key) {
+      <div class="stepper-card" [class.stepper-card--assigned]="getAssignment(trait.key) !== null">
+        <span class="stepper-name">{{ trait.name }}</span>
+        <div class="stepper-value">{{ formatValue(getAssignment(trait.key)) }}</div>
+        <select
+          class="stepper-select"
+          (change)="onSelectChange($event, trait.key)"
+        >
+          <option value="" [selected]="getAssignment(trait.key) === null">Choose...</option>
+          @for (val of getSelectableValues(trait.key); track $index) {
+            <option [value]="val" [selected]="getAssignment(trait.key) === val">{{ formatValue(val) }}</option>
+          }
+        </select>
+        <span class="stepper-actions">{{ trait.actions.join(', ') }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="trait-footer">
+    @if (hasAnyAssignment()) {
+      <button class="reset-btn" (click)="clearAll()">Reset All</button>
+    }
+    @if (isComplete()) {
+      <span class="complete-badge">All traits assigned</span>
+    }
+  </div>
+</div>

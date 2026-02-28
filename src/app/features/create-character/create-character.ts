@@ -12,10 +12,12 @@ import { ClassService } from './services/class.service';
 import { SubclassService } from './services/subclass.service';
 import { AncestryService } from './services/ancestry.service';
 import { CommunityService } from './services/community.service';
+import { TraitSelector } from './components/trait-selector/trait-selector';
+import { TraitAssignments, TraitKey } from './models/trait.model';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +52,8 @@ export class CreateCharacter implements OnInit {
   readonly communityCardsLoading = signal(false);
   readonly communityCardsError = signal(false);
 
+  private readonly traitAssignments = signal<TraitAssignments | null>(null);
+
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
   readonly selectedAncestryCard = computed(() => this.selectedCards()['ancestry']);
@@ -63,6 +67,7 @@ export class CreateCharacter implements OnInit {
       domains: cards['subclass']?.subtitle,
       ancestry: cards['ancestry']?.name,
       community: cards['community']?.name,
+      traits: this.formatTraitSummary(),
     };
   });
 
@@ -170,6 +175,36 @@ export class CreateCharacter implements OnInit {
         this.communityCardsLoading.set(false);
       },
     });
+  }
+
+  onTraitsChanged(assignments: TraitAssignments): void {
+    this.traitAssignments.set(assignments);
+    const isComplete = Object.values(assignments).every((v) => v !== null);
+    if (isComplete) {
+      this.markStepComplete('traits');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('traits');
+      this.completedStepsSignal.set(updated);
+    }
+  }
+
+  private formatTraitSummary(): string | undefined {
+    const assignments = this.traitAssignments();
+    if (!assignments) return undefined;
+    const entries = Object.entries(assignments).filter(([, v]) => v !== null) as [TraitKey, number][];
+    if (entries.length === 0) return undefined;
+    const abbrevs: Record<TraitKey, string> = {
+      agility: 'AGI',
+      strength: 'STR',
+      finesse: 'FIN',
+      instinct: 'INS',
+      presence: 'PRE',
+      knowledge: 'KNO',
+    };
+    return entries
+      .map(([key, val]) => `${abbrevs[key]} ${val > 0 ? '+' : ''}${val}`)
+      .join(', ');
   }
 
   private loadClassCards(): void {

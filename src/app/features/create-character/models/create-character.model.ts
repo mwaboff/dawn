@@ -22,6 +22,7 @@ export interface CharacterSelections {
   domains?: string;
   ancestry?: string;
   community?: string;
+  traits?: string;
 }
 
 export const CHARACTER_TABS: Tab[] = [

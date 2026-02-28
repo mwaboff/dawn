@@ -69,7 +69,9 @@
             />
           }
           @case ('traits') {
-            <p class="placeholder-text">Traits selection coming soon...</p>
+            <app-trait-selector
+              (traitsChanged)="onTraitsChanged($event)"
+            />
           }
           @case ('starting-equipment') {
             <p class="placeholder-text">Starting equipment coming soon...</p>
