@@ -535,7 +535,7 @@ describe('CreateCharacter', () => {
       expect(tabContent?.id).toBe('panel-subclass');
     });
 
-    it('should render placeholder text for tabs without content', () => {
+    it('should render trait selector on the traits tab', () => {
       fixture.detectChanges();
       flushClassCards();
       navigateToCommunityTab();
@@ -547,9 +547,7 @@ describe('CreateCharacter', () => {
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
-      const placeholder = compiled.querySelector('.placeholder-text');
-      expect(placeholder).toBeTruthy();
-      expect(placeholder?.textContent).toContain('coming soon');
+      expect(compiled.querySelector('app-trait-selector')).toBeTruthy();
     });
 
     it('should render CardSelectionGrid on the class tab', () => {

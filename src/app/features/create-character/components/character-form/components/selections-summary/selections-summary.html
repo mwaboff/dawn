@@ -30,5 +30,11 @@
         <span class="selection-value">{{ selections().community }}</span>
       </div>
     }
+    @if (selections().traits) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Traits</span>
+        <span class="selection-value">{{ selections().traits }}</span>
+      </div>
+    }
   </div>
 }
