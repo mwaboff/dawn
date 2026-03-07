@@ -1,5 +1,11 @@
 export type SubclassLevel = 'FOUNDATION' | 'SPECIALIZATION' | 'MASTERY';
 
+export interface SpellcastingTraitResponse {
+  trait: string;
+  description: string;
+  examples: string;
+}
+
 export interface SubclassCostTag {
   id: number;
   label: string;
@@ -31,6 +37,7 @@ export interface SubclassCardResponse {
   subclassPathId: number;
   domainNames?: string[];
   level: SubclassLevel;
+  spellcastingTrait?: SpellcastingTraitResponse | null;
   createdAt: string;
   lastModifiedAt: string;
 }

@@ -1,0 +1,56 @@
+<div class="weapon-section">
+  <div class="weapon-filters">
+    <div class="filter-group" role="radiogroup" aria-label="Weapon slot">
+      <button
+        class="filter-btn"
+        [class.filter-btn--active]="weaponSlot() === 'PRIMARY'"
+        (click)="onSlotChange('PRIMARY')"
+        role="radio"
+        [attr.aria-checked]="weaponSlot() === 'PRIMARY'"
+      >Primary</button>
+      <button
+        class="filter-btn"
+        [class.filter-btn--active]="weaponSlot() === 'SECONDARY'"
+        [disabled]="!canSelectSecondary()"
+        (click)="onSlotChange('SECONDARY')"
+        role="radio"
+        [attr.aria-checked]="weaponSlot() === 'SECONDARY'"
+      >Secondary</button>
+    </div>
+
+    <div class="filter-group" role="radiogroup" aria-label="Damage type">
+      <button
+        class="filter-btn"
+        [class.filter-btn--active]="damageFilter() === 'PHYSICAL'"
+        (click)="onDamageFilterChange('PHYSICAL')"
+        role="radio"
+        [attr.aria-checked]="damageFilter() === 'PHYSICAL'"
+      >Physical</button>
+      <button
+        class="filter-btn"
+        [class.filter-btn--active]="damageFilter() === 'MAGIC'"
+        [disabled]="!hasMagicAccess()"
+        (click)="onDamageFilterChange('MAGIC')"
+        role="radio"
+        [attr.aria-checked]="damageFilter() === 'MAGIC'"
+      >Magic</button>
+    </div>
+  </div>
+
+  <app-card-selection-grid
+    [cards]="activeWeapons()"
+    [loading]="activeLoading()"
+    [error]="activeError()"
+    [selectedCard]="activeSelected() ?? undefined"
+    [skeletonCount]="6"
+    [collapsibleFeatures]="true"
+    (cardSelected)="onCardClicked($event)"
+  />
+
+  <app-equipment-pagination
+    [currentPage]="activePagination().currentPage"
+    [totalPages]="activePagination().totalPages"
+    [totalElements]="activePagination().totalElements"
+    (pageChanged)="onPageChanged($event)"
+  />
+</div>

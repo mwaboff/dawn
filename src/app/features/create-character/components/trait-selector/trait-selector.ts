@@ -1,4 +1,4 @@
-import { Component, signal, computed, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, output, input, effect, ChangeDetectionStrategy } from '@angular/core';
 
 import {
   TRAITS,
@@ -16,11 +16,21 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TraitSelector {
+  readonly initialAssignments = input<TraitAssignments | null>(null);
   readonly traitsChanged = output<TraitAssignments>();
 
   readonly traits: TraitInfo[] = TRAITS;
 
   private readonly assignments = signal<TraitAssignments>({ ...INITIAL_ASSIGNMENTS });
+
+  constructor() {
+    effect(() => {
+      const initial = this.initialAssignments();
+      if (initial) {
+        this.assignments.set(initial);
+      }
+    });
+  }
 
   readonly traitAssignments = this.assignments.asReadonly();
 
@@ -66,7 +76,7 @@ export class TraitSelector {
     const available = this.availableValues();
     const current = this.assignments()[key];
     const all = current !== null ? [...available, current] : [...available];
-    return [...new Set(all)].sort((a, b) => b - a);
+    return all.sort((a, b) => b - a);
   }
 
   private updateAssignment(key: TraitKey, value: number | null): void {

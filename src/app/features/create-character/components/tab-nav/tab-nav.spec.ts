@@ -215,7 +215,7 @@ describe('TabNav', () => {
       // Mark all steps as complete so domain-cards is reachable
       const allCompleted = new Set<TabId>([
         'class', 'subclass', 'ancestry', 'community', 'traits',
-        'starting-equipment', 'background', 'experiences', 'domain-cards',
+        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
       host.activeTab.set('domain-cards');
@@ -320,7 +320,7 @@ describe('TabNav', () => {
       // Mark all steps as completed
       const allCompleted = new Set<TabId>([
         'class', 'subclass', 'ancestry', 'community', 'traits',
-        'starting-equipment', 'background', 'experiences', 'domain-cards',
+        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
       hostFixture.detectChanges();
@@ -329,7 +329,7 @@ describe('TabNav', () => {
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: TabId[] = [
         'subclass', 'ancestry', 'community', 'traits',
-        'starting-equipment', 'background', 'experiences', 'domain-cards',
+        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ];
 
       expectedOrder.forEach((expectedTab) => {

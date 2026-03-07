@@ -62,6 +62,8 @@
 .card--type-community { --ca: #56d478; --cd: rgba(86,212,120,.3); --cg: rgba(86,212,120,.15); }
 .card--type-ancestry { --ca: #d4c256; --cd: rgba(212,194,86,.3); --cg: rgba(212,194,86,.15); }
 .card--type-domain { --ca: #d48056; --cd: rgba(212,128,86,.3); --cg: rgba(212,128,86,.15); }
+.card--type-weapon { --ca: #c75050; --cd: rgba(199,80,80,.3); --cg: rgba(199,80,80,.15); }
+.card--type-armor { --ca: #5080c7; --cd: rgba(80,128,199,.3); --cg: rgba(80,128,199,.15); }
 
 /* Selected state */
 .card--selected::after {

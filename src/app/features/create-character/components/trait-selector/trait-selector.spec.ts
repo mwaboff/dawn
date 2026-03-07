@@ -94,8 +94,8 @@ describe('TraitSelector', () => {
   });
 
   describe('getSelectableValues', () => {
-    it('should return all unique pool values when nothing is assigned', () => {
-      expect(component.getSelectableValues('agility')).toEqual([2, 1, 0, -1]);
+    it('should return all pool values when nothing is assigned', () => {
+      expect(component.getSelectableValues('agility')).toEqual([2, 1, 1, 0, 0, -1]);
     });
 
     it('should include current assignment in selectable values', () => {
@@ -120,7 +120,7 @@ describe('TraitSelector', () => {
     it('should restore all pool values after clearing', () => {
       assignViaSelect('agility', '2');
       component.clearAll();
-      expect(component.getSelectableValues('agility')).toEqual([2, 1, 0, -1]);
+      expect(component.getSelectableValues('agility')).toEqual([2, 1, 1, 0, 0, -1]);
     });
   });
 

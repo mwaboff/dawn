@@ -1,0 +1,44 @@
+<div class="experience-selector">
+  <div class="experience-list">
+    @for (exp of experienceList(); track $index) {
+      <div class="experience-row" [class.experience-row--complete]="exp.name.trim() && exp.modifier !== null">
+        <span class="row-index">{{ $index + 1 }}</span>
+        <input
+          type="text"
+          class="exp-input exp-name"
+          placeholder="e.g. Blacksmith, Sailor..."
+          maxlength="50"
+          [value]="exp.name"
+          (input)="onNameChange($index, $event)"
+        />
+        <input
+          type="number"
+          class="exp-input exp-modifier"
+          placeholder="+2"
+          min="-5"
+          max="5"
+          [value]="exp.modifier !== null ? exp.modifier : ''"
+          (input)="onModifierChange($index, $event)"
+        />
+        @if (canRemove()) {
+          <button class="remove-btn" (click)="onRemoveExperience($index)" aria-label="Remove experience">
+            &times;
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (nameError()) {
+    <p class="name-error" role="alert">{{ nameError() }}</p>
+  }
+
+  <div class="experience-footer">
+    @if (canAddMore()) {
+      <button class="add-btn" (click)="onAddExperience()">+ Add Experience</button>
+    }
+    @if (isComplete()) {
+      <span class="complete-badge">{{ completeCount() }} experience{{ completeCount() > 1 ? 's' : '' }} defined</span>
+    }
+  </div>
+</div>

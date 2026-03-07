@@ -18,16 +18,27 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
     ? response.domainNames.join(' · ')
     : undefined;
 
+  const tags: string[] | undefined = response.spellcastingTrait
+    ? [`Spellcasting: ${response.spellcastingTrait.trait}`]
+    : undefined;
+
+  const metadata: Record<string, unknown> = {
+    subclassPathId: response.subclassPathId,
+    level: response.level,
+  };
+
+  if (response.spellcastingTrait) {
+    metadata['spellcastingTrait'] = response.spellcastingTrait;
+  }
+
   return {
     id: response.id,
     name: response.name,
     description: '',
     cardType: 'subclass',
     subtitle,
+    tags,
     features: features.length > 0 ? features : undefined,
-    metadata: {
-      subclassPathId: response.subclassPathId,
-      level: response.level,
-    },
+    metadata,
   };
 }

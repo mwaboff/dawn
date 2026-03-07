@@ -63,6 +63,89 @@
   }
 }
 
+.equipment-vault {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
+}
+
+.equipment-vault ::ng-deep .card-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.equipment-vault ::ng-deep .card {
+  border-radius: 0;
+  max-height: none;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  background: #faf7f2;
+  border: none;
+  border-bottom: 1px solid #d8c8a8;
+  box-shadow: none;
+}
+
+.equipment-vault ::ng-deep .card:nth-child(even) {
+  background: #f5ede0;
+}
+
+.equipment-vault ::ng-deep .card:hover {
+  transform: none;
+  background: #f0e4d0;
+  box-shadow: none;
+}
+
+.equipment-vault ::ng-deep .card.card--selected {
+  background: #f0e4d0;
+  border-left: 3px solid var(--color-accent);
+  box-shadow: none;
+  max-height: none;
+}
+
+.equipment-vault ::ng-deep .card__content {
+  flex-direction: row;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  gap: 1rem;
+}
+
+.equipment-vault ::ng-deep .card__name {
+  font-size: 1rem;
+  color: #3a2817;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.equipment-vault ::ng-deep .card__description { display: none; }
+.equipment-vault ::ng-deep .card__decoration { display: none; }
+.equipment-vault ::ng-deep .card::before { display: none; }
+
+.equipment-vault ::ng-deep .card__tags {
+  border: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+.equipment-vault ::ng-deep .card__tag {
+  font-size: 0.8rem;
+  color: #7a5c46;
+}
+
+.equipment-vault ::ng-deep .card__type-badge { display: none; }
+
+.equipment-vault ::ng-deep .card__feature-name { color: #3a2817; }
+.equipment-vault ::ng-deep .card__feature-subtitle { color: #5a4230; opacity: 1; }
+.equipment-vault ::ng-deep .card__feature-description { color: #5a4230; }
+.equipment-vault ::ng-deep .card__feature-item { border-left-color: #c9a87c; }
+.equipment-vault ::ng-deep .card__feature-tag { color: #7a5c46; }
+.equipment-vault ::ng-deep .card__features-toggle { color: #5a4230; }
+.equipment-vault ::ng-deep .card__features { border-top-color: #d8c8a8; }
+
 @media (max-width: 640px) {
   .parchment-container {
     padding: 1.5rem;

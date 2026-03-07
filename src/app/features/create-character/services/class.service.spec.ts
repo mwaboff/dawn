@@ -49,7 +49,7 @@ describe('ClassService', () => {
         r.params.get('expand') === 'classFeatures,hopeFeatures,costTags'
     );
     expect(req.request.method).toBe('GET');
-    req.flush({ content: [], page: 1, size: 50, totalElements: 0, totalPages: 0 });
+    req.flush({ content: [], currentPage: 1, pageSize: 50, totalElements: 0, totalPages: 0 });
   });
 
   it('should send withCredentials: true', () => {
@@ -57,7 +57,7 @@ describe('ClassService', () => {
 
     const req = httpTesting.expectOne(r => r.url === 'http://localhost:8080/api/dh/classes');
     expect(req.request.withCredentials).toBe(true);
-    req.flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    req.flush({ content: [], currentPage: 0, pageSize: 20, totalElements: 0, totalPages: 0 });
   });
 
   it('should map response content through mapper', () => {
@@ -66,8 +66,8 @@ describe('ClassService', () => {
         buildClassResponse({ id: 1, name: 'Warrior' }),
         buildClassResponse({ id: 2, name: 'Ranger' }),
       ],
-      page: 0,
-      size: 20,
+      currentPage: 0,
+      pageSize: 20,
       totalElements: 2,
       totalPages: 1,
     };

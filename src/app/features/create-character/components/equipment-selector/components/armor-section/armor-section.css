@@ -1,0 +1,17 @@
+:host { display: block; }
+
+.armor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.armor-section__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #3a2817;
+  margin: 0 0 1rem;
+}

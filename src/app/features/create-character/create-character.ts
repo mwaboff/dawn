@@ -13,11 +13,15 @@ import { SubclassService } from './services/subclass.service';
 import { AncestryService } from './services/ancestry.service';
 import { CommunityService } from './services/community.service';
 import { TraitSelector } from './components/trait-selector/trait-selector';
+import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
+import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
+import { ExperienceSelector } from './components/experience-selector/experience-selector';
 import { TraitAssignments, TraitKey } from './models/trait.model';
+import { Experience, isExperienceComplete } from './models/experience.model';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,12 +56,20 @@ export class CreateCharacter implements OnInit {
   readonly communityCardsLoading = signal(false);
   readonly communityCardsError = signal(false);
 
-  private readonly traitAssignments = signal<TraitAssignments | null>(null);
+  readonly traitAssignments = signal<TraitAssignments | null>(null);
+  readonly experienceAssignments = signal<Experience[]>([]);
+  readonly selectedPrimaryWeapon = signal<CardData | null>(null);
+  readonly selectedSecondaryWeapon = signal<CardData | null>(null);
+  readonly selectedArmor = signal<CardData | null>(null);
 
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
   readonly selectedAncestryCard = computed(() => this.selectedCards()['ancestry']);
   readonly selectedCommunityCard = computed(() => this.selectedCards()['community']);
+
+  readonly subclassHasMagicAccess = computed(() =>
+    this.selectedSubclassCard()?.metadata?.['spellcastingTrait'] != null,
+  );
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
@@ -68,6 +80,8 @@ export class CreateCharacter implements OnInit {
       ancestry: cards['ancestry']?.name,
       community: cards['community']?.name,
       traits: this.formatTraitSummary(),
+      weapon: this.formatWeaponSummary(),
+      armor: this.selectedArmor()?.name,
     };
   });
 
@@ -86,6 +100,12 @@ export class CreateCharacter implements OnInit {
       }
       if (tabId === 'community') {
         this.loadCommunityCards();
+      }
+      if (tabId === 'starting-weapon') {
+        this.markStepComplete('starting-weapon');
+      }
+      if (tabId === 'starting-armor') {
+        this.markStepComplete('starting-armor');
       }
     }
   }
@@ -177,6 +197,29 @@ export class CreateCharacter implements OnInit {
     });
   }
 
+  onWeaponSelected(selection: { primary: CardData | null; secondary: CardData | null }): void {
+    this.selectedPrimaryWeapon.set(selection.primary);
+    this.selectedSecondaryWeapon.set(selection.secondary);
+    this.markStepComplete('starting-weapon');
+  }
+
+  onArmorSelected(armor: CardData | null): void {
+    this.selectedArmor.set(armor);
+    this.markStepComplete('starting-armor');
+  }
+
+  onExperiencesChanged(experiences: Experience[]): void {
+    this.experienceAssignments.set(experiences);
+    const hasComplete = experiences.some(exp => isExperienceComplete(exp));
+    if (hasComplete) {
+      this.markStepComplete('experiences');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('experiences');
+      this.completedStepsSignal.set(updated);
+    }
+  }
+
   onTraitsChanged(assignments: TraitAssignments): void {
     this.traitAssignments.set(assignments);
     const isComplete = Object.values(assignments).every((v) => v !== null);
@@ -205,6 +248,15 @@ export class CreateCharacter implements OnInit {
     return entries
       .map(([key, val]) => `${abbrevs[key]} ${val > 0 ? '+' : ''}${val}`)
       .join(', ');
+  }
+
+  private formatWeaponSummary(): string | undefined {
+    const primary = this.selectedPrimaryWeapon();
+    if (!primary) return undefined;
+    const weapons = [primary.name];
+    const secondary = this.selectedSecondaryWeapon();
+    if (secondary) weapons.push(secondary.name);
+    return weapons.join(' + ');
   }
 
   private loadClassCards(): void {
@@ -245,6 +297,8 @@ export class CreateCharacter implements OnInit {
   }
 
   private isTabReachable(tabId: TabId): boolean {
+    if (tabId === 'domain-cards') return true;
+
     const targetIndex = this.tabs.findIndex((t) => t.id === tabId);
     const currentIndex = this.tabs.findIndex((t) => t.id === this.activeTab());
 

@@ -70,17 +70,33 @@
           }
           @case ('traits') {
             <app-trait-selector
+              [initialAssignments]="traitAssignments()"
               (traitsChanged)="onTraitsChanged($event)"
             />
           }
-          @case ('starting-equipment') {
-            <p class="placeholder-text">Starting equipment coming soon...</p>
+          @case ('starting-weapon') {
+            <div class="equipment-vault">
+              <app-weapon-section
+                [hasMagicAccess]="subclassHasMagicAccess()"
+                [initialPrimary]="selectedPrimaryWeapon()"
+                [initialSecondary]="selectedSecondaryWeapon()"
+                (weaponSelected)="onWeaponSelected($event)"
+              />
+            </div>
           }
-          @case ('background') {
-            <p class="placeholder-text">Background selection coming soon...</p>
+          @case ('starting-armor') {
+            <div class="equipment-vault">
+              <app-armor-section
+                [initialArmor]="selectedArmor()"
+                (armorSelected)="onArmorSelected($event)"
+              />
+            </div>
           }
           @case ('experiences') {
-            <p class="placeholder-text">Experiences selection coming soon...</p>
+            <app-experience-selector
+              [initialExperiences]="experienceAssignments()"
+              (experiencesChanged)="onExperiencesChanged($event)"
+            />
           }
           @case ('domain-cards') {
             <p class="placeholder-text">Domain cards coming soon...</p>
