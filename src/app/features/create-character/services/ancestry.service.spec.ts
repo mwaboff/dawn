@@ -26,7 +26,7 @@ function buildAncestryCardResponse(overrides: Partial<AncestryCardResponse> = {}
 }
 
 function buildPaginatedResponse(content: AncestryCardResponse[]): PaginatedResponse<AncestryCardResponse> {
-  return { content, page: 0, size: 20, totalElements: content.length, totalPages: 1 };
+  return { content, currentPage: 0, pageSize: 20, totalElements: content.length, totalPages: 1 };
 }
 
 describe('AncestryService', () => {

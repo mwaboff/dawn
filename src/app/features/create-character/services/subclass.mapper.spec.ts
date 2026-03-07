@@ -152,8 +152,45 @@ describe('mapSubclassResponseToCardData', () => {
     expect(result.subtitle).toBeUndefined();
   });
 
-  it('should not set tags', () => {
+  it('should not set tags when no spellcastingTrait', () => {
     const response = buildSubclassCardResponse({ expansionName: 'Daggerheart Core Set' });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.tags).toBeUndefined();
+  });
+
+  it('should store spellcastingTrait in metadata when present', () => {
+    const spellcastingTrait = { trait: 'Presence', description: 'Cast with charisma', examples: 'Charm, Illusion' };
+    const response = buildSubclassCardResponse({ spellcastingTrait });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['spellcastingTrait']).toEqual(spellcastingTrait);
+  });
+
+  it('should add spellcasting tag when spellcastingTrait is present', () => {
+    const spellcastingTrait = { trait: 'Presence', description: 'Cast with charisma', examples: 'Charm, Illusion' };
+    const response = buildSubclassCardResponse({ spellcastingTrait });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.tags).toEqual(['Spellcasting: Presence']);
+  });
+
+  it('should not store spellcastingTrait in metadata when null', () => {
+    const response = buildSubclassCardResponse({ spellcastingTrait: null });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['spellcastingTrait']).toBeUndefined();
+  });
+
+  it('should not add spellcasting tag when spellcastingTrait is null', () => {
+    const response = buildSubclassCardResponse({ spellcastingTrait: null });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.tags).toBeUndefined();
+  });
+
+  it('should not add spellcasting tag when spellcastingTrait is undefined', () => {
+    const response = buildSubclassCardResponse({ spellcastingTrait: undefined });
     const result = mapSubclassResponseToCardData(response);
 
     expect(result.tags).toBeUndefined();

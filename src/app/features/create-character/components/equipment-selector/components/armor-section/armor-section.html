@@ -1,0 +1,18 @@
+<div class="armor-section">
+  <app-card-selection-grid
+    [cards]="armorCards()"
+    [loading]="loading()"
+    [error]="error()"
+    [selectedCard]="selectedArmor() ?? undefined"
+    [skeletonCount]="4"
+    [collapsibleFeatures]="true"
+    (cardSelected)="onCardClicked($event)"
+  />
+
+  <app-equipment-pagination
+    [currentPage]="pagination().currentPage"
+    [totalPages]="pagination().totalPages"
+    [totalElements]="pagination().totalElements"
+    (pageChanged)="onPageChanged($event)"
+  />
+</div>

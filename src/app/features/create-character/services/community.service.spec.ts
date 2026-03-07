@@ -26,7 +26,7 @@ function buildCommunityCardResponse(overrides: Partial<CommunityCardResponse> = 
 }
 
 function buildPaginatedResponse(content: CommunityCardResponse[]): PaginatedResponse<CommunityCardResponse> {
-  return { content, page: 0, size: 20, totalElements: content.length, totalPages: 1 };
+  return { content, currentPage: 0, pageSize: 20, totalElements: content.length, totalPages: 1 };
 }
 
 describe('CommunityService', () => {

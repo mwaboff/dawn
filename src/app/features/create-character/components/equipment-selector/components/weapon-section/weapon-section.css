@@ -1,0 +1,55 @@
+:host { display: block; }
+
+.weapon-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.weapon-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.filter-btn {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a5c46;
+  background: #f5ede0;
+  border: 1px solid #c9a87c;
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-btn:not(:disabled):hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.filter-btn--active {
+  background: var(--color-accent);
+  color: #1a1412;
+  border-color: var(--color-accent);
+}
+
+.filter-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.filter-btn--active:disabled {
+  opacity: 0.5;
+}

@@ -4,7 +4,9 @@ export type CardType =
   | 'heritage'
   | 'community'
   | 'ancestry'
-  | 'domain';
+  | 'domain'
+  | 'weapon'
+  | 'armor';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -13,6 +15,8 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   community: 'Community',
   ancestry: 'Ancestry',
   domain: 'Domain',
+  weapon: 'Weapon',
+  armor: 'Armor',
 };
 
 export interface CardFeature {

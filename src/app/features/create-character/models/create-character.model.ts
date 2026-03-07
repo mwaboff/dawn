@@ -9,8 +9,8 @@ export type TabId =
   | 'ancestry'
   | 'community'
   | 'traits'
-  | 'starting-equipment'
-  | 'background'
+  | 'starting-weapon'
+  | 'starting-armor'
   | 'experiences'
   | 'domain-cards';
 
@@ -23,6 +23,8 @@ export interface CharacterSelections {
   ancestry?: string;
   community?: string;
   traits?: string;
+  weapon?: string;
+  armor?: string;
 }
 
 export const CHARACTER_TABS: Tab[] = [
@@ -31,8 +33,8 @@ export const CHARACTER_TABS: Tab[] = [
   { id: 'ancestry', label: 'Ancestry' },
   { id: 'community', label: 'Community' },
   { id: 'traits', label: 'Traits' },
-  { id: 'starting-equipment', label: 'Starting Equipment' },
-  { id: 'background', label: 'Background' },
+  { id: 'starting-weapon', label: 'Starting Weapon' },
+  { id: 'starting-armor', label: 'Starting Armor' },
   { id: 'experiences', label: 'Experiences' },
   { id: 'domain-cards', label: 'Domain Cards' },
 ];

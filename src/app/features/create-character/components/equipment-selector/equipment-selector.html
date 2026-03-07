@@ -1,0 +1,39 @@
+<div class="equipment-selector equipment-selector--vault">
+  <div class="equipment-header">
+    <div class="substep-tabs" role="tablist">
+      <button
+        class="substep-tab"
+        [class.substep-tab--active]="activeSubStep() === 'weapon'"
+        (click)="onSubStepSelected('weapon')"
+        role="tab"
+        [attr.aria-selected]="activeSubStep() === 'weapon'"
+      >Weapons</button>
+      <button
+        class="substep-tab"
+        [class.substep-tab--active]="activeSubStep() === 'armor'"
+        (click)="onSubStepSelected('armor')"
+        role="tab"
+        [attr.aria-selected]="activeSubStep() === 'armor'"
+      >Armor</button>
+    </div>
+    <button class="skip-btn" (click)="onSkip()">Skip</button>
+  </div>
+
+  @switch (activeSubStep()) {
+    @case ('weapon') {
+      <app-weapon-section
+        [hasMagicAccess]="hasMagicAccess()"
+        [initialPrimary]="selections().primaryWeapon"
+        [initialSecondary]="selections().secondaryWeapon"
+        (weaponSelected)="onWeaponSelected($event)"
+      />
+    }
+    @case ('armor') {
+      <app-armor-section
+        [initialArmor]="selections().armor"
+        (armorSelected)="onArmorSelected($event)"
+      />
+    }
+  }
+
+</div>

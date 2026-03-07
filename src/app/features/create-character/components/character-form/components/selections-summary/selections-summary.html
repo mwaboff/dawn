@@ -36,5 +36,17 @@
         <span class="selection-value">{{ selections().traits }}</span>
       </div>
     }
+    @if (selections().weapon) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Weapon</span>
+        <span class="selection-value">{{ selections().weapon }}</span>
+      </div>
+    }
+    @if (selections().armor) {
+      <div class="selection-tag" role="listitem">
+        <span class="selection-label">Armor</span>
+        <span class="selection-value">{{ selections().armor }}</span>
+      </div>
+    }
   </div>
 }

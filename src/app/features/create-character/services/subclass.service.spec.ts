@@ -28,7 +28,7 @@ function buildSubclassCardResponse(overrides: Partial<SubclassCardResponse> = {}
 }
 
 function buildPaginatedResponse(content: SubclassCardResponse[]): PaginatedResponse<SubclassCardResponse> {
-  return { content, page: 0, size: 20, totalElements: content.length, totalPages: 1 };
+  return { content, currentPage: 0, pageSize: 20, totalElements: content.length, totalPages: 1 };
 }
 
 describe('SubclassService', () => {

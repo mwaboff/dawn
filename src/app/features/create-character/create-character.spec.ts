@@ -29,8 +29,8 @@ function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassRespon
 function buildPaginatedResponse(classes: ClassResponse[]): PaginatedResponse<ClassResponse> {
   return {
     content: classes,
-    page: 0,
-    size: 100,
+    currentPage: 0,
+    pageSize: 100,
     totalElements: classes.length,
     totalPages: 1,
   };
@@ -155,8 +155,8 @@ describe('CreateCharacter', () => {
     const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/subclass'));
     req.flush({
       content: subclasses,
-      page: 0,
-      size: 20,
+      currentPage: 0,
+      pageSize: 20,
       totalElements: subclasses.length,
       totalPages: 1,
     });
@@ -173,8 +173,8 @@ describe('CreateCharacter', () => {
     const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/ancestry'));
     req.flush({
       content: ancestries,
-      page: 0,
-      size: 20,
+      currentPage: 0,
+      pageSize: 20,
       totalElements: ancestries.length,
       totalPages: 1,
     });
@@ -211,8 +211,8 @@ describe('CreateCharacter', () => {
     const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/community'));
     req.flush({
       content: communities,
-      page: 0,
-      size: 20,
+      currentPage: 0,
+      pageSize: 20,
       totalElements: communities.length,
       totalPages: 1,
     });
@@ -608,7 +608,7 @@ describe('CreateCharacter', () => {
 
       const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/subclass'));
       expect(req.request.params.get('associatedClassId')).toBe('1');
-      req.flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 1 });
+      req.flush({ content: [], currentPage: 0, pageSize: 20, totalElements: 0, totalPages: 1 });
       fixture.detectChanges();
     });
 
@@ -866,6 +866,75 @@ describe('CreateCharacter', () => {
       fixture.detectChanges();
 
       httpTesting.expectNone(r => r.url.includes('/dh/cards/community'));
+    });
+  });
+
+  describe('Experiences', () => {
+    it('should mark experiences step complete when a valid experience is provided', () => {
+      fixture.detectChanges();
+      flushClassCards();
+
+      component.onExperiencesChanged([
+        { name: 'Blacksmith', modifier: 2 },
+        { name: '', modifier: null },
+      ]);
+
+      expect(component.completedSteps().has('experiences')).toBe(true);
+    });
+
+    it('should not mark experiences step complete when no experience is fully filled', () => {
+      fixture.detectChanges();
+      flushClassCards();
+
+      component.onExperiencesChanged([
+        { name: 'Blacksmith', modifier: null },
+        { name: '', modifier: null },
+      ]);
+
+      expect(component.completedSteps().has('experiences')).toBe(false);
+    });
+
+    it('should unmark experiences step when all experiences become incomplete', () => {
+      fixture.detectChanges();
+      flushClassCards();
+
+      component.onExperiencesChanged([{ name: 'Blacksmith', modifier: 2 }]);
+      expect(component.completedSteps().has('experiences')).toBe(true);
+
+      component.onExperiencesChanged([{ name: '', modifier: null }]);
+      expect(component.completedSteps().has('experiences')).toBe(false);
+    });
+
+    it('should render experience-selector on the experiences tab', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+
+      component.onTabSelected('traits');
+      fixture.detectChanges();
+
+      // Manually complete traits
+      const traitAssignments = {
+        agility: 2,
+        strength: 1,
+        finesse: 1,
+        instinct: 0,
+        presence: 0,
+        knowledge: -1,
+      };
+      component.onTraitsChanged(traitAssignments);
+
+      component.onTabSelected('starting-weapon');
+      component.onTabSelected('starting-armor');
+      component.onTabSelected('experiences');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-experience-selector')).toBeTruthy();
     });
   });
 });

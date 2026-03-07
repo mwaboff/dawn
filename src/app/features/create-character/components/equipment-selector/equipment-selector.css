@@ -1,0 +1,134 @@
+:host { display: block; }
+
+.equipment-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
+}
+
+.equipment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.substep-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.substep-tab {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a5c46;
+  background: transparent;
+  border: 1px solid #c9a87c;
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.substep-tab:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+.substep-tab--active {
+  background: var(--color-accent);
+  color: #1a1412;
+  border-color: var(--color-accent);
+}
+
+.skip-btn {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #7a5c46;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.5rem;
+  transition: color 0.15s ease;
+}
+
+.skip-btn:hover { color: var(--color-accent); }
+
+.equipment-selector--vault ::ng-deep .card-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.equipment-selector--vault ::ng-deep .card {
+  border-radius: 0;
+  max-height: none;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  background: #faf7f2;
+  border: none;
+  border-bottom: 1px solid #d8c8a8;
+  box-shadow: none;
+}
+
+.equipment-selector--vault ::ng-deep .card:nth-child(even) {
+  background: #f5ede0;
+}
+
+.equipment-selector--vault ::ng-deep .card:hover {
+  transform: none;
+  background: #f0e4d0;
+  box-shadow: none;
+}
+
+.equipment-selector--vault ::ng-deep .card.card--selected {
+  background: #f0e4d0;
+  border-left: 3px solid var(--color-accent);
+  box-shadow: none;
+  max-height: none;
+}
+
+.equipment-selector--vault ::ng-deep .card__content {
+  flex-direction: row;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  gap: 1rem;
+}
+
+.equipment-selector--vault ::ng-deep .card__name {
+  font-size: 1rem;
+  color: #3a2817;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.equipment-selector--vault ::ng-deep .card__description { display: none; }
+.equipment-selector--vault ::ng-deep .card__decoration { display: none; }
+.equipment-selector--vault ::ng-deep .card::before { display: none; }
+
+.equipment-selector--vault ::ng-deep .card__tags {
+  border: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+.equipment-selector--vault ::ng-deep .card__tag {
+  font-size: 0.8rem;
+  color: #7a5c46;
+}
+
+.equipment-selector--vault ::ng-deep .card__type-badge { display: none; }
+
+.equipment-selector--vault ::ng-deep .card__feature-name { color: #3a2817; }
+.equipment-selector--vault ::ng-deep .card__feature-subtitle { color: #5a4230; opacity: 1; }
+.equipment-selector--vault ::ng-deep .card__feature-description { color: #5a4230; }
+.equipment-selector--vault ::ng-deep .card__feature-item { border-left-color: #c9a87c; }
+.equipment-selector--vault ::ng-deep .card__feature-tag { color: #7a5c46; }
+.equipment-selector--vault ::ng-deep .card__features-toggle { color: #5a4230; }
+.equipment-selector--vault ::ng-deep .card__features { border-top-color: #d8c8a8; }
