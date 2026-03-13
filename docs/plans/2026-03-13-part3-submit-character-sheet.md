@@ -10,6 +10,7 @@ Add a service to submit the character sheet to the backend API. Add a submit but
 
 - Part 2 (Review Stage) must be complete
 - Backend must be updated to support `domainCardIds` on the character sheet (see Backend Changes section)
+  - NOTE: this has been updated to support it. Use the core-api-blueprint skill and review the character-sheets-api.md file for the latest API specification.
 
 ---
 

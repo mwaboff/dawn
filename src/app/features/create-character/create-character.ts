@@ -12,16 +12,18 @@ import { ClassService } from './services/class.service';
 import { SubclassService } from './services/subclass.service';
 import { AncestryService } from './services/ancestry.service';
 import { CommunityService } from './services/community.service';
+import { DomainService } from './services/domain.service';
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
 import { ExperienceSelector } from './components/experience-selector/experience-selector';
+import { ReviewSection } from './components/review-section/review-section';
 import { TraitAssignments, TraitKey } from './models/trait.model';
 import { Experience, isExperienceComplete } from './models/experience.model';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ReviewSection],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,7 @@ export class CreateCharacter implements OnInit {
   private readonly subclassService = inject(SubclassService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
+  private readonly domainService = inject(DomainService);
 
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
@@ -56,6 +59,12 @@ export class CreateCharacter implements OnInit {
   readonly communityCardsLoading = signal(false);
   readonly communityCardsError = signal(false);
 
+  readonly domainCards = signal<CardData[]>([]);
+  readonly domainCardsLoading = signal(false);
+  readonly domainCardsError = signal(false);
+  readonly selectedDomainCards = signal<CardData[]>([]);
+  private lastLoadedDomainSubclassId: number | null = null;
+
   readonly traitAssignments = signal<TraitAssignments | null>(null);
   readonly experienceAssignments = signal<Experience[]>([]);
   readonly selectedPrimaryWeapon = signal<CardData | null>(null);
@@ -73,6 +82,7 @@ export class CreateCharacter implements OnInit {
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
+    const domainCardNames = this.selectedDomainCards();
     return {
       class: cards['class']?.name,
       subclass: cards['subclass']?.name,
@@ -82,6 +92,7 @@ export class CreateCharacter implements OnInit {
       traits: this.formatTraitSummary(),
       weapon: this.formatWeaponSummary(),
       armor: this.selectedArmor()?.name,
+      domainCards: domainCardNames.length > 0 ? domainCardNames.map(c => c.name).join(', ') : undefined,
     };
   });
 
@@ -107,6 +118,12 @@ export class CreateCharacter implements OnInit {
       if (tabId === 'starting-armor') {
         this.markStepComplete('starting-armor');
       }
+      if (tabId === 'domain-cards') {
+        this.loadDomainCards();
+      }
+      if (tabId === 'review') {
+        this.markStepComplete('review');
+      }
     }
   }
 
@@ -127,6 +144,10 @@ export class CreateCharacter implements OnInit {
 
       if (currentTab === 'class' && previousCard && previousCard.id !== card.id) {
         this.invalidateSteps(currentTab, false);
+      }
+
+      if (currentTab === 'subclass' && previousCard && previousCard.id !== card.id) {
+        this.clearDomainCardSelections();
       }
     }
   }
@@ -195,6 +216,54 @@ export class CreateCharacter implements OnInit {
         this.communityCardsLoading.set(false);
       },
     });
+  }
+
+  loadDomainCards(): void {
+    const subclass = this.selectedCards()['subclass'];
+    if (!subclass) return;
+
+    const subclassId = subclass.id;
+    if (subclassId === this.lastLoadedDomainSubclassId && this.domainCards().length > 0) {
+      return;
+    }
+
+    const domainNames = (subclass.metadata?.['domainNames'] as string[]) ?? [];
+    if (domainNames.length === 0) return;
+
+    this.domainCardsLoading.set(true);
+    this.domainCardsError.set(false);
+
+    this.domainService.getDomainCardsForNames(domainNames).subscribe({
+      next: (cards) => {
+        this.domainCards.set(cards);
+        this.domainCardsLoading.set(false);
+        this.lastLoadedDomainSubclassId = subclassId;
+      },
+      error: () => {
+        this.domainCardsError.set(true);
+        this.domainCardsLoading.set(false);
+      },
+    });
+  }
+
+  onDomainCardsSelected(cards: CardData[]): void {
+    this.selectedDomainCards.set(cards);
+    if (cards.length === 2) {
+      this.markStepComplete('domain-cards');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('domain-cards');
+      this.completedStepsSignal.set(updated);
+    }
+  }
+
+  private clearDomainCardSelections(): void {
+    this.selectedDomainCards.set([]);
+    this.domainCards.set([]);
+    this.lastLoadedDomainSubclassId = null;
+    const updated = new Set(this.completedStepsSignal());
+    updated.delete('domain-cards');
+    this.completedStepsSignal.set(updated);
   }
 
   onWeaponSelected(selection: { primary: CardData | null; secondary: CardData | null }): void {
@@ -297,8 +366,6 @@ export class CreateCharacter implements OnInit {
   }
 
   private isTabReachable(tabId: TabId): boolean {
-    if (tabId === 'domain-cards') return true;
-
     const targetIndex = this.tabs.findIndex((t) => t.id === tabId);
     const currentIndex = this.tabs.findIndex((t) => t.id === this.activeTab());
 

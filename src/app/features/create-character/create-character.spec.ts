@@ -261,7 +261,7 @@ describe('CreateCharacter', () => {
       fixture.detectChanges();
       flushClassCards();
       expect(component.tabs).toBe(CHARACTER_TABS);
-      expect(component.tabs).toHaveLength(9);
+      expect(component.tabs).toHaveLength(10);
     });
   });
 

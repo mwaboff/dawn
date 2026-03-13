@@ -16,13 +16,43 @@ export class CardSelectionGrid {
   readonly loading = input<boolean>(false);
   readonly error = input<boolean>(false);
   readonly selectedCard = input<CardData>();
+  readonly selectedCards = input<CardData[]>([]);
+  readonly maxSelections = input<number>(1);
   readonly skeletonCount = input<number>(6);
   readonly collapsibleFeatures = input<boolean>(false);
   readonly layout = input<'default' | 'wide'>('default');
 
   readonly cardSelected = output<CardData>();
+  readonly cardsSelected = output<CardData[]>();
 
   isCardSelected(card: CardData): boolean {
-    return this.selectedCard()?.id === card.id;
+    if (this.maxSelections() === 1) {
+      return this.selectedCard()?.id === card.id;
+    }
+    return this.selectedCards().some(c => c.id === card.id);
+  }
+
+  onCardClicked(card: CardData): void {
+    if (this.maxSelections() === 1) {
+      this.cardSelected.emit(card);
+      return;
+    }
+
+    const current = this.selectedCards();
+    const idx = current.findIndex(c => c.id === card.id);
+
+    if (idx >= 0) {
+      this.cardsSelected.emit(current.filter(c => c.id !== card.id));
+    } else if (current.length < this.maxSelections()) {
+      this.cardsSelected.emit([...current, card]);
+    }
+  }
+
+  cardAccentColor(card: CardData): string | null {
+    return (card.metadata?.['accentColor'] as string) ?? null;
+  }
+
+  get selectionCount(): number {
+    return this.selectedCards().length;
   }
 }

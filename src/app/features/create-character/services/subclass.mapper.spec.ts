@@ -124,6 +124,20 @@ describe('mapSubclassResponseToCardData', () => {
     expect(result.metadata!['level']).toBe('MASTERY');
   });
 
+  it('should store domainNames in metadata', () => {
+    const response = buildSubclassCardResponse({ domainNames: ['Arcana', 'Sage'] });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['domainNames']).toEqual(['Arcana', 'Sage']);
+  });
+
+  it('should store empty array in metadata when domainNames is undefined', () => {
+    const response = buildSubclassCardResponse({ domainNames: undefined });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['domainNames']).toEqual([]);
+  });
+
   it('should handle card with no features', () => {
     const response = buildSubclassCardResponse({ features: [] });
     const result = mapSubclassResponseToCardData(response);

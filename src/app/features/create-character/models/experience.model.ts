@@ -10,7 +10,7 @@ export const MIN_EXPERIENCE_COUNT = 1;
 export const MAX_EXPERIENCE_NAME_LENGTH = 50;
 export const MIN_EXPERIENCE_MODIFIER = -5;
 export const MAX_EXPERIENCE_MODIFIER = 5;
-export const EXPERIENCE_NAME_PATTERN = /^[a-zA-Z0-9 '\-]*$/;
+export const EXPERIENCE_NAME_PATTERN = /^[a-zA-Z0-9 '-]*$/;
 
 export function createEmptyExperience(): Experience {
   return { name: '', modifier: null };
@@ -25,7 +25,7 @@ export function isExperienceComplete(exp: Experience): boolean {
 }
 
 export function sanitizeExperienceName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9 '\-]/g, '').slice(0, MAX_EXPERIENCE_NAME_LENGTH);
+  return name.replace(/[^a-zA-Z0-9 '-]/g, '').slice(0, MAX_EXPERIENCE_NAME_LENGTH);
 }
 
 export function clampModifier(value: number): number {

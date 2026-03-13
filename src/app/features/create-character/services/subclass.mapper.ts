@@ -25,6 +25,7 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
   const metadata: Record<string, unknown> = {
     subclassPathId: response.subclassPathId,
     level: response.level,
+    domainNames: response.domainNames ?? [],
   };
 
   if (response.spellcastingTrait) {

@@ -37,6 +37,14 @@ describe('mapClassResponseToCardData', () => {
     expect(result.tags).toEqual(['Evasion: 10', 'Hit Points: 8']);
   });
 
+  it('should store startingEvasion and startingHitPoints in metadata', () => {
+    const response = buildClassResponse({ startingEvasion: 10, startingHitPoints: 8 });
+    const result = mapClassResponseToCardData(response);
+
+    expect(result.metadata?.['startingEvasion']).toBe(10);
+    expect(result.metadata?.['startingHitPoints']).toBe(8);
+  });
+
   it('should map hopeFeatures with correct subtitle', () => {
     const response = buildClassResponse({
       hopeFeatures: [
