@@ -1,0 +1,249 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
+    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
+}
+
+.profile {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8rem 2rem 6rem;
+}
+
+.profile-grain {
+  position: fixed;
+  inset: 0;
+  opacity: 0.15;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.profile-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 3.5rem;
+  opacity: 0;
+  animation: pFade 0.6s ease-out 0.1s forwards;
+}
+
+.profile-identity { flex: 1; min-width: 0; }
+
+.profile-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 0.75rem;
+  opacity: 0.8;
+}
+
+.profile-name {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  line-height: 1.1;
+  color: var(--color-parchment);
+  margin-bottom: 0.75rem;
+  word-break: break-word;
+}
+
+.profile-joined {
+  font-size: 0.9375rem;
+  color: rgba(245, 230, 211, 0.45);
+  font-style: italic;
+}
+
+.profile-sigil {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  color: var(--color-accent);
+  opacity: 0.2;
+}
+
+.profile-sigil svg { width: 100%; height: 100%; }
+
+.profile-divider {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  opacity: 0;
+  animation: pFade 0.6s ease-out 0.25s forwards;
+}
+
+.profile-divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 160, 86, 0.25), transparent);
+}
+
+.profile-divider-label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
+.roster {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: pFade 0.6s ease-out 0.4s forwards;
+}
+
+.roster-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+
+.roster-entry {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.125rem 1.25rem;
+  background: rgba(245, 230, 211, 0.03);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.roster-entry:first-child { border-radius: 4px 4px 0 0; }
+.roster-entry:last-child { border-radius: 0 0 4px 4px; }
+.roster-entry:hover,
+.roster-entry:focus-visible { background: rgba(212, 160, 86, 0.08); }
+.roster-entry:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.roster-entry:hover .roster-arrow { opacity: 0.6; transform: translateX(2px); }
+.roster-entry:hover .roster-level { color: var(--color-accent); border-color: var(--color-accent); }
+
+.roster-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(245, 230, 211, 0.5);
+  border: 1px solid rgba(245, 230, 211, 0.15);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.roster-info { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 0.625rem; }
+
+.roster-character-name {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-pronouns {
+  font-size: 0.8125rem;
+  color: rgba(245, 230, 211, 0.35);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.roster-arrow {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-parchment);
+  opacity: 0.2;
+  transition: all 0.2s ease;
+}
+
+.roster-footer { margin-top: 1.5rem; }
+
+.roster-add-link {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.roster-add-link:hover { opacity: 1; }
+.roster-add-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+.roster-empty { padding: 4rem 2rem; text-align: center; }
+
+.roster-empty-text {
+  font-size: 1.0625rem;
+  color: rgba(245, 230, 211, 0.4);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.roster-create-btn {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-bg-dark);
+  background: var(--color-accent);
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.roster-create-btn:hover { background: var(--color-accent-bright); transform: translateY(-1px); }
+.roster-create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+.roster-message { padding: 3rem 2rem; text-align: center; }
+.roster-message p { font-size: 0.9375rem; color: rgba(245, 230, 211, 0.4); }
+
+.roster-loading { display: flex; flex-direction: column; gap: 2px; }
+
+.roster-skeleton {
+  height: 60px;
+  background: rgba(245, 230, 211, 0.03);
+  border-radius: 2px;
+  animation: pPulse 1.5s ease-in-out infinite;
+}
+
+.roster-skeleton:nth-child(2) { animation-delay: 0.15s; }
+.roster-skeleton:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes pFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@media (max-width: 640px) {
+  .profile { padding: 7rem 1.25rem 4rem; }
+  .profile-header { flex-direction: column-reverse; align-items: flex-start; gap: 1rem; margin-bottom: 2.5rem; }
+  .profile-sigil { width: 48px; height: 48px; }
+  .roster-entry { padding: 1rem; gap: 1rem; }
+  .roster-info { flex-direction: column; gap: 0.125rem; }
+  .roster-empty { padding: 3rem 1rem; }
+}

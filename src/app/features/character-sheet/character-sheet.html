@@ -118,26 +118,6 @@
           </div>
 
           <div class="resource-row">
-            <span class="resource-row__label">Stress</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.stressMax.modified); track i) {
-                <button class="resource-box" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
-          </div>
-
-          <div class="resource-row">
-            <span class="resource-row__label">Hope</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.hopeMax.modified); track i) {
-                <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
-          </div>
-
-          <div class="resource-row">
             <span class="resource-row__label">Armor</span>
             <div class="resource-row__boxes">
               @for (i of getRange(sheet.armorMax); track i) {
@@ -145,6 +125,34 @@
               }
             </div>
             <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorMax }}</span>
+          </div>
+        </div>
+
+        <div class="panel panel--hope-stress">
+          <h2 class="panel__title panel__title--hope-stress">Hope & Stress</h2>
+
+          <div class="hope-stress-grid">
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--hope">Hope</span>
+              <div class="resource-row__boxes">
+                @for (i of getRange(sheet.hopeMax.modified); track i) {
+                  <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
+                }
+              </div>
+              <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
+            </div>
+
+            <div class="hope-stress-divider" aria-hidden="true"></div>
+
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--stress">Stress</span>
+              <div class="resource-row__boxes">
+                @for (i of getRange(sheet.stressMax.modified); track i) {
+                  <button class="resource-box resource-box--stress" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
+                }
+              </div>
+              <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
+            </div>
           </div>
         </div>
 

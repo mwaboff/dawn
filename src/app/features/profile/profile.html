@@ -1,0 +1,64 @@
+<div class="profile">
+  <div class="profile-grain"></div>
+
+  <header class="profile-header">
+    <div class="profile-identity">
+      <span class="profile-eyebrow">Adventurer</span>
+      <h1 class="profile-name">{{ user()?.username }}</h1>
+      <p class="profile-joined">Member since {{ joinDate() }}</p>
+    </div>
+    <div class="profile-sigil">
+      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
+        <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
+      </svg>
+    </div>
+  </header>
+
+  <div class="profile-divider">
+    <div class="profile-divider-line"></div>
+    <span class="profile-divider-label">Characters</span>
+    <div class="profile-divider-line"></div>
+  </div>
+
+  <section class="roster">
+    @if (charactersLoading()) {
+      <div class="roster-loading">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="roster-skeleton"></div>
+        }
+      </div>
+    } @else if (charactersError()) {
+      <div class="roster-message">
+        <p>Something went wrong loading your characters.</p>
+      </div>
+    } @else if (!hasCharacters()) {
+      <div class="roster-empty">
+        <p class="roster-empty-text">Your story awaits</p>
+        <button type="button" class="roster-create-btn" (click)="onCreateCharacter()">
+          Create Your First Character
+        </button>
+      </div>
+    } @else {
+      <ol class="roster-list">
+        @for (character of characters(); track character.id) {
+          <li class="roster-entry" tabindex="0" role="button" (click)="onViewCharacter(character.id)" (keydown.enter)="onViewCharacter(character.id)">
+            <span class="roster-level">{{ character.level }}</span>
+            <div class="roster-info">
+              <span class="roster-character-name">{{ character.name }}</span>
+              @if (character.pronouns) {
+                <span class="roster-pronouns">{{ character.pronouns }}</span>
+              }
+            </div>
+            <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </li>
+        }
+      </ol>
+      <div class="roster-footer">
+        <a routerLink="/create-character" class="roster-add-link">+ New Character</a>
+      </div>
+    }
+  </section>
+</div>

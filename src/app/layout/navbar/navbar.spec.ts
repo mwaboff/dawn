@@ -66,8 +66,10 @@ describe('Navbar', () => {
   });
 
   describe('onProfile', () => {
-    it('should not throw when called', () => {
-      expect(() => component.onProfile()).not.toThrow();
+    it('should navigate to profile page', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onProfile();
+      expect(navigateSpy).toHaveBeenCalledWith(['/profile']);
     });
   });
 

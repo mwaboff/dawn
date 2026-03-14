@@ -72,6 +72,6 @@ export class Navbar {
   }
 
   onProfile(): void {
-    // TODO: Implement profile navigation
+    this.router.navigate(['/profile']);
   }
 }

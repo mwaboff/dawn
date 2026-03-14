@@ -201,6 +201,18 @@
 .gold-btn--add:hover { border-color: rgba(74,124,89,.6); background: rgba(74,124,89,.15); color: var(--color-damage-minor); }
 .gold-btn--subtract:hover { border-color: rgba(160,50,50,.5); background: rgba(160,50,50,.12); color: var(--color-damage-severe); }
 
+.panel--hope-stress { border-color: rgba(212,160,86,.2); background: rgba(26,20,15,.6); }
+.hope-stress-grid { display: flex; flex-direction: column; gap: .5rem; }
+.hope-stress-track { display: flex; align-items: center; gap: .6rem; }
+.hope-stress-track__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; min-width: 3rem; font-weight: 600; }
+.hope-stress-track__label--hope { color: var(--color-hope, #d4a056); }
+.hope-stress-track__label--stress { color: var(--color-stress, #c05050); }
+.hope-stress-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(212,160,86,.15) 20%, rgba(212,160,86,.15) 80%, transparent); }
+.resource-box--stress { border-color: rgba(160,50,50,.35); }
+.resource-box--stress:hover { border-color: rgba(160,50,50,.6); background: rgba(160,50,50,.1); }
+.resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
+.resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
+
 @media (max-width: 768px) {
   .sheet-columns {
     grid-template-columns: 1fr;
