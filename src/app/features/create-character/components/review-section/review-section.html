@@ -139,4 +139,21 @@
     </section>
 
   </div>
+
+  <div class="submit-section">
+    @if (submitError()) {
+      <p class="submit-error">{{ submitError() }}</p>
+    }
+    <button
+      class="submit-button"
+      [disabled]="submitting()"
+      (click)="submitClicked.emit()"
+    >
+      @if (submitting()) {
+        Creating Character...
+      } @else {
+        Create Character
+      }
+    </button>
+  </div>
 </div>

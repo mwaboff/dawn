@@ -64,6 +64,9 @@
 .card--type-domain { --ca: #d48056; --cd: rgba(212,128,86,.3); --cg: rgba(212,128,86,.15); }
 .card--type-weapon { --ca: #c75050; --cd: rgba(199,80,80,.3); --cg: rgba(199,80,80,.15); }
 .card--type-armor { --ca: #5080c7; --cd: rgba(80,128,199,.3); --cg: rgba(80,128,199,.15); }
+.card--type-loot { --ca: #c7a850; --cd: rgba(199,168,80,.3); --cg: rgba(199,168,80,.15); }
+.card--type-companion { --ca: #6bad56; --cd: rgba(107,173,86,.3); --cg: rgba(107,173,86,.15); }
+.card--type-subclassPath { --ca: #56b4c7; --cd: rgba(86,180,199,.3); --cg: rgba(86,180,199,.15); }
 
 /* Selected state */
 .card--selected::after {

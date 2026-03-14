@@ -48,6 +48,9 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
       [armor]="armor"
       [experiences]="experiences"
       [domainCards]="domainCards"
+      [submitting]="submitting"
+      [submitError]="submitError"
+      (submitClicked)="onSubmitClicked()"
     />
   `,
   imports: [ReviewSection],
@@ -64,6 +67,10 @@ class TestHost {
     makeCard({ id: 10, cardType: 'domain', name: 'Shadow Step', subtitle: 'Midnight' }),
     makeCard({ id: 11, cardType: 'domain', name: 'Bone Cage', subtitle: 'Bone' }),
   ];
+  submitting = false;
+  submitError: string | null = null;
+  submitClickCount = 0;
+  onSubmitClicked(): void { this.submitClickCount++; }
 }
 
 describe('ReviewSection', () => {
@@ -163,5 +170,59 @@ describe('ReviewSection', () => {
   it('should display default severe threshold 6 when no armor', () => {
     fixture.detectChanges();
     expect((fixture.nativeElement.textContent as string)).toContain('6+');
+  });
+
+  describe('Submit Button', () => {
+    it('should render the submit button', () => {
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      expect(button).toBeTruthy();
+    });
+
+    it('should show "Create Character" text when not submitting', () => {
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      expect(button.textContent?.trim()).toContain('Create Character');
+    });
+
+    it('should show "Creating Character..." text when submitting', () => {
+      host.submitting = true;
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      expect(button.textContent?.trim()).toContain('Creating Character...');
+    });
+
+    it('should disable the button when submitting', () => {
+      host.submitting = true;
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      expect(button.disabled).toBe(true);
+    });
+
+    it('should not disable the button when not submitting', () => {
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+    });
+
+    it('should emit submitClicked when button is clicked', () => {
+      fixture.detectChanges();
+      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      button.click();
+      expect(host.submitClickCount).toBe(1);
+    });
+
+    it('should display submitError message when provided', () => {
+      host.submitError = 'Failed to create character. Please try again.';
+      fixture.detectChanges();
+      const error = fixture.nativeElement.querySelector('.submit-error') as HTMLElement;
+      expect(error?.textContent?.trim()).toContain('Failed to create character');
+    });
+
+    it('should not display error element when submitError is null', () => {
+      fixture.detectChanges();
+      const error = fixture.nativeElement.querySelector('.submit-error');
+      expect(error).toBeNull();
+    });
   });
 });

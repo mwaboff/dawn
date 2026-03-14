@@ -71,6 +71,24 @@ describe('Navbar', () => {
     });
   });
 
+  describe('Reference link', () => {
+    it('should render Reference link when logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/reference"]');
+      expect(links.length).toBeGreaterThan(0);
+    });
+
+    it('should render Reference link when logged out', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/reference"]');
+      expect(links.length).toBeGreaterThan(0);
+    });
+  });
+
   describe('dropdown', () => {
     it('should start with dropdown closed', () => {
       fixture.detectChanges();

@@ -1,4 +1,6 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { switchMap, forkJoin, of, map, Observable } from 'rxjs';
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
@@ -8,11 +10,11 @@ import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleto
 import { CardError } from '../../shared/components/card-error/card-error';
 import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
-import { ClassService } from './services/class.service';
-import { SubclassService } from './services/subclass.service';
-import { AncestryService } from './services/ancestry.service';
-import { CommunityService } from './services/community.service';
-import { DomainService } from './services/domain.service';
+import { ClassService } from '../../shared/services/class.service';
+import { SubclassService } from '../../shared/services/subclass.service';
+import { AncestryService } from '../../shared/services/ancestry.service';
+import { CommunityService } from '../../shared/services/community.service';
+import { DomainService } from '../../shared/services/domain.service';
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
@@ -20,6 +22,11 @@ import { ExperienceSelector } from './components/experience-selector/experience-
 import { ReviewSection } from './components/review-section/review-section';
 import { TraitAssignments, TraitKey } from './models/trait.model';
 import { Experience, isExperienceComplete } from './models/experience.model';
+import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { CharacterSheetResponse } from './models/character-sheet-api.model';
+import { CharacterSheetData } from './models/character-sheet.model';
+import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
+import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
 
 @Component({
   selector: 'app-create-character',
@@ -34,6 +41,8 @@ export class CreateCharacter implements OnInit {
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
   private readonly domainService = inject(DomainService);
+  private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly router = inject(Router);
 
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
@@ -70,6 +79,11 @@ export class CreateCharacter implements OnInit {
   readonly selectedPrimaryWeapon = signal<CardData | null>(null);
   readonly selectedSecondaryWeapon = signal<CardData | null>(null);
   readonly selectedArmor = signal<CardData | null>(null);
+
+  readonly characterName = signal('');
+  readonly characterPronouns = signal('');
+  readonly submitting = signal(false);
+  readonly submitError = signal<string | null>(null);
 
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
@@ -326,6 +340,69 @@ export class CreateCharacter implements OnInit {
     const secondary = this.selectedSecondaryWeapon();
     if (secondary) weapons.push(secondary.name);
     return weapons.join(' + ');
+  }
+
+  onCharacterNameChanged(name: string): void {
+    this.characterName.set(name);
+  }
+
+  onCharacterPronounsChanged(pronouns: string): void {
+    this.characterPronouns.set(pronouns);
+  }
+
+  onSubmitCharacter(): void {
+    const characterData = assembleCharacterSheet({
+      name: this.characterName(),
+      pronouns: this.characterPronouns(),
+      classCard: this.selectedClassCard()!,
+      subclassCard: this.selectedSubclassCard()!,
+      ancestryCard: this.selectedAncestryCard()!,
+      communityCard: this.selectedCommunityCard()!,
+      traits: this.traitAssignments()!,
+      primaryWeapon: this.selectedPrimaryWeapon(),
+      secondaryWeapon: this.selectedSecondaryWeapon(),
+      armor: this.selectedArmor(),
+      experiences: this.experienceAssignments(),
+      domainCards: this.selectedDomainCards(),
+    });
+
+    this.submitting.set(true);
+    this.submitError.set(null);
+
+    this.submitCharacterSheet(characterData).subscribe({
+      next: (sheet) => {
+        this.submitting.set(false);
+        this.router.navigate(['/character', sheet.id]);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.submitError.set(
+          (err.error?.message as string | undefined) ?? 'Failed to create character. Please try again.',
+        );
+      },
+    });
+  }
+
+  private submitCharacterSheet(data: CharacterSheetData): Observable<CharacterSheetResponse> {
+    const request = toCreateCharacterSheetRequest(data);
+
+    return this.characterSheetService.createCharacterSheet(request).pipe(
+      switchMap(sheet => {
+        if (data.experiences.length === 0) {
+          return of(sheet);
+        }
+
+        const experienceRequests = data.experiences.map(exp =>
+          this.characterSheetService.createExperience({
+            characterSheetId: sheet.id,
+            description: exp.name,
+            modifier: exp.modifier,
+          }),
+        );
+
+        return forkJoin(experienceRequests).pipe(map(() => sheet));
+      }),
+    );
   }
 
   private loadClassCards(): void {

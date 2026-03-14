@@ -4,10 +4,11 @@ import { provideHttpClient } from '@angular/common/http';
 
 import { CreateCharacter } from './create-character';
 import { CHARACTER_TABS } from './models/create-character.model';
-import { ClassResponse, PaginatedResponse } from './models/class-api.model';
-import { SubclassCardResponse } from './models/subclass-api.model';
-import { AncestryCardResponse } from './models/ancestry-api.model';
-import { CommunityCardResponse } from './models/community-api.model';
+import { ClassResponse } from '../../shared/models/class-api.model';
+import { PaginatedResponse } from '../../shared/models/api.model';
+import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
+import { AncestryCardResponse } from '../../shared/models/ancestry-api.model';
+import { CommunityCardResponse } from '../../shared/models/community-api.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {

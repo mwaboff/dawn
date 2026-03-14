@@ -3,7 +3,11 @@
 
   <main class="content-area" role="main">
     <div class="parchment-container">
-      <app-character-form [selections]="characterSelections()" />
+      <app-character-form
+        [selections]="characterSelections()"
+        (nameChanged)="onCharacterNameChanged($event)"
+        (pronounsChanged)="onCharacterPronounsChanged($event)"
+      />
 
       <app-tab-nav
         [tabs]="tabs"
@@ -123,6 +127,9 @@
               [armor]="selectedArmor()"
               [experiences]="experienceAssignments()"
               [domainCards]="selectedDomainCards()"
+              [submitting]="submitting()"
+              [submitError]="submitError()"
+              (submitClicked)="onSubmitCharacter()"
             />
           }
         }

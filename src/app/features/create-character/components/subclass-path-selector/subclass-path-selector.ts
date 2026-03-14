@@ -1,7 +1,7 @@
 import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { DaggerheartCard } from '../../../../shared/components/daggerheart-card/daggerheart-card';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
-import { SubclassLevel } from '../../models/subclass-api.model';
+import { SubclassLevel } from '../../../../shared/models/subclass-api.model';
 
 interface SubclassPath {
   pathId: number;

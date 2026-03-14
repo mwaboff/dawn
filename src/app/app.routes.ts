@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authSessionGuard } from './core/guards/auth-session.guard';
 
 export const routes: Routes = [
+  { path: 'reference', loadComponent: () => import('./features/reference/reference').then(m => m.Reference) },
   {
     path: '',
     canActivateChild: [authSessionGuard],
@@ -17,6 +18,10 @@ export const routes: Routes = [
       {
         path: 'create-character',
         loadComponent: () => import('./features/create-character/create-character').then(m => m.CreateCharacter)
+      },
+      {
+        path: 'character/:id',
+        loadComponent: () => import('./features/character-sheet/character-sheet').then(m => m.CharacterSheet)
       }
     ]
   }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments, TRAITS } from '../../models/trait.model';
@@ -23,6 +23,10 @@ export class ReviewSection {
   readonly armor = input<CardData | null>(null);
   readonly experiences = input.required<Experience[]>();
   readonly domainCards = input.required<CardData[]>();
+
+  readonly submitClicked = output<void>();
+  readonly submitting = input<boolean>(false);
+  readonly submitError = input<string | null>(null);
 
   readonly traitList = TRAITS;
 

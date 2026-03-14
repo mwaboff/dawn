@@ -1,0 +1,66 @@
+<div class="reference-page">
+  <header class="reference-header">
+    <h1 class="reference-title">Compendium</h1>
+    <p class="reference-subtitle">Browse the archives of Daggerheart</p>
+  </header>
+
+  <app-category-selector
+    [categories]="categoryConfigs"
+    [activeCategory]="activeCategorySignal()"
+    (categorySelected)="onCategorySelected($event)"
+  />
+
+  @if (activeCategorySignal() && activeFilters().length > 0) {
+    <app-reference-filters
+      [filters]="activeFilters()"
+      [currentValues]="filtersSignal()"
+      (filtersChanged)="onFiltersChanged($event)"
+    />
+  }
+
+  @if (loadingSignal()) {
+    <app-card-skeleton [count]="6" />
+  }
+
+  @if (errorSignal() && !loadingSignal()) {
+    <div class="reference-error">
+      <p class="error-message">Something went wrong. Please try again.</p>
+      <button class="retry-button" (click)="fetchCards()">Retry</button>
+    </div>
+  }
+
+  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() !== 'adversaries' && cardsSignal().length > 0) {
+    <app-card-selection-grid
+      [cards]="cardsSignal()"
+      [loading]="false"
+      [error]="false"
+      [maxSelections]="0"
+    />
+  }
+
+  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() === 'adversaries' && adversariesSignal().length > 0) {
+    <div class="adversary-grid">
+      @for (adversary of adversariesSignal(); track adversary.id) {
+        <app-adversary-card [adversary]="adversary" />
+      }
+    </div>
+  }
+
+  @if (!loadingSignal() && !errorSignal() && cardsSignal().length === 0 && adversariesSignal().length === 0 && activeCategorySignal() !== null) {
+    <div class="reference-empty">
+      @if (activeCategorySignal() === 'subclasses' && !filtersSignal()['classId']) {
+        <p class="no-cards-message">Select a class above to browse subclasses.</p>
+      } @else {
+        <p class="no-cards-message">No results found. Try adjusting your filters.</p>
+      }
+    </div>
+  }
+
+  @if (totalPagesSignal() > 1) {
+    <app-pagination-controls
+      [currentPage]="currentPageSignal()"
+      [totalPages]="totalPagesSignal()"
+      (pageChanged)="onPageChanged($event)"
+    />
+  }
+</div>

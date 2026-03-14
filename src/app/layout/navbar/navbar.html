@@ -26,9 +26,11 @@
             </div>
           }
         </div>
+        <a routerLink="/reference" class="nav-link">Reference</a>
         <button type="button" class="nav-link" (click)="onProfile()">Profile</button>
         <button type="button" class="nav-link nav-link-secondary" (click)="onLogout()">Logout</button>
       } @else {
+        <a routerLink="/reference" class="nav-link">Reference</a>
         <a href="/auth" class="nav-link nav-link-auth">Login / Sign Up</a>
       }
     </div>

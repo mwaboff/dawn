@@ -111,3 +111,43 @@
   letter-spacing: 0.04em;
   margin-top: 0.2rem;
 }
+
+.submit-section {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.submit-error {
+  color: var(--color-error, #c0392b);
+  font-size: 0.85rem;
+  font-family: var(--font-body, 'Lora', serif);
+  text-align: center;
+  margin: 0;
+}
+
+.submit-button {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-parchment-light, #f5ede0);
+  background: var(--color-gold, #d4a056);
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 2.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-gold, #d4a056) 80%, #2c1a0e);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

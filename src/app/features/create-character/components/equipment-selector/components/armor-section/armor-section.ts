@@ -3,7 +3,7 @@ import { Component, input, output, signal, inject, ChangeDetectionStrategy, OnIn
 import { CardData } from '../../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CardSelectionGrid } from '../../../../../../shared/components/card-selection-grid/card-selection-grid';
 import { EquipmentPagination } from '../equipment-pagination/equipment-pagination';
-import { ArmorService } from '../../../../services/armor.service';
+import { ArmorService } from '../../../../../../shared/services/armor.service';
 import { PaginationState } from '../../../../models/equipment.model';
 
 @Component({

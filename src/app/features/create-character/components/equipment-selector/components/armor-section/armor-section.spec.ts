@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
 import { ArmorSection } from './armor-section';
-import { ArmorService } from '../../../../services/armor.service';
-import { PaginatedCards } from '../../../../services/weapon.service';
+import { ArmorService } from '../../../../../../shared/services/armor.service';
+import { PaginatedCards } from '../../../../../../shared/models/api.model';
 import { CardData } from '../../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildCardData(overrides: Partial<CardData> = {}): CardData {

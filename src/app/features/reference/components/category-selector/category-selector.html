@@ -1,0 +1,14 @@
+<div class="category-grid">
+  @for (category of categories(); track category.id) {
+    <button
+      class="category-btn"
+      [class.category-btn--active]="activeCategory() === category.id"
+      (click)="onSelectCategory(category.id)"
+      type="button"
+    >
+      <span class="category-icon">{{ category.icon }}</span>
+      <span class="category-label">{{ category.label }}</span>
+      <span class="category-description">{{ category.description }}</span>
+    </button>
+  }
+</div>

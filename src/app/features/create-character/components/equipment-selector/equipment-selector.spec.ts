@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { EquipmentSelector } from './equipment-selector';
-import { WeaponService } from '../../services/weapon.service';
-import { ArmorService } from '../../services/armor.service';
+import { WeaponService } from '../../../../shared/services/weapon.service';
+import { ArmorService } from '../../../../shared/services/armor.service';
 import { EquipmentSelections } from '../../models/equipment.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
