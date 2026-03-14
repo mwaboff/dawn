@@ -45,9 +45,27 @@
           <li class="roster-entry" tabindex="0" role="button" (click)="onViewCharacter(character.id)" (keydown.enter)="onViewCharacter(character.id)">
             <span class="roster-level">{{ character.level }}</span>
             <div class="roster-info">
-              <span class="roster-character-name">{{ character.name }}</span>
-              @if (character.pronouns) {
-                <span class="roster-pronouns">{{ character.pronouns }}</span>
+              <div class="roster-name-row">
+                <span class="roster-character-name">{{ character.name }}</span>
+                @if (character.pronouns) {
+                  <span class="roster-pronouns">{{ character.pronouns }}</span>
+                }
+              </div>
+              @if (character.classEntries.length > 0) {
+                <p class="roster-class">
+                  @for (entry of character.classEntries; track entry.className; let last = $last) {
+                    <span class="roster-class-entry">
+                      <span class="roster-class-name">{{ entry.className }}</span>
+                      @if (entry.subclassName) {
+                        <span class="roster-class-sep" aria-hidden="true"> · </span>
+                        <span class="roster-class-subclass">{{ entry.subclassName }}</span>
+                      }
+                    </span>
+                    @if (!last) {
+                      <span class="roster-class-sep" aria-hidden="true"> / </span>
+                    }
+                  }
+                </p>
               }
             </div>
             <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

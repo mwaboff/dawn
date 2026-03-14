@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { PaginatedResponse } from '../../shared/models/api.model';
-import { CharacterSummary } from './models/profile.model';
+import { CharacterSummary, ClassEntry } from './models/profile.model';
+import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -56,14 +57,19 @@ export class Profile implements OnInit {
   private loadCharacters(ownerId: number): void {
     const params = new HttpParams()
       .set('ownerId', ownerId.toString())
-      .set('size', '100');
+      .set('size', '100')
+      .set('expand', 'subclassCards');
 
     this.http
-      .get<PaginatedResponse<CharacterSummary>>(
+      .get<PaginatedResponse<CharacterSheetResponse>>(
         `${environment.apiUrl}/dh/character-sheets`,
         { params, withCredentials: true },
       )
       .pipe(
+        map(response => ({
+          ...response,
+          content: response.content.map(sheet => this.mapToSummary(sheet)),
+        })),
         catchError((error: HttpErrorResponse) => {
           if (error.status !== 403) {
             this.charactersError.set(true);
@@ -77,5 +83,27 @@ export class Profile implements OnInit {
         }
         this.charactersLoading.set(false);
       });
+  }
+
+  private mapToSummary(sheet: CharacterSheetResponse): CharacterSummary {
+    return {
+      id: sheet.id,
+      name: sheet.name,
+      pronouns: sheet.pronouns,
+      level: sheet.level,
+      classEntries: this.extractClassEntries(sheet.subclassCards ?? []),
+      createdAt: sheet.createdAt,
+    };
+  }
+
+  private extractClassEntries(subclassCards: { associatedClassName?: string; subclassPathName?: string }[]): ClassEntry[] {
+    const seen = new Map<string, ClassEntry>();
+    for (const card of subclassCards) {
+      const className = card.associatedClassName ?? 'Unknown';
+      if (!seen.has(className)) {
+        seen.set(className, { className, subclassName: card.subclassPathName });
+      }
+    }
+    return Array.from(seen.values());
   }
 }

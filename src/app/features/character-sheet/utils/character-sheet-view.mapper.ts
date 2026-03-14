@@ -57,6 +57,8 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
+    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapWeapon(w)),
+    inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapArmor(a)),
 
     experiences: (sheet.experiences ?? []).map(mapExperience),
 

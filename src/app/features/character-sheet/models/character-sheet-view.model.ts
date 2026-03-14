@@ -29,6 +29,8 @@ export interface CharacterSheetView {
   ancestryCards: CardSummary[];
   communityCards: CardSummary[];
   domainCards: DomainCardSummary[];
+  inventoryWeapons: WeaponDisplay[];
+  inventoryArmors: ArmorDisplay[];
 
   experiences: ExperienceDisplay[];
   classEntries: ClassEntry[];

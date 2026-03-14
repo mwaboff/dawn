@@ -213,6 +213,17 @@
 .resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
 .resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
 
+.inventory-section { margin-bottom: 1.5rem; }
+.inventory-section__title { font-size: .8rem; text-transform: uppercase; letter-spacing: .25em; color: var(--color-accent); margin: 0 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid rgba(212,160,86,.2); }
+.inventory-group { margin-bottom: 1rem; }
+.inventory-group:last-child { margin-bottom: 0; }
+.inventory-group__heading { font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.65); margin: 0 0 .4rem; }
+.inventory-group__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .4rem; }
+.inventory-item { display: flex; justify-content: space-between; align-items: center; padding: .4rem .6rem; background: rgba(26,20,15,.4); border: 1px solid rgba(212,160,86,.08); border-radius: 3px; }
+.inventory-item__name { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); }
+.inventory-item__stats { display: flex; gap: .5rem; }
+.inventory-item__stat { font-family: var(--font-body); font-size: .8rem; color: rgba(212,160,86,.6); }
+
 @media (max-width: 768px) {
   .sheet-columns {
     grid-template-columns: 1fr;
