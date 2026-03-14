@@ -39,7 +39,7 @@
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
           <div class="trait-badge" [class.trait-badge--marked]="trait.marked">
-            <span class="trait-badge__abbr">{{ trait.abbreviation }}</span>
+            <span class="trait-badge__name" aria-hidden="true">{{ trait.name }}</span>
             <span class="trait-badge__modifier">{{ formatModifier(trait.modifier) }}</span>
             @if (trait.marked) {
               <span class="trait-badge__marked-dot" aria-label="marked">&#9679;</span>
