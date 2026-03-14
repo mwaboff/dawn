@@ -53,9 +53,10 @@ describe('mapDomainCardResponseToCardData', () => {
     expect(result.subtitle).toBeUndefined();
   });
 
-  it('should include card type as title case in tags', () => {
-    const result = mapDomainCardResponseToCardData(buildDomainCardResponse({ type: 'SPELL' }));
+  it('should include level and card type in tags', () => {
+    const result = mapDomainCardResponseToCardData(buildDomainCardResponse({ type: 'SPELL', level: 2 }));
 
+    expect(result.tags).toContain('Level 2');
     expect(result.tags).toContain('Spell');
   });
 
@@ -77,8 +78,9 @@ describe('mapDomainCardResponseToCardData', () => {
     expect(result.tags).toContain('Wild');
   });
 
-  it('should map features', () => {
+  it('should map features with subtitle matching card type', () => {
     const response = buildDomainCardResponse({
+      type: 'GRIMOIRE',
       features: [
         {
           id: 1,
@@ -98,6 +100,7 @@ describe('mapDomainCardResponseToCardData', () => {
     expect(result.features).toHaveLength(1);
     expect(result.features![0].name).toBe('Ward');
     expect(result.features![0].description).toBe('Block damage');
+    expect(result.features![0].subtitle).toBe('Grimoire Feature');
   });
 
   it('should map feature cost tags to uppercase', () => {
@@ -125,6 +128,20 @@ describe('mapDomainCardResponseToCardData', () => {
     const result = mapDomainCardResponseToCardData(buildDomainCardResponse({ features: [] }));
 
     expect(result.features).toBeUndefined();
+  });
+
+  it('should generate fallback description when description is empty', () => {
+    const response = buildDomainCardResponse({ description: '', type: 'ABILITY' });
+    const result = mapDomainCardResponseToCardData(response);
+
+    expect(result.description).toBe('Ability from the Codex domain.');
+  });
+
+  it('should use provided description when available', () => {
+    const response = buildDomainCardResponse({ description: 'A powerful spell' });
+    const result = mapDomainCardResponseToCardData(response);
+
+    expect(result.description).toBe('A powerful spell');
   });
 
   it('should store domainName in metadata', () => {

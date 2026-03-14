@@ -47,7 +47,7 @@ describe('ClassService', () => {
       r => r.url === 'http://localhost:8080/api/dh/classes' &&
         r.params.get('page') === '1' &&
         r.params.get('size') === '50' &&
-        r.params.get('expand') === 'classFeatures,hopeFeatures,costTags'
+        r.params.get('expand') === 'associatedDomains,classFeatures,hopeFeatures,costTags'
     );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], currentPage: 1, pageSize: 50, totalElements: 0, totalPages: 0 });

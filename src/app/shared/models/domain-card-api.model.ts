@@ -53,4 +53,12 @@ export interface DomainCardResponse {
 export interface DomainResponse {
   id: number;
   name: string;
+  description?: string;
+  iconUrl?: string;
+  expansionId?: number;
+  expansion?: {
+    id: number;
+    name: string;
+    isPublished: boolean;
+  };
 }

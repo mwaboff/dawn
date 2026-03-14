@@ -29,19 +29,28 @@
     </div>
   }
 
-  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() !== 'adversaries' && cardsSignal().length > 0) {
+  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() === 'subclasses' && cardsSignal().length > 0) {
+    <app-subclass-path-selector
+      [cards]="cardsSignal()"
+      [collapsibleFeatures]="true"
+    />
+  }
+
+  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() !== 'adversaries' && activeCategorySignal() !== 'subclasses' && cardsSignal().length > 0) {
     <app-card-selection-grid
       [cards]="cardsSignal()"
       [loading]="false"
       [error]="false"
       [maxSelections]="0"
+      [layout]="'wide'"
+      [collapsibleFeatures]="true"
     />
   }
 
   @if (!loadingSignal() && !errorSignal() && activeCategorySignal() === 'adversaries' && adversariesSignal().length > 0) {
     <div class="adversary-grid">
       @for (adversary of adversariesSignal(); track adversary.id) {
-        <app-adversary-card [adversary]="adversary" />
+        <app-adversary-card [adversary]="adversary" [layout]="'wide'" />
       }
     </div>
   }

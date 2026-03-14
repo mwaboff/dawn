@@ -1,6 +1,6 @@
 export type ReferenceCategory =
-  | 'classes' | 'subclasses' | 'subclassPaths' | 'ancestries' | 'communities'
-  | 'domains' | 'domainCards' | 'weapons' | 'armor' | 'loot' | 'companions' | 'adversaries';
+  | 'domains' | 'classes' | 'subclasses' | 'ancestries' | 'communities'
+  | 'domainCards' | 'weapons' | 'armor' | 'loot' | 'companions' | 'adversaries';
 
 export interface CategoryConfig {
   id: ReferenceCategory;
@@ -21,12 +21,11 @@ export interface FilterDefinition {
 }
 
 export const CATEGORY_CONFIGS: CategoryConfig[] = [
+  { id: 'domains', label: 'Domains', description: 'Magic and skill domains', icon: '✨', endpoint: '/dh/domains' },
   { id: 'classes', label: 'Classes', description: 'Character classes and their abilities', icon: '⚔️', endpoint: '/dh/classes' },
-  { id: 'subclasses', label: 'Subclasses', description: 'Specializations within each class', icon: '🎯', endpoint: '/dh/cards/subclass' },
-  { id: 'subclassPaths', label: 'Subclass Paths', description: 'Paths of subclass progression', icon: '🛤️', endpoint: '/dh/subclass-paths' },
+  { id: 'subclasses', label: 'Subclasses', description: 'Specializations and paths within each class', icon: '🎯', endpoint: '/dh/cards/subclass' },
   { id: 'ancestries', label: 'Ancestries', description: 'Racial and cultural origins', icon: '🌿', endpoint: '/dh/cards/ancestry' },
   { id: 'communities', label: 'Communities', description: 'Community backgrounds', icon: '🏘️', endpoint: '/dh/cards/community' },
-  { id: 'domains', label: 'Domains', description: 'Magic and skill domains', icon: '✨', endpoint: '/dh/domains' },
   { id: 'domainCards', label: 'Domain Cards', description: 'Spells, abilities, and grimoire entries', icon: '📜', endpoint: '/dh/cards/domain' },
   { id: 'weapons', label: 'Weapons', description: 'Arms and armaments', icon: '🗡️', endpoint: '/dh/weapons' },
   { id: 'armor', label: 'Armor', description: 'Protective gear and equipment', icon: '🛡️', endpoint: '/dh/armors' },

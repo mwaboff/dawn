@@ -6,6 +6,10 @@ function buildSubclassPathResponse(overrides: Partial<SubclassPathApiResponse> =
   return {
     id: 1,
     name: 'Beastbound',
+    associatedClassId: 1,
+    expansionId: 1,
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }
@@ -19,22 +23,26 @@ describe('mapSubclassPathToCardData', () => {
     expect(result.name).toBe('Nightwalker');
   });
 
-  it('should set description from response', () => {
-    const response = buildSubclassPathResponse({ description: 'A path of stealth' });
+  it('should set description from spellcastingTrait description', () => {
+    const response = buildSubclassPathResponse({
+      spellcastingTrait: { trait: 'KNOWLEDGE', description: 'A path of stealth', examples: 'Some examples' },
+    });
     const result = mapSubclassPathToCardData(response);
 
     expect(result.description).toBe('A path of stealth');
   });
 
-  it('should default description to empty string when undefined', () => {
-    const response = buildSubclassPathResponse({ description: undefined });
+  it('should default description to empty string when no spellcastingTrait', () => {
+    const response = buildSubclassPathResponse({ spellcastingTrait: undefined });
     const result = mapSubclassPathToCardData(response);
 
     expect(result.description).toBe('');
   });
 
   it('should include spellcastingTrait in tags when present', () => {
-    const response = buildSubclassPathResponse({ spellcastingTrait: 'KNOWLEDGE' });
+    const response = buildSubclassPathResponse({
+      spellcastingTrait: { trait: 'KNOWLEDGE', description: 'Desc', examples: 'Examples' },
+    });
     const result = mapSubclassPathToCardData(response);
 
     expect(result.tags).toContain('Spellcasting: KNOWLEDGE');
@@ -69,9 +77,10 @@ describe('mapSubclassPathToCardData', () => {
   });
 
   it('should store spellcastingTrait in metadata', () => {
-    const response = buildSubclassPathResponse({ spellcastingTrait: 'AGILITY' });
+    const trait = { trait: 'AGILITY', description: 'Desc', examples: 'Examples' };
+    const response = buildSubclassPathResponse({ spellcastingTrait: trait });
     const result = mapSubclassPathToCardData(response);
 
-    expect(result.metadata!['spellcastingTrait']).toBe('AGILITY');
+    expect(result.metadata!['spellcastingTrait']).toEqual(trait);
   });
 });

@@ -4,7 +4,7 @@ import { switchMap, forkJoin, of, map, Observable } from 'rxjs';
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
-import { SubclassPathSelector } from './components/subclass-path-selector/subclass-path-selector';
+import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
@@ -247,7 +247,7 @@ export class CreateCharacter implements OnInit {
     this.domainCardsLoading.set(true);
     this.domainCardsError.set(false);
 
-    this.domainService.getDomainCardsForNames(domainNames).subscribe({
+    this.domainService.getDomainCardsForNames(domainNames, [1]).subscribe({
       next: (cards) => {
         this.domainCards.set(cards);
         this.domainCardsLoading.set(false);

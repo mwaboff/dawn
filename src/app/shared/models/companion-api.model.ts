@@ -1,8 +1,14 @@
 export interface CompanionApiResponse {
   id: number;
+  characterSheetId: number;
   name: string;
   description?: string;
-  companionType?: string;
-  expansionId?: number;
-  isOfficial?: boolean;
+  evasion: number;
+  attackName: string;
+  attackRange: string;
+  damageDice: string;
+  stressMax: number;
+  stressMarked: number;
+  createdAt: string;
+  lastModifiedAt: string;
 }

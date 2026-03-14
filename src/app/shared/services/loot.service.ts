@@ -20,7 +20,7 @@ export class LootService {
   private readonly baseUrl = `${environment.apiUrl}/dh/loot`;
 
   getLoot(filters: LootFilters = {}): Observable<PaginatedCards> {
-    let params = new HttpParams().set('expand', 'features,costTags');
+    let params = new HttpParams().set('expand', 'expansion,features,costTags');
 
     if (filters.tier !== undefined) {
       params = params.set('tier', filters.tier);

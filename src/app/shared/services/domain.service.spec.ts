@@ -99,7 +99,7 @@ describe('DomainService', () => {
       });
 
       const req = httpMock.expectOne(r => r.url === DOMAIN_CARDS_URL);
-      expect(req.request.params.get('levels')).toBe('1');
+      expect(req.request.params.has('levels')).toBe(false);
       expect(req.request.params.get('associatedDomainIds')).toBe('3,5');
       expect(req.request.params.get('expand')).toBe('features,costTags,associatedDomain');
 

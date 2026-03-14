@@ -20,10 +20,11 @@ function formatTitleCase(value: string): string {
     .join(' ');
 }
 
-function mapFeature(feature: DomainCardFeatureResponse): CardFeature {
+function mapFeature(feature: DomainCardFeatureResponse, cardType: string): CardFeature {
   return {
     name: feature.name,
     description: feature.description,
+    subtitle: `${formatTitleCase(cardType)} Feature`,
     tags: feature.costTags?.length
       ? feature.costTags.map(tag => tag.label.toUpperCase())
       : undefined,
@@ -31,7 +32,9 @@ function mapFeature(feature: DomainCardFeatureResponse): CardFeature {
 }
 
 function buildTags(response: DomainCardResponse): string[] {
-  const tags: string[] = [formatTitleCase(response.type)];
+  const tags: string[] = [];
+  tags.push(`Level ${response.level}`);
+  tags.push(formatTitleCase(response.type));
   if (response.recallCost > 0) {
     tags.push(`Recall: ${response.recallCost}`);
   }
@@ -44,15 +47,25 @@ function extractModifiers(response: DomainCardResponse): { target: string; opera
   );
 }
 
+function buildDescription(response: DomainCardResponse): string {
+  if (response.description) return response.description;
+  const parts: string[] = [];
+  const domainName = response.associatedDomain?.name;
+  if (domainName) {
+    parts.push(`${formatTitleCase(response.type)} from the ${domainName} domain.`);
+  }
+  return parts.join(' ');
+}
+
 export function mapDomainCardResponseToCardData(response: DomainCardResponse): CardData {
-  const features: CardFeature[] = (response.features ?? []).map(mapFeature);
+  const features: CardFeature[] = (response.features ?? []).map(f => mapFeature(f, response.type));
   const domainName = response.associatedDomain?.name ?? '';
   const accentColor = domainName ? (DOMAIN_THEME_COLORS[domainName] ?? undefined) : undefined;
 
   return {
     id: response.id,
     name: response.name,
-    description: response.description ?? '',
+    description: buildDescription(response),
     cardType: 'domain',
     subtitle: domainName || undefined,
     tags: buildTags(response),

@@ -2,11 +2,11 @@ import { Routes } from '@angular/router';
 import { authSessionGuard } from './core/guards/auth-session.guard';
 
 export const routes: Routes = [
-  { path: 'reference', loadComponent: () => import('./features/reference/reference').then(m => m.Reference) },
   {
     path: '',
     canActivateChild: [authSessionGuard],
     children: [
+      { path: 'reference', loadComponent: () => import('./features/reference/reference').then(m => m.Reference) },
       {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)

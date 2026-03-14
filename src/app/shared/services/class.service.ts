@@ -16,7 +16,7 @@ export class ClassService {
     const params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'classFeatures,hopeFeatures,costTags');
+      .set('expand', 'associatedDomains,classFeatures,hopeFeatures,costTags');
 
     return this.http
       .get<PaginatedResponse<ClassResponse>>(this.baseUrl, { params, withCredentials: true })

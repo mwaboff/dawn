@@ -40,7 +40,7 @@ describe('LootService', () => {
     service.getLoot().subscribe();
 
     const req = httpTesting.expectOne(
-      r => r.url === baseUrl && r.params.get('expand') === 'features,costTags',
+      r => r.url === baseUrl && r.params.get('expand') === 'expansion,features,costTags',
     );
     expect(req.request.method).toBe('GET');
     req.flush(buildPaginatedResponse([]));

@@ -2,9 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
-import { AdversaryService } from './adversary.service';
+import { AdversaryService, PaginatedAdversaries } from './adversary.service';
 import { AdversaryApiResponse } from '../models/adversary-api.model';
-import { AdversaryData } from '../components/adversary-card/adversary-card.model';
 
 const baseUrl = 'http://localhost:8080/api/dh/adversaries';
 
@@ -15,6 +14,16 @@ function buildAdversaryResponse(overrides: Partial<AdversaryApiResponse> = {}): 
     tier: 1,
     adversaryType: 'MINION',
     ...overrides,
+  };
+}
+
+function buildPaginatedResponse(content: AdversaryApiResponse[]) {
+  return {
+    content,
+    currentPage: 0,
+    pageSize: 20,
+    totalElements: content.length,
+    totalPages: 1,
   };
 }
 
@@ -41,7 +50,7 @@ describe('AdversaryService', () => {
       r => r.url === baseUrl && r.params.get('expand') === 'features,experiences',
     );
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should send withCredentials: true', () => {
@@ -49,7 +58,7 @@ describe('AdversaryService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.withCredentials).toBe(true);
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should include tier filter when provided', () => {
@@ -57,7 +66,7 @@ describe('AdversaryService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl && r.params.get('tier') === '2');
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should include adversaryType filter when provided', () => {
@@ -65,7 +74,7 @@ describe('AdversaryService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl && r.params.get('adversaryType') === 'SOLO');
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should not include optional params when not provided', () => {
@@ -74,25 +83,25 @@ describe('AdversaryService', () => {
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.params.has('tier')).toBe(false);
     expect(req.request.params.has('adversaryType')).toBe(false);
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
-  it('should return mapped AdversaryData array', () => {
+  it('should return mapped PaginatedAdversaries', () => {
     const mockData: AdversaryApiResponse[] = [
       buildAdversaryResponse({ id: 1, name: 'Goblin Scout' }),
       buildAdversaryResponse({ id: 2, name: 'Orc Warrior', adversaryType: 'STANDARD' }),
     ];
 
-    let result: AdversaryData[] | undefined;
+    let result: PaginatedAdversaries | undefined;
     service.getAdversaries().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush(mockData);
+    req.flush(buildPaginatedResponse(mockData));
 
-    expect(result).toHaveLength(2);
-    expect(result![0].id).toBe(1);
-    expect(result![0].name).toBe('Goblin Scout');
-    expect(result![1].name).toBe('Orc Warrior');
+    expect(result!.adversaries).toHaveLength(2);
+    expect(result!.adversaries[0].id).toBe(1);
+    expect(result!.adversaries[0].name).toBe('Goblin Scout');
+    expect(result!.adversaries[1].name).toBe('Orc Warrior');
   });
 
   it('should propagate HTTP errors', () => {

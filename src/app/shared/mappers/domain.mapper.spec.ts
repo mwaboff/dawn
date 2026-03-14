@@ -25,24 +25,24 @@ describe('mapDomainToCardData', () => {
     expect(result.cardType).toBe('domain');
   });
 
-  it('should set description to empty string', () => {
+  it('should set description from response', () => {
+    const response = buildDomainResponse({ description: 'Fire magic domain' });
+    const result = mapDomainToCardData(response);
+
+    expect(result.description).toBe('Fire magic domain');
+  });
+
+  it('should default description to empty string when missing', () => {
     const response = buildDomainResponse();
     const result = mapDomainToCardData(response);
 
     expect(result.description).toBe('');
   });
 
-  it('should not set tags', () => {
-    const response = buildDomainResponse();
+  it('should set accent color from domain theme colors', () => {
+    const response = buildDomainResponse({ name: 'Arcana' });
     const result = mapDomainToCardData(response);
 
-    expect(result.tags).toBeUndefined();
-  });
-
-  it('should not set features', () => {
-    const response = buildDomainResponse();
-    const result = mapDomainToCardData(response);
-
-    expect(result.features).toBeUndefined();
+    expect(result.metadata!['accentColor']).toBe('#7c3aed');
   });
 });

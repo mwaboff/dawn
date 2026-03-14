@@ -12,7 +12,21 @@ function buildSubclassPathResponse(overrides: Partial<SubclassPathApiResponse> =
   return {
     id: 1,
     name: 'Beastbound',
+    associatedClassId: 1,
+    expansionId: 1,
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
     ...overrides,
+  };
+}
+
+function buildPaginatedResponse(content: SubclassPathApiResponse[]) {
+  return {
+    content,
+    currentPage: 0,
+    pageSize: 100,
+    totalElements: content.length,
+    totalPages: 1,
   };
 }
 
@@ -36,10 +50,10 @@ describe('SubclassPathService', () => {
     service.getSubclassPaths().subscribe();
 
     const req = httpTesting.expectOne(
-      r => r.url === baseUrl && r.params.get('expand') === 'associatedDomains,spellcastingTrait',
+      r => r.url === baseUrl && r.params.get('expand') === 'associatedClass,associatedDomains,expansion',
     );
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should send withCredentials: true', () => {
@@ -47,7 +61,7 @@ describe('SubclassPathService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.withCredentials).toBe(true);
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should return mapped CardData array', () => {
@@ -60,7 +74,7 @@ describe('SubclassPathService', () => {
     service.getSubclassPaths().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush(mockData);
+    req.flush(buildPaginatedResponse(mockData));
 
     expect(result).toHaveLength(2);
     expect(result![0].id).toBe(1);

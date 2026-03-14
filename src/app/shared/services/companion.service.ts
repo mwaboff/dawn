@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { PaginatedResponse } from '../models/api.model';
 import { CompanionApiResponse } from '../models/companion-api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapCompanionToCardData } from '../mappers/companion.mapper';
@@ -11,9 +12,14 @@ export class CompanionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/companions`;
 
-  getCompanions(): Observable<CardData[]> {
+  getCompanions(page = 0, size = 100): Observable<CardData[]> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'experiences');
+
     return this.http
-      .get<CompanionApiResponse[]>(this.baseUrl, { withCredentials: true })
-      .pipe(map(responses => responses.map(mapCompanionToCardData)));
+      .get<PaginatedResponse<CompanionApiResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => response.content.map(mapCompanionToCardData)));
   }
 }

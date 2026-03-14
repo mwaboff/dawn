@@ -21,9 +21,9 @@ import { PaginationControls } from './components/pagination-controls/pagination-
 import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
 import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
+import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { ClassService } from '../../shared/services/class.service';
 import { SubclassService } from '../../shared/services/subclass.service';
-import { SubclassPathService } from '../../shared/services/subclass-path.service';
 import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
 import { DomainService } from '../../shared/services/domain.service';
@@ -45,13 +45,13 @@ import { AdversaryService } from '../../shared/services/adversary.service';
     CardSelectionGrid,
     AdversaryCard,
     CardSkeleton,
+    SubclassPathSelector,
   ],
 })
 export class Reference {
   private readonly destroyRef = inject(DestroyRef);
   private readonly classService = inject(ClassService);
   private readonly subclassService = inject(SubclassService);
-  private readonly subclassPathService = inject(SubclassPathService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
   private readonly domainService = inject(DomainService);
@@ -167,23 +167,6 @@ export class Reference {
           });
         break;
       }
-
-      case 'subclassPaths':
-        this.subclassPathService
-          .getSubclassPaths()
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
 
       case 'ancestries':
         this.ancestryService
@@ -383,8 +366,8 @@ export class Reference {
           .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: result => {
-              this.adversaries.set(result);
-              this.totalPages.set(1);
+              this.adversaries.set(result.adversaries);
+              this.totalPages.set(result.totalPages);
               this.loading.set(false);
             },
             error: () => {

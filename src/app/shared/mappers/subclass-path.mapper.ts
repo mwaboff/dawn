@@ -4,8 +4,8 @@ import { SubclassPathApiResponse } from '../models/subclass-path-api.model';
 export function mapSubclassPathToCardData(response: SubclassPathApiResponse): CardData {
   const tags: string[] = [];
 
-  if (response.spellcastingTrait) {
-    tags.push(`Spellcasting: ${response.spellcastingTrait}`);
+  if (response.spellcastingTrait?.trait) {
+    tags.push(`Spellcasting: ${response.spellcastingTrait.trait}`);
   }
 
   if (response.associatedDomains?.length) {
@@ -15,12 +15,15 @@ export function mapSubclassPathToCardData(response: SubclassPathApiResponse): Ca
   return {
     id: response.id,
     name: response.name,
-    description: response.description ?? '',
+    description: response.spellcastingTrait?.description ?? '',
     cardType: 'subclassPath' as never,
     tags: tags.length > 0 ? tags : undefined,
     metadata: {
+      associatedClassId: response.associatedClassId,
+      associatedClass: response.associatedClass,
       associatedDomains: response.associatedDomains ?? [],
       spellcastingTrait: response.spellcastingTrait,
+      expansion: response.expansion,
     },
   };
 }

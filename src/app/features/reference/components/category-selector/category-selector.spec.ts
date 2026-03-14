@@ -49,7 +49,7 @@ describe('CategorySelector', () => {
 
   it('should display category labels', () => {
     const labels = fixture.nativeElement.querySelectorAll('.category-label');
-    expect(labels[0].textContent.trim()).toBe('Classes');
+    expect(labels[0].textContent.trim()).toBe('Domains');
   });
 
   it('should display category icons', () => {
@@ -59,7 +59,7 @@ describe('CategorySelector', () => {
 
   it('should display category descriptions', () => {
     const descriptions = fixture.nativeElement.querySelectorAll('.category-description');
-    expect(descriptions[0].textContent.trim()).toBe('Character classes and their abilities');
+    expect(descriptions[0].textContent.trim()).toBe('Magic and skill domains');
   });
 
   it('should emit categorySelected when a button is clicked', () => {
@@ -67,12 +67,12 @@ describe('CategorySelector', () => {
     buttons[0].click();
     fixture.detectChanges();
 
-    expect(host.selectedCategory).toBe('classes');
+    expect(host.selectedCategory).toBe('domains');
   });
 
   it('should emit the correct category id when a non-first button is clicked', () => {
     const buttons = fixture.nativeElement.querySelectorAll('.category-btn');
-    buttons[6].click();
+    buttons[5].click();
     fixture.detectChanges();
 
     expect(host.selectedCategory).toBe('domainCards');
@@ -90,7 +90,7 @@ describe('CategorySelector', () => {
     activeFixture.detectChanges();
 
     const buttons = activeFixture.nativeElement.querySelectorAll('.category-btn');
-    expect(buttons[0].classList.contains('category-btn--active')).toBe(true);
+    expect(buttons[1].classList.contains('category-btn--active')).toBe(true);
 
     activeFixture.destroy();
   });
@@ -107,7 +107,7 @@ describe('CategorySelector', () => {
     activeFixture.detectChanges();
 
     const buttons = activeFixture.nativeElement.querySelectorAll('.category-btn');
-    expect(buttons[1].classList.contains('category-btn--active')).toBe(false);
+    expect(buttons[0].classList.contains('category-btn--active')).toBe(false);
 
     activeFixture.destroy();
   });

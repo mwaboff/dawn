@@ -22,7 +22,7 @@ export class SubclassService {
     const params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'features,costTags')
+      .set('expand', 'features,costTags,subclassPath')
       .set('associatedClassId', classId);
 
     return this.http

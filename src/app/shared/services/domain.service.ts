@@ -18,7 +18,10 @@ export class DomainService {
   private lookupLoaded = false;
 
   getDomains(): Observable<CardData[]> {
-    const params = new HttpParams().set('page', 0).set('size', 100);
+    const params = new HttpParams()
+      .set('page', 0)
+      .set('size', 100)
+      .set('expand', 'expansion');
 
     return this.http
       .get<PaginatedResponse<DomainResponse>>(this.domainsUrl, { params, withCredentials: true })
@@ -51,24 +54,27 @@ export class DomainService {
       .filter((id): id is number => id !== undefined);
   }
 
-  getDomainCards(domainIds: number[], page = 0, size = 100): Observable<CardData[]> {
-    const params = new HttpParams()
+  getDomainCards(domainIds: number[], page = 0, size = 100, levels?: number[]): Observable<CardData[]> {
+    let params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('levels', '1')
       .set('associatedDomainIds', domainIds.join(','))
       .set('expand', 'features,costTags,associatedDomain');
+
+    if (levels?.length) {
+      params = params.set('levels', levels.join(','));
+    }
 
     return this.http
       .get<PaginatedResponse<DomainCardResponse>>(this.domainCardsUrl, { params, withCredentials: true })
       .pipe(map(response => response.content.map(mapDomainCardResponseToCardData)));
   }
 
-  getDomainCardsForNames(domainNames: string[]): Observable<CardData[]> {
+  getDomainCardsForNames(domainNames: string[], levels?: number[]): Observable<CardData[]> {
     return this.loadDomainLookup().pipe(
       switchMap(() => {
         const domainIds = this.resolveDomainIds(domainNames);
-        return this.getDomainCards(domainIds);
+        return this.getDomainCards(domainIds, 0, 100, levels);
       }),
     );
   }

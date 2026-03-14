@@ -11,8 +11,27 @@ const baseUrl = 'http://localhost:8080/api/dh/companions';
 function buildCompanionResponse(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
   return {
     id: 1,
+    characterSheetId: 1,
     name: 'Forest Wolf',
+    evasion: 10,
+    attackName: 'Bite',
+    attackRange: 'MELEE',
+    damageDice: '1d6',
+    stressMax: 3,
+    stressMarked: 0,
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
     ...overrides,
+  };
+}
+
+function buildPaginatedResponse(content: CompanionApiResponse[]) {
+  return {
+    content,
+    currentPage: 0,
+    pageSize: 100,
+    totalElements: content.length,
+    totalPages: 1,
   };
 }
 
@@ -37,7 +56,7 @@ describe('CompanionService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should send withCredentials: true', () => {
@@ -45,20 +64,20 @@ describe('CompanionService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.withCredentials).toBe(true);
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
   });
 
   it('should return mapped CardData array', () => {
     const mockData: CompanionApiResponse[] = [
       buildCompanionResponse({ id: 1, name: 'Forest Wolf' }),
-      buildCompanionResponse({ id: 2, name: 'Shadow Cat', companionType: 'BEAST' }),
+      buildCompanionResponse({ id: 2, name: 'Shadow Cat', attackName: 'Claw' }),
     ];
 
     let result: CardData[] | undefined;
     service.getCompanions().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush(mockData);
+    req.flush(buildPaginatedResponse(mockData));
 
     expect(result).toHaveLength(2);
     expect(result![0].id).toBe(1);
@@ -71,7 +90,7 @@ describe('CompanionService', () => {
     service.getCompanions().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush([]);
+    req.flush(buildPaginatedResponse([]));
 
     expect(result).toEqual([]);
   });

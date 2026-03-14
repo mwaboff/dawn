@@ -5,7 +5,16 @@ import { CompanionApiResponse } from '../models/companion-api.model';
 function buildCompanionResponse(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
   return {
     id: 1,
+    characterSheetId: 1,
     name: 'Forest Wolf',
+    evasion: 10,
+    attackName: 'Bite',
+    attackRange: 'MELEE',
+    damageDice: '1d6',
+    stressMax: 3,
+    stressMarked: 0,
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
     ...overrides,
   };
 }
@@ -33,38 +42,47 @@ describe('mapCompanionToCardData', () => {
     expect(result.description).toBe('');
   });
 
-  it('should include companionType in tags when present', () => {
-    const response = buildCompanionResponse({ companionType: 'BEAST' });
+  it('should include formatted attackRange in tags', () => {
+    const response = buildCompanionResponse({ attackRange: 'VERY_CLOSE' });
     const result = mapCompanionToCardData(response);
 
-    expect(result.tags).toContain('BEAST');
+    expect(result.tags).toContain('Very Close');
   });
 
-  it('should have undefined tags when no companionType', () => {
-    const response = buildCompanionResponse({ companionType: undefined });
+  it('should include damageDice in tags', () => {
+    const response = buildCompanionResponse({ damageDice: '2d8' });
     const result = mapCompanionToCardData(response);
 
-    expect(result.tags).toBeUndefined();
+    expect(result.tags).toContain('2d8');
   });
 
-  it('should store companionType in metadata', () => {
-    const response = buildCompanionResponse({ companionType: 'MAGICAL' });
+  it('should include attack feature with name and description', () => {
+    const response = buildCompanionResponse({ attackName: 'Claw', attackRange: 'MELEE', damageDice: '1d6' });
     const result = mapCompanionToCardData(response);
 
-    expect(result.metadata!['companionType']).toBe('MAGICAL');
+    expect(result.features).toHaveLength(1);
+    expect(result.features![0].name).toBe('Claw');
+    expect(result.features![0].description).toBe('Range: Melee · Damage: 1d6');
   });
 
-  it('should store expansionId in metadata', () => {
-    const response = buildCompanionResponse({ expansionId: 3 });
+  it('should store evasion in metadata', () => {
+    const response = buildCompanionResponse({ evasion: 12 });
     const result = mapCompanionToCardData(response);
 
-    expect(result.metadata!['expansionId']).toBe(3);
+    expect(result.metadata!['evasion']).toBe(12);
   });
 
-  it('should store isOfficial in metadata', () => {
-    const response = buildCompanionResponse({ isOfficial: true });
+  it('should store stressMax in metadata', () => {
+    const response = buildCompanionResponse({ stressMax: 5 });
     const result = mapCompanionToCardData(response);
 
-    expect(result.metadata!['isOfficial']).toBe(true);
+    expect(result.metadata!['stressMax']).toBe(5);
+  });
+
+  it('should store attackName in metadata', () => {
+    const response = buildCompanionResponse({ attackName: 'Bite' });
+    const result = mapCompanionToCardData(response);
+
+    expect(result.metadata!['attackName']).toBe('Bite');
   });
 });
