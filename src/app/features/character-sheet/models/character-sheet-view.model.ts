@@ -31,6 +31,12 @@ export interface CharacterSheetView {
   domainCards: DomainCardSummary[];
 
   experiences: ExperienceDisplay[];
+  classEntries: ClassEntry[];
+}
+
+export interface ClassEntry {
+  className: string;
+  subclassName?: string;
 }
 
 export interface ModifierSource {

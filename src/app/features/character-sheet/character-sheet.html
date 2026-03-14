@@ -11,9 +11,27 @@
   } @else if (characterSheet(); as sheet) {
     <header class="sheet-header">
       <div class="sheet-header__identity">
-        <h1 class="sheet-name">{{ sheet.name }}</h1>
-        @if (sheet.pronouns) {
-          <span class="sheet-pronouns">{{ sheet.pronouns }}</span>
+        <div class="sheet-header__name-row">
+          <h1 class="sheet-name">{{ sheet.name }}</h1>
+          @if (sheet.pronouns) {
+            <span class="sheet-pronouns">{{ sheet.pronouns }}</span>
+          }
+        </div>
+        @if (sheet.classEntries.length > 0) {
+          <p class="sheet-class">
+            @for (entry of sheet.classEntries; track entry.className; let last = $last) {
+              <span class="sheet-class__entry">
+                <span class="sheet-class__name">{{ entry.className }}</span>
+                @if (entry.subclassName) {
+                  <span class="sheet-class__sep" aria-hidden="true"> · </span>
+                  <span class="sheet-class__subclass">{{ entry.subclassName }}</span>
+                }
+              </span>
+              @if (!last) {
+                <span class="sheet-class__divider" aria-hidden="true"> / </span>
+              }
+            }
+          </p>
         }
       </div>
       <div class="level-badge">

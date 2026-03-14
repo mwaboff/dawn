@@ -19,6 +19,7 @@ import {
   FeatureDisplay,
   TraitDisplay,
   ExperienceDisplay,
+  ClassEntry,
 } from '../models/character-sheet-view.model';
 import { applyModifiers, collectEquipmentModifiers } from './modifier-calculator.utils';
 
@@ -58,6 +59,8 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
 
     experiences: (sheet.experiences ?? []).map(mapExperience),
+
+    classEntries: extractClassEntries(sheet.subclassCards ?? []),
   };
 }
 
@@ -142,4 +145,15 @@ function mapExperience(exp: ExperienceResponse): ExperienceDisplay {
     description: exp.description,
     modifier: exp.modifier,
   };
+}
+
+function extractClassEntries(subclassCards: SubclassCardResponse[]): ClassEntry[] {
+  const seen = new Map<string, ClassEntry>();
+  for (const card of subclassCards) {
+    const className = card.associatedClassName ?? 'Unknown';
+    if (!seen.has(className)) {
+      seen.set(className, { className, subclassName: card.subclassPathName });
+    }
+  }
+  return [...seen.values()];
 }
