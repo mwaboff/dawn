@@ -23,11 +23,13 @@ export class CharacterSheet implements OnInit {
   private readonly localStressMarked = signal<number | null>(null);
   private readonly localHopeMarked = signal<number | null>(null);
   private readonly localArmorMarked = signal<number | null>(null);
+  private readonly localGoldAdjustment = signal(0);
 
   readonly markedHp = computed(() => this.localHpMarked() ?? (this.characterSheet()?.hitPointMarked ?? 0));
   readonly markedStress = computed(() => this.localStressMarked() ?? (this.characterSheet()?.stressMarked ?? 0));
   readonly markedHope = computed(() => this.localHopeMarked() ?? (this.characterSheet()?.hopeMarked ?? 0));
   readonly markedArmor = computed(() => this.localArmorMarked() ?? (this.characterSheet()?.armorMarked ?? 0));
+  readonly currentGold = computed(() => (this.characterSheet()?.gold ?? 0) + this.localGoldAdjustment());
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -51,6 +53,9 @@ export class CharacterSheet implements OnInit {
       'domainCards',
       'inventoryWeapons',
       'inventoryArmors',
+      'features',
+      'costTags',
+      'modifiers',
     ];
 
     this.characterSheetService
@@ -104,5 +109,9 @@ export class CharacterSheet implements OnInit {
 
   getSubSkills(traitName: string): string[] {
     return TRAIT_SUBSKILLS[traitName] ?? [];
+  }
+
+  adjustGold(amount: number): void {
+    this.localGoldAdjustment.update(current => current + amount);
   }
 }

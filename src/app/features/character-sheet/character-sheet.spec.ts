@@ -143,6 +143,9 @@ describe('CharacterSheet', () => {
       'domainCards',
       'inventoryWeapons',
       'inventoryArmors',
+      'features',
+      'costTags',
+      'modifiers',
     ]);
   });
 
@@ -281,6 +284,98 @@ describe('CharacterSheet', () => {
       component.toggleResourceBox('armor', 4);
 
       expect(component.markedArmor()).toBe(4);
+    });
+  });
+
+  describe('gold management', () => {
+    it('currentGold defaults to sheet gold value', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.currentGold()).toBe(50);
+    });
+
+    it('adjustGold adds a handful (1)', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(1);
+
+      expect(component.currentGold()).toBe(51);
+    });
+
+    it('adjustGold adds a bag (10)', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(10);
+
+      expect(component.currentGold()).toBe(60);
+    });
+
+    it('adjustGold adds a chest (100)', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(100);
+
+      expect(component.currentGold()).toBe(150);
+    });
+
+    it('adjustGold subtracts a handful (1)', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(-1);
+
+      expect(component.currentGold()).toBe(49);
+    });
+
+    it('adjustGold accumulates multiple adjustments', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(10);
+      component.adjustGold(100);
+      component.adjustGold(-1);
+
+      expect(component.currentGold()).toBe(159);
+    });
+
+    it('adjustGold allows negative gold total', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(-100);
+
+      expect(component.currentGold()).toBe(-50);
+    });
+
+    it('renders the gold total in the DOM', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.gold-total__value')?.textContent?.trim()).toBe('50');
+    });
+
+    it('renders six gold denomination buttons', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelectorAll('.gold-btn').length).toBe(6);
+    });
+
+    it('applies negative class when gold is below zero', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.adjustGold(-100);
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.gold-total__value--negative')).toBeTruthy();
     });
   });
 
