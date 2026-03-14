@@ -159,6 +159,36 @@ describe('CharacterForm', () => {
     });
   });
 
+  describe('Outputs', () => {
+    it('should emit nameChanged when name control value changes', () => {
+      const emitted: string[] = [];
+      component.nameChanged.subscribe((v: string) => emitted.push(v));
+
+      component.characterForm.controls.name.setValue('Legolas');
+
+      expect(emitted).toEqual(['Legolas']);
+    });
+
+    it('should emit pronounsChanged when pronouns control value changes', () => {
+      const emitted: string[] = [];
+      component.pronounsChanged.subscribe((v: string) => emitted.push(v));
+
+      component.characterForm.controls.pronouns.setValue('he/him');
+
+      expect(emitted).toEqual(['he/him']);
+    });
+
+    it('should emit each name change in sequence', () => {
+      const emitted: string[] = [];
+      component.nameChanged.subscribe((v: string) => emitted.push(v));
+
+      component.characterForm.controls.name.setValue('Frodo');
+      component.characterForm.controls.name.setValue('Bilbo');
+
+      expect(emitted).toEqual(['Frodo', 'Bilbo']);
+    });
+  });
+
   describe('Selections Summary', () => {
     it('should render the selections-summary child component', () => {
       const compiled = fixture.nativeElement as HTMLElement;

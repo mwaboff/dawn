@@ -1,1 +1,9 @@
-/* App root styles can go here if needed */
+.page-content {
+  padding-top: 4.5rem;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding-top: 4rem;
+  }
+}

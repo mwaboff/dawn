@@ -1,0 +1,37 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.page-btn {
+  background: transparent;
+  border: 1px solid #d4a056;
+  color: #d4a056;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #d4a056;
+  color: #1a1008;
+}
+
+.page-btn:disabled {
+  border-color: #5a5040;
+  color: #5a5040;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #c8b89a;
+  font-size: 0.875rem;
+  min-width: 8rem;
+  text-align: center;
+}

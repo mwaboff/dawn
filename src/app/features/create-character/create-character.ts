@@ -1,27 +1,36 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { switchMap, forkJoin, of, map, Observable } from 'rxjs';
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
-import { SubclassPathSelector } from './components/subclass-path-selector/subclass-path-selector';
+import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
 import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
-import { ClassService } from './services/class.service';
-import { SubclassService } from './services/subclass.service';
-import { AncestryService } from './services/ancestry.service';
-import { CommunityService } from './services/community.service';
+import { ClassService } from '../../shared/services/class.service';
+import { SubclassService } from '../../shared/services/subclass.service';
+import { AncestryService } from '../../shared/services/ancestry.service';
+import { CommunityService } from '../../shared/services/community.service';
+import { DomainService } from '../../shared/services/domain.service';
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
 import { ExperienceSelector } from './components/experience-selector/experience-selector';
+import { ReviewSection } from './components/review-section/review-section';
 import { TraitAssignments, TraitKey } from './models/trait.model';
 import { Experience, isExperienceComplete } from './models/experience.model';
+import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { CharacterSheetResponse } from './models/character-sheet-api.model';
+import { CharacterSheetData } from './models/character-sheet.model';
+import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
+import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ReviewSection],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +40,9 @@ export class CreateCharacter implements OnInit {
   private readonly subclassService = inject(SubclassService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
+  private readonly domainService = inject(DomainService);
+  private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly router = inject(Router);
 
   readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
@@ -56,11 +68,22 @@ export class CreateCharacter implements OnInit {
   readonly communityCardsLoading = signal(false);
   readonly communityCardsError = signal(false);
 
+  readonly domainCards = signal<CardData[]>([]);
+  readonly domainCardsLoading = signal(false);
+  readonly domainCardsError = signal(false);
+  readonly selectedDomainCards = signal<CardData[]>([]);
+  private lastLoadedDomainSubclassId: number | null = null;
+
   readonly traitAssignments = signal<TraitAssignments | null>(null);
   readonly experienceAssignments = signal<Experience[]>([]);
   readonly selectedPrimaryWeapon = signal<CardData | null>(null);
   readonly selectedSecondaryWeapon = signal<CardData | null>(null);
   readonly selectedArmor = signal<CardData | null>(null);
+
+  readonly characterName = signal('');
+  readonly characterPronouns = signal('');
+  readonly submitting = signal(false);
+  readonly submitError = signal<string | null>(null);
 
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
@@ -73,6 +96,7 @@ export class CreateCharacter implements OnInit {
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
+    const domainCardNames = this.selectedDomainCards();
     return {
       class: cards['class']?.name,
       subclass: cards['subclass']?.name,
@@ -82,6 +106,7 @@ export class CreateCharacter implements OnInit {
       traits: this.formatTraitSummary(),
       weapon: this.formatWeaponSummary(),
       armor: this.selectedArmor()?.name,
+      domainCards: domainCardNames.length > 0 ? domainCardNames.map(c => c.name).join(', ') : undefined,
     };
   });
 
@@ -107,6 +132,12 @@ export class CreateCharacter implements OnInit {
       if (tabId === 'starting-armor') {
         this.markStepComplete('starting-armor');
       }
+      if (tabId === 'domain-cards') {
+        this.loadDomainCards();
+      }
+      if (tabId === 'review') {
+        this.markStepComplete('review');
+      }
     }
   }
 
@@ -127,6 +158,10 @@ export class CreateCharacter implements OnInit {
 
       if (currentTab === 'class' && previousCard && previousCard.id !== card.id) {
         this.invalidateSteps(currentTab, false);
+      }
+
+      if (currentTab === 'subclass' && previousCard && previousCard.id !== card.id) {
+        this.clearDomainCardSelections();
       }
     }
   }
@@ -197,6 +232,54 @@ export class CreateCharacter implements OnInit {
     });
   }
 
+  loadDomainCards(): void {
+    const subclass = this.selectedCards()['subclass'];
+    if (!subclass) return;
+
+    const subclassId = subclass.id;
+    if (subclassId === this.lastLoadedDomainSubclassId && this.domainCards().length > 0) {
+      return;
+    }
+
+    const domainNames = (subclass.metadata?.['domainNames'] as string[]) ?? [];
+    if (domainNames.length === 0) return;
+
+    this.domainCardsLoading.set(true);
+    this.domainCardsError.set(false);
+
+    this.domainService.getDomainCardsForNames(domainNames, [1]).subscribe({
+      next: (cards) => {
+        this.domainCards.set(cards);
+        this.domainCardsLoading.set(false);
+        this.lastLoadedDomainSubclassId = subclassId;
+      },
+      error: () => {
+        this.domainCardsError.set(true);
+        this.domainCardsLoading.set(false);
+      },
+    });
+  }
+
+  onDomainCardsSelected(cards: CardData[]): void {
+    this.selectedDomainCards.set(cards);
+    if (cards.length === 2) {
+      this.markStepComplete('domain-cards');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('domain-cards');
+      this.completedStepsSignal.set(updated);
+    }
+  }
+
+  private clearDomainCardSelections(): void {
+    this.selectedDomainCards.set([]);
+    this.domainCards.set([]);
+    this.lastLoadedDomainSubclassId = null;
+    const updated = new Set(this.completedStepsSignal());
+    updated.delete('domain-cards');
+    this.completedStepsSignal.set(updated);
+  }
+
   onWeaponSelected(selection: { primary: CardData | null; secondary: CardData | null }): void {
     this.selectedPrimaryWeapon.set(selection.primary);
     this.selectedSecondaryWeapon.set(selection.secondary);
@@ -259,6 +342,69 @@ export class CreateCharacter implements OnInit {
     return weapons.join(' + ');
   }
 
+  onCharacterNameChanged(name: string): void {
+    this.characterName.set(name);
+  }
+
+  onCharacterPronounsChanged(pronouns: string): void {
+    this.characterPronouns.set(pronouns);
+  }
+
+  onSubmitCharacter(): void {
+    const characterData = assembleCharacterSheet({
+      name: this.characterName(),
+      pronouns: this.characterPronouns(),
+      classCard: this.selectedClassCard()!,
+      subclassCard: this.selectedSubclassCard()!,
+      ancestryCard: this.selectedAncestryCard()!,
+      communityCard: this.selectedCommunityCard()!,
+      traits: this.traitAssignments()!,
+      primaryWeapon: this.selectedPrimaryWeapon(),
+      secondaryWeapon: this.selectedSecondaryWeapon(),
+      armor: this.selectedArmor(),
+      experiences: this.experienceAssignments(),
+      domainCards: this.selectedDomainCards(),
+    });
+
+    this.submitting.set(true);
+    this.submitError.set(null);
+
+    this.submitCharacterSheet(characterData).subscribe({
+      next: (sheet) => {
+        this.submitting.set(false);
+        this.router.navigate(['/character', sheet.id]);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        this.submitError.set(
+          (err.error?.message as string | undefined) ?? 'Failed to create character. Please try again.',
+        );
+      },
+    });
+  }
+
+  private submitCharacterSheet(data: CharacterSheetData): Observable<CharacterSheetResponse> {
+    const request = toCreateCharacterSheetRequest(data);
+
+    return this.characterSheetService.createCharacterSheet(request).pipe(
+      switchMap(sheet => {
+        if (data.experiences.length === 0) {
+          return of(sheet);
+        }
+
+        const experienceRequests = data.experiences.map(exp =>
+          this.characterSheetService.createExperience({
+            characterSheetId: sheet.id,
+            description: exp.name,
+            modifier: exp.modifier,
+          }),
+        );
+
+        return forkJoin(experienceRequests).pipe(map(() => sheet));
+      }),
+    );
+  }
+
   private loadClassCards(): void {
     this.classCardsLoading.set(true);
     this.classCardsError.set(false);
@@ -297,8 +443,6 @@ export class CreateCharacter implements OnInit {
   }
 
   private isTabReachable(tabId: TabId): boolean {
-    if (tabId === 'domain-cards') return true;
-
     const targetIndex = this.tabs.findIndex((t) => t.id === tabId);
     const currentIndex = this.tabs.findIndex((t) => t.id === this.activeTab());
 

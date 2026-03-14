@@ -1,0 +1,7 @@
+@if (isVisible()) {
+  <div class="pagination">
+    <button class="page-btn" [disabled]="!hasPrevious()" (click)="onPrevious()">← Prev</button>
+    <span class="page-info">Page {{ displayPage() }} of {{ totalPages() }}</span>
+    <button class="page-btn" [disabled]="!hasNext()" (click)="onNext()">Next →</button>
+  </div>
+}

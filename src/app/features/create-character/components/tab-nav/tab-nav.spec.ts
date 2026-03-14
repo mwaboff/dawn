@@ -47,10 +47,10 @@ describe('TabNav', () => {
   });
 
   describe('Initial State', () => {
-    it('should render all 9 chapter markers', () => {
+    it('should render all 10 chapter markers', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('.chapter-marker');
-      expect(markers.length).toBe(9);
+      expect(markers.length).toBe(10);
     });
 
     it('should display step numbers in marker pips', () => {
@@ -125,7 +125,7 @@ describe('TabNav', () => {
     it('should have tab role on each marker', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('[role="tab"]');
-      expect(markers.length).toBe(9);
+      expect(markers.length).toBe(10);
     });
 
     it('should have descriptive aria-labels with step numbers', () => {
@@ -212,13 +212,13 @@ describe('TabNav', () => {
     });
 
     it('should disable next button on last step', () => {
-      // Mark all steps as complete so domain-cards is reachable
+      // Mark all steps as complete so review is reachable
       const allCompleted = new Set<TabId>([
         'class', 'subclass', 'ancestry', 'community', 'traits',
-        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
+        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards', 'review',
       ]);
       host.completedSteps.set(allCompleted);
-      host.activeTab.set('domain-cards');
+      host.activeTab.set('review');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;
@@ -504,8 +504,8 @@ describe('TabNav', () => {
     });
 
     it('should not disable next button when on last step even if completed', () => {
-      host.completedSteps.set(new Set(['domain-cards']));
-      host.activeTab.set('domain-cards');
+      host.completedSteps.set(new Set(['review']));
+      host.activeTab.set('review');
       hostFixture.detectChanges();
 
       const compiled = hostFixture.nativeElement as HTMLElement;

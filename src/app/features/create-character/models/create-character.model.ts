@@ -12,7 +12,8 @@ export type TabId =
   | 'starting-weapon'
   | 'starting-armor'
   | 'experiences'
-  | 'domain-cards';
+  | 'domain-cards'
+  | 'review';
 
 export type CharacterFormField = 'name' | 'pronouns';
 
@@ -25,6 +26,7 @@ export interface CharacterSelections {
   traits?: string;
   weapon?: string;
   armor?: string;
+  domainCards?: string;
 }
 
 export const CHARACTER_TABS: Tab[] = [
@@ -37,4 +39,5 @@ export const CHARACTER_TABS: Tab[] = [
   { id: 'starting-armor', label: 'Starting Armor' },
   { id: 'experiences', label: 'Experiences' },
   { id: 'domain-cards', label: 'Domain Cards' },
+  { id: 'review', label: 'Review' },
 ];

@@ -17,10 +17,13 @@ const MOCK_CARDS: CardData[] = [
       [loading]="loading()"
       [error]="error()"
       [selectedCard]="selectedCard()"
+      [selectedCards]="selectedCards()"
+      [maxSelections]="maxSelections()"
       [skeletonCount]="skeletonCount()"
       [collapsibleFeatures]="collapsibleFeatures()"
       [layout]="layout()"
       (cardSelected)="onCardSelected($event)"
+      (cardsSelected)="onCardsSelected($event)"
     />
   `,
 })
@@ -29,13 +32,20 @@ class TestHost {
   loading = signal(false);
   error = signal(false);
   selectedCard = signal<CardData | undefined>(undefined);
+  selectedCards = signal<CardData[]>([]);
+  maxSelections = signal(1);
   skeletonCount = signal(6);
   collapsibleFeatures = signal(false);
   layout = signal<'default' | 'wide'>('default');
   lastSelectedCard: CardData | undefined;
+  lastSelectedCards: CardData[] | undefined;
 
   onCardSelected(card: CardData): void {
     this.lastSelectedCard = card;
+  }
+
+  onCardsSelected(cards: CardData[]): void {
+    this.lastSelectedCards = cards;
   }
 }
 
@@ -101,7 +111,7 @@ describe('CardSelectionGrid', () => {
     expect(skeleton).toBeTruthy();
   });
 
-  it('should emit cardSelected when a card is clicked', () => {
+  it('should emit cardSelected when a card is clicked in single-select mode', () => {
     fixture.detectChanges();
 
     const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
@@ -112,7 +122,7 @@ describe('CardSelectionGrid', () => {
     expect(host.lastSelectedCard?.id).toBe(1);
   });
 
-  it('should mark selected card', () => {
+  it('should mark selected card in single-select mode', () => {
     host.selectedCard.set(MOCK_CARDS[0]);
     fixture.detectChanges();
 
@@ -151,5 +161,93 @@ describe('CardSelectionGrid', () => {
     const grid = el.querySelector('.card-grid');
     expect(grid).toBeTruthy();
     expect(el.querySelectorAll('app-daggerheart-card').length).toBe(0);
+  });
+
+  describe('multi-select mode', () => {
+    beforeEach(() => {
+      host.maxSelections.set(2);
+      fixture.detectChanges();
+    });
+
+    it('should show selection counter when maxSelections > 1', () => {
+      const counter = el.querySelector('.selection-counter');
+      expect(counter).toBeTruthy();
+    });
+
+    it('should not show selection counter in single-select mode', () => {
+      host.maxSelections.set(1);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.selection-counter')).toBeFalsy();
+    });
+
+    it('should display current selection count', () => {
+      host.selectedCards.set([MOCK_CARDS[0]]);
+      fixture.detectChanges();
+
+      const counter = el.querySelector('.selection-counter');
+      expect(counter?.textContent).toContain('1/2');
+    });
+
+    it('should emit cardsSelected with card added when clicking unselected card under max', () => {
+      host.selectedCards.set([MOCK_CARDS[0]]);
+      fixture.detectChanges();
+
+      const secondCard = el.querySelectorAll('app-daggerheart-card .card')[1] as HTMLElement;
+      secondCard.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCards).toHaveLength(2);
+      expect(host.lastSelectedCards?.map(c => c.id)).toContain(1);
+      expect(host.lastSelectedCards?.map(c => c.id)).toContain(2);
+    });
+
+    it('should emit cardsSelected with card removed when clicking already-selected card', () => {
+      host.selectedCards.set([MOCK_CARDS[0], MOCK_CARDS[1]]);
+      fixture.detectChanges();
+
+      const firstCard = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+      firstCard.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCards).toHaveLength(1);
+      expect(host.lastSelectedCards?.[0].id).toBe(2);
+    });
+
+    it('should not emit when at max selections and clicking unselected card', () => {
+      host.selectedCards.set([MOCK_CARDS[0], MOCK_CARDS[1]]);
+      fixture.detectChanges();
+
+      host.lastSelectedCards = undefined;
+      const thirdCard = el.querySelectorAll('app-daggerheart-card .card')[2] as HTMLElement;
+      thirdCard.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCards).toBeUndefined();
+    });
+
+    it('should mark all selected cards using selectedCards input', () => {
+      host.selectedCards.set([MOCK_CARDS[0], MOCK_CARDS[1]]);
+      fixture.detectChanges();
+
+      const allCards = el.querySelectorAll('app-daggerheart-card');
+      const firstSelected = allCards[0]?.querySelector('.card--selected');
+      const secondSelected = allCards[1]?.querySelector('.card--selected');
+      const thirdSelected = allCards[2]?.querySelector('.card--selected');
+
+      expect(firstSelected).toBeTruthy();
+      expect(secondSelected).toBeTruthy();
+      expect(thirdSelected).toBeFalsy();
+    });
+
+    it('should not emit cardSelected in multi-select mode', () => {
+      fixture.detectChanges();
+
+      const firstCard = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+      firstCard.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeUndefined();
+    });
   });
 });

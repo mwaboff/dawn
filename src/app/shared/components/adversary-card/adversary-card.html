@@ -1,0 +1,102 @@
+<div
+  class="adversary-card"
+  [class.adversary-card--wide]="layout() === 'wide'"
+  [attr.aria-label]="adversary().name + ', ' + adversary().adversaryType + ' adversary'"
+>
+  <div class="adversary-card__header">
+    <div class="adversary-card__header-main">
+      <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+      <div class="adversary-card__badges">
+        <span class="adversary-card__type-badge">{{ adversary().adversaryType }}</span>
+        <span class="adversary-card__tier-badge">{{ tierLabel }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="adversary-card__body">
+    @if (adversary().hitPointMax !== undefined || adversary().stressMax !== undefined || adversary().evasion !== undefined || adversary().difficulty !== undefined) {
+      <div class="adversary-card__stats">
+        @if (adversary().hitPointMax !== undefined) {
+          <div class="adversary-card__stat">
+            <span class="adversary-card__stat-label">HP</span>
+            <span class="adversary-card__stat-value">{{ adversary().hitPointMax }}</span>
+          </div>
+        }
+        @if (adversary().stressMax !== undefined) {
+          <div class="adversary-card__stat">
+            <span class="adversary-card__stat-label">Stress</span>
+            <span class="adversary-card__stat-value">{{ adversary().stressMax }}</span>
+          </div>
+        }
+        @if (adversary().evasion !== undefined) {
+          <div class="adversary-card__stat">
+            <span class="adversary-card__stat-label">Evasion</span>
+            <span class="adversary-card__stat-value">{{ adversary().evasion }}</span>
+          </div>
+        }
+        @if (adversary().difficulty !== undefined) {
+          <div class="adversary-card__stat">
+            <span class="adversary-card__stat-label">Difficulty</span>
+            <span class="adversary-card__stat-value">{{ adversary().difficulty }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (adversary().majorThreshold !== undefined || adversary().severeThreshold !== undefined) {
+      <div class="adversary-card__thresholds">
+        @if (adversary().majorThreshold !== undefined) {
+          <div class="adversary-card__threshold">
+            <span class="adversary-card__threshold-label">Major</span>
+            <span class="adversary-card__threshold-value">{{ adversary().majorThreshold }}</span>
+          </div>
+        }
+        @if (adversary().severeThreshold !== undefined) {
+          <div class="adversary-card__threshold">
+            <span class="adversary-card__threshold-label">Severe</span>
+            <span class="adversary-card__threshold-value">{{ adversary().severeThreshold }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (adversary().weaponName) {
+      <div class="adversary-card__attack">
+        <span class="adversary-card__attack-label">Attack</span>
+        <div class="adversary-card__attack-details">
+          <span class="adversary-card__weapon-name">{{ adversary().weaponName }}</span>
+          @if (adversary().attackRange) {
+            <span class="adversary-card__attack-range">{{ adversary().attackRange }}</span>
+          }
+          @if (adversary().damage) {
+            <span class="adversary-card__damage">{{ damageLabel }}</span>
+          }
+          @if (adversary().attackModifier !== undefined) {
+            <span class="adversary-card__attack-modifier">{{ attackModifierLabel }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    @if (adversary().features?.length) {
+      <div class="adversary-card__features">
+        @for (feature of adversary().features; track feature.name) {
+          <app-card-feature-item [feature]="feature" />
+        }
+      </div>
+    }
+
+    @if (adversary().motivesAndTactics) {
+      <div class="adversary-card__tactics">
+        <span class="adversary-card__tactics-label">Motives &amp; Tactics</span>
+        <p class="adversary-card__tactics-text">{{ adversary().motivesAndTactics }}</p>
+      </div>
+    }
+
+    @if (adversary().description) {
+      <div class="adversary-card__description-section">
+        <p class="adversary-card__description">{{ adversary().description }}</p>
+      </div>
+    }
+  </div>
+</div>

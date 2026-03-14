@@ -1,0 +1,493 @@
+<main class="sheet-page">
+  @if (loading()) {
+    <div class="sheet-loading" role="status" aria-live="polite">
+      <p class="loading-text">Loading character sheet...</p>
+    </div>
+  } @else if (error()) {
+    <div class="sheet-error" role="alert">
+      <h2 class="error-title">Character Not Found</h2>
+      <p class="error-message">This character sheet could not be loaded.</p>
+    </div>
+  } @else if (characterSheet(); as sheet) {
+    <header class="sheet-header">
+      <div class="sheet-header__identity">
+        <div class="sheet-header__name-row">
+          <h1 class="sheet-name">{{ sheet.name }}</h1>
+          @if (sheet.pronouns) {
+            <span class="sheet-pronouns">{{ sheet.pronouns }}</span>
+          }
+        </div>
+        @if (sheet.classEntries.length > 0) {
+          <p class="sheet-class">
+            @for (entry of sheet.classEntries; track entry.className; let last = $last) {
+              <span class="sheet-class__entry">
+                <span class="sheet-class__name">{{ entry.className }}</span>
+                @if (entry.subclassName) {
+                  <span class="sheet-class__sep" aria-hidden="true"> · </span>
+                  <span class="sheet-class__subclass">{{ entry.subclassName }}</span>
+                }
+              </span>
+              @if (!last) {
+                <span class="sheet-class__divider" aria-hidden="true"> / </span>
+              }
+            }
+          </p>
+        }
+      </div>
+      <div class="sheet-header__stats">
+        <div class="level-badge">
+          <span class="level-badge__label">Lvl</span>
+          <span class="level-badge__value">{{ sheet.level }}</span>
+        </div>
+        <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
+          <span class="shield__label">Evasion</span>
+          <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
+          @if (sheet.evasion.hasModifier) {
+            <div class="modifier-tooltip" role="tooltip">
+              @for (source of sheet.evasion.modifierSources; track source.sourceName) {
+                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
+              }
+            </div>
+          }
+        </div>
+        <div class="shield" [class.shield--interactive]="sheet.armorScore.hasModifier" [attr.tabindex]="sheet.armorScore.hasModifier ? 0 : null" [attr.aria-label]="sheet.armorScore.hasModifier ? 'Armor score ' + sheet.armorScore.modified + ' (hover or focus for modifier breakdown)' : null">
+          <span class="shield__label">Armor</span>
+          <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
+          @if (sheet.armorScore.hasModifier) {
+            <div class="modifier-tooltip" role="tooltip">
+              @for (source of sheet.armorScore.modifierSources; track source.sourceName) {
+                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <section class="traits-section" aria-label="Traits">
+      <div class="traits-row">
+        @for (trait of sheet.traits; track trait.name) {
+          <div class="trait-badge" [class.trait-badge--marked]="trait.marked"
+               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier) + (trait.marked ? ', marked' : '')">
+            <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
+            <span class="trait-badge__modifier" aria-hidden="true">{{ formatModifier(trait.modifier) }}</span>
+            @if (trait.marked) {
+              <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
+            }
+            <div class="trait-badge__subskills" aria-hidden="true">
+              @for (skill of getSubSkills(trait.name); track skill) {
+                <span class="trait-badge__subskill">{{ skill }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="sheet-columns">
+      <div class="column-left">
+        <div class="panel">
+          <h2 class="panel__title">Health</h2>
+
+          <div class="damage-bar">
+            <div class="damage-zone damage-zone--minor">
+              <span class="damage-zone__label">Minor</span>
+            </div>
+            <div class="damage-marker">
+              <span class="damage-marker__value">{{ sheet.majorDamageThreshold.modified }}</span>
+            </div>
+            <div class="damage-zone damage-zone--major">
+              <span class="damage-zone__label">Major</span>
+            </div>
+            <div class="damage-marker">
+              <span class="damage-marker__value">{{ sheet.severeDamageThreshold.modified }}</span>
+            </div>
+            <div class="damage-zone damage-zone--severe">
+              <span class="damage-zone__label">Severe</span>
+            </div>
+          </div>
+
+          <div class="resource-row">
+            <span class="resource-row__label">HP</span>
+            <div class="resource-row__boxes">
+              @for (i of getRange(sheet.hitPointMax.modified); track i) {
+                <button class="resource-box" [class.resource-box--marked]="i <= markedHp()" (click)="toggleResourceBox('hp', i)" [attr.aria-label]="'HP ' + i" [attr.aria-pressed]="i <= markedHp()"></button>
+              }
+            </div>
+            <span class="resource-row__count">{{ markedHp() }}/{{ sheet.hitPointMax.modified }}</span>
+          </div>
+
+          <div class="resource-row">
+            <span class="resource-row__label">Stress</span>
+            <div class="resource-row__boxes">
+              @for (i of getRange(sheet.stressMax.modified); track i) {
+                <button class="resource-box" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
+              }
+            </div>
+            <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
+          </div>
+
+          <div class="resource-row">
+            <span class="resource-row__label">Hope</span>
+            <div class="resource-row__boxes">
+              @for (i of getRange(sheet.hopeMax.modified); track i) {
+                <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
+              }
+            </div>
+            <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
+          </div>
+
+          <div class="resource-row">
+            <span class="resource-row__label">Armor</span>
+            <div class="resource-row__boxes">
+              @for (i of getRange(sheet.armorMax); track i) {
+                <button class="resource-box" [class.resource-box--marked]="i <= markedArmor()" (click)="toggleResourceBox('armor', i)" [attr.aria-label]="'Armor ' + i" [attr.aria-pressed]="i <= markedArmor()"></button>
+              }
+            </div>
+            <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorMax }}</span>
+          </div>
+        </div>
+
+        @if (sheet.experiences.length > 0) {
+          <div class="panel">
+            <h2 class="panel__title">Experiences</h2>
+            @for (exp of sheet.experiences; track exp.id) {
+              <div class="experience-item">
+                <span class="experience-item__modifier">{{ formatModifier(exp.modifier) }}</span>
+                <span class="experience-item__description">{{ exp.description }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="panel">
+          <h2 class="panel__title">Gold</h2>
+          <div class="gold-total" aria-live="polite">
+            <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
+            <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
+            <span class="gold-total__label">gold</span>
+          </div>
+          <div class="gold-controls" role="group" aria-label="Adjust gold">
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-1)" aria-label="Remove 1 gold (handful)">&#8722;</button>
+              <span class="gold-denomination__label">Handful<span class="gold-denomination__value">(1)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(1)" aria-label="Add 1 gold (handful)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-10)" aria-label="Remove 10 gold (bag)">&#8722;</button>
+              <span class="gold-denomination__label">Bag<span class="gold-denomination__value">(10)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(10)" aria-label="Add 10 gold (bag)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-100)" aria-label="Remove 100 gold (chest)">&#8722;</button>
+              <span class="gold-denomination__label">Chest<span class="gold-denomination__value">(100)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(100)" aria-label="Add 100 gold (chest)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="column-right">
+        <div class="panel">
+          <h2 class="panel__title">Weapons</h2>
+          @if (sheet.activePrimaryWeapon) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activePrimaryWeapon.name }}</span>
+                <span class="equipment-card__badge">Primary</span>
+              </div>
+              <div class="equipment-card__stats">
+                @if (sheet.activePrimaryWeapon.damage) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.damage }}</span>
+                }
+                @if (sheet.activePrimaryWeapon.range) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.range }}</span>
+                }
+                @if (sheet.activePrimaryWeapon.burden) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.burden }}</span>
+                }
+              </div>
+              @if (sheet.activePrimaryWeapon.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activePrimaryWeapon.features; track feature.name) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description">{{ feature.description }}</p>
+                      @if (feature.tags.length > 0) {
+                        <div class="feature-row__tags">
+                          @for (tag of feature.tags; track tag) {
+                            <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (sheet.activeSecondaryWeapon) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activeSecondaryWeapon.name }}</span>
+                <span class="equipment-card__badge">Secondary</span>
+              </div>
+              <div class="equipment-card__stats">
+                @if (sheet.activeSecondaryWeapon.damage) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.damage }}</span>
+                }
+                @if (sheet.activeSecondaryWeapon.range) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.range }}</span>
+                }
+              </div>
+              @if (sheet.activeSecondaryWeapon.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activeSecondaryWeapon.features; track feature.name) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description">{{ feature.description }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (!sheet.activePrimaryWeapon && !sheet.activeSecondaryWeapon) {
+            <p class="empty-state">No weapons equipped.</p>
+          }
+        </div>
+
+        <div class="panel">
+          <h2 class="panel__title">Armor</h2>
+          @if (sheet.activeArmor) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activeArmor.name }}</span>
+              </div>
+              <div class="equipment-card__stats">
+                <span class="equip-stat">Score: {{ sheet.activeArmor.baseScore }}</span>
+                <span class="equip-stat">Major: {{ sheet.majorDamageThreshold.modified }}+</span>
+                <span class="equip-stat">Severe: {{ sheet.severeDamageThreshold.modified }}+</span>
+              </div>
+              @if (sheet.activeArmor.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activeArmor.features; track feature.name) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description">{{ feature.description }}</p>
+                      @if (feature.tags.length > 0) {
+                        <div class="feature-row__tags">
+                          @for (tag of feature.tags; track tag) {
+                            <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">No armor equipped.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <section class="cards-section" aria-label="Cards">
+      @if (sheet.subclassCards.length > 0) {
+        <div class="card-group">
+          <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          <div class="card-group__list">
+            @for (card of sheet.subclassCards; track card.id) {
+              <div class="expandable-card expandable-card--subclass">
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                  <h4 class="expandable-card__name">{{ card.name }}</h4>
+                </button>
+                @if (isCardExpanded(card.id)) {
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                    <div class="card-meta">
+                      @if (card.associatedClassName) {
+                        <span class="card-meta__item"><span class="card-meta__label">Class:</span> {{ card.associatedClassName }}</span>
+                      }
+                      @if (card.subclassPathName) {
+                        <span class="card-meta__item"><span class="card-meta__label">Path:</span> {{ card.subclassPathName }}</span>
+                      }
+                      @if (card.level) {
+                        <span class="card-meta__item card-meta__badge">{{ card.level }}</span>
+                      }
+                      @if (card.domainNames && card.domainNames.length > 0) {
+                        <span class="card-meta__item"><span class="card-meta__label">Domains:</span> {{ card.domainNames.join(', ') }}</span>
+                      }
+                    </div>
+                    @if (card.description) {
+                      <p class="card-description">{{ card.description }}</p>
+                    }
+                    @for (feature of card.features; track feature.name) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description">{{ feature.description }}</p>
+                        @if (feature.tags.length > 0) {
+                          <div class="feature-row__tags">
+                            @for (tag of feature.tags; track tag) {
+                              <span class="feature-tag">{{ tag }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (sheet.ancestryCards.length > 0) {
+        <div class="card-group">
+          <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          <div class="card-group__list">
+            @for (card of sheet.ancestryCards; track card.id) {
+              <div class="expandable-card expandable-card--ancestry">
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                  <h4 class="expandable-card__name">{{ card.name }}</h4>
+                </button>
+                @if (isCardExpanded(card.id)) {
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                    @if (card.description) {
+                      <p class="card-description">{{ card.description }}</p>
+                    }
+                    @for (feature of card.features; track feature.name) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description">{{ feature.description }}</p>
+                        @if (feature.tags.length > 0) {
+                          <div class="feature-row__tags">
+                            @for (tag of feature.tags; track tag) {
+                              <span class="feature-tag">{{ tag }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (sheet.communityCards.length > 0) {
+        <div class="card-group">
+          <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          <div class="card-group__list">
+            @for (card of sheet.communityCards; track card.id) {
+              <div class="expandable-card expandable-card--community">
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                  <h4 class="expandable-card__name">{{ card.name }}</h4>
+                </button>
+                @if (isCardExpanded(card.id)) {
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                    @if (card.description) {
+                      <p class="card-description">{{ card.description }}</p>
+                    }
+                    @for (feature of card.features; track feature.name) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description">{{ feature.description }}</p>
+                        @if (feature.tags.length > 0) {
+                          <div class="feature-row__tags">
+                            @for (tag of feature.tags; track tag) {
+                              <span class="feature-tag">{{ tag }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (sheet.domainCards.length > 0) {
+        <div class="card-group">
+          <h3 class="card-group__heading card-group__heading--domain">Domain Cards</h3>
+          <div class="card-group__list card-group__list--grid">
+            @for (card of sheet.domainCards; track card.id) {
+              <div class="expandable-card expandable-card--domain">
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                  <h4 class="expandable-card__name">{{ card.name }}</h4>
+                  <div class="expandable-card__meta">
+                    @if (card.domainName) {
+                      <span class="expandable-card__domain">{{ card.domainName }}</span>
+                    }
+                    @if (card.level !== undefined) {
+                      <span class="expandable-card__meta-badge">Lvl {{ card.level }}</span>
+                    }
+                    @if (card.type) {
+                      <span class="expandable-card__meta-badge">{{ card.type }}</span>
+                    }
+                    @if (card.recallCost !== undefined) {
+                      <span class="expandable-card__meta-badge">Recall: {{ card.recallCost }}</span>
+                    }
+                  </div>
+                </button>
+                @if (isCardExpanded(card.id)) {
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                    @if (card.description) {
+                      <p class="card-description">{{ card.description }}</p>
+                    }
+                    @for (feature of card.features; track feature.name) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description">{{ feature.description }}</p>
+                        @if (feature.tags.length > 0) {
+                          <div class="feature-row__tags">
+                            @for (tag of feature.tags; track tag) {
+                              <span class="feature-tag">{{ tag }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </section>
+  }
+</main>

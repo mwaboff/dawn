@@ -6,7 +6,10 @@ export type CardType =
   | 'ancestry'
   | 'domain'
   | 'weapon'
-  | 'armor';
+  | 'armor'
+  | 'loot'
+  | 'companion'
+  | 'subclassPath';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -17,6 +20,9 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   domain: 'Domain',
   weapon: 'Weapon',
   armor: 'Armor',
+  loot: 'Loot',
+  companion: 'Companion',
+  subclassPath: 'Subclass Path',
 };
 
 export interface CardFeature {

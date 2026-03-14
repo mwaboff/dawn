@@ -1,0 +1,159 @@
+<div class="review-section">
+  <div class="review-grid">
+
+    <section class="review-card">
+      <h3 class="review-card-title">Class &amp; Subclass</h3>
+      <div class="review-row">
+        <span class="review-label">Class</span>
+        <span class="review-value">{{ classCard().name }}</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Subclass</span>
+        <span class="review-value">{{ subclassCard().name }}</span>
+      </div>
+      @if (subclassCard().subtitle) {
+        <div class="review-row">
+          <span class="review-label">Domains</span>
+          <span class="review-value">{{ subclassCard().subtitle }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="review-card">
+      <h3 class="review-card-title">Ancestry &amp; Community</h3>
+      <div class="review-row">
+        <span class="review-label">Ancestry</span>
+        <span class="review-value">{{ ancestryCard().name }}</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Community</span>
+        <span class="review-value">{{ communityCard().name }}</span>
+      </div>
+    </section>
+
+    <section class="review-card">
+      <h3 class="review-card-title">Core Stats</h3>
+      <div class="review-row">
+        <span class="review-label">Evasion</span>
+        <span class="review-value">
+          {{ baseEvasion() }}
+          @if (displayEvasion() !== baseEvasion()) {
+            <span class="review-modifier">({{ displayEvasion() }} with equipment)</span>
+          }
+        </span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Hit Points</span>
+        <span class="review-value">{{ hitPointMax() }}</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Hope</span>
+        <span class="review-value">2 / 6</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Stress</span>
+        <span class="review-value">0 / 6</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Armor Score</span>
+        <span class="review-value">{{ armorMax() }}</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Major Threshold</span>
+        <span class="review-value">{{ majorDamageThreshold() }}+</span>
+      </div>
+      <div class="review-row">
+        <span class="review-label">Severe Threshold</span>
+        <span class="review-value">{{ severeDamageThreshold() }}+</span>
+      </div>
+    </section>
+
+    <section class="review-card">
+      <h3 class="review-card-title">Traits</h3>
+      @for (trait of traitList; track trait.key) {
+        <div class="review-row">
+          <span class="review-label">{{ trait.name }}</span>
+          <span class="review-value review-trait-value">{{ formatModifier(traits()[trait.key]) }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="review-card">
+      <h3 class="review-card-title">Equipment</h3>
+      @if (primaryWeapon()) {
+        <div class="review-row">
+          <span class="review-label">Primary Weapon</span>
+          <span class="review-value">{{ primaryWeapon()!.name }}</span>
+        </div>
+      }
+      @if (secondaryWeapon()) {
+        <div class="review-row">
+          <span class="review-label">Secondary Weapon</span>
+          <span class="review-value">{{ secondaryWeapon()!.name }}</span>
+        </div>
+      }
+      @if (!primaryWeapon() && !secondaryWeapon()) {
+        <p class="review-empty">No weapons selected</p>
+      }
+      @if (armor()) {
+        <div class="review-row">
+          <span class="review-label">Armor</span>
+          <span class="review-value">{{ armor()!.name }}</span>
+        </div>
+      } @else {
+        <div class="review-row">
+          <span class="review-label">Armor</span>
+          <span class="review-value review-empty-inline">None</span>
+        </div>
+      }
+    </section>
+
+    <section class="review-card">
+      <h3 class="review-card-title">Experiences</h3>
+      @for (exp of completedExperiences(); track $index) {
+        <div class="review-row">
+          <span class="review-label">{{ exp.name }}</span>
+          <span class="review-value review-trait-value">{{ formatModifier(exp.modifier) }}</span>
+        </div>
+      }
+      @if (completedExperiences().length === 0) {
+        <p class="review-empty">No experiences added</p>
+      }
+    </section>
+
+    <section class="review-card review-card--full">
+      <h3 class="review-card-title">Domain Cards</h3>
+      <div class="review-domain-cards">
+        @for (card of domainCards(); track card.id) {
+          <div class="review-domain-card" [attr.data-card-type]="card.cardType">
+            <span class="review-domain-name">{{ card.name }}</span>
+            @if (card.subtitle) {
+              <span class="review-domain-domain">{{ card.subtitle }}</span>
+            }
+          </div>
+        }
+        @if (domainCards().length === 0) {
+          <p class="review-empty">No domain cards selected</p>
+        }
+      </div>
+    </section>
+
+  </div>
+
+  <div class="submit-section">
+    @if (submitError()) {
+      <p class="submit-error">{{ submitError() }}</p>
+    }
+    <button
+      class="submit-button"
+      [disabled]="submitting()"
+      (click)="submitClicked.emit()"
+    >
+      @if (submitting()) {
+        Creating Character...
+      } @else {
+        Create Character
+      }
+    </button>
+  </div>
+</div>

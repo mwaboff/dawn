@@ -3,7 +3,11 @@
 
   <main class="content-area" role="main">
     <div class="parchment-container">
-      <app-character-form [selections]="characterSelections()" />
+      <app-character-form
+        [selections]="characterSelections()"
+        (nameChanged)="onCharacterNameChanged($event)"
+        (pronounsChanged)="onCharacterPronounsChanged($event)"
+      />
 
       <app-tab-nav
         [tabs]="tabs"
@@ -99,7 +103,34 @@
             />
           }
           @case ('domain-cards') {
-            <p class="placeholder-text">Domain cards coming soon...</p>
+            <app-card-selection-grid
+              [cards]="domainCards()"
+              [loading]="domainCardsLoading()"
+              [error]="domainCardsError()"
+              [selectedCards]="selectedDomainCards()"
+              [maxSelections]="2"
+              [skeletonCount]="6"
+              [collapsibleFeatures]="true"
+              layout="wide"
+              (cardsSelected)="onDomainCardsSelected($event)"
+            />
+          }
+          @case ('review') {
+            <app-review-section
+              [classCard]="selectedClassCard()!"
+              [subclassCard]="selectedSubclassCard()!"
+              [ancestryCard]="selectedAncestryCard()!"
+              [communityCard]="selectedCommunityCard()!"
+              [traits]="traitAssignments()!"
+              [primaryWeapon]="selectedPrimaryWeapon()"
+              [secondaryWeapon]="selectedSecondaryWeapon()"
+              [armor]="selectedArmor()"
+              [experiences]="experienceAssignments()"
+              [domainCards]="selectedDomainCards()"
+              [submitting]="submitting()"
+              [submitError]="submitError()"
+              (submitClicked)="onSubmitCharacter()"
+            />
           }
         }
       </div>

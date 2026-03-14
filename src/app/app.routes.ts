@@ -6,6 +6,7 @@ export const routes: Routes = [
     path: '',
     canActivateChild: [authSessionGuard],
     children: [
+      { path: 'reference', loadComponent: () => import('./features/reference/reference').then(m => m.Reference) },
       {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)
@@ -17,6 +18,10 @@ export const routes: Routes = [
       {
         path: 'create-character',
         loadComponent: () => import('./features/create-character/create-character').then(m => m.CreateCharacter)
+      },
+      {
+        path: 'character/:id',
+        loadComponent: () => import('./features/character-sheet/character-sheet').then(m => m.CharacterSheet)
       }
     ]
   }

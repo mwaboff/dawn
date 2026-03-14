@@ -3,6 +3,11 @@
 } @else if (error()) {
   <app-card-error />
 } @else {
+  @if (maxSelections() > 1) {
+    <div class="selection-counter" aria-live="polite">
+      {{ selectionCount }}/{{ maxSelections() }} selected
+    </div>
+  }
   <div class="card-grid" [class.card-grid--wide]="layout() === 'wide'">
     @for (card of cards(); track card.id) {
       <app-daggerheart-card
@@ -10,7 +15,8 @@
         [selected]="isCardSelected(card)"
         [collapsibleFeatures]="collapsibleFeatures()"
         [layout]="layout()"
-        (cardClicked)="cardSelected.emit($event)"
+        [style.--card-accent]="cardAccentColor(card)"
+        (cardClicked)="onCardClicked(card)"
       />
     }
   </div>

@@ -2,6 +2,13 @@
   display: block;
 }
 
+.selection-counter {
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-muted, #9ca3af);
+  font-style: italic;
+}
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
