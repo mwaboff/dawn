@@ -143,6 +143,7 @@ describe('CharacterSheet', () => {
       'domainCards',
       'inventoryWeapons',
       'inventoryArmors',
+      'inventoryItems',
       'features',
       'costTags',
       'modifiers',

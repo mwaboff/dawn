@@ -1,3 +1,5 @@
+import { LootApiResponse } from '../../../shared/models/loot-api.model';
+
 export interface CreateCharacterSheetRequest {
   name: string;
   pronouns?: string;
@@ -200,4 +202,5 @@ export interface CharacterSheetResponse {
   domainCards?: DomainCardResponse[];
   inventoryWeapons?: WeaponResponse[];
   inventoryArmors?: ArmorResponse[];
+  inventoryItems?: LootApiResponse[];
 }
