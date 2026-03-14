@@ -1,10 +1,10 @@
-<div class="sheet-page">
+<main class="sheet-page">
   @if (loading()) {
-    <div class="sheet-loading">
+    <div class="sheet-loading" role="status" aria-live="polite">
       <p class="loading-text">Loading character sheet...</p>
     </div>
   } @else if (error()) {
-    <div class="sheet-error">
+    <div class="sheet-error" role="alert">
       <h2 class="error-title">Character Not Found</h2>
       <p class="error-message">This character sheet could not be loaded.</p>
     </div>
@@ -39,22 +39,22 @@
           <span class="level-badge__label">Lvl</span>
           <span class="level-badge__value">{{ sheet.level }}</span>
         </div>
-        <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier">
+        <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
           <span class="shield__label">Evasion</span>
           <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
           @if (sheet.evasion.hasModifier) {
-            <div class="modifier-tooltip">
+            <div class="modifier-tooltip" role="tooltip">
               @for (source of sheet.evasion.modifierSources; track source.sourceName) {
                 <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
               }
             </div>
           }
         </div>
-        <div class="shield" [class.shield--interactive]="sheet.armorScore.hasModifier">
+        <div class="shield" [class.shield--interactive]="sheet.armorScore.hasModifier" [attr.tabindex]="sheet.armorScore.hasModifier ? 0 : null" [attr.aria-label]="sheet.armorScore.hasModifier ? 'Armor score ' + sheet.armorScore.modified + ' (hover or focus for modifier breakdown)' : null">
           <span class="shield__label">Armor</span>
           <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
           @if (sheet.armorScore.hasModifier) {
-            <div class="modifier-tooltip">
+            <div class="modifier-tooltip" role="tooltip">
               @for (source of sheet.armorScore.modifierSources; track source.sourceName) {
                 <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
               }
@@ -67,13 +67,14 @@
     <section class="traits-section" aria-label="Traits">
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
-          <div class="trait-badge" [class.trait-badge--marked]="trait.marked">
-            <span class="trait-badge__name" aria-hidden="true">{{ trait.name }}</span>
-            <span class="trait-badge__modifier">{{ formatModifier(trait.modifier) }}</span>
+          <div class="trait-badge" [class.trait-badge--marked]="trait.marked"
+               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier) + (trait.marked ? ', marked' : '')">
+            <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
+            <span class="trait-badge__modifier" aria-hidden="true">{{ formatModifier(trait.modifier) }}</span>
             @if (trait.marked) {
-              <span class="trait-badge__marked-dot" aria-label="marked">&#9679;</span>
+              <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
             }
-            <div class="trait-badge__subskills">
+            <div class="trait-badge__subskills" aria-hidden="true">
               @for (skill of getSubSkills(trait.name); track skill) {
                 <span class="trait-badge__subskill">{{ skill }}</span>
               }
@@ -306,12 +307,14 @@
           <div class="card-group__list">
             @for (card of sheet.subclassCards; track card.id) {
               <div class="expandable-card expandable-card--subclass">
-                <button class="expandable-card__header" (click)="toggleCard(card.id)" [attr.aria-expanded]="isCardExpanded(card.id)">
-                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)">&#9654;</span>
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
                   <h4 class="expandable-card__name">{{ card.name }}</h4>
                 </button>
                 @if (isCardExpanded(card.id)) {
-                  <div class="expandable-card__body">
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     <div class="card-meta">
                       @if (card.associatedClassName) {
                         <span class="card-meta__item"><span class="card-meta__label">Class:</span> {{ card.associatedClassName }}</span>
@@ -358,12 +361,14 @@
           <div class="card-group__list">
             @for (card of sheet.ancestryCards; track card.id) {
               <div class="expandable-card expandable-card--ancestry">
-                <button class="expandable-card__header" (click)="toggleCard(card.id)" [attr.aria-expanded]="isCardExpanded(card.id)">
-                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)">&#9654;</span>
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
                   <h4 class="expandable-card__name">{{ card.name }}</h4>
                 </button>
                 @if (isCardExpanded(card.id)) {
-                  <div class="expandable-card__body">
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
                       <p class="card-description">{{ card.description }}</p>
                     }
@@ -396,12 +401,14 @@
           <div class="card-group__list">
             @for (card of sheet.communityCards; track card.id) {
               <div class="expandable-card expandable-card--community">
-                <button class="expandable-card__header" (click)="toggleCard(card.id)" [attr.aria-expanded]="isCardExpanded(card.id)">
-                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)">&#9654;</span>
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
                   <h4 class="expandable-card__name">{{ card.name }}</h4>
                 </button>
                 @if (isCardExpanded(card.id)) {
-                  <div class="expandable-card__body">
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
                       <p class="card-description">{{ card.description }}</p>
                     }
@@ -434,8 +441,10 @@
           <div class="card-group__list card-group__list--grid">
             @for (card of sheet.domainCards; track card.id) {
               <div class="expandable-card expandable-card--domain">
-                <button class="expandable-card__header" (click)="toggleCard(card.id)" [attr.aria-expanded]="isCardExpanded(card.id)">
-                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)">&#9654;</span>
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
                   <h4 class="expandable-card__name">{{ card.name }}</h4>
                   <div class="expandable-card__meta">
                     @if (card.domainName) {
@@ -453,7 +462,7 @@
                   </div>
                 </button>
                 @if (isCardExpanded(card.id)) {
-                  <div class="expandable-card__body">
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
                       <p class="card-description">{{ card.description }}</p>
                     }
@@ -481,4 +490,4 @@
       }
     </section>
   }
-</div>
+</main>
