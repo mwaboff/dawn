@@ -24,6 +24,7 @@ export class CharacterSheet implements OnInit {
   private readonly localHopeMarked = signal<number | null>(null);
   private readonly localArmorMarked = signal<number | null>(null);
   private readonly localGoldAdjustment = signal(0);
+  readonly activeInventoryTab = signal<'weapons' | 'armor' | 'loot'>('weapons');
 
   readonly markedHp = computed(() => this.localHpMarked() ?? (this.characterSheet()?.hitPointMarked ?? 0));
   readonly markedStress = computed(() => this.localStressMarked() ?? (this.characterSheet()?.stressMarked ?? 0));
@@ -53,6 +54,7 @@ export class CharacterSheet implements OnInit {
       'domainCards',
       'inventoryWeapons',
       'inventoryArmors',
+      'inventoryItems',
       'features',
       'costTags',
       'modifiers',
@@ -113,5 +115,9 @@ export class CharacterSheet implements OnInit {
 
   adjustGold(amount: number): void {
     this.localGoldAdjustment.update(current => current + amount);
+  }
+
+  selectInventoryTab(tab: 'weapons' | 'armor' | 'loot'): void {
+    this.activeInventoryTab.set(tab);
   }
 }

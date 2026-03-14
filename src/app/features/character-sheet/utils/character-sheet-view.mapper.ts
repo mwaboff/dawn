@@ -13,6 +13,7 @@ import {
   CharacterSheetView,
   WeaponDisplay,
   ArmorDisplay,
+  LootDisplay,
   CardSummary,
   SubclassCardSummary,
   DomainCardSummary,
@@ -21,6 +22,7 @@ import {
   ExperienceDisplay,
   ClassEntry,
 } from '../models/character-sheet-view.model';
+import { LootApiResponse } from '../../../shared/models/loot-api.model';
 import { applyModifiers, collectEquipmentModifiers } from './modifier-calculator.utils';
 
 export function mapToCharacterSheetView(sheet: CharacterSheetResponse): CharacterSheetView {
@@ -57,6 +59,9 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
+    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapWeapon(w)),
+    inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapArmor(a)),
+    inventoryItems: (sheet.inventoryItems ?? []).map(mapLoot),
 
     experiences: (sheet.experiences ?? []).map(mapExperience),
 
@@ -136,6 +141,16 @@ function mapDomainCardSummary(card: DomainCardResponse): DomainCardSummary {
     level: card.level,
     recallCost: card.recallCost,
     type: card.type,
+  };
+}
+
+function mapLoot(loot: LootApiResponse): LootDisplay {
+  return {
+    id: loot.id,
+    name: loot.name,
+    description: loot.description,
+    isConsumable: loot.isConsumable ?? false,
+    costTags: loot.costTags ?? [],
   };
 }
 

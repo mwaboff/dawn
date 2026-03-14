@@ -78,6 +78,7 @@
 .resource-box--hope.resource-box--marked::before { background: var(--ca); border-color: var(--ca); }
 .resource-row__count { font-family: var(--fb); font-size: .8rem; color: rgba(245,230,211,.65); }
 
+
 .experience-item { display: flex; align-items: baseline; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }
 .experience-item:last-child { border-bottom: none; }
 .experience-item__modifier { font-size: .85rem; font-weight: 700; color: var(--ca); min-width: 2rem; }

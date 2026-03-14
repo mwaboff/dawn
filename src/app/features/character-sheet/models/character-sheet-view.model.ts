@@ -29,6 +29,9 @@ export interface CharacterSheetView {
   ancestryCards: CardSummary[];
   communityCards: CardSummary[];
   domainCards: DomainCardSummary[];
+  inventoryWeapons: WeaponDisplay[];
+  inventoryArmors: ArmorDisplay[];
+  inventoryItems: LootDisplay[];
 
   experiences: ExperienceDisplay[];
   classEntries: ClassEntry[];
@@ -83,6 +86,14 @@ export interface ArmorDisplay {
   name: string;
   baseScore: number;
   features: FeatureDisplay[];
+}
+
+export interface LootDisplay {
+  id: number;
+  name: string;
+  description?: string;
+  isConsumable: boolean;
+  costTags: string[];
 }
 
 export interface FeatureDisplay {

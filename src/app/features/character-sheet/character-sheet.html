@@ -118,26 +118,6 @@
           </div>
 
           <div class="resource-row">
-            <span class="resource-row__label">Stress</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.stressMax.modified); track i) {
-                <button class="resource-box" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
-          </div>
-
-          <div class="resource-row">
-            <span class="resource-row__label">Hope</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.hopeMax.modified); track i) {
-                <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
-          </div>
-
-          <div class="resource-row">
             <span class="resource-row__label">Armor</span>
             <div class="resource-row__boxes">
               @for (i of getRange(sheet.armorMax); track i) {
@@ -145,6 +125,34 @@
               }
             </div>
             <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorMax }}</span>
+          </div>
+        </div>
+
+        <div class="panel panel--hope-stress">
+          <h2 class="panel__title panel__title--hope-stress">Hope & Stress</h2>
+
+          <div class="hope-stress-grid">
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--hope">Hope</span>
+              <div class="resource-row__boxes">
+                @for (i of getRange(sheet.hopeMax.modified); track i) {
+                  <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
+                }
+              </div>
+              <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
+            </div>
+
+            <div class="hope-stress-divider" aria-hidden="true"></div>
+
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--stress">Stress</span>
+              <div class="resource-row__boxes">
+                @for (i of getRange(sheet.stressMax.modified); track i) {
+                  <button class="resource-box resource-box--stress" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
+                }
+              </div>
+              <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
+            </div>
           </div>
         </div>
 
@@ -159,37 +167,11 @@
             }
           </div>
         }
-
-        <div class="panel">
-          <h2 class="panel__title">Gold</h2>
-          <div class="gold-total" aria-live="polite">
-            <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
-            <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
-            <span class="gold-total__label">gold</span>
-          </div>
-          <div class="gold-controls" role="group" aria-label="Adjust gold">
-            <div class="gold-denomination">
-              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-1)" aria-label="Remove 1 gold (handful)">&#8722;</button>
-              <span class="gold-denomination__label">Handful<span class="gold-denomination__value">(1)</span></span>
-              <button class="gold-btn gold-btn--add" (click)="adjustGold(1)" aria-label="Add 1 gold (handful)">+</button>
-            </div>
-            <div class="gold-denomination">
-              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-10)" aria-label="Remove 10 gold (bag)">&#8722;</button>
-              <span class="gold-denomination__label">Bag<span class="gold-denomination__value">(10)</span></span>
-              <button class="gold-btn gold-btn--add" (click)="adjustGold(10)" aria-label="Add 10 gold (bag)">+</button>
-            </div>
-            <div class="gold-denomination">
-              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-100)" aria-label="Remove 100 gold (chest)">&#8722;</button>
-              <span class="gold-denomination__label">Chest<span class="gold-denomination__value">(100)</span></span>
-              <button class="gold-btn gold-btn--add" (click)="adjustGold(100)" aria-label="Add 100 gold (chest)">+</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="column-right">
         <div class="panel">
-          <h2 class="panel__title">Weapons</h2>
+          <h2 class="panel__title">Equipped Weapons</h2>
           @if (sheet.activePrimaryWeapon) {
             <div class="equipment-card">
               <div class="equipment-card__header">
@@ -262,7 +244,7 @@
         </div>
 
         <div class="panel">
-          <h2 class="panel__title">Armor</h2>
+          <h2 class="panel__title">Equipped Armor</h2>
           @if (sheet.activeArmor) {
             <div class="equipment-card">
               <div class="equipment-card__header">
@@ -296,6 +278,32 @@
           } @else {
             <p class="empty-state">No armor equipped.</p>
           }
+        </div>
+
+        <div class="panel">
+          <h2 class="panel__title">Gold</h2>
+          <div class="gold-total" aria-live="polite">
+            <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
+            <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
+            <span class="gold-total__label">gold</span>
+          </div>
+          <div class="gold-controls" role="group" aria-label="Adjust gold">
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-1)" aria-label="Remove 1 gold (handful)">&#8722;</button>
+              <span class="gold-denomination__label">Handful<span class="gold-denomination__value">(1)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(1)" aria-label="Add 1 gold (handful)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-10)" aria-label="Remove 10 gold (bag)">&#8722;</button>
+              <span class="gold-denomination__label">Bag<span class="gold-denomination__value">(10)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(10)" aria-label="Add 10 gold (bag)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-100)" aria-label="Remove 100 gold (chest)">&#8722;</button>
+              <span class="gold-denomination__label">Chest<span class="gold-denomination__value">(100)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(100)" aria-label="Add 100 gold (chest)">+</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -487,6 +495,113 @@
             }
           </div>
         </div>
+      }
+    </section>
+
+    <section class="inventory-section" aria-label="Inventory">
+      <h2 class="inventory-section__title">Inventory</h2>
+
+      <div class="inventory-tabs" role="tablist" aria-label="Inventory categories">
+        <button class="inventory-tab" role="tab"
+                [class.inventory-tab--active]="activeInventoryTab() === 'weapons'"
+                [attr.aria-selected]="activeInventoryTab() === 'weapons'"
+                aria-controls="inventory-panel-weapons"
+                (click)="selectInventoryTab('weapons')">
+          Weapons
+          @if (sheet.inventoryWeapons.length > 0) {
+            <span class="inventory-tab__count">{{ sheet.inventoryWeapons.length }}</span>
+          }
+        </button>
+        <button class="inventory-tab" role="tab"
+                [class.inventory-tab--active]="activeInventoryTab() === 'armor'"
+                [attr.aria-selected]="activeInventoryTab() === 'armor'"
+                aria-controls="inventory-panel-armor"
+                (click)="selectInventoryTab('armor')">
+          Armor
+          @if (sheet.inventoryArmors.length > 0) {
+            <span class="inventory-tab__count">{{ sheet.inventoryArmors.length }}</span>
+          }
+        </button>
+        <button class="inventory-tab" role="tab"
+                [class.inventory-tab--active]="activeInventoryTab() === 'loot'"
+                [attr.aria-selected]="activeInventoryTab() === 'loot'"
+                aria-controls="inventory-panel-loot"
+                (click)="selectInventoryTab('loot')">
+          Loot
+          @if (sheet.inventoryItems.length > 0) {
+            <span class="inventory-tab__count">{{ sheet.inventoryItems.length }}</span>
+          }
+        </button>
+      </div>
+
+      @switch (activeInventoryTab()) {
+        @case ('weapons') {
+          <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel">
+            @if (sheet.inventoryWeapons.length > 0) {
+              <div class="inventory-group__list">
+                @for (weapon of sheet.inventoryWeapons; track weapon.id) {
+                  <div class="inventory-item">
+                    <span class="inventory-item__name">{{ weapon.name }}</span>
+                    <div class="inventory-item__stats">
+                      @if (weapon.damage) {
+                        <span class="inventory-item__stat">{{ weapon.damage }}</span>
+                      }
+                      @if (weapon.range) {
+                        <span class="inventory-item__stat">{{ weapon.range }}</span>
+                      }
+                      @if (weapon.burden) {
+                        <span class="inventory-item__stat">{{ weapon.burden }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-state">No weapons in inventory.</p>
+            }
+          </div>
+        }
+        @case ('armor') {
+          <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel">
+            @if (sheet.inventoryArmors.length > 0) {
+              <div class="inventory-group__list">
+                @for (armor of sheet.inventoryArmors; track armor.id) {
+                  <div class="inventory-item">
+                    <span class="inventory-item__name">{{ armor.name }}</span>
+                    <div class="inventory-item__stats">
+                      <span class="inventory-item__stat">Score: {{ armor.baseScore }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-state">No armor in inventory.</p>
+            }
+          </div>
+        }
+        @case ('loot') {
+          <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel">
+            @if (sheet.inventoryItems.length > 0) {
+              <div class="inventory-group__list">
+                @for (item of sheet.inventoryItems; track item.id) {
+                  <div class="inventory-item">
+                    <span class="inventory-item__name">{{ item.name }}</span>
+                    <div class="inventory-item__stats">
+                      @if (item.isConsumable) {
+                        <span class="inventory-item__stat">Consumable</span>
+                      }
+                      @for (tag of item.costTags; track tag) {
+                        <span class="inventory-item__stat">{{ tag }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-state">No loot in inventory.</p>
+            }
+          </div>
+        }
       }
     </section>
   }

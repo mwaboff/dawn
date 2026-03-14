@@ -22,6 +22,10 @@ export const routes: Routes = [
       {
         path: 'character/:id',
         loadComponent: () => import('./features/character-sheet/character-sheet').then(m => m.CharacterSheet)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/profile/profile').then(m => m.Profile)
       }
     ]
   }
