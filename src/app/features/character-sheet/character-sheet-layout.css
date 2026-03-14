@@ -184,10 +184,6 @@
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .stat-row {
-    flex-wrap: wrap;
-  }
-
   .card-group__list--grid {
     grid-template-columns: 1fr;
   }

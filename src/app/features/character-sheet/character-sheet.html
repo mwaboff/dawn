@@ -34,26 +34,37 @@
           </p>
         }
       </div>
-      <div class="level-badge">
-        <span class="level-badge__label">Lvl</span>
-        <span class="level-badge__value">{{ sheet.level }}</span>
+      <div class="sheet-header__stats">
+        <div class="level-badge">
+          <span class="level-badge__label">Lvl</span>
+          <span class="level-badge__value">{{ sheet.level }}</span>
+        </div>
+        <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier">
+          <span class="shield__label">Evasion</span>
+          <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
+          @if (sheet.evasion.hasModifier) {
+            <div class="modifier-tooltip">
+              @for (source of sheet.evasion.modifierSources; track source.sourceName) {
+                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
+              }
+            </div>
+          }
+        </div>
+        <div class="shield" [class.shield--interactive]="sheet.armorScore.hasModifier">
+          <span class="shield__label">Armor</span>
+          <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
+          @if (sheet.armorScore.hasModifier) {
+            <div class="modifier-tooltip">
+              @for (source of sheet.armorScore.modifierSources; track source.sourceName) {
+                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
+              }
+            </div>
+          }
+        </div>
       </div>
     </header>
 
-    <section class="stat-row" aria-label="Core Stats and Traits">
-      <div class="shield">
-        <span class="shield__label">Evasion</span>
-        <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
-        @if (sheet.evasion.hasModifier) {
-          <span class="shield__base">({{ sheet.evasion.base }})</span>
-          <div class="modifier-tooltip">
-            @for (source of sheet.evasion.modifierSources; track source.sourceName) {
-              <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
-            }
-          </div>
-        }
-      </div>
-
+    <section class="traits-section" aria-label="Traits">
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
           <div class="trait-badge" [class.trait-badge--marked]="trait.marked">
@@ -67,19 +78,6 @@
                 <span class="trait-badge__subskill">{{ skill }}</span>
               }
             </div>
-          </div>
-        }
-      </div>
-
-      <div class="shield">
-        <span class="shield__label">Armor</span>
-        <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
-        @if (sheet.armorScore.hasModifier) {
-          <span class="shield__base">({{ sheet.armorScore.base }})</span>
-          <div class="modifier-tooltip">
-            @for (source of sheet.armorScore.modifierSources; track source.sourceName) {
-              <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
-            }
           </div>
         }
       </div>
