@@ -60,6 +60,8 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
+    ...splitDomainCards(sheet),
+    maxEquippedDomainCards: 5,
     inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapWeapon(w)),
     inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapArmor(a)),
     inventoryItems: (sheet.inventoryItems ?? []).map(mapLoot),
@@ -162,6 +164,17 @@ function mapExperience(exp: ExperienceResponse): ExperienceDisplay {
     description: exp.description,
     modifier: exp.modifier,
   };
+}
+
+function splitDomainCards(sheet: CharacterSheetResponse): { equippedDomainCards: DomainCardSummary[]; vaultDomainCards: DomainCardSummary[] } {
+  const allCards = (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c));
+  const equippedIds = new Set(sheet.equippedDomainCardIds ?? []);
+  const vaultIds = new Set(sheet.vaultDomainCardIds ?? []);
+
+  const equippedDomainCards = allCards.filter(c => equippedIds.has(c.id));
+  const vaultDomainCards = allCards.filter(c => vaultIds.has(c.id));
+
+  return { equippedDomainCards, vaultDomainCards };
 }
 
 function extractClassEntries(subclassCards: SubclassCardResponse[]): ClassEntry[] {

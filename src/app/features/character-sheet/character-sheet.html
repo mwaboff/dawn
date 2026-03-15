@@ -90,7 +90,7 @@
     <div class="sheet-columns">
       <div class="column-left">
         <div class="panel">
-          <h2 class="panel__title">Health</h2>
+          <h2 class="panel__title">Health @if (isSavingHealth()) { <app-saving-spinner /> }</h2>
 
           <div class="damage-bar">
             <div class="damage-zone damage-zone--minor">
@@ -132,7 +132,7 @@
         </div>
 
         <div class="panel panel--hope-stress">
-          <h2 class="panel__title panel__title--hope-stress">Hope & Stress</h2>
+          <h2 class="panel__title panel__title--hope-stress">Hope & Stress @if (isSavingHopeStress()) { <app-saving-spinner /> }</h2>
 
           <div class="hope-stress-grid">
             <div class="hope-stress-track">
@@ -284,7 +284,7 @@
         </div>
 
         <div class="panel">
-          <h2 class="panel__title">Gold</h2>
+          <h2 class="panel__title">Gold @if (isSavingGold()) { <app-saving-spinner /> }</h2>
           <div class="gold-total" aria-live="polite">
             <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
             <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
@@ -446,11 +446,14 @@
         </div>
       }
 
-      @if (sheet.domainCards.length > 0) {
+      @if (sheet.equippedDomainCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--domain">Domain Cards</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--domain">Equipped Domain Cards</h3>
+            <span class="card-group__count card-group__count--domain">{{ sheet.equippedDomainCards.length }}/{{ sheet.maxEquippedDomainCards }}</span>
+          </div>
           <div class="card-group__list card-group__list--grid">
-            @for (card of sheet.domainCards; track card.id) {
+            @for (card of sheet.equippedDomainCards; track card.id) {
               <div class="expandable-card expandable-card--domain">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -490,6 +493,13 @@
                             }
                           </div>
                         }
+                      </div>
+                    }
+                    @if (isOwner()) {
+                      <div class="card-swap-action">
+                        <button class="card-swap-btn card-swap-btn--vault" (click)="onVaultCard(card.id); $event.stopPropagation()" aria-label="Move {{ card.name }} to vault">
+                          <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Vault
+                        </button>
                       </div>
                     }
                   </div>
@@ -607,5 +617,75 @@
         }
       }
     </section>
+
+    @if (sheet.vaultDomainCards.length > 0) {
+      <section class="vault-section" aria-label="Domain Card Vault">
+        <div class="vault-header">
+          <h2 class="vault-header__title">Domain Card Vault</h2>
+          <span class="vault-header__count">{{ sheet.vaultDomainCards.length }}</span>
+        </div>
+        <div class="vault-list">
+          @for (card of sheet.vaultDomainCards; track card.id) {
+            <div class="expandable-card expandable-card--domain expandable-card--vaulted">
+              <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                      [attr.aria-expanded]="isCardExpanded(card.id)"
+                      [attr.aria-controls]="'card-body-' + card.id">
+                <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                <h4 class="expandable-card__name">{{ card.name }}</h4>
+                <div class="expandable-card__meta">
+                  @if (card.domainName) {
+                    <span class="expandable-card__domain">{{ card.domainName }}</span>
+                  }
+                  @if (card.level !== undefined) {
+                    <span class="expandable-card__meta-badge">Lvl {{ card.level }}</span>
+                  }
+                  @if (card.type) {
+                    <span class="expandable-card__meta-badge">{{ card.type }}</span>
+                  }
+                  @if (card.recallCost !== undefined) {
+                    <span class="expandable-card__meta-badge">Recall: {{ card.recallCost }}</span>
+                  }
+                </div>
+              </button>
+              @if (isCardExpanded(card.id)) {
+                <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                  @if (card.description) {
+                    <p class="card-description">{{ card.description }}</p>
+                  }
+                  @for (feature of card.features; track feature.name) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description">{{ feature.description }}</p>
+                      @if (feature.tags.length > 0) {
+                        <div class="feature-row__tags">
+                          @for (tag of feature.tags; track tag) {
+                            <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (isOwner()) {
+                    <div class="card-swap-action">
+                      <button class="card-swap-btn card-swap-btn--equip"
+                              [disabled]="!canEquipCard()"
+                              (click)="onEquipCard(card.id); $event.stopPropagation()"
+                              aria-label="Equip {{ card.name }}">
+                        <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
+                      </button>
+                      @if (!canEquipCard()) {
+                        <span class="card-swap-hint">Equipped slots full</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
   }
 </main>

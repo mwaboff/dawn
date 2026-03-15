@@ -42,6 +42,9 @@ const mockCharacterSheet: CharacterSheetView = {
   ancestryCards: [],
   communityCards: [],
   domainCards: [],
+  equippedDomainCards: [],
+  vaultDomainCards: [],
+  maxEquippedDomainCards: 5,
   inventoryWeapons: [],
   inventoryArmors: [],
   inventoryItems: [],
@@ -208,7 +211,7 @@ describe('AdvancementConfig', () => {
 
       expect(host.lastEmittedChoice).toBeTruthy();
       expect(host.lastEmittedChoice?.type).toBe('BOOST_TRAITS');
-      expect(host.lastEmittedChoice?.boostTraits?.length).toBe(2);
+      expect(host.lastEmittedChoice?.traits?.length).toBe(2);
     });
 
     it('should allow deselecting a trait', () => {
@@ -313,7 +316,7 @@ describe('AdvancementConfig', () => {
 
       expect(host.lastEmittedChoice).toBeTruthy();
       expect(host.lastEmittedChoice?.type).toBe('BOOST_EXPERIENCES');
-      expect(host.lastEmittedChoice?.boostExperienceIds?.length).toBe(2);
+      expect(host.lastEmittedChoice?.experienceIds?.length).toBe(2);
     });
 
     it('should show boost arrow when an experience is selected', () => {

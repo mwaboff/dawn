@@ -25,8 +25,11 @@ export class AdvancementConfig implements OnInit {
   readonly levelUpOptions = input.required<LevelUpOptionsResponse>();
   readonly initialChoice = input<AdvancementChoice>();
 
+  readonly newExperienceDescription = input<string>('');
+
   readonly configChanged = output<AdvancementChoice>();
 
+  readonly boostNewExperience = signal(false);
   readonly selectedTraits = signal<TraitEnum[]>([]);
   readonly selectedExperienceIds = signal<number[]>([]);
   readonly domainCards = signal<CardData[]>([]);
@@ -57,11 +60,14 @@ export class AdvancementConfig implements OnInit {
     return this.characterSheet().experiences;
   }
 
+  readonly newExperienceBaseModifier = 2;
+
   ngOnInit(): void {
     const initial = this.initialChoice();
     if (initial) {
-      if (initial.boostTraits) this.selectedTraits.set([...initial.boostTraits]);
-      if (initial.boostExperienceIds) this.selectedExperienceIds.set([...initial.boostExperienceIds]);
+      if (initial.traits) this.selectedTraits.set([...initial.traits]);
+      if (initial.experienceIds) this.selectedExperienceIds.set([...initial.experienceIds]);
+      if (initial.boostNewExperience) this.boostNewExperience.set(true);
     }
 
     if (this.type === 'GAIN_DOMAIN_CARD') {
@@ -84,7 +90,7 @@ export class AdvancementConfig implements OnInit {
       const updated = [...current, traitEnum];
       this.selectedTraits.set(updated);
       if (updated.length === 2) {
-        this.emitChoice({ type: 'BOOST_TRAITS', boostTraits: updated });
+        this.emitChoice({ type: 'BOOST_TRAITS', traits: updated });
       }
     }
   }
@@ -93,23 +99,45 @@ export class AdvancementConfig implements OnInit {
     return this.selectedTraits().includes(traitName.toUpperCase() as TraitEnum);
   }
 
+  private get totalExperienceSelections(): number {
+    return this.selectedExperienceIds().length + (this.boostNewExperience() ? 1 : 0);
+  }
+
   toggleExperience(id: number): void {
     const current = this.selectedExperienceIds();
     const idx = current.indexOf(id);
 
     if (idx >= 0) {
       this.selectedExperienceIds.set(current.filter(e => e !== id));
-    } else if (current.length < 2) {
+    } else if (this.totalExperienceSelections < 2) {
       const updated = [...current, id];
       this.selectedExperienceIds.set(updated);
-      if (updated.length === 2) {
-        this.emitChoice({ type: 'BOOST_EXPERIENCES', boostExperienceIds: updated });
+      if (updated.length + (this.boostNewExperience() ? 1 : 0) === 2) {
+        this.emitChoice({ type: 'BOOST_EXPERIENCES', experienceIds: updated, boostNewExperience: this.boostNewExperience() || undefined });
       }
+    }
+  }
+
+  toggleNewExperience(): void {
+    const wasSelected = this.boostNewExperience();
+    this.boostNewExperience.set(!wasSelected);
+
+    if (wasSelected) {
+      return;
+    }
+
+    const ids = this.selectedExperienceIds();
+    if (ids.length + 1 === 2) {
+      this.emitChoice({ type: 'BOOST_EXPERIENCES', experienceIds: ids, boostNewExperience: true });
     }
   }
 
   isExperienceSelected(id: number): boolean {
     return this.selectedExperienceIds().includes(id);
+  }
+
+  isExperienceAtMax(): boolean {
+    return this.totalExperienceSelections >= 2;
   }
 
   onDomainCardSelected(card: CardData): void {
@@ -141,7 +169,7 @@ export class AdvancementConfig implements OnInit {
     this.selectedFoundationCard.set(card);
     const path = this.selectedPath();
     if (path) {
-      this.emitChoice({ type: 'MULTICLASS', multiclassSubclassPathId: path.id, multiclassFoundationCardId: card.id });
+      this.emitChoice({ type: 'MULTICLASS', subclassCardId: card.id });
     }
   }
 

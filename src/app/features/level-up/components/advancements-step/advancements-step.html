@@ -17,8 +17,13 @@
           <span class="advancement-tile__label">{{ formatTypeLabel(adv.type) }}</span>
           <span class="advancement-tile__count">{{ adv.remaining }}/{{ adv.limitPerTier }}</span>
         </div>
-        <p class="advancement-tile__description">{{ adv.description }}</p>
-        @if (adv.mutuallyExclusiveWith) {
+        <p class="advancement-tile__description">
+          {{ adv.description }}
+          @if (getStatArrow(adv.type); as arrow) {
+            <span class="stat-boost-arrow">({{ arrow }})</span>
+          }
+        </p>
+        @if (adv.mutuallyExclusiveWith && isExclusiveVisible(adv.mutuallyExclusiveWith)) {
           <span class="advancement-tile__exclusive">Exclusive with {{ formatTypeLabel(adv.mutuallyExclusiveWith) }}</span>
         }
       </div>
@@ -30,6 +35,7 @@
             [characterSheet]="characterSheet()"
             [levelUpOptions]="levelUpOptions()"
             [initialChoice]="getChoice(adv.type)"
+            [newExperienceDescription]="newExperienceDescription()"
             (configChanged)="onConfigChanged(adv.type, $event)"
           />
         </div>

@@ -27,7 +27,7 @@
         @for (exp of experiences; track exp.id) {
           <label class="experience-checkbox" [class.selected]="isExperienceSelected(exp.id)">
             <input type="checkbox" [checked]="isExperienceSelected(exp.id)"
-              [disabled]="!isExperienceSelected(exp.id) && selectedExperienceIds().length >= 2"
+              [disabled]="!isExperienceSelected(exp.id) && isExperienceAtMax()"
               (change)="toggleExperience(exp.id)" />
             <span class="experience-checkbox__desc">{{ exp.description }}</span>
             <span class="experience-checkbox__mod">
@@ -36,6 +36,21 @@
                 <span class="experience-boost-arrow"> → +{{ exp.modifier + 1 }}</span>
               }
             </span>
+          </label>
+        }
+        @if (newExperienceDescription()) {
+          <label class="experience-checkbox experience-checkbox--new" [class.selected]="boostNewExperience()">
+            <input type="checkbox" [checked]="boostNewExperience()"
+              [disabled]="!boostNewExperience() && isExperienceAtMax()"
+              (change)="toggleNewExperience()" />
+            <span class="experience-checkbox__desc">{{ newExperienceDescription() }}</span>
+            <span class="experience-checkbox__mod">
+              +{{ newExperienceBaseModifier }}
+              @if (boostNewExperience()) {
+                <span class="experience-boost-arrow"> → +{{ newExperienceBaseModifier + 1 }}</span>
+              }
+            </span>
+            <span class="experience-checkbox__tag">New</span>
           </label>
         }
       </div>

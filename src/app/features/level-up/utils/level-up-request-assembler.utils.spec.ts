@@ -45,7 +45,7 @@ describe('assembleLevelUpRequest', () => {
   });
 
   it('includes trades when non-empty', () => {
-    const trades = [{ tradedOutDomainCardIds: [3], tradedInDomainCardIds: [12], equipTradedInCardIds: [] }];
+    const trades = [{ tradeOutCardIds: [3], tradeInCardIds: [12], equipTradedInCardIds: [] }];
     const result = assembleLevelUpRequest(makeState({ trades }));
     expect(result.trades).toEqual(trades);
   });
@@ -58,33 +58,33 @@ describe('assembleLevelUpRequest', () => {
   it('includes BOOST_TRAITS advancement with trait selections', () => {
     const result = assembleLevelUpRequest(makeState({
       advancements: [
-        { type: 'BOOST_TRAITS', boostTraits: ['AGILITY', 'STRENGTH'] },
+        { type: 'BOOST_TRAITS', traits: ['AGILITY', 'STRENGTH'] },
         { type: 'GAIN_HP' },
       ],
     }));
-    expect(result.advancements[0].boostTraits).toEqual(['AGILITY', 'STRENGTH']);
+    expect(result.advancements[0].traits).toEqual(['AGILITY', 'STRENGTH']);
   });
 
   it('includes BOOST_EXPERIENCES advancement with experience IDs', () => {
     const result = assembleLevelUpRequest(makeState({
       advancements: [
-        { type: 'BOOST_EXPERIENCES', boostExperienceIds: [1, 2] },
+        { type: 'BOOST_EXPERIENCES', experienceIds: [1, 2] },
         { type: 'GAIN_HP' },
       ],
     }));
-    expect(result.advancements[0].boostExperienceIds).toEqual([1, 2]);
+    expect(result.advancements[0].experienceIds).toEqual([1, 2]);
   });
 
   it('assembles a full tier-transition request', () => {
     const result = assembleLevelUpRequest(makeState({
       newExperienceDescription: 'Survived the Wastes',
       advancements: [
-        { type: 'BOOST_TRAITS', boostTraits: ['AGILITY', 'STRENGTH'] },
+        { type: 'BOOST_TRAITS', traits: ['AGILITY', 'STRENGTH'] },
         { type: 'GAIN_DOMAIN_CARD', domainCardId: 20, equipDomainCard: true },
       ],
       equipNewDomainCard: true,
       unequipDomainCardId: 5,
-      trades: [{ tradedOutDomainCardIds: [3], tradedInDomainCardIds: [12], equipTradedInCardIds: [12] }],
+      trades: [{ tradeOutCardIds: [3], tradeInCardIds: [12], equipTradedInCardIds: [12] }],
     }));
 
     expect(result.newExperienceDescription).toBe('Survived the Wastes');

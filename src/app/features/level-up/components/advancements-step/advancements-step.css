@@ -16,3 +16,5 @@
 .advancement-tile__exclusive { font-family: 'Lora', serif; font-size: .75rem; color: #b33; font-style: italic; display: block; margin-top: .35rem; }
 
 .advancement-config-wrapper { padding: .75rem 1rem; margin-top: -.25rem; background: rgba(212, 160, 86, .04); border: 1px solid rgba(212, 160, 86, .2); border-top: none; border-radius: 0 0 6px 6px; }
+
+.stat-boost-arrow { color: #2e7d32; font-weight: 600; }

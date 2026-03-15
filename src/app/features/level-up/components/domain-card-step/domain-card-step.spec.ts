@@ -38,10 +38,12 @@ const mockDomainService = {
       [maxEquippedDomainCards]="maxEquippedDomainCards()"
       [ownedDomainCardIds]="ownedDomainCardIds()"
       [equippedDomainCards]="equippedDomainCards()"
-      [initialCard]="initialCard()"
+      [maxSelections]="maxSelections()"
+      [initialCards]="initialCards()"
       [initialEquip]="initialEquip()"
       [initialUnequipId]="initialUnequipId()"
-      (domainCardSelected)="onCardSelected($event)"
+      [targetLevel]="targetLevel()"
+      (domainCardsSelected)="onCardsSelected($event)"
       (equipChanged)="onEquipChanged($event)"
       (unequipCardIdChanged)="onUnequipChanged($event)"
     />
@@ -55,15 +57,17 @@ class TestHost {
   maxEquippedDomainCards = signal(3);
   ownedDomainCardIds = signal<number[]>([10]);
   equippedDomainCards = signal<DomainCardSummary[]>(MOCK_EQUIPPED);
-  initialCard = signal<CardData | undefined>(undefined);
+  maxSelections = signal(1);
+  initialCards = signal<CardData[]>([]);
   initialEquip = signal(false);
   initialUnequipId = signal<number | undefined>(undefined);
+  targetLevel = signal<number | null>(null);
 
-  lastSelectedCard: CardData | undefined;
+  lastSelectedCards: CardData[] = [];
   lastEquipValue: boolean | undefined;
   lastUnequipId: number | undefined | null = null;
 
-  onCardSelected(card: CardData): void { this.lastSelectedCard = card; }
+  onCardsSelected(cards: CardData[]): void { this.lastSelectedCards = cards; }
   onEquipChanged(value: boolean): void { this.lastEquipValue = value; }
   onUnequipChanged(id: number | undefined): void { this.lastUnequipId = id; }
 }
@@ -116,12 +120,12 @@ describe('DomainCardStep', () => {
     expect(mockDomainService.getDomainCards).not.toHaveBeenCalled();
   });
 
-  it('should emit domainCardSelected when a card is clicked', () => {
+  it('should emit domainCardsSelected when a card is clicked', () => {
     const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
     cardButton.click();
     fixture.detectChanges();
 
-    expect(host.lastSelectedCard).toBeTruthy();
+    expect(host.lastSelectedCards.length).toBe(1);
   });
 
   it('should show equip section after card is selected', () => {
@@ -215,9 +219,60 @@ describe('DomainCardStep', () => {
     expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, undefined);
   });
 
+  it('should use targetLevel as effective cap when lower than domainCardLevelCap', () => {
+    mockDomainService.getDomainCards.mockClear();
+    mockDomainService.getDomainCards.mockReturnValue(of(MOCK_DOMAIN_CARDS));
+
+    const freshFixture = TestBed.createComponent(TestHost);
+    freshFixture.componentInstance.domainCardLevelCap.set(5);
+    freshFixture.componentInstance.targetLevel.set(2);
+    freshFixture.detectChanges();
+
+    expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, [1, 2]);
+  });
+
+  it('should use domainCardLevelCap when lower than targetLevel', () => {
+    mockDomainService.getDomainCards.mockClear();
+    mockDomainService.getDomainCards.mockReturnValue(of(MOCK_DOMAIN_CARDS));
+
+    const freshFixture = TestBed.createComponent(TestHost);
+    freshFixture.componentInstance.domainCardLevelCap.set(2);
+    freshFixture.componentInstance.targetLevel.set(5);
+    freshFixture.detectChanges();
+
+    expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, [1, 2]);
+  });
+
+  it('should use targetLevel when domainCardLevelCap is null', () => {
+    mockDomainService.getDomainCards.mockClear();
+    mockDomainService.getDomainCards.mockReturnValue(of(MOCK_DOMAIN_CARDS));
+
+    const freshFixture = TestBed.createComponent(TestHost);
+    freshFixture.componentInstance.domainCardLevelCap.set(null);
+    freshFixture.componentInstance.targetLevel.set(3);
+    freshFixture.detectChanges();
+
+    expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, [1, 2, 3]);
+  });
+
   it('should render step instruction text', () => {
     const instruction = el.querySelector('.step-instruction');
     expect(instruction?.textContent).toContain('Choose a new domain card');
+  });
+
+  it('should show selected tiles when a card is selected', () => {
+    const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+    cardButton.click();
+    fixture.detectChanges();
+
+    const tiles = el.querySelectorAll('.selected-tile');
+    expect(tiles.length).toBe(1);
+    expect(tiles[0].querySelector('.selected-tile__name')?.textContent?.trim()).toBeTruthy();
+  });
+
+  it('should not show selected tiles when no cards are selected', () => {
+    const tiles = el.querySelectorAll('.selected-tile');
+    expect(tiles.length).toBe(0);
   });
 
   describe('level filter', () => {

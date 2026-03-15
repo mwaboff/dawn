@@ -377,6 +377,38 @@ describe('mapToCharacterSheetView', () => {
       expect(result.domainCards[0].type).toBe('Ability');
     });
 
+    it('splits domain cards into equipped and vault based on IDs', () => {
+      const sheet = makeSheet({
+        equippedDomainCardIds: [10, 11],
+        vaultDomainCardIds: [12],
+        domainCards: [
+          { id: 10, name: 'Fireball', features: [] },
+          { id: 11, name: 'Ice Shield', features: [] },
+          { id: 12, name: 'Wind Rush', features: [] },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.equippedDomainCards).toHaveLength(2);
+      expect(result.equippedDomainCards.map(c => c.id)).toEqual([10, 11]);
+      expect(result.vaultDomainCards).toHaveLength(1);
+      expect(result.vaultDomainCards[0].id).toBe(12);
+    });
+
+    it('returns empty equipped and vault when no domain cards', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.equippedDomainCards).toEqual([]);
+      expect(result.vaultDomainCards).toEqual([]);
+    });
+
+    it('sets maxEquippedDomainCards to 5', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.maxEquippedDomainCards).toBe(5);
+    });
+
     it('returns empty arrays for cards when fields are undefined', () => {
       const result = mapToCharacterSheetView(makeSheet());
 

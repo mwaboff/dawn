@@ -28,7 +28,9 @@
               }
             </p>
           </div>
-          <button type="button" class="level-down-btn" (click)="onLevelDownClick()">Level Down</button>
+          @if (!isMinLevel()) {
+            <button type="button" class="level-down-btn" (click)="onLevelDownClick()">Level Down</button>
+          }
         </header>
 
         <app-level-up-tab-nav
@@ -51,10 +53,11 @@
             }
             @case ('advancements') {
               <app-advancements-step
-                [availableAdvancements]="levelUpOptions()!.availableAdvancements"
+                [availableAdvancements]="filteredAdvancements()"
                 [characterSheet]="sheet"
                 [levelUpOptions]="levelUpOptions()!"
                 [initialAdvancements]="selectedAdvancements()"
+                [newExperienceDescription]="newExperienceDescription()"
                 (advancementsChanged)="onAdvancementsChanged($event)"
               />
             }
@@ -66,10 +69,12 @@
                 [maxEquippedDomainCards]="levelUpOptions()!.maxEquippedDomainCards"
                 [ownedDomainCardIds]="ownedDomainCardIds()"
                 [equippedDomainCards]="equippedDomainCards()"
-                [initialCard]="selectedDomainCard() ?? undefined"
+                [targetLevel]="levelUpOptions()!.nextLevel"
+                [maxSelections]="domainCardMaxSelections()"
+                [initialCards]="selectedDomainCards()"
                 [initialEquip]="equipNewDomainCard()"
                 [initialUnequipId]="unequipDomainCardId()"
-                (domainCardSelected)="onDomainCardSelected($event)"
+                (domainCardsSelected)="onDomainCardsSelected($event)"
                 (equipChanged)="onEquipChanged($event)"
                 (unequipCardIdChanged)="onUnequipCardIdChanged($event)"
               />
@@ -79,7 +84,7 @@
                 [characterDomainCards]="equippedDomainCards()"
                 [accessibleDomainIds]="levelUpOptions()!.accessibleDomainIds"
                 [domainCardLevelCap]="levelUpOptions()!.domainCardLevelCap"
-                [newDomainCard]="selectedDomainCard() ?? undefined"
+                [newDomainCard]="selectedDomainCards()[0]"
                 (tradesChanged)="onTradesChanged($event)"
               />
             }
@@ -88,7 +93,7 @@
                 [levelUpOptions]="levelUpOptions()!"
                 [advancements]="selectedAdvancements()"
                 [newExperienceDescription]="newExperienceDescription()"
-                [selectedDomainCard]="selectedDomainCard()"
+                [selectedDomainCards]="selectedDomainCards()"
                 [equipNewDomainCard]="equipNewDomainCard()"
                 [trades]="trades()"
                 [submitting]="submitting()"

@@ -125,8 +125,8 @@ export class DomainTradeStep implements OnInit {
     const requests: DomainCardTradeRequest[] = this.trades()
       .filter(t => this.isTradeValid(t))
       .map(t => ({
-        tradedOutDomainCardIds: t.tradedOut.map(c => c.id),
-        tradedInDomainCardIds: t.tradedIn.map(c => c.id),
+        tradeOutCardIds: t.tradedOut.map(c => c.id),
+        tradeInCardIds: t.tradedIn.map(c => c.id),
         equipTradedInCardIds: t.equipTradedIn,
       }));
     this.tradesChanged.emit(requests);

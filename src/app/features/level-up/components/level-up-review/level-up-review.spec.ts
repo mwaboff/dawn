@@ -37,7 +37,7 @@ function buildCardData(overrides: Partial<CardData> = {}): CardData {
       [levelUpOptions]="levelUpOptions()"
       [advancements]="advancements()"
       [newExperienceDescription]="newExperienceDescription()"
-      [selectedDomainCard]="selectedDomainCard()"
+      [selectedDomainCards]="selectedDomainCards()"
       [equipNewDomainCard]="equipNewDomainCard()"
       [trades]="trades()"
       [submitting]="submitting()"
@@ -51,7 +51,7 @@ class TestHost {
   levelUpOptions = signal<LevelUpOptionsResponse>(buildLevelUpOptions());
   advancements = signal<AdvancementChoice[]>([]);
   newExperienceDescription = signal('');
-  selectedDomainCard = signal<CardData | null>(null);
+  selectedDomainCards = signal<CardData[]>([]);
   equipNewDomainCard = signal(false);
   trades = signal<DomainCardTradeRequest[]>([]);
   submitting = signal(false);
@@ -151,7 +151,7 @@ describe('LevelUpReview', () => {
   it('should render advancement summaries', () => {
     host.advancements.set([
       { type: 'GAIN_HP' },
-      { type: 'BOOST_TRAITS', boostTraits: ['AGILITY', 'STRENGTH'] },
+      { type: 'BOOST_TRAITS', traits: ['AGILITY', 'STRENGTH'] },
     ]);
     hostFixture.detectChanges();
 
@@ -165,7 +165,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should render domain card name', () => {
-    host.selectedDomainCard.set(buildCardData({ name: 'Fireball' }));
+    host.selectedDomainCards.set([buildCardData({ name: 'Fireball' })]);
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
@@ -176,7 +176,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should show (none selected) when no domain card is selected', () => {
-    host.selectedDomainCard.set(null);
+    host.selectedDomainCards.set([]);
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
@@ -187,7 +187,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should show Equipped badge when equipNewDomainCard is true', () => {
-    host.selectedDomainCard.set(buildCardData());
+    host.selectedDomainCards.set([buildCardData()]);
     host.equipNewDomainCard.set(true);
     hostFixture.detectChanges();
 
@@ -199,7 +199,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should not show Equipped badge when equipNewDomainCard is false', () => {
-    host.selectedDomainCard.set(buildCardData());
+    host.selectedDomainCards.set([buildCardData()]);
     host.equipNewDomainCard.set(false);
     hostFixture.detectChanges();
 
@@ -210,7 +210,7 @@ describe('LevelUpReview', () => {
 
   it('should render trades section when trades are provided', () => {
     host.trades.set([
-      { tradedOutDomainCardIds: [1, 2], tradedInDomainCardIds: [3], equipTradedInCardIds: [] },
+      { tradeOutCardIds: [1, 2], tradeInCardIds: [3], equipTradedInCardIds: [] },
     ]);
     hostFixture.detectChanges();
 

@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { mapToCharacterSheetView } from '../character-sheet/utils/character-sheet-view.mapper';
 import { CharacterSheetView } from '../character-sheet/models/character-sheet-view.model';
-import { LevelUpOptionsResponse, AdvancementChoice, DomainCardTradeRequest } from './models/level-up-api.model';
+import { LevelUpOptionsResponse, AdvancementChoice, AvailableAdvancement, DomainCardTradeRequest } from './models/level-up-api.model';
 import { LevelUpTab, LevelUpTabId } from './models/level-up.model';
 import { computeVisibleTabs } from './utils/level-up-steps.utils';
 import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils';
@@ -47,7 +47,7 @@ export class LevelUp implements OnInit {
 
   readonly newExperienceDescription = signal('');
   readonly selectedAdvancements = signal<AdvancementChoice[]>([]);
-  readonly selectedDomainCard = signal<CardData | null>(null);
+  readonly selectedDomainCards = signal<CardData[]>([]);
   readonly equipNewDomainCard = signal(false);
   readonly unequipDomainCardId = signal<number | undefined>(undefined);
   readonly trades = signal<DomainCardTradeRequest[]>([]);
@@ -64,6 +64,11 @@ export class LevelUp implements OnInit {
     return sheet !== null && sheet.level >= 10;
   });
 
+  readonly isMinLevel = computed(() => {
+    const options = this.levelUpOptions();
+    return options !== null && options.currentLevel <= 1;
+  });
+
   readonly ownedDomainCardIds = computed(() => {
     const raw = this.rawSheet();
     return raw ? raw.domainCardIds : [];
@@ -72,6 +77,20 @@ export class LevelUp implements OnInit {
   readonly equippedDomainCards = computed(() => {
     const sheet = this.characterSheet();
     return sheet?.domainCards ?? [];
+  });
+
+  private static readonly TIER_3_ONLY_TYPES = new Set<string>(['UPGRADE_SUBCLASS', 'MULTICLASS']);
+
+  readonly filteredAdvancements = computed<AvailableAdvancement[]>(() => {
+    const options = this.levelUpOptions();
+    if (!options) return [];
+    if (options.nextLevel >= 5) return options.availableAdvancements;
+    return options.availableAdvancements.filter(a => !LevelUp.TIER_3_ONLY_TYPES.has(a.type));
+  });
+
+  readonly domainCardMaxSelections = computed(() => {
+    const hasGainDomainCard = this.selectedAdvancements().some(a => a.type === 'GAIN_DOMAIN_CARD');
+    return hasGainDomainCard ? 2 : 1;
   });
 
   ngOnInit(): void {
@@ -110,9 +129,14 @@ export class LevelUp implements OnInit {
     }
   }
 
-  onDomainCardSelected(card: CardData): void {
-    this.selectedDomainCard.set(card);
-    this.markStepComplete('domain-card');
+  onDomainCardsSelected(cards: CardData[]): void {
+    this.selectedDomainCards.set(cards);
+    const required = this.domainCardMaxSelections();
+    if (cards.length >= required) {
+      this.markStepComplete('domain-card');
+    } else {
+      this.removeStepComplete('domain-card');
+    }
   }
 
   onEquipChanged(equip: boolean): void {
@@ -130,13 +154,20 @@ export class LevelUp implements OnInit {
 
   onSubmit(): void {
     const options = this.levelUpOptions();
-    const domainCard = this.selectedDomainCard();
-    if (!options || !domainCard) return;
+    const domainCards = this.selectedDomainCards();
+    if (!options || domainCards.length === 0) return;
+
+    const advancements = this.selectedAdvancements().map(a => {
+      if (a.type === 'GAIN_DOMAIN_CARD' && domainCards.length > 1) {
+        return { ...a, domainCardId: domainCards[1].id, equipDomainCard: this.equipNewDomainCard() };
+      }
+      return a;
+    });
 
     const request = assembleLevelUpRequest({
-      advancements: this.selectedAdvancements(),
-      newExperienceDescription: options.isTierTransition ? this.newExperienceDescription() : undefined,
-      newDomainCardId: domainCard.id,
+      advancements,
+      newExperienceDescription: (options.isTierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
+      newDomainCardId: domainCards[0].id,
       equipNewDomainCard: this.equipNewDomainCard(),
       unequipDomainCardId: this.unequipDomainCardId(),
       trades: this.trades(),

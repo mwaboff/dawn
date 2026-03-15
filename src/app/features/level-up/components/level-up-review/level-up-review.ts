@@ -12,7 +12,7 @@ export class LevelUpReview {
   readonly levelUpOptions = input.required<LevelUpOptionsResponse>();
   readonly advancements = input.required<AdvancementChoice[]>();
   readonly newExperienceDescription = input<string>('');
-  readonly selectedDomainCard = input.required<CardData | null>();
+  readonly selectedDomainCards = input.required<CardData[]>();
   readonly equipNewDomainCard = input<boolean>(false);
   readonly trades = input<DomainCardTradeRequest[]>([]);
   readonly submitting = input(false);
@@ -26,7 +26,7 @@ export class LevelUpReview {
       GAIN_HP: '+1 Hit Points',
       GAIN_STRESS: '+1 Stress',
       BOOST_EXPERIENCES: 'Boost Experiences',
-      GAIN_DOMAIN_CARD: 'Gain Domain Card',
+      GAIN_DOMAIN_CARD: 'Gain Extra Domain Card',
       BOOST_EVASION: '+1 Evasion',
       UPGRADE_SUBCLASS: 'Upgrade Subclass',
       BOOST_PROFICIENCY: '+1 Proficiency',
@@ -38,15 +38,17 @@ export class LevelUpReview {
   formatAdvancementDetail(choice: AdvancementChoice): string {
     switch (choice.type) {
       case 'BOOST_TRAITS':
-        return choice.boostTraits?.join(', ') ?? '';
-      case 'BOOST_EXPERIENCES':
-        return `${choice.boostExperienceIds?.length ?? 0} experiences boosted`;
+        return choice.traits?.join(', ') ?? '';
+      case 'BOOST_EXPERIENCES': {
+        const count = (choice.experienceIds?.length ?? 0) + (choice.boostNewExperience ? 1 : 0);
+        return `${count} experience${count !== 1 ? 's' : ''} boosted`;
+      }
       case 'GAIN_DOMAIN_CARD':
-        return `Card #${choice.domainCardId}${choice.equipDomainCard ? ' (equipped)' : ''}`;
+        return '';
       case 'UPGRADE_SUBCLASS':
         return `Card #${choice.subclassCardId}`;
       case 'MULTICLASS':
-        return `Path #${choice.multiclassSubclassPathId}, Foundation #${choice.multiclassFoundationCardId}`;
+        return `Card #${choice.subclassCardId}`;
       default:
         return 'Automatic';
     }

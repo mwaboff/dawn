@@ -30,6 +30,9 @@ export interface CharacterSheetView {
   ancestryCards: CardSummary[];
   communityCards: CardSummary[];
   domainCards: DomainCardSummary[];
+  equippedDomainCards: DomainCardSummary[];
+  vaultDomainCards: DomainCardSummary[];
+  maxEquippedDomainCards: number;
   inventoryWeapons: WeaponDisplay[];
   inventoryArmors: ArmorDisplay[];
   inventoryItems: LootDisplay[];

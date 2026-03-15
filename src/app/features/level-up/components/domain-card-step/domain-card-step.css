@@ -1,5 +1,21 @@
 .domain-card-step { display: flex; flex-direction: column; gap: 1rem; }
+:host ::ng-deep .selection-counter { display: none; }
+
+.step-header { display: flex; align-items: center; justify-content: space-between; }
 .step-instruction { font-family: 'Lora', serif; font-size: .95rem; color: #5a4230; margin: 0; }
+
+.selection-badge {
+  display: inline-flex; align-items: center; gap: .15rem;
+  font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 700;
+  padding: .25rem .625rem; border-radius: 999px;
+  background: #3e2723; color: #d8c8a8;
+  border: 1.5px solid #5a4230;
+  letter-spacing: .03em; line-height: 1;
+  transition: all .25s ease;
+}
+.selection-badge.complete { background: #2e7d32; border-color: #388e3c; color: #e8f5e9; }
+.selection-badge__count { min-width: .6em; text-align: center; }
+.selection-badge__sep { opacity: .5; }
 
 .equip-section { display: flex; flex-direction: column; gap: .75rem; padding-top: .5rem; }
 .equip-toggle { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: .9rem; color: #5a4230; cursor: pointer; }
@@ -19,7 +35,7 @@
 .unequip-card__name { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 600; color: #3e2723; flex: 1; }
 .unequip-card__domain, .unequip-card__level { font-size: .8rem; color: #7a5c46; }
 
-.level-filter { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.level-filter { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
 .level-filter__label { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
 .level-filter__pills { display: flex; gap: .375rem; flex-wrap: wrap; }
 .level-pill {
@@ -29,3 +45,41 @@
 }
 .level-pill:hover { border-color: #d4a056; }
 .level-pill.active { background: #d4a056; color: #fff; border-color: #d4a056; }
+
+.selected-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.selected-tile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(212, 160, 86, 0.08);
+  border-left: 2px solid #d4a056;
+  border-radius: 0 3px 3px 0;
+  animation: tileReveal 0.3s ease-out;
+}
+
+.selected-tile__label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b5e34;
+}
+
+.selected-tile__name {
+  font-family: 'Lora', serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2d241f;
+}
+
+@keyframes tileReveal {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}

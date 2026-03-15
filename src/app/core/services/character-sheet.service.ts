@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import {
   CharacterSheetResponse,
   CreateCharacterSheetRequest,
+  UpdateCharacterSheetRequest,
   CreateExperienceRequest,
   ExperienceResponse,
 } from '../../features/create-character/models/character-sheet-api.model';
@@ -49,6 +50,12 @@ export class CharacterSheetService {
 
   levelUp(id: number, request: LevelUpRequest): Observable<LevelUpResponse> {
     return this.http.post<LevelUpResponse>(`${this.baseUrl}/${id}/level-up`, request, {
+      withCredentials: true,
+    });
+  }
+
+  updateCharacterSheet(id: number, request: UpdateCharacterSheetRequest): Observable<CharacterSheetResponse> {
+    return this.http.put<CharacterSheetResponse>(`${this.baseUrl}/${id}`, request, {
       withCredentials: true,
     });
   }

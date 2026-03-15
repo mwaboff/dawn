@@ -42,6 +42,9 @@ const mockCharacterSheet: CharacterSheetView = {
   ancestryCards: [],
   communityCards: [],
   domainCards: [],
+  equippedDomainCards: [],
+  vaultDomainCards: [],
+  maxEquippedDomainCards: 5,
   inventoryWeapons: [],
   inventoryArmors: [],
   inventoryItems: [],
@@ -137,7 +140,7 @@ describe('AdvancementsStep', () => {
     const labels = compiled.querySelectorAll('.advancement-tile__label');
     const descriptions = compiled.querySelectorAll('.advancement-tile__description');
 
-    expect(labels[0].textContent?.trim()).toBe('Gain HP');
+    expect(labels[0].textContent?.trim()).toBe('Boost HP Max');
     expect(descriptions[0].textContent?.trim()).toBe('Increase HP by 1');
   });
 
@@ -290,5 +293,48 @@ describe('AdvancementsStep', () => {
 
     // BOOST_EVASION (index 3) has remaining=0
     expect(tiles[3].getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should show stat arrow for GAIN_HP when selected', () => {
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const tiles = compiled.querySelectorAll('.advancement-tile');
+
+    (tiles[0] as HTMLElement).click();
+    hostFixture.detectChanges();
+
+    const arrow = tiles[0].querySelector('.stat-boost-arrow');
+    expect(arrow).toBeTruthy();
+    expect(arrow?.textContent).toContain('6 → 7');
+  });
+
+  it('should show stat arrow for GAIN_STRESS when selected', () => {
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const tiles = compiled.querySelectorAll('.advancement-tile');
+
+    (tiles[1] as HTMLElement).click();
+    hostFixture.detectChanges();
+
+    const arrow = tiles[1].querySelector('.stat-boost-arrow');
+    expect(arrow).toBeTruthy();
+    expect(arrow?.textContent).toContain('5 → 6');
+  });
+
+  it('should not show stat arrow when tile is not selected', () => {
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const tiles = compiled.querySelectorAll('.advancement-tile');
+
+    const arrow = tiles[0].querySelector('.stat-boost-arrow');
+    expect(arrow).toBeNull();
+  });
+
+  it('should hide exclusive note when exclusive type is not in available advancements', () => {
+    host.advancements.set([
+      { type: 'BOOST_PROFICIENCY', description: 'Increase Proficiency', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+    ]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const exclusives = compiled.querySelectorAll('.advancement-tile__exclusive');
+    expect(exclusives.length).toBe(0);
   });
 });

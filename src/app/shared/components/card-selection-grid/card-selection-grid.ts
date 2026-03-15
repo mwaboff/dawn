@@ -27,7 +27,7 @@ export class CardSelectionGrid {
 
   isCardSelected(card: CardData): boolean {
     if (this.maxSelections() === 1) {
-      return this.selectedCard()?.id === card.id;
+      return this.selectedCard()?.id === card.id || this.selectedCards().some(c => c.id === card.id);
     }
     return this.selectedCards().some(c => c.id === card.id);
   }

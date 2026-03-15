@@ -31,18 +31,17 @@ export interface LevelUpOptionsResponse {
 
 export interface AdvancementChoice {
   type: AdvancementType;
-  boostTraits?: TraitEnum[];
-  boostExperienceIds?: number[];
+  traits?: TraitEnum[];
+  experienceIds?: number[];
+  boostNewExperience?: boolean;
   domainCardId?: number;
   equipDomainCard?: boolean;
   subclassCardId?: number;
-  multiclassSubclassPathId?: number;
-  multiclassFoundationCardId?: number;
 }
 
 export interface DomainCardTradeRequest {
-  tradedOutDomainCardIds: number[];
-  tradedInDomainCardIds: number[];
+  tradeOutCardIds: number[];
+  tradeInCardIds: number[];
   equipTradedInCardIds: number[];
 }
 

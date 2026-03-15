@@ -26,13 +26,13 @@ describe('computeVisibleTabs', () => {
   });
 
   it('excludes tier-achievements tab for non-tier transitions', () => {
-    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false }));
+    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false, currentTier: 2, nextTier: 2 }));
     expect(tabs.map(t => t.id)).not.toContain('tier-achievements');
     expect(tabs).toHaveLength(4);
   });
 
   it('always includes advancements, domain-card, domain-trades, review', () => {
-    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false }));
+    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false, currentTier: 2, nextTier: 2 }));
     const ids = tabs.map(t => t.id);
     expect(ids).toContain('advancements');
     expect(ids).toContain('domain-card');
@@ -47,8 +47,14 @@ describe('computeVisibleTabs', () => {
   });
 
   it('returns tabs in correct order for non-tier transition', () => {
-    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false }));
+    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false, currentTier: 2, nextTier: 2 }));
     const ids = tabs.map(t => t.id);
     expect(ids).toEqual(['advancements', 'domain-card', 'domain-trades', 'review']);
+  });
+
+  it('includes tier-achievements tab when currentTier differs from nextTier even if isTierTransition is false', () => {
+    const tabs = computeVisibleTabs(makeOptions({ isTierTransition: false, currentTier: 1, nextTier: 2 }));
+    expect(tabs.map(t => t.id)).toContain('tier-achievements');
+    expect(tabs).toHaveLength(5);
   });
 });

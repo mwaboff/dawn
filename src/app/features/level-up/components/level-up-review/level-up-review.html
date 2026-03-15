@@ -3,14 +3,14 @@
     <h3 class="review-banner__title">Level Up Summary</h3>
     <p class="review-banner__subtitle">
       Level {{ levelUpOptions().currentLevel }} → Level {{ levelUpOptions().nextLevel }}
-      @if (levelUpOptions().isTierTransition) {
+      @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
         <span class="review-banner__tier">(Tier {{ levelUpOptions().currentTier }} → Tier {{ levelUpOptions().nextTier }})</span>
       }
     </p>
   </div>
 
   <div class="review-sections">
-    @if (levelUpOptions().isTierTransition) {
+    @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
       <div class="review-section">
         <h4 class="review-section__title">Tier Achievements</h4>
         <div class="review-section__content">
@@ -54,17 +54,23 @@
     </div>
 
     <div class="review-section">
-      <h4 class="review-section__title">New Domain Card</h4>
+      <h4 class="review-section__title">New Domain Cards</h4>
       <div class="review-section__content">
-        <div class="review-item">
-          <span class="review-item__label">Card</span>
-          <span class="review-item__value">
-            {{ selectedDomainCard()?.name ?? '(none selected)' }}
-            @if (equipNewDomainCard()) {
-              <span class="review-item__badge">Equipped</span>
-            }
-          </span>
-        </div>
+        @for (card of selectedDomainCards(); track card.id) {
+          <div class="review-item">
+            <span class="review-item__label">Card</span>
+            <span class="review-item__value">
+              {{ card.name }}
+              @if (equipNewDomainCard()) {
+                <span class="review-item__badge">Equipped</span>
+              }
+            </span>
+          </div>
+        } @empty {
+          <div class="review-item">
+            <span class="review-item__value">(none selected)</span>
+          </div>
+        }
       </div>
     </div>
 
@@ -76,7 +82,7 @@
             <div class="review-item">
               <span class="review-item__label">Trade {{ i + 1 }}</span>
               <span class="review-item__value">
-                {{ trade.tradedOutDomainCardIds.length }} out / {{ trade.tradedInDomainCardIds.length }} in
+                {{ trade.tradeOutCardIds.length }} out / {{ trade.tradeInCardIds.length }} in
               </span>
             </div>
           }

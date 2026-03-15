@@ -199,7 +199,7 @@ describe('LevelUp', () => {
   });
 
   it('computes visible tabs for non-tier transition', () => {
-    createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({ isTierTransition: false })));
+    createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({ isTierTransition: false, currentTier: 2, nextTier: 2 })));
     fixture.detectChanges();
 
     const tabIds = component.visibleTabs().map(t => t.id);
@@ -274,9 +274,61 @@ describe('LevelUp', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.onDomainCardSelected({ id: 50, name: 'Test', description: '', cardType: 'domain' });
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
 
       expect(component.completedSteps().has('domain-card')).toBe(true);
+    });
+  });
+
+  describe('filteredAdvancements', () => {
+    it('includes UPGRADE_SUBCLASS when nextLevel is 5 or above', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        nextLevel: 5,
+        availableAdvancements: [
+          { type: 'BOOST_TRAITS', description: '+1 to two traits', limitPerTier: 3, usedInTier: 0, remaining: 3, mutuallyExclusiveWith: null },
+          { type: 'UPGRADE_SUBCLASS', description: 'Upgrade subclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+        ],
+      })));
+      fixture.detectChanges();
+
+      const types = component.filteredAdvancements().map(a => a.type);
+      expect(types).toContain('UPGRADE_SUBCLASS');
+    });
+
+    it('excludes UPGRADE_SUBCLASS when nextLevel is below 5', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        nextLevel: 3,
+        currentTier: 1,
+        nextTier: 2,
+        isTierTransition: true,
+        availableAdvancements: [
+          { type: 'BOOST_TRAITS', description: '+1 to two traits', limitPerTier: 3, usedInTier: 0, remaining: 3, mutuallyExclusiveWith: null },
+          { type: 'UPGRADE_SUBCLASS', description: 'Upgrade subclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+        ],
+      })));
+      fixture.detectChanges();
+
+      const types = component.filteredAdvancements().map(a => a.type);
+      expect(types).not.toContain('UPGRADE_SUBCLASS');
+      expect(types).toContain('BOOST_TRAITS');
+    });
+
+    it('excludes MULTICLASS when nextLevel is below 5', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        nextLevel: 4,
+        currentTier: 2,
+        nextTier: 2,
+        isTierTransition: false,
+        availableAdvancements: [
+          { type: 'GAIN_HP', description: '+1 HP', limitPerTier: 2, usedInTier: 0, remaining: 2, mutuallyExclusiveWith: null },
+          { type: 'MULTICLASS', description: 'Multiclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'UPGRADE_SUBCLASS' },
+        ],
+      })));
+      fixture.detectChanges();
+
+      const types = component.filteredAdvancements().map(a => a.type);
+      expect(types).not.toContain('MULTICLASS');
+      expect(types).toContain('GAIN_HP');
     });
   });
 
@@ -286,7 +338,7 @@ describe('LevelUp', () => {
       fixture.detectChanges();
 
       component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
-      component.onDomainCardSelected({ id: 50, name: 'Test', description: '', cardType: 'domain' });
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
       component.onSubmit();
 
       expect(mockCharacterSheetService.levelUp).toHaveBeenCalledWith(1, expect.objectContaining({
@@ -299,7 +351,7 @@ describe('LevelUp', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.onDomainCardSelected({ id: 50, name: 'Test', description: '', cardType: 'domain' });
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
       component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
       component.onSubmit();
 

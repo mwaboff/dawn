@@ -15,6 +15,7 @@ export class AdvancementsStep implements OnInit {
   readonly characterSheet = input.required<CharacterSheetView>();
   readonly levelUpOptions = input.required<LevelUpOptionsResponse>();
   readonly initialAdvancements = input<AdvancementChoice[]>([]);
+  readonly newExperienceDescription = input<string>('');
 
   readonly advancementsChanged = output<AdvancementChoice[]>();
 
@@ -46,7 +47,7 @@ export class AdvancementsStep implements OnInit {
   }
 
   needsConfig(type: AdvancementType): boolean {
-    return ['BOOST_TRAITS', 'BOOST_EXPERIENCES', 'GAIN_DOMAIN_CARD', 'UPGRADE_SUBCLASS', 'MULTICLASS'].includes(type);
+    return ['BOOST_TRAITS', 'BOOST_EXPERIENCES', 'UPGRADE_SUBCLASS', 'MULTICLASS'].includes(type);
   }
 
   toggleAdvancement(adv: AvailableAdvancement): void {
@@ -75,13 +76,39 @@ export class AdvancementsStep implements OnInit {
     this.advancementsChanged.emit(updated);
   }
 
+  isExclusiveVisible(exclusiveType: AdvancementType): boolean {
+    return this.availableAdvancements().some(a => a.type === exclusiveType);
+  }
+
+  getStatArrow(type: AdvancementType): string | null {
+    if (!this.isSelected(type)) return null;
+    const sheet = this.characterSheet();
+    if (type === 'GAIN_HP') {
+      const cur = sheet.hitPointMax.modified;
+      return `${cur} → ${cur + 1}`;
+    }
+    if (type === 'GAIN_STRESS') {
+      const cur = sheet.stressMax.modified;
+      return `${cur} → ${cur + 1}`;
+    }
+    if (type === 'BOOST_EVASION') {
+      const base = sheet.evasion.base;
+      const modified = sheet.evasion.modified;
+      if (sheet.evasion.hasModifier) {
+        return `Base ${base} → ${base + 1}, Total ${modified} → ${modified + 1}`;
+      }
+      return `${base} → ${base + 1}`;
+    }
+    return null;
+  }
+
   formatTypeLabel(type: AdvancementType): string {
     const labels: Record<AdvancementType, string> = {
       BOOST_TRAITS: 'Boost Traits',
-      GAIN_HP: 'Gain HP',
-      GAIN_STRESS: 'Gain Stress',
+      GAIN_HP: 'Boost HP Max',
+      GAIN_STRESS: 'Boost Stress Max',
       BOOST_EXPERIENCES: 'Boost Experiences',
-      GAIN_DOMAIN_CARD: 'Gain Domain Card',
+      GAIN_DOMAIN_CARD: 'Gain Extra Domain Card',
       BOOST_EVASION: 'Boost Evasion',
       UPGRADE_SUBCLASS: 'Upgrade Subclass',
       BOOST_PROFICIENCY: 'Boost Proficiency',

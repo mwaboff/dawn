@@ -20,17 +20,19 @@ export class DomainCardStep implements OnInit {
   readonly maxEquippedDomainCards = input.required<number>();
   readonly ownedDomainCardIds = input.required<number[]>();
   readonly equippedDomainCards = input<DomainCardSummary[]>([]);
-  readonly initialCard = input<CardData | undefined>(undefined);
+  readonly targetLevel = input<number | null>(null);
+  readonly maxSelections = input<number>(1);
+  readonly initialCards = input<CardData[]>([]);
   readonly initialEquip = input<boolean>(false);
   readonly initialUnequipId = input<number | undefined>(undefined);
 
-  readonly domainCardSelected = output<CardData>();
+  readonly domainCardsSelected = output<CardData[]>();
   readonly equipChanged = output<boolean>();
   readonly unequipCardIdChanged = output<number | undefined>();
 
   readonly availableCards = signal<CardData[]>([]);
   readonly loading = signal(false);
-  readonly selectedCard = signal<CardData | undefined>(undefined);
+  readonly selectedCards = signal<CardData[]>([]);
   readonly equipNewCard = signal(false);
   readonly unequipCardId = signal<number | undefined>(undefined);
   readonly selectedLevels = signal<Set<number>>(new Set());
@@ -49,15 +51,24 @@ export class DomainCardStep implements OnInit {
     });
   });
 
+  readonly selectionCount = computed(() => this.selectedCards().length);
+
+  readonly isSelectionComplete = computed(() => this.selectionCount() >= this.maxSelections());
+
   ngOnInit(): void {
-    if (this.initialCard()) {
-      this.selectedCard.set(this.initialCard());
+    const initial = this.initialCards();
+    if (initial.length > 0) {
+      this.selectedCards.set([...initial]);
     }
     if (this.initialEquip()) {
       this.equipNewCard.set(true);
     }
     if (this.initialUnequipId()) {
       this.unequipCardId.set(this.initialUnequipId());
+    }
+    const target = this.targetLevel();
+    if (target != null) {
+      this.selectedLevels.set(new Set([target]));
     }
     this.loadCards();
   }
@@ -93,9 +104,14 @@ export class DomainCardStep implements OnInit {
     return this.selectedLevels().size === 0;
   }
 
-  onCardSelected(card: CardData): void {
-    this.selectedCard.set(card);
-    this.domainCardSelected.emit(card);
+  onSingleCardSelected(card: CardData): void {
+    this.selectedCards.set([card]);
+    this.domainCardsSelected.emit([card]);
+  }
+
+  onMultiCardsSelected(cards: CardData[]): void {
+    this.selectedCards.set(cards);
+    this.domainCardsSelected.emit(cards);
   }
 
   onEquipToggle(): void {
@@ -118,7 +134,9 @@ export class DomainCardStep implements OnInit {
     if (domainIds.length === 0) return;
 
     const cap = this.domainCardLevelCap();
-    const levels = cap ? Array.from({ length: cap }, (_, i) => i + 1) : undefined;
+    const target = this.targetLevel();
+    const effectiveCap = cap != null && target != null ? Math.min(cap, target) : (cap ?? target);
+    const levels = effectiveCap ? Array.from({ length: effectiveCap }, (_, i) => i + 1) : undefined;
     const owned = new Set(this.ownedDomainCardIds());
 
     this.loading.set(true);

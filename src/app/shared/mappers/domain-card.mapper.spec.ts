@@ -130,11 +130,11 @@ describe('mapDomainCardResponseToCardData', () => {
     expect(result.features).toBeUndefined();
   });
 
-  it('should generate fallback description when description is empty', () => {
+  it('should return empty description when no explicit description exists', () => {
     const response = buildDomainCardResponse({ description: '', type: 'ABILITY' });
     const result = mapDomainCardResponseToCardData(response);
 
-    expect(result.description).toBe('Ability from the Codex domain.');
+    expect(result.description).toBe('');
   });
 
   it('should use provided description when available', () => {
