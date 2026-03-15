@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.level-up-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background:
+    linear-gradient(to bottom, rgba(26, 20, 18, 0.1) 0%, transparent 240px),
+    radial-gradient(ellipse at 30% 0%, rgba(180, 120, 50, 0.06) 0%, transparent 50%),
+    #ebe0d0;
+}
+
+.page-grain { opacity: 0.12; mix-blend-mode: multiply; }
+
+.content-area { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+
+.parchment-container {
+  position: relative;
+  background: linear-gradient(170deg, #faf7f2 0%, #f5ede0 100%);
+  border: 1px solid #c9a87c;
+  border-top: 2px solid var(--color-accent, #d4a056);
+  border-radius: 4px;
+  padding: 2.5rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 8px 24px rgba(0,0,0,.1), 0 2px 6px rgba(0,0,0,.06);
+}
+
+.level-up-loading, .level-up-error {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 60vh; text-align: center;
+}
+.loading-text { color: #d4a056; font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: .1em; }
+.error-title { color: #d4a056; font-family: 'Cinzel', serif; font-size: 1.75rem; margin-bottom: .5rem; }
+.error-message { font-family: 'Lora', serif; color: #5a4230; }
+
+.level-up-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 1rem; margin-bottom: .5rem;
+  border-bottom: 1px solid rgba(212,160,86,.3);
+}
+.level-up-header__info { display: flex; flex-direction: column; gap: .15rem; }
+.level-up-header__name {
+  font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: #3e2723; margin: 0;
+}
+.level-up-header__transition {
+  font-family: 'Lora', serif; font-size: .9rem; color: #7a5c46; margin: 0;
+}
+.tier-badge {
+  display: inline-block; padding: .1rem .5rem; background: rgba(212,160,86,.15);
+  border-radius: 3px; font-size: .8rem; font-weight: 600; color: #8b5e34; margin-left: .375rem;
+}
+
+.level-down-btn {
+  padding: .4rem .875rem; background: transparent; border: 1px solid #c9a87c; border-radius: 4px;
+  font-family: 'Cinzel', serif; font-size: .75rem; font-weight: 600; color: #7a5c46;
+  cursor: pointer; transition: all .2s ease; white-space: nowrap;
+}
+.level-down-btn:hover { border-color: #b33; color: #b33; background: rgba(180,50,50,.04); }
+.level-down-btn:focus-visible { outline: 2px solid #b33; outline-offset: 2px; }
+
+.tab-content { min-height: 400px; }
+
+@media (max-width: 640px) {
+  .parchment-container { padding: 1.5rem; }
+  .level-up-page { padding: .75rem; }
+}
+
+@media (min-width: 768px) {
+  .level-up-page { padding: 2rem; }
+}

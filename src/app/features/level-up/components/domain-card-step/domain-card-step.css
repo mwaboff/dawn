@@ -1,0 +1,31 @@
+.domain-card-step { display: flex; flex-direction: column; gap: 1rem; }
+.step-instruction { font-family: 'Lora', serif; font-size: .95rem; color: #5a4230; margin: 0; }
+
+.equip-section { display: flex; flex-direction: column; gap: .75rem; padding-top: .5rem; }
+.equip-toggle { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: .9rem; color: #5a4230; cursor: pointer; }
+.equip-toggle input { accent-color: #d4a056; }
+
+.unequip-section { display: flex; flex-direction: column; gap: .5rem; }
+.unequip-hint { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; font-style: italic; margin: 0; }
+.unequip-list { display: flex; flex-direction: column; gap: .375rem; }
+
+.unequip-card {
+  display: flex; align-items: center; gap: .75rem; padding: .5rem .875rem;
+  background: #faf7f2; border: 1px solid #d8c8a8; border-radius: 4px;
+  cursor: pointer; font-family: 'Lora', serif; transition: all .15s ease; text-align: left;
+}
+.unequip-card:hover { border-color: #d4a056; }
+.unequip-card.selected { border-color: #d4a056; background: rgba(212,160,86,.1); }
+.unequip-card__name { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 600; color: #3e2723; flex: 1; }
+.unequip-card__domain, .unequip-card__level { font-size: .8rem; color: #7a5c46; }
+
+.level-filter { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.level-filter__label { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+.level-filter__pills { display: flex; gap: .375rem; flex-wrap: wrap; }
+.level-pill {
+  font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600;
+  padding: .25rem .75rem; border-radius: 999px; border: 1px solid #d8c8a8;
+  background: #faf7f2; color: #5a4230; cursor: pointer; transition: all .15s ease;
+}
+.level-pill:hover { border-color: #d4a056; }
+.level-pill.active { background: #d4a056; color: #fff; border-color: #d4a056; }

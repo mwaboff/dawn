@@ -1,0 +1,31 @@
+.review-step { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.review-banner { text-align: center; padding: 1.25rem; background: rgba(212,160,86,.08); border: 1px solid rgba(212,160,86,.3); border-radius: 6px; }
+.review-banner__title { font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; color: #3e2723; margin: 0 0 .25rem; }
+.review-banner__subtitle { font-family: 'Lora', serif; font-size: .95rem; color: #5a4230; margin: 0; }
+.review-banner__tier { color: #d4a056; font-weight: 600; }
+
+.review-sections { display: flex; flex-direction: column; gap: .75rem; }
+
+.review-section { background: #faf7f2; border: 1px solid #d8c8a8; border-radius: 6px; overflow: hidden; }
+.review-section__title { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 700; color: #3e2723; margin: 0; padding: .625rem 1rem; background: rgba(212,160,86,.06); border-bottom: 1px solid #d8c8a8; text-transform: uppercase; letter-spacing: .05em; }
+.review-section__content { padding: .5rem 1rem; }
+
+.review-item { display: flex; justify-content: space-between; align-items: baseline; padding: .375rem 0; gap: 1rem; }
+.review-item + .review-item { border-top: 1px solid rgba(212,160,86,.1); }
+.review-item__label { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600; color: #7a5c46; flex-shrink: 0; }
+.review-item__value { font-family: 'Lora', serif; font-size: .85rem; color: #3e2723; text-align: right; }
+.review-item__detail { color: #7a5c46; font-size: .8rem; }
+.review-item__badge { display: inline-block; padding: .1rem .4rem; background: rgba(212,160,86,.15); border-radius: 3px; font-size: .75rem; color: #8b5e34; margin-left: .375rem; }
+
+.review-error { padding: .75rem 1rem; background: rgba(180,50,50,.08); border: 1px solid rgba(180,50,50,.3); border-radius: 4px; font-family: 'Lora', serif; font-size: .9rem; color: #b33; }
+
+.submit-btn {
+  align-self: center; padding: .75rem 2.5rem; background: linear-gradient(to bottom, #d4a056, #c8923e);
+  border: 1.5px solid #b8842f; border-radius: 6px; font-family: 'Cinzel', serif; font-size: 1rem;
+  font-weight: 700; color: #3e2723; cursor: pointer; letter-spacing: .05em;
+  transition: all .2s ease; box-shadow: 0 2px 8px rgba(212,160,86,.3);
+}
+.submit-btn:hover:not(:disabled) { background: linear-gradient(to bottom, #e0ad62, #d4a056); box-shadow: 0 4px 12px rgba(212,160,86,.4); }
+.submit-btn:focus-visible { outline: 2px solid #d4a056; outline-offset: 3px; }
+.submit-btn:disabled { opacity: .6; cursor: not-allowed; }

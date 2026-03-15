@@ -30,6 +30,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
 
   return {
     id: sheet.id,
+    ownerId: sheet.ownerId,
     name: sheet.name,
     pronouns: sheet.pronouns,
     level: sheet.level,
@@ -124,6 +125,7 @@ function mapSubclassCardSummary(card: SubclassCardResponse): SubclassCardSummary
     name: card.name,
     description: card.description,
     features: (card.features ?? []).map(mapFeature),
+    associatedClassId: card.associatedClassId,
     associatedClassName: card.associatedClassName,
     subclassPathName: card.subclassPathName,
     domainNames: card.domainNames,

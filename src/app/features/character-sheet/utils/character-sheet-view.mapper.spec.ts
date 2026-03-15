@@ -33,6 +33,9 @@ function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSh
     hopeMarked: 1,
     gold: 10,
     ownerId: 99,
+    proficiency: 1,
+    equippedDomainCardIds: [],
+    vaultDomainCardIds: [],
     communityCardIds: [],
     ancestryCardIds: [],
     subclassCardIds: [],
@@ -284,6 +287,7 @@ describe('mapToCharacterSheetView', () => {
             id: 1,
             name: 'Guardian Path',
             features: [],
+            associatedClassId: 5,
             associatedClassName: 'Warrior',
             subclassPathName: 'Iron Wall',
             domainNames: ['Blade', 'Bone'],
@@ -295,6 +299,7 @@ describe('mapToCharacterSheetView', () => {
 
       const result = mapToCharacterSheetView(sheet);
 
+      expect(result.subclassCards[0].associatedClassId).toBe(5);
       expect(result.subclassCards[0].associatedClassName).toBe('Warrior');
       expect(result.subclassCards[0].subclassPathName).toBe('Iron Wall');
       expect(result.subclassCards[0].domainNames).toEqual(['Blade', 'Bone']);

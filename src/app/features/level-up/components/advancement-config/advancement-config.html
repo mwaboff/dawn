@@ -1,0 +1,100 @@
+@switch (type) {
+  @case ('BOOST_TRAITS') {
+    <div class="config-section">
+      <p class="config-hint">Select 2 unmarked traits to boost (+1 each, both become marked)</p>
+      <div class="trait-checkboxes">
+        @for (trait of unmarkedTraits; track trait.name) {
+          <label class="trait-checkbox" [class.selected]="isTraitSelected(trait.name)">
+            <input type="checkbox" [checked]="isTraitSelected(trait.name)"
+              [disabled]="!isTraitSelected(trait.name) && selectedTraits().length >= 2"
+              (change)="toggleTrait(trait.name)" />
+            <span class="trait-checkbox__name">{{ trait.name }}</span>
+            <span class="trait-checkbox__modifier">
+              {{ trait.modifier >= 0 ? '+' : '' }}{{ trait.modifier }}
+              @if (isTraitSelected(trait.name)) {
+                <span class="trait-boost-arrow"> → {{ trait.modifier + 1 >= 0 ? '+' : '' }}{{ trait.modifier + 1 }}</span>
+              }
+            </span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+  @case ('BOOST_EXPERIENCES') {
+    <div class="config-section">
+      <p class="config-hint">Select 2 experiences to boost (+1 modifier each)</p>
+      <div class="experience-checkboxes">
+        @for (exp of experiences; track exp.id) {
+          <label class="experience-checkbox" [class.selected]="isExperienceSelected(exp.id)">
+            <input type="checkbox" [checked]="isExperienceSelected(exp.id)"
+              [disabled]="!isExperienceSelected(exp.id) && selectedExperienceIds().length >= 2"
+              (change)="toggleExperience(exp.id)" />
+            <span class="experience-checkbox__desc">{{ exp.description }}</span>
+            <span class="experience-checkbox__mod">
+              +{{ exp.modifier }}
+              @if (isExperienceSelected(exp.id)) {
+                <span class="experience-boost-arrow"> → +{{ exp.modifier + 1 }}</span>
+              }
+            </span>
+          </label>
+        }
+      </div>
+    </div>
+  }
+  @case ('GAIN_DOMAIN_CARD') {
+    <div class="config-section">
+      <p class="config-hint">Select a domain card to gain</p>
+      <app-card-selection-grid
+        [cards]="domainCards()"
+        [loading]="domainCardsLoading()"
+        [selectedCard]="selectedDomainCard()"
+        [collapsibleFeatures]="true"
+        layout="wide"
+        (cardSelected)="onDomainCardSelected($event)"
+      />
+      @if (selectedDomainCard()) {
+        <label class="equip-toggle">
+          <input type="checkbox" [checked]="equipDomainCard()" (change)="onEquipDomainCardToggle()" />
+          Equip this card
+        </label>
+      }
+    </div>
+  }
+  @case ('UPGRADE_SUBCLASS') {
+    <div class="config-section">
+      <p class="config-hint">Select an upgraded subclass card from your path</p>
+      @if (subclassCardsLoading()) {
+        <app-card-selection-grid [cards]="[]" [loading]="true" [skeletonCount]="3" />
+      } @else {
+        <app-subclass-path-selector
+          [cards]="subclassCards()"
+          [selectedCard]="selectedSubclassCard()"
+          [collapsibleFeatures]="true"
+          (cardSelected)="onSubclassCardSelected($event)"
+        />
+      }
+    </div>
+  }
+  @case ('MULTICLASS') {
+    <div class="config-section">
+      <p class="config-hint">Choose a new class path</p>
+      <app-card-selection-grid
+        [cards]="subclassPaths()"
+        [loading]="subclassPathsLoading()"
+        [selectedCard]="selectedPath()"
+        [collapsibleFeatures]="true"
+        (cardSelected)="onPathSelected($event)"
+      />
+      @if (selectedPath()) {
+        <p class="config-hint">Select the Foundation card</p>
+        <app-card-selection-grid
+          [cards]="foundationCards()"
+          [loading]="foundationCardsLoading()"
+          [selectedCard]="selectedFoundationCard()"
+          [collapsibleFeatures]="true"
+          (cardSelected)="onFoundationCardSelected($event)"
+        />
+      }
+    </div>
+  }
+}

@@ -1,0 +1,35 @@
+import { AdvancementChoice, DomainCardTradeRequest, LevelUpRequest } from '../models/level-up-api.model';
+
+export interface LevelUpWizardState {
+  advancements: AdvancementChoice[];
+  newExperienceDescription?: string;
+  newDomainCardId: number;
+  equipNewDomainCard: boolean;
+  unequipDomainCardId?: number;
+  trades: DomainCardTradeRequest[];
+}
+
+export function assembleLevelUpRequest(state: LevelUpWizardState): LevelUpRequest {
+  const request: LevelUpRequest = {
+    advancements: state.advancements,
+    newDomainCardId: state.newDomainCardId,
+  };
+
+  if (state.newExperienceDescription) {
+    request.newExperienceDescription = state.newExperienceDescription;
+  }
+
+  if (state.equipNewDomainCard) {
+    request.equipNewDomainCard = true;
+  }
+
+  if (state.unequipDomainCardId != null) {
+    request.unequipDomainCardId = state.unequipDomainCardId;
+  }
+
+  if (state.trades.length > 0) {
+    request.trades = state.trades;
+  }
+
+  return request;
+}

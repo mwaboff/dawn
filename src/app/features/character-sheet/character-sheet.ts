@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { AuthService } from '../../core/services/auth.service';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-view.model';
 
@@ -12,7 +13,9 @@ import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-vi
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly authService = inject(AuthService);
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -31,6 +34,17 @@ export class CharacterSheet implements OnInit {
   readonly markedHope = computed(() => this.localHopeMarked() ?? (this.characterSheet()?.hopeMarked ?? 0));
   readonly markedArmor = computed(() => this.localArmorMarked() ?? (this.characterSheet()?.armorMarked ?? 0));
   readonly currentGold = computed(() => (this.characterSheet()?.gold ?? 0) + this.localGoldAdjustment());
+
+  readonly isOwner = computed(() => {
+    const sheet = this.characterSheet();
+    const user = this.authService.user();
+    return sheet !== null && user !== null && sheet.ownerId === user.id;
+  });
+
+  readonly canLevelUp = computed(() => {
+    const sheet = this.characterSheet();
+    return this.isOwner() && sheet !== null && sheet.level < 10;
+  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -119,5 +133,12 @@ export class CharacterSheet implements OnInit {
 
   selectInventoryTab(tab: 'weapons' | 'armor' | 'loot'): void {
     this.activeInventoryTab.set(tab);
+  }
+
+  onLevelUp(): void {
+    const sheet = this.characterSheet();
+    if (sheet) {
+      this.router.navigate(['/character', sheet.id, 'level-up']);
+    }
   }
 }

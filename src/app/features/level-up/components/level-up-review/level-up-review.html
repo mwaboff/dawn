@@ -1,0 +1,99 @@
+<div class="review-step">
+  <div class="review-banner">
+    <h3 class="review-banner__title">Level Up Summary</h3>
+    <p class="review-banner__subtitle">
+      Level {{ levelUpOptions().currentLevel }} → Level {{ levelUpOptions().nextLevel }}
+      @if (levelUpOptions().isTierTransition) {
+        <span class="review-banner__tier">(Tier {{ levelUpOptions().currentTier }} → Tier {{ levelUpOptions().nextTier }})</span>
+      }
+    </p>
+  </div>
+
+  <div class="review-sections">
+    @if (levelUpOptions().isTierTransition) {
+      <div class="review-section">
+        <h4 class="review-section__title">Tier Achievements</h4>
+        <div class="review-section__content">
+          <div class="review-item">
+            <span class="review-item__label">New Experience</span>
+            <span class="review-item__value">{{ newExperienceDescription() || '(none)' }} (+2)</span>
+          </div>
+          <div class="review-item">
+            <span class="review-item__label">Proficiency</span>
+            <span class="review-item__value">+1</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="review-section">
+      <h4 class="review-section__title">Advancements</h4>
+      <div class="review-section__content">
+        @for (adv of advancements(); track adv.type; let i = $index) {
+          <div class="review-item">
+            <span class="review-item__label">Advancement {{ i + 1 }}</span>
+            <span class="review-item__value">
+              {{ formatAdvancementType(adv.type) }}
+              @if (formatAdvancementDetail(adv)) {
+                <span class="review-item__detail"> — {{ formatAdvancementDetail(adv) }}</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="review-section">
+      <h4 class="review-section__title">Damage Thresholds</h4>
+      <div class="review-section__content">
+        <div class="review-item">
+          <span class="review-item__label">Major & Severe</span>
+          <span class="review-item__value">+1 each (automatic)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-section">
+      <h4 class="review-section__title">New Domain Card</h4>
+      <div class="review-section__content">
+        <div class="review-item">
+          <span class="review-item__label">Card</span>
+          <span class="review-item__value">
+            {{ selectedDomainCard()?.name ?? '(none selected)' }}
+            @if (equipNewDomainCard()) {
+              <span class="review-item__badge">Equipped</span>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+
+    @if (trades().length > 0) {
+      <div class="review-section">
+        <h4 class="review-section__title">Domain Card Trades</h4>
+        <div class="review-section__content">
+          @for (trade of trades(); track $index; let i = $index) {
+            <div class="review-item">
+              <span class="review-item__label">Trade {{ i + 1 }}</span>
+              <span class="review-item__value">
+                {{ trade.tradedOutDomainCardIds.length }} out / {{ trade.tradedInDomainCardIds.length }} in
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (submitError()) {
+    <div class="review-error" role="alert">{{ submitError() }}</div>
+  }
+
+  <button type="button" class="submit-btn" [disabled]="submitting()" (click)="onSubmit()">
+    @if (submitting()) {
+      Leveling Up...
+    } @else {
+      Level Up!
+    }
+  </button>
+</div>

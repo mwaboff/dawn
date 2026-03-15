@@ -138,6 +138,27 @@ describe('mapSubclassResponseToCardData', () => {
     expect(result.metadata!['domainNames']).toEqual([]);
   });
 
+  it('should store subclassPathName in metadata', () => {
+    const response = buildSubclassCardResponse({ subclassPathName: 'Way of Shadow' });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['subclassPathName']).toBe('Way of Shadow');
+  });
+
+  it('should store associatedClassId in metadata', () => {
+    const response = buildSubclassCardResponse({ associatedClassId: 7 });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['associatedClassId']).toBe(7);
+  });
+
+  it('should store associatedClassName in metadata', () => {
+    const response = buildSubclassCardResponse({ associatedClassName: 'Warrior' });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.metadata!['associatedClassName']).toBe('Warrior');
+  });
+
   it('should handle card with no features', () => {
     const response = buildSubclassCardResponse({ features: [] });
     const result = mapSubclassResponseToCardData(response);

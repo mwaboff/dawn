@@ -1,0 +1,21 @@
+.config-section { display: flex; flex-direction: column; gap: .75rem; }
+.config-hint { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; font-style: italic; margin: 0; }
+
+.trait-checkboxes, .experience-checkboxes { display: flex; flex-direction: column; gap: .375rem; }
+
+.trait-checkbox, .experience-checkbox {
+  display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; background: #faf7f2;
+  border: 1px solid #d8c8a8; border-radius: 4px; cursor: pointer; transition: all .15s ease;
+}
+.trait-checkbox:hover, .experience-checkbox:hover { border-color: #d4a056; }
+.trait-checkbox.selected, .experience-checkbox.selected { border-color: #d4a056; background: rgba(212, 160, 86, .1); }
+.trait-checkbox input, .experience-checkbox input { accent-color: #d4a056; }
+.trait-checkbox__name { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 600; color: #3e2723; flex: 1; }
+.trait-checkbox__modifier { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+.experience-checkbox__desc { font-family: 'Lora', serif; font-size: .85rem; color: #3e2723; flex: 1; }
+.experience-checkbox__mod { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+
+.equip-toggle { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: .85rem; color: #5a4230; cursor: pointer; margin-top: .5rem; }
+.equip-toggle input { accent-color: #d4a056; }
+
+.trait-boost-arrow, .experience-boost-arrow { color: #d4a056; font-weight: 600; }

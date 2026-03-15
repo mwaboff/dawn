@@ -1,0 +1,45 @@
+.domain-trade-step { display: flex; flex-direction: column; gap: 1rem; }
+.step-instruction { font-family: 'Lora', serif; font-size: .95rem; color: #5a4230; margin: 0; }
+
+.trade-header { display: flex; flex-direction: column; gap: .75rem; }
+.trade-actions { display: flex; gap: .5rem; }
+
+.trade-btn {
+  padding: .5rem 1rem; border-radius: 4px; font-family: 'Cinzel', serif; font-size: .8rem;
+  font-weight: 600; cursor: pointer; transition: all .2s ease;
+}
+.trade-btn--skip { background: transparent; border: 1px solid #c9a87c; color: #5a4230; }
+.trade-btn--skip:hover { background: rgba(139,94,52,.08); }
+.trade-btn--skip.active { background: rgba(212,160,86,.12); border-color: #d4a056; }
+.trade-btn--add { background: rgba(212,160,86,.1); border: 1px solid #d4a056; color: #3e2723; }
+.trade-btn--add:hover { background: rgba(212,160,86,.2); }
+
+.skip-message { font-family: 'Lora', serif; font-size: .9rem; color: #7a5c46; font-style: italic; margin: 0; }
+
+.trade-row { padding: 1rem; background: rgba(212,160,86,.04); border: 1px solid rgba(212,160,86,.2); border-radius: 6px; }
+.trade-row__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+.trade-row__title { font-family: 'Cinzel', serif; font-size: .95rem; font-weight: 700; color: #3e2723; margin: 0; }
+.trade-row__remove { background: none; border: none; font-size: 1rem; color: #b33; cursor: pointer; padding: .25rem; }
+.trade-row__remove:hover { color: #922; }
+
+.trade-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .trade-columns { grid-template-columns: 1fr; } }
+
+.trade-column__label { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600; color: #5a4230; margin: 0 0 .5rem; text-transform: uppercase; letter-spacing: .05em; }
+
+.trade-card-list { display: flex; flex-direction: column; gap: .25rem; }
+.trade-card-btn {
+  display: flex; align-items: center; gap: .5rem; padding: .4rem .625rem; background: #faf7f2;
+  border: 1px solid #d8c8a8; border-radius: 4px; cursor: pointer; text-align: left; transition: all .15s ease;
+  font-family: 'Lora', serif; font-size: .85rem;
+}
+.trade-card-btn:hover:not(:disabled) { border-color: #d4a056; }
+.trade-card-btn.selected { border-color: #d4a056; background: rgba(212,160,86,.1); }
+.trade-card-btn:disabled { opacity: .4; cursor: not-allowed; }
+.trade-card-btn__name { color: #3e2723; font-weight: 600; flex: 1; }
+.trade-card-btn__meta { color: #7a5c46; font-size: .8rem; }
+
+.equip-section { margin-top: .75rem; display: flex; flex-direction: column; gap: .375rem; }
+.equip-label { font-family: 'Lora', serif; font-size: .85rem; color: #5a4230; margin: 0; }
+.equip-checkbox { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: .85rem; color: #3e2723; cursor: pointer; }
+.equip-checkbox input { accent-color: #d4a056; }

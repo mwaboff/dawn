@@ -1,0 +1,56 @@
+<div class="domain-card-step">
+  <p class="step-instruction">Choose a new domain card to add to your collection</p>
+
+  @if (availableLevels().length > 1) {
+    <div class="level-filter">
+      <span class="level-filter__label">Filter by level:</span>
+      <div class="level-filter__pills">
+        <button type="button" class="level-pill" [class.active]="isAllSelected"
+          (click)="selectAllLevels()">All</button>
+        @for (level of availableLevels(); track level) {
+          <button type="button" class="level-pill" [class.active]="isLevelSelected(level) && !isAllSelected"
+            (click)="toggleLevel(level)">{{ level }}</button>
+        }
+      </div>
+    </div>
+  }
+
+  <app-card-selection-grid
+    [cards]="filteredCards()"
+    [loading]="loading()"
+    [selectedCard]="selectedCard()"
+    [collapsibleFeatures]="true"
+    layout="wide"
+    [skeletonCount]="6"
+    (cardSelected)="onCardSelected($event)"
+  />
+
+  @if (selectedCard()) {
+    <div class="equip-section">
+      <label class="equip-toggle">
+        <input type="checkbox" [checked]="equipNewCard()" (change)="onEquipToggle()" />
+        Equip this card
+      </label>
+
+      @if (needsUnequip) {
+        <div class="unequip-section">
+          <p class="unequip-hint">You have {{ maxEquippedDomainCards() }} cards equipped. Choose one to unequip:</p>
+          <div class="unequip-list">
+            @for (card of equippedDomainCards(); track card.id) {
+              <button class="unequip-card" [class.selected]="unequipCardId() === card.id"
+                (click)="onUnequipCard(card.id)">
+                <span class="unequip-card__name">{{ card.name }}</span>
+                @if (card.domainName) {
+                  <span class="unequip-card__domain">{{ card.domainName }}</span>
+                }
+                @if (card.level !== undefined) {
+                  <span class="unequip-card__level">Lvl {{ card.level }}</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -20,6 +20,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/create-character/create-character').then(m => m.CreateCharacter)
       },
       {
+        path: 'character/:id/level-up',
+        loadComponent: () => import('./features/level-up/level-up').then(m => m.LevelUp)
+      },
+      {
         path: 'character/:id',
         loadComponent: () => import('./features/character-sheet/character-sheet').then(m => m.CharacterSheet)
       },

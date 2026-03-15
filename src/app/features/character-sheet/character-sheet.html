@@ -39,6 +39,9 @@
           <span class="level-badge__label">Lvl</span>
           <span class="level-badge__value">{{ sheet.level }}</span>
         </div>
+        @if (canLevelUp()) {
+          <button class="level-up-btn" (click)="onLevelUp()">Level Up</button>
+        }
         <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
           <span class="shield__label">Evasion</span>
           <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>

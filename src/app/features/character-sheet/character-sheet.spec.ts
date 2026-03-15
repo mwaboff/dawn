@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 
 const mockResponse: CharacterSheetResponse = {
@@ -35,6 +36,9 @@ const mockResponse: CharacterSheetResponse = {
   hopeMarked: 0,
   gold: 50,
   ownerId: 1,
+  proficiency: 1,
+  equippedDomainCardIds: [],
+  vaultDomainCardIds: [],
   communityCardIds: [],
   ancestryCardIds: [],
   subclassCardIds: [],
@@ -51,13 +55,21 @@ describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
   let component: CharacterSheet;
   let mockService: { getCharacterSheet: ReturnType<typeof vi.fn> };
+  let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
     mockService = { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse) };
+    mockAuthService = {
+      user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
+    };
+    mockRouter = { navigate: vi.fn() };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
       providers: [
         { provide: CharacterSheetService, useValue: mockService },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: Router, useValue: mockRouter },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -393,6 +405,84 @@ describe('CharacterSheet', () => {
       fixture.detectChanges();
 
       expect(component.getSubSkills('Unknown')).toEqual([]);
+    });
+  });
+
+  describe('isOwner', () => {
+    it('returns true when user id matches sheet ownerId', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(true);
+    });
+
+    it('returns false when user id does not match sheet ownerId', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(false);
+    });
+
+    it('returns false when no user is logged in', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue(null);
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(false);
+    });
+  });
+
+  describe('canLevelUp', () => {
+    it('returns true when owner and level < 10', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(true);
+    });
+
+    it('returns false when level is 10', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(false);
+    });
+
+    it('returns false when not owner', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(false);
+    });
+  });
+
+  describe('level up button', () => {
+    it('renders when canLevelUp is true', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-up-btn')).toBeTruthy();
+    });
+
+    it('is hidden when canLevelUp is false', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue(null);
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-up-btn')).toBeNull();
+    });
+
+    it('onLevelUp navigates to /character/:id/level-up', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onLevelUp();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/character', 1, 'level-up']);
     });
   });
 });

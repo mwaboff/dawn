@@ -35,6 +35,9 @@ export interface SubclassCardResponse {
   costTagIds: number[];
   costTags: SubclassCostTag[];
   subclassPathId: number;
+  subclassPathName?: string;
+  associatedClassId?: number;
+  associatedClassName?: string;
   domainNames?: string[];
   level: SubclassLevel;
   spellcastingTrait?: SpellcastingTraitResponse | null;

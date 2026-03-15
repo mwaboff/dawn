@@ -1,0 +1,241 @@
+:host {
+  --trail-brown: #8b5e34;
+  --trail-gold: #d4a056;
+  --trail-gold-bright: #e6b56d;
+  --trail-parchment: #faf6f0;
+  --trail-ink: #3e2723;
+  --trail-muted: #6d4c41;
+  --trail-warm-bg: #f5e6d3;
+
+  display: block;
+}
+
+.chapter-trail {
+  position: relative;
+  margin: 1.5rem -2rem;
+  border-top: 1px solid var(--trail-brown);
+  border-bottom: 1px solid var(--trail-brown);
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(139, 94, 52, 0.06) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(139, 94, 52, 0.06) 100%
+    );
+}
+
+.trail-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  position: relative;
+  padding: 0.75rem 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--trail-gold) transparent;
+}
+
+.trail-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.trail-scroll::-webkit-scrollbar-thumb {
+  background: var(--trail-gold);
+  border-radius: 3px;
+}
+
+.trail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.trail-line {
+  position: absolute;
+  top: calc(0.75rem + 0.5rem + 0.875rem);
+  left: 2rem;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--trail-brown) 0,
+    var(--trail-brown) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.chapter-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.chapter-marker:hover {
+  transform: translateY(-2px);
+}
+
+.chapter-marker:focus-visible {
+  outline: 2px solid var(--trail-ink);
+  outline-offset: 4px;
+  border-radius: 0.25rem;
+}
+
+.marker-pip {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid var(--trail-brown);
+  background-color: var(--trail-warm-bg);
+  color: var(--trail-muted);
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.chapter-marker:hover .marker-pip {
+  border-color: var(--trail-gold);
+  color: var(--trail-ink);
+}
+
+.chapter-marker.active .marker-pip {
+  background-color: var(--trail-gold);
+  border-color: var(--trail-gold-bright);
+  color: var(--trail-ink);
+  box-shadow:
+    0 0 0 3px rgba(212, 160, 86, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.marker-label {
+  font-family: 'Lora', serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--trail-muted);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.chapter-marker:hover .marker-label {
+  color: var(--trail-ink);
+}
+
+.chapter-marker.active .marker-label {
+  color: var(--trail-ink);
+  font-weight: 600;
+}
+
+.chapter-marker.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.chapter-marker.disabled .marker-pip {
+  border-color: var(--trail-muted);
+  background-color: var(--trail-warm-bg);
+  color: var(--trail-muted);
+}
+
+.chapter-marker.disabled .marker-label {
+  color: var(--trail-muted);
+}
+
+.chapter-marker.completed .marker-pip {
+  background-color: var(--trail-gold);
+  border-color: var(--trail-gold-bright);
+  color: var(--trail-ink);
+}
+
+.chapter-marker.completed .marker-label {
+  color: var(--trail-ink);
+}
+
+@media (min-width: 900px) {
+  .trail-scroll {
+    justify-content: space-between;
+    overflow-x: visible;
+  }
+}
+
+.step-arrows {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.arrow-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: none;
+  border: 1.5px solid var(--trail-brown);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: var(--trail-ink);
+  font-family: 'Lora', serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.arrow-button:hover:not(:disabled) {
+  border-color: var(--trail-gold);
+  background-color: rgba(212, 160, 86, 0.1);
+  color: var(--trail-ink);
+}
+
+.arrow-button:focus-visible {
+  outline: 2px solid var(--trail-ink);
+  outline-offset: 2px;
+}
+
+.arrow-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.arrow-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.arrow-text {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .arrow-text {
+    display: inline;
+  }
+}
+
+.step-indicator {
+  font-family: 'Cinzel', serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--trail-ink);
+  text-align: center;
+  white-space: nowrap;
+}

@@ -1,5 +1,6 @@
 export interface CharacterSheetView {
   id: number;
+  ownerId: number;
   name: string;
   pronouns?: string;
   level: number;
@@ -110,6 +111,7 @@ export interface CardSummary {
 }
 
 export interface SubclassCardSummary extends CardSummary {
+  associatedClassId?: number;
   associatedClassName?: string;
   subclassPathName?: string;
   domainNames?: string[];

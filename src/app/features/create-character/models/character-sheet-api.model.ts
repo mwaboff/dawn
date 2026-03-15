@@ -128,6 +128,7 @@ export interface SubclassCardResponse {
   id: number;
   name: string;
   description?: string;
+  associatedClassId?: number;
   associatedClassName?: string;
   subclassPathName?: string;
   domainNames?: string[];
@@ -189,6 +190,9 @@ export interface CharacterSheetResponse {
   inventoryWeaponIds: number[];
   inventoryArmorIds: number[];
   inventoryItemIds: number[];
+  proficiency: number;
+  equippedDomainCardIds: number[];
+  vaultDomainCardIds: number[];
   experienceIds: number[];
   createdAt: string;
   lastModifiedAt: string;
