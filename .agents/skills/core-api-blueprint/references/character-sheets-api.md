@@ -254,7 +254,8 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
     "communityCardIds": [1],
     "ancestryCardIds": [2],
     "subclassCardIds": [3, 4],
-    "domainCardIds": [8, 9],
+    "equippedDomainCardIds": [8],
+    "vaultDomainCardIds": [9],
     "inventoryWeaponIds": [5],
     "inventoryArmorIds": [6],
     "inventoryItemIds": [7]
@@ -303,8 +304,8 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
   "ancestryCardIds": [2],
   "subclassCardIds": [3, 4],
   "domainCardIds": [8, 9],
-  "equippedDomainCardIds": [],
-  "vaultDomainCardIds": [8, 9],
+  "equippedDomainCardIds": [8],
+  "vaultDomainCardIds": [9],
   "inventoryWeaponIds": [5],
   "inventoryArmorIds": [6],
   "inventoryItemIds": [7],
@@ -839,16 +840,21 @@ All fields marked **required** must be present. Equipment and collection IDs are
 | `communityCardIds`       | long[]    | No       | Each must reference existing CommunityCard    |
 | `ancestryCardIds`        | long[]    | No       | Each must reference existing AncestryCard     |
 | `subclassCardIds`        | long[]    | No       | Each must reference existing SubclassCard     |
-| `domainCardIds`          | long[]    | No       | Each must reference existing DomainCard       |
+| `equippedDomainCardIds`  | long[]    | No       | Must be provided with `vaultDomainCardIds`. Each must reference existing DomainCard. No duplicates within or across lists. |
+| `vaultDomainCardIds`     | long[]    | No       | Must be provided with `equippedDomainCardIds`. Each must reference existing DomainCard. No duplicates within or across lists. |
 | `inventoryWeaponIds`     | long[]    | No       | Each must reference existing Weapon           |
 | `inventoryArmorIds`      | long[]    | No       | Each must reference existing Armor            |
 | `inventoryItemIds`       | long[]    | No       | Each must reference existing Loot             |
+
+**Domain cards** use `equippedDomainCardIds` and `vaultDomainCardIds` instead of a single `domainCardIds` field. Both must be provided together. A card ID must not appear in both lists or be duplicated within a list. The equipped list determines which domain cards are actively equipped (max 5), and the vault list holds unequipped domain cards.
 
 ### UpdateCharacterSheetRequest
 
 All fields are optional. Only non-null fields are applied. Same validation rules as create but no required fields.
 
-Collection fields (`communityCardIds`, `ancestryCardIds`, `subclassCardIds`, `domainCardIds`, `inventoryWeaponIds`, `inventoryArmorIds`, `inventoryItemIds`) replace the entire collection when provided. Omit to leave the collection unchanged.
+Collection fields (`communityCardIds`, `ancestryCardIds`, `subclassCardIds`, `inventoryWeaponIds`, `inventoryArmorIds`, `inventoryItemIds`) replace the entire collection when provided. Omit to leave the collection unchanged.
+
+**Domain cards** use `equippedDomainCardIds` and `vaultDomainCardIds` (same rules as create). Both must be provided together to update domain cards.
 
 ### CharacterSheetResponse
 

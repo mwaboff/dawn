@@ -41,6 +41,8 @@ function buildCharacterSheetData(overrides: Partial<CharacterSheetData> = {}): C
     ancestryCardIds: [2],
     subclassCardIds: [3],
     domainCardIds: [4, 7],
+    equippedDomainCardIds: [4, 7],
+    vaultDomainCardIds: [],
     experiences: [{ name: 'Acrobatics', modifier: 2 }],
     ...overrides,
   };
@@ -100,6 +102,8 @@ describe('toCreateCharacterSheetRequest', () => {
     expect(result.ancestryCardIds).toEqual([2]);
     expect(result.subclassCardIds).toEqual([3]);
     expect(result.domainCardIds).toEqual([4, 7]);
+    expect(result.equippedDomainCardIds).toEqual([4, 7]);
+    expect(result.vaultDomainCardIds).toEqual([]);
   });
 
   it('should always set inventoryItemIds to empty array', () => {

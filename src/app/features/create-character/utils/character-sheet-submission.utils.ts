@@ -37,6 +37,8 @@ export function toCreateCharacterSheetRequest(data: CharacterSheetData): CreateC
     ancestryCardIds: data.ancestryCardIds,
     subclassCardIds: data.subclassCardIds,
     domainCardIds: data.domainCardIds,
+    equippedDomainCardIds: data.equippedDomainCardIds,
+    vaultDomainCardIds: data.vaultDomainCardIds,
     inventoryWeaponIds: data.inventoryWeaponIds,
     inventoryArmorIds: data.inventoryArmorIds,
     inventoryItemIds: [],

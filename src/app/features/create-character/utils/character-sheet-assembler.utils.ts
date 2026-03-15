@@ -3,6 +3,12 @@ import { TraitAssignments } from '../models/trait.model';
 import { Experience } from '../models/experience.model';
 import { CharacterSheetData, DEFAULT_MAJOR_THRESHOLD, DEFAULT_SEVERE_THRESHOLD } from '../models/character-sheet.model';
 
+export const MAX_EQUIPPED_DOMAIN_CARDS = 5;
+
+function deduplicateIds(ids: number[]): number[] {
+  return [...new Set(ids)];
+}
+
 export function assembleCharacterSheet(params: {
   name: string;
   pronouns?: string;
@@ -71,7 +77,9 @@ export function assembleCharacterSheet(params: {
     communityCardIds: [params.communityCard.id],
     ancestryCardIds: [params.ancestryCard.id],
     subclassCardIds: [params.subclassCard.id],
-    domainCardIds: params.domainCards.map((c) => c.id),
+    domainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)),
+    equippedDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(0, MAX_EQUIPPED_DOMAIN_CARDS),
+    vaultDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(MAX_EQUIPPED_DOMAIN_CARDS),
     experiences: params.experiences
       .filter((exp) => exp.name.trim() !== '' && exp.modifier !== null)
       .map((exp) => ({ name: exp.name.trim(), modifier: exp.modifier! })),

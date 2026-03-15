@@ -46,6 +46,8 @@ export interface CharacterSheetData {
   ancestryCardIds: number[];
   subclassCardIds: number[];
   domainCardIds: number[];
+  equippedDomainCardIds: number[];
+  vaultDomainCardIds: number[];
 
   experiences: { name: string; modifier: number }[];
 }

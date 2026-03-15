@@ -144,6 +144,28 @@ describe('assembleCharacterSheet', () => {
     expect(result.domainCardIds).toEqual([20, 21]);
   });
 
+  it('should auto-equip all domain cards when 5 or fewer', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(21, 'domain'), makeCard(22, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.equippedDomainCardIds).toEqual([20, 21, 22]);
+    expect(result.vaultDomainCardIds).toEqual([]);
+  });
+
+  it('should auto-equip first 5 and vault the rest when more than 5', () => {
+    const domainCards = Array.from({ length: 7 }, (_, i) => makeCard(30 + i, 'domain'));
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.equippedDomainCardIds).toEqual([30, 31, 32, 33, 34]);
+    expect(result.vaultDomainCardIds).toEqual([35, 36]);
+  });
+
+  it('should deduplicate domain card IDs', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(20, 'domain'), makeCard(21, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.domainCardIds).toEqual([20, 21]);
+    expect(result.equippedDomainCardIds).toEqual([20, 21]);
+    expect(result.vaultDomainCardIds).toEqual([]);
+  });
+
   it('should filter incomplete experiences', () => {
     const experiences = [
       { name: 'Acrobatics', modifier: 2 },

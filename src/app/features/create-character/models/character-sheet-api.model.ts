@@ -35,6 +35,8 @@ export interface CreateCharacterSheetRequest {
   ancestryCardIds?: number[];
   subclassCardIds?: number[];
   domainCardIds?: number[];
+  equippedDomainCardIds?: number[];
+  vaultDomainCardIds?: number[];
   inventoryWeaponIds?: number[];
   inventoryArmorIds?: number[];
   inventoryItemIds?: number[];
