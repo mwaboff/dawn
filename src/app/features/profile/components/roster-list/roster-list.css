@@ -1,0 +1,166 @@
+:host { display: block; }
+
+.roster {
+  position: relative;
+  z-index: 1;
+  opacity: 0;
+  animation: rosterFade 0.6s ease-out 0.4s forwards;
+}
+
+.roster-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+
+.roster-entry {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.125rem 1.25rem;
+  background: rgba(245, 230, 211, 0.03);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.roster-entry:first-child { border-radius: 4px 4px 0 0; }
+.roster-entry:last-child { border-radius: 0 0 4px 4px; }
+.roster-entry:hover,
+.roster-entry:focus-visible { background: rgba(212, 160, 86, 0.08); }
+.roster-entry:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.roster-entry:hover .roster-arrow { opacity: 0.6; transform: translateX(2px); }
+.roster-entry:hover .roster-level { color: var(--color-accent); border-color: var(--color-accent); }
+
+.roster-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(245, 230, 211, 0.5);
+  border: 1px solid rgba(245, 230, 211, 0.15);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.roster-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1875rem; }
+.roster-name-row { display: flex; align-items: baseline; gap: 0.625rem; }
+
+.roster-character-name {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster-pronouns {
+  font-size: 0.8125rem;
+  color: rgba(245, 230, 211, 0.35);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.roster-class {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
+.roster-class-subclass {
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: rgba(245, 230, 211, 0.5);
+}
+
+.roster-class-sep { color: rgba(212, 160, 86, 0.5); }
+
+.roster-arrow {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-parchment);
+  opacity: 0.2;
+  transition: all 0.2s ease;
+}
+
+.roster-footer { margin-top: 1.5rem; }
+
+.roster-add-link {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.roster-add-link:hover { opacity: 1; }
+.roster-add-link:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+.roster-empty { padding: 4rem 2rem; text-align: center; }
+
+.roster-empty-text {
+  font-size: 1.0625rem;
+  color: rgba(245, 230, 211, 0.4);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.roster-create-btn {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-bg-dark);
+  background: var(--color-accent);
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.roster-create-btn:hover { background: var(--color-accent-bright); transform: translateY(-1px); }
+.roster-create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+.roster-message { padding: 3rem 2rem; text-align: center; }
+.roster-message p { font-size: 0.9375rem; color: rgba(245, 230, 211, 0.4); }
+
+.roster-loading { display: flex; flex-direction: column; gap: 2px; }
+
+.roster-skeleton {
+  height: 60px;
+  background: rgba(245, 230, 211, 0.03);
+  border-radius: 2px;
+  animation: rosterPulse 1.5s ease-in-out infinite;
+}
+
+.roster-skeleton:nth-child(2) { animation-delay: 0.15s; }
+.roster-skeleton:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes rosterFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rosterPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@media (max-width: 640px) {
+  .roster-entry { padding: 1rem; gap: 1rem; }
+  .roster-info { flex-direction: column; gap: 0.125rem; }
+  .roster-empty { padding: 3rem 1rem; }
+}

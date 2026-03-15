@@ -7,7 +7,7 @@ import { CardFeatureItem } from './card-feature-item/card-feature-item';
 @Component({
   selector: 'app-daggerheart-card',
   templateUrl: './daggerheart-card.html',
-  styleUrl: './daggerheart-card.css',
+  styleUrls: ['./daggerheart-card.css', './daggerheart-card-variants.css', './daggerheart-card-wide.css'],
   imports: [CardFeatureItem],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

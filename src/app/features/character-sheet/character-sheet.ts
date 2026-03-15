@@ -7,7 +7,7 @@ import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-vi
 @Component({
   selector: 'app-character-sheet',
   templateUrl: './character-sheet.html',
-  styleUrls: ['./character-sheet.css', './character-sheet-layout.css'],
+  styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CharacterSheet implements OnInit {

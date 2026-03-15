@@ -1,0 +1,16 @@
+.damage-bar { display: flex; align-items: stretch; border-radius: 4px; overflow: hidden; margin-bottom: .75rem; height: 36px; border: 1px solid rgba(212,160,86,.15); }
+.damage-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
+.damage-zone--minor { background: rgba(74,124,89,.14); }
+.damage-zone--major { background: rgba(180,120,40,.14); }
+.damage-zone--severe { background: rgba(160,50,50,.14); }
+.damage-zone__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+.damage-zone--minor .damage-zone__label { color: var(--color-damage-minor); }
+.damage-zone--major .damage-zone__label { color: var(--color-damage-major); }
+.damage-zone--severe .damage-zone__label { color: var(--color-damage-severe); }
+.damage-marker { display: flex; align-items: center; justify-content: center; width: 22px; flex-shrink: 0; background: rgba(13,8,6,.5); border-left: 1px solid rgba(212,160,86,.2); border-right: 1px solid rgba(212,160,86,.2); }
+.damage-marker__value { font-size: .8rem; font-weight: 700; color: var(--color-parchment); }
+
+.experience-item { display: flex; align-items: baseline; gap: .5rem; padding: .3rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }
+.experience-item:last-child { border-bottom: none; }
+.experience-item__modifier { font-size: .85rem; font-weight: 700; color: var(--color-accent); min-width: 2rem; }
+.experience-item__description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); }

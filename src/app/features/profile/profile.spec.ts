@@ -95,26 +95,23 @@ describe('Profile', () => {
     req.flush(wrapPaged([]));
   });
 
-  it('should display characters when loaded', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
-      makeSheet({ id: 1, name: 'Aragorn', pronouns: 'he/him', level: 5 }),
-      makeSheet({ id: 2, name: 'Lyra', level: 3 }),
-    ]));
-    fixture.detectChanges();
-
-    const entries = fixture.nativeElement.querySelectorAll('.roster-entry');
-    expect(entries.length).toBe(2);
-    expect(entries[0].querySelector('.roster-character-name')?.textContent?.trim()).toBe('Aragorn');
-    expect(entries[0].querySelector('.roster-level')?.textContent?.trim()).toBe('5');
-  });
-
-  it('should show empty state when no characters', () => {
+  it('should render the roster-list child component', () => {
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.roster-empty')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-roster-list')).toBeTruthy();
+  });
+
+  it('should pass characters to roster-list', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
+      makeSheet({ id: 1, name: 'Aragorn', level: 5 }),
+    ]));
+    fixture.detectChanges();
+
+    expect(component.characters().length).toBe(1);
+    expect(component.characters()[0].name).toBe('Aragorn');
   });
 
   it('should handle 403 gracefully as empty state', () => {
@@ -136,18 +133,13 @@ describe('Profile', () => {
     expect(component.charactersError()).toBe(true);
   });
 
-  it('should navigate to character sheet on entry click', () => {
+  it('should navigate to character sheet on viewCharacter', () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
-      .flush(wrapPaged([makeSheet({ id: 7, name: 'Kael', level: 2 })]));
-    fixture.detectChanges();
-
     component.onViewCharacter(7);
     expect(navigateSpy).toHaveBeenCalledWith(['/character', 7]);
   });
 
-  it('should navigate to create-character from empty state', () => {
+  it('should navigate to create-character on createCharacter', () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
     component.onCreateCharacter();
     expect(navigateSpy).toHaveBeenCalledWith(['/create-character']);
@@ -163,22 +155,7 @@ describe('Profile', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
   });
 
-  it('should show loading skeletons initially', () => {
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelectorAll('.roster-skeleton').length).toBe(3);
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
-  });
-
-  it('should display pronouns when present', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
-      .flush(wrapPaged([makeSheet({ id: 1, name: 'Zara', pronouns: 'she/her', level: 4 })]));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.roster-pronouns')?.textContent?.trim()).toBe('she/her');
-  });
-
-  it('should display class and subclass from expanded subclassCards', () => {
+  it('should extract class entries from expanded subclassCards', () => {
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
       makeSheet({
@@ -190,52 +167,9 @@ describe('Profile', () => {
     ]));
     fixture.detectChanges();
 
-    const classEl = fixture.nativeElement.querySelector('.roster-class');
-    expect(classEl).toBeTruthy();
-    expect(classEl.querySelector('.roster-class-name')?.textContent?.trim()).toBe('Guardian');
-    expect(classEl.querySelector('.roster-class-subclass')?.textContent?.trim()).toBe('Stalwart');
-  });
-
-  it('should display multiple class entries separated by divider', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
-      makeSheet({
-        id: 1, name: 'Duo', level: 6,
-        subclassCards: [
-          { id: 10, name: 'F1', associatedClassName: 'Guardian', subclassPathName: 'Stalwart' },
-          { id: 11, name: 'F2', associatedClassName: 'Sorcerer', subclassPathName: 'Elementalist' },
-        ],
-      }),
-    ]));
-    fixture.detectChanges();
-
-    const classEntries = fixture.nativeElement.querySelectorAll('.roster-class-entry');
-    expect(classEntries.length).toBe(2);
-    expect(classEntries[0].querySelector('.roster-class-name')?.textContent?.trim()).toBe('Guardian');
-    expect(classEntries[1].querySelector('.roster-class-name')?.textContent?.trim()).toBe('Sorcerer');
-  });
-
-  it('should not display class row when no subclass cards', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
-      .flush(wrapPaged([makeSheet({ id: 1, name: 'Blank', level: 1 })]));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.roster-class')).toBeFalsy();
-  });
-
-  it('should display class without subclass when subclassPathName is absent', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
-      makeSheet({
-        id: 1, name: 'Solo', level: 2,
-        subclassCards: [{ id: 10, name: 'F1', associatedClassName: 'Ranger' }],
-      }),
-    ]));
-    fixture.detectChanges();
-
-    const classEl = fixture.nativeElement.querySelector('.roster-class');
-    expect(classEl.querySelector('.roster-class-name')?.textContent?.trim()).toBe('Ranger');
-    expect(classEl.querySelector('.roster-class-subclass')).toBeFalsy();
+    const classEntries = component.characters()[0].classEntries;
+    expect(classEntries.length).toBe(1);
+    expect(classEntries[0].className).toBe('Guardian');
+    expect(classEntries[0].subclassName).toBe('Stalwart');
   });
 });

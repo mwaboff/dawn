@@ -1,6 +1,3 @@
-/* ==========================================================================
-   SHARED BASE STYLES
-   ========================================================================== */
 :host {
   display: block;
   min-height: 100vh;
@@ -15,9 +12,9 @@
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 30% 40%, rgba(180, 120, 50, 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse at 70% 60%, rgba(150, 100, 40, 0.06) 0%, transparent 50%),
-    linear-gradient(175deg, #201710 0%, #150f0a 50%, #0d0806 100%);
+    radial-gradient(ellipse at 30% 40%, rgba(180,120,50,.1), transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(150,100,40,.06), transparent 50%),
+    linear-gradient(175deg, #201710, #150f0a 50%, #0d0806);
 }
 
 .hero-content {
@@ -43,11 +40,11 @@
   cursor: pointer;
   text-transform: uppercase;
   border: 1px solid transparent;
-  transition: all 0.3s ease;
-  font-size: 0.9375rem;
-  padding: 0.875rem 2.25rem;
+  transition: all .3s ease;
+  font-size: .9375rem;
+  padding: .875rem 2.25rem;
   border-radius: 2px;
-  letter-spacing: 0.15em;
+  letter-spacing: .15em;
 }
 
 .btn-primary:focus-visible,
@@ -59,14 +56,10 @@
 .feature-icon[data-icon="pen-paper"] { transform: rotate(-90deg); }
 .feature-icon svg { width: 100%; height: 100%; }
 
-/* ==========================================================================
-   HERO — Hearth design
-   ========================================================================== */
-
 .hero-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.3;
+  opacity: .3;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 200px 200px;
@@ -77,7 +70,7 @@
 .hero-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(10, 7, 5, 0.65) 100%);
+  background: radial-gradient(transparent 30%, rgba(10,7,5,.65));
   pointer-events: none;
 }
 
@@ -85,8 +78,8 @@
   position: absolute;
   width: 200px;
   height: 200px;
-  opacity: 0.15;
-  background: radial-gradient(circle, rgba(212, 160, 86, 0.4) 0%, transparent 70%);
+  opacity: .15;
+  background: radial-gradient(circle, rgba(212,160,86,.4), transparent 70%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -99,14 +92,14 @@
 .hero-eyebrow {
   display: inline-block;
   font-family: var(--font-display);
-  font-size: 0.8125rem;
+  font-size: .8125rem;
   font-weight: 600;
-  letter-spacing: 0.25em;
+  letter-spacing: .25em;
   text-transform: uppercase;
   color: var(--color-accent);
   margin-bottom: 2rem;
   opacity: 0;
-  animation: hearth-fadeIn 0.8s ease-out 0.2s forwards;
+  animation: fadeIn .8s ease-out .2s forwards;
 }
 
 .hero-title {
@@ -115,13 +108,13 @@
   line-height: 1.1;
   margin-bottom: 1.5rem;
   opacity: 0;
-  animation: hearth-fadeInUp 0.8s ease-out 0.3s forwards;
+  animation: fadeInUp .8s ease-out .3s forwards;
 }
 
 .hero-title-accent {
   font-weight: 900;
   color: var(--color-accent);
-  text-shadow: 0 0 60px rgba(212, 160, 86, 0.25);
+  text-shadow: 0 0 60px rgba(212,160,86,.25);
 }
 
 .hero-subtitle {
@@ -130,12 +123,12 @@
   line-height: 1.8;
   margin-bottom: 3rem;
   opacity: 0;
-  animation: hearth-fadeIn 0.8s ease-out 0.5s forwards;
+  animation: fadeIn .8s ease-out .5s forwards;
 }
 
 .hero-cta {
   opacity: 0;
-  animation: hearth-fadeIn 0.8s ease-out 0.7s forwards;
+  animation: fadeIn .8s ease-out .7s forwards;
 }
 
 .btn-primary {
@@ -146,34 +139,28 @@
 
 .btn-primary:hover {
   background: var(--color-accent-bright);
-  box-shadow: 0 4px 24px rgba(212, 160, 86, 0.35);
+  box-shadow: 0 4px 24px rgba(212,160,86,.35);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: transparent;
+  background: none;
   color: var(--color-parchment);
-  border-color: rgba(245, 230, 211, 0.3);
+  border-color: rgba(245,230,211,.3);
 }
 
 .btn-secondary:hover {
   border-color: var(--color-parchment);
-  background: rgba(245, 230, 211, 0.05);
+  background: rgba(245,230,211,.05);
 }
 
 .hero-fade {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: auto 0 0;
   height: 200px;
-  background: linear-gradient(to bottom, transparent, #0d0806);
+  background: linear-gradient(transparent, #0d0806);
   pointer-events: none;
 }
-
-/* ==========================================================================
-   FEATURES — Hearth design
-   ========================================================================== */
 
 .features {
   padding: 6rem 2rem 8rem;
@@ -191,13 +178,13 @@
 .features-rule {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 160, 86, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(212,160,86,.3), transparent);
 }
 
 .features-title {
-  font-size: clamp(0.8125rem, 1.5vw, 1rem);
+  font-size: clamp(.8125rem, 1.5vw, 1rem);
   color: var(--color-accent);
-  letter-spacing: 0.2em;
+  letter-spacing: .2em;
   text-transform: uppercase;
   white-space: nowrap;
   font-weight: 600;
@@ -216,14 +203,14 @@
   align-items: flex-start;
   gap: 2rem;
   padding: 2rem 2.5rem;
-  background: rgba(26, 20, 15, 0.5);
-  border-left: 2px solid rgba(212, 160, 86, 0.4);
+  background: rgba(26,20,15,.5);
+  border-left: 2px solid rgba(212,160,86,.4);
   border-radius: 0 4px 4px 0;
-  transition: all 0.3s ease;
+  transition: all .3s ease;
 }
 
 .feature-card:hover {
-  background: rgba(30, 23, 17, 0.7);
+  background: rgba(30,23,17,.7);
   border-left-color: var(--color-accent);
   transform: translateX(4px);
 }
@@ -233,7 +220,7 @@
   height: 48px;
   flex-shrink: 0;
   color: var(--color-accent);
-  opacity: 0.8;
+  opacity: .8;
 }
 
 .feature-text { flex: 1; }
@@ -241,33 +228,25 @@
 .feature-title {
   font-size: 1.375rem;
   color: var(--color-parchment);
-  margin-bottom: 0.5rem;
+  margin-bottom: .5rem;
   font-weight: 700;
 }
 
 .feature-description {
   font-size: 1rem;
-  color: rgba(245, 230, 211, 0.6);
+  color: rgba(245,230,211,.6);
   line-height: 1.7;
 }
 
-/* ==========================================================================
-   ANIMATIONS
-   ========================================================================== */
-
-@keyframes hearth-fadeIn {
+@keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes hearth-fadeInUp {
+@keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
 
 @media (max-width: 768px) {
   .hero-ornament { width: 100px; height: 100px; }
