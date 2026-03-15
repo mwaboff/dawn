@@ -1,0 +1,48 @@
+<div class="tier-step">
+  <div class="info-banner">
+    <h3 class="info-banner__title">Entering Tier {{ nextTier() }}</h3>
+    <p class="info-banner__subtitle">Level {{ nextLevel() - 1 }} → Level {{ nextLevel() }}</p>
+  </div>
+
+  <div class="achievements-list">
+    <div class="achievement-item">
+      <span class="achievement-icon" aria-hidden="true">&#9733;</span>
+      <div class="achievement-detail">
+        <strong>+1 Proficiency</strong>
+        <span class="achievement-note">Automatic increase</span>
+      </div>
+    </div>
+
+    <div class="achievement-item">
+      <span class="achievement-icon" aria-hidden="true">&#9733;</span>
+      <div class="achievement-detail">
+        <strong>New Experience (+2)</strong>
+        <span class="achievement-note">Describe a defining moment</span>
+      </div>
+    </div>
+
+    @if (clearsMarkedTraits.includes(nextLevel())) {
+      <div class="achievement-item">
+        <span class="achievement-icon" aria-hidden="true">&#9733;</span>
+        <div class="achievement-detail">
+          <strong>Marked Traits Cleared</strong>
+          <span class="achievement-note">All trait marks are removed</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="experience-input-group">
+    <label class="experience-label" for="new-experience">New Experience Description</label>
+    <input
+      id="new-experience"
+      type="text"
+      class="experience-input"
+      placeholder="e.g., Defeated the Shadow King"
+      [value]="description()"
+      (input)="onDescriptionInput($event)"
+      maxlength="200"
+    />
+    <span class="experience-hint">This experience will have a +2 modifier</span>
+  </div>
+</div>

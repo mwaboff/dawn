@@ -14,3 +14,24 @@
 .experience-item:last-child { border-bottom: none; }
 .experience-item__modifier { font-size: .85rem; font-weight: 700; color: var(--color-accent); min-width: 2rem; }
 .experience-item__description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); }
+
+.card-group__heading-row { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .5rem; padding-bottom: .35rem; border-bottom: 1px solid rgba(212,160,86,.15); }
+.card-group__heading-row .card-group__heading { margin: 0; padding-bottom: 0; border-bottom: none; }
+.card-group__count { font-family: var(--font-display); font-size: .75rem; letter-spacing: .06em; color: rgba(212,160,86,.55); }
+.card-group__count--domain { color: rgba(212,128,86,.55); }
+.expandable-card--vaulted { opacity: .7; border-style: dashed; }
+.expandable-card--vaulted:hover { opacity: .85; }
+.card-swap-action { display: flex; align-items: center; gap: .5rem; padding-top: .4rem; border-top: 1px solid rgba(212,160,86,.06); margin-top: .2rem; }
+.card-swap-btn { display: inline-flex; align-items: center; gap: .25rem; font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; padding: .25rem .5rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.25); background: transparent; color: rgba(212,160,86,.75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.card-swap-btn:hover:not(:disabled) { background: rgba(212,160,86,.08); border-color: rgba(212,160,86,.4); color: var(--color-accent); }
+.card-swap-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.card-swap-btn:disabled { opacity: .4; cursor: not-allowed; }
+.card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
+.card-swap-btn--vault:hover:not(:disabled) { border-color: rgba(160,100,50,.5); color: rgba(212,128,86,.9); background: rgba(212,128,86,.08); }
+.card-swap-btn--equip:hover:not(:disabled) { border-color: rgba(86,180,120,.5); color: rgba(86,200,120,.9); background: rgba(86,180,120,.08); }
+.card-swap-hint { font-family: var(--font-body); font-size: .75rem; color: rgba(212,160,86,.4); font-style: italic; }
+.vault-section { margin-top: 2rem; padding-top: 1.25rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.vault-header { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .75rem; }
+.vault-header__title { font-family: var(--font-display); font-size: .8rem; text-transform: uppercase; letter-spacing: .25em; color: rgba(212,160,86,.45); margin: 0; }
+.vault-header__count { font-family: var(--font-body); font-size: .7rem; color: rgba(212,160,86,.35); background: rgba(212,160,86,.06); border-radius: 2px; padding: .05rem .3rem; }
+.vault-list { display: grid; grid-template-columns: repeat(2,1fr); gap: .5rem; }

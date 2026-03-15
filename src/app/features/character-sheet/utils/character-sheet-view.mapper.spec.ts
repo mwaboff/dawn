@@ -33,6 +33,9 @@ function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSh
     hopeMarked: 1,
     gold: 10,
     ownerId: 99,
+    proficiency: 1,
+    equippedDomainCardIds: [],
+    vaultDomainCardIds: [],
     communityCardIds: [],
     ancestryCardIds: [],
     subclassCardIds: [],
@@ -284,6 +287,7 @@ describe('mapToCharacterSheetView', () => {
             id: 1,
             name: 'Guardian Path',
             features: [],
+            associatedClassId: 5,
             associatedClassName: 'Warrior',
             subclassPathName: 'Iron Wall',
             domainNames: ['Blade', 'Bone'],
@@ -295,6 +299,7 @@ describe('mapToCharacterSheetView', () => {
 
       const result = mapToCharacterSheetView(sheet);
 
+      expect(result.subclassCards[0].associatedClassId).toBe(5);
       expect(result.subclassCards[0].associatedClassName).toBe('Warrior');
       expect(result.subclassCards[0].subclassPathName).toBe('Iron Wall');
       expect(result.subclassCards[0].domainNames).toEqual(['Blade', 'Bone']);
@@ -370,6 +375,38 @@ describe('mapToCharacterSheetView', () => {
       expect(result.domainCards[0].level).toBe(2);
       expect(result.domainCards[0].recallCost).toBe(1);
       expect(result.domainCards[0].type).toBe('Ability');
+    });
+
+    it('splits domain cards into equipped and vault based on IDs', () => {
+      const sheet = makeSheet({
+        equippedDomainCardIds: [10, 11],
+        vaultDomainCardIds: [12],
+        domainCards: [
+          { id: 10, name: 'Fireball', features: [] },
+          { id: 11, name: 'Ice Shield', features: [] },
+          { id: 12, name: 'Wind Rush', features: [] },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.equippedDomainCards).toHaveLength(2);
+      expect(result.equippedDomainCards.map(c => c.id)).toEqual([10, 11]);
+      expect(result.vaultDomainCards).toHaveLength(1);
+      expect(result.vaultDomainCards[0].id).toBe(12);
+    });
+
+    it('returns empty equipped and vault when no domain cards', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.equippedDomainCards).toEqual([]);
+      expect(result.vaultDomainCards).toEqual([]);
+    });
+
+    it('sets maxEquippedDomainCards to 5', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.maxEquippedDomainCards).toBe(5);
     });
 
     it('returns empty arrays for cards when fields are undefined', () => {

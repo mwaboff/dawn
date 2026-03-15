@@ -1,0 +1,45 @@
+<div class="advancements-step">
+  <p class="step-instruction">Choose 2 advancements ({{ selectedChoices().length }}/2)</p>
+
+  <div class="advancement-grid">
+    @for (adv of availableAdvancements(); track adv.type) {
+      <div class="advancement-tile"
+        [class.selected]="isSelected(adv.type)"
+        [class.disabled]="isDisabled(adv) && !isSelected(adv.type)"
+        [attr.aria-disabled]="isDisabled(adv) && !isSelected(adv.type)"
+        role="button"
+        [attr.tabindex]="isDisabled(adv) && !isSelected(adv.type) ? -1 : 0"
+        [attr.aria-pressed]="isSelected(adv.type)"
+        (click)="toggleAdvancement(adv)"
+        (keydown.enter)="toggleAdvancement(adv)"
+        (keydown.space)="toggleAdvancement(adv); $event.preventDefault()">
+        <div class="advancement-tile__header">
+          <span class="advancement-tile__label">{{ formatTypeLabel(adv.type) }}</span>
+          <span class="advancement-tile__count">{{ adv.remaining }}/{{ adv.limitPerTier }}</span>
+        </div>
+        <p class="advancement-tile__description">
+          {{ adv.description }}
+          @if (getStatArrow(adv.type); as arrow) {
+            <span class="stat-boost-arrow">({{ arrow }})</span>
+          }
+        </p>
+        @if (adv.mutuallyExclusiveWith && isExclusiveVisible(adv.mutuallyExclusiveWith)) {
+          <span class="advancement-tile__exclusive">Exclusive with {{ formatTypeLabel(adv.mutuallyExclusiveWith) }}</span>
+        }
+      </div>
+
+      @if (isSelected(adv.type) && needsConfig(adv.type)) {
+        <div class="advancement-config-wrapper">
+          <app-advancement-config
+            [advancement]="adv"
+            [characterSheet]="characterSheet()"
+            [levelUpOptions]="levelUpOptions()"
+            [initialChoice]="getChoice(adv.type)"
+            [newExperienceDescription]="newExperienceDescription()"
+            (configChanged)="onConfigChanged(adv.type, $event)"
+          />
+        </div>
+      }
+    }
+  </div>
+</div>

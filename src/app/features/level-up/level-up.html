@@ -1,0 +1,121 @@
+<main class="level-up-page">
+  <div class="grain-overlay page-grain" aria-hidden="true"></div>
+
+  @if (loading()) {
+    <div class="level-up-loading" role="status" aria-live="polite">
+      <p class="loading-text">Preparing level-up...</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="level-up-error" role="alert">
+      <h2 class="error-title">Cannot Level Up</h2>
+      <p class="error-message">{{ err }}</p>
+    </div>
+  } @else if (isMaxLevel()) {
+    <div class="level-up-error" role="alert">
+      <h2 class="error-title">Maximum Level</h2>
+      <p class="error-message">This character is already at level 10.</p>
+    </div>
+  } @else if (characterSheet(); as sheet) {
+    <div class="content-area">
+      <div class="parchment-container">
+        <header class="level-up-header">
+          <div class="level-up-header__info">
+            <h1 class="level-up-header__name">{{ sheet.name }}</h1>
+            <p class="level-up-header__transition">
+              Lvl {{ levelUpOptions()!.currentLevel }} → Lvl {{ levelUpOptions()!.nextLevel }}
+              @if (levelUpOptions()!.isTierTransition) {
+                <span class="tier-badge">Tier {{ levelUpOptions()!.nextTier }}</span>
+              }
+            </p>
+          </div>
+          @if (!isMinLevel()) {
+            <button type="button" class="level-down-btn" (click)="onLevelDownClick()">Level Down</button>
+          }
+        </header>
+
+        <app-level-up-tab-nav
+          [tabs]="visibleTabs()"
+          [activeTab]="activeTab()"
+          [completedSteps]="completedSteps()"
+          (tabSelected)="onTabSelected($event)"
+        />
+
+        <div class="tab-content" role="tabpanel" [id]="'lu-panel-' + activeTab()" [attr.aria-labelledby]="'lu-tab-' + activeTab()">
+          @switch (activeTab()) {
+            @case ('tier-achievements') {
+              <app-tier-achievements-step
+                [nextLevel]="levelUpOptions()!.nextLevel"
+                [currentTier]="levelUpOptions()!.currentTier"
+                [nextTier]="levelUpOptions()!.nextTier"
+                [initialDescription]="newExperienceDescription()"
+                (experienceDescriptionChanged)="onExperienceDescriptionChanged($event)"
+              />
+            }
+            @case ('advancements') {
+              <app-advancements-step
+                [availableAdvancements]="filteredAdvancements()"
+                [characterSheet]="sheet"
+                [levelUpOptions]="levelUpOptions()!"
+                [initialAdvancements]="selectedAdvancements()"
+                [newExperienceDescription]="newExperienceDescription()"
+                (advancementsChanged)="onAdvancementsChanged($event)"
+              />
+            }
+            @case ('domain-card') {
+              <app-domain-card-step
+                [accessibleDomainIds]="levelUpOptions()!.accessibleDomainIds"
+                [domainCardLevelCap]="levelUpOptions()!.domainCardLevelCap"
+                [equippedDomainCardCount]="levelUpOptions()!.equippedDomainCardCount"
+                [maxEquippedDomainCards]="levelUpOptions()!.maxEquippedDomainCards"
+                [ownedDomainCardIds]="ownedDomainCardIds()"
+                [equippedDomainCards]="equippedDomainCards()"
+                [targetLevel]="levelUpOptions()!.nextLevel"
+                [maxSelections]="domainCardMaxSelections()"
+                [initialCards]="selectedDomainCards()"
+                [initialEquip]="equipNewDomainCard()"
+                [initialUnequipId]="unequipDomainCardId()"
+                (domainCardsSelected)="onDomainCardsSelected($event)"
+                (equipChanged)="onEquipChanged($event)"
+                (unequipCardIdChanged)="onUnequipCardIdChanged($event)"
+              />
+            }
+            @case ('domain-trades') {
+              <app-domain-trade-step
+                [characterDomainCards]="equippedDomainCards()"
+                [accessibleDomainIds]="levelUpOptions()!.accessibleDomainIds"
+                [domainCardLevelCap]="levelUpOptions()!.domainCardLevelCap"
+                [newDomainCard]="selectedDomainCards()[0]"
+                (tradesChanged)="onTradesChanged($event)"
+              />
+            }
+            @case ('review') {
+              <app-level-up-review
+                [levelUpOptions]="levelUpOptions()!"
+                [advancements]="selectedAdvancements()"
+                [newExperienceDescription]="newExperienceDescription()"
+                [selectedDomainCards]="selectedDomainCards()"
+                [equipNewDomainCard]="equipNewDomainCard()"
+                [trades]="trades()"
+                [submitting]="submitting()"
+                [submitError]="submitError()"
+                (submitClicked)="onSubmit()"
+              />
+            }
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showLevelDownDialog()) {
+    <app-confirm-dialog
+      title="Level Down"
+      message="This will undo the most recent level-up and revert all changes. This action cannot be undone. Are you sure?"
+      confirmLabel="Level Down"
+      cancelLabel="Cancel"
+      [processing]="levelDownProcessing()"
+      (confirmed)="onLevelDownConfirm()"
+      (cancelled)="onLevelDownCancel()"
+    />
+  }
+</main>

@@ -1,0 +1,32 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+.saving-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(212, 160, 86, 0.2);
+  border-top-color: var(--color-accent, #d4a056);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.saving-label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: rgba(212, 160, 86, 0.6);
+  letter-spacing: 0.05em;
+  font-style: italic;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saving-spinner { animation: none; opacity: 0.6; }
+}

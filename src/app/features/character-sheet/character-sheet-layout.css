@@ -81,6 +81,7 @@
   .sheet-columns { grid-template-columns: 1fr; }
   .traits-row { grid-template-columns: repeat(3, 1fr); }
   .card-group__list--grid { grid-template-columns: 1fr; }
+  .vault-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {

@@ -1,0 +1,19 @@
+.tier-step { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.info-banner { text-align: center; padding: 1.25rem; background: rgba(212, 160, 86, .08); border: 1px solid rgba(212, 160, 86, .3); border-radius: 6px; }
+.info-banner__title { font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; color: #3e2723; margin: 0 0 .25rem; }
+.info-banner__subtitle { font-family: 'Lora', serif; font-size: .9rem; color: #7a5c46; margin: 0; }
+
+.achievements-list { display: flex; flex-direction: column; gap: .75rem; }
+.achievement-item { display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1rem; background: #faf7f2; border: 1px solid #d8c8a8; border-radius: 4px; }
+.achievement-icon { color: #d4a056; font-size: 1.1rem; flex-shrink: 0; margin-top: .1rem; }
+.achievement-detail { display: flex; flex-direction: column; gap: .15rem; }
+.achievement-detail strong { font-family: 'Cinzel', serif; font-size: .9rem; color: #3e2723; }
+.achievement-note { font-family: 'Lora', serif; font-size: .8rem; color: #7a5c46; }
+
+.experience-input-group { display: flex; flex-direction: column; gap: .5rem; }
+.experience-label { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 600; color: #3e2723; }
+.experience-input { padding: .625rem .875rem; border: 1px solid #c9a87c; border-radius: 4px; font-family: 'Lora', serif; font-size: .95rem; color: #3e2723; background: #fff; transition: border-color .2s; }
+.experience-input:focus { outline: none; border-color: #d4a056; box-shadow: 0 0 0 2px rgba(212, 160, 86, .2); }
+.experience-input::placeholder { color: #b8a088; }
+.experience-hint { font-family: 'Lora', serif; font-size: .8rem; color: #7a5c46; font-style: italic; }

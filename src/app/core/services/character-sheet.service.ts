@@ -6,9 +6,11 @@ import { environment } from '../../../environments/environment';
 import {
   CharacterSheetResponse,
   CreateCharacterSheetRequest,
+  UpdateCharacterSheetRequest,
   CreateExperienceRequest,
   ExperienceResponse,
 } from '../../features/create-character/models/character-sheet-api.model';
+import { LevelUpOptionsResponse, LevelUpRequest, LevelUpResponse } from '../../features/level-up/models/level-up-api.model';
 
 @Injectable({ providedIn: 'root' })
 export class CharacterSheetService {
@@ -36,6 +38,30 @@ export class CharacterSheetService {
     }
     return this.http.get<CharacterSheetResponse>(`${this.baseUrl}/${id}`, {
       params,
+      withCredentials: true,
+    });
+  }
+
+  getLevelUpOptions(id: number): Observable<LevelUpOptionsResponse> {
+    return this.http.get<LevelUpOptionsResponse>(`${this.baseUrl}/${id}/level-up-options`, {
+      withCredentials: true,
+    });
+  }
+
+  levelUp(id: number, request: LevelUpRequest): Observable<LevelUpResponse> {
+    return this.http.post<LevelUpResponse>(`${this.baseUrl}/${id}/level-up`, request, {
+      withCredentials: true,
+    });
+  }
+
+  updateCharacterSheet(id: number, request: UpdateCharacterSheetRequest): Observable<CharacterSheetResponse> {
+    return this.http.put<CharacterSheetResponse>(`${this.baseUrl}/${id}`, request, {
+      withCredentials: true,
+    });
+  }
+
+  undoLevelUp(id: number): Observable<CharacterSheetResponse> {
+    return this.http.delete<CharacterSheetResponse>(`${this.baseUrl}/${id}/level-up`, {
       withCredentials: true,
     });
   }

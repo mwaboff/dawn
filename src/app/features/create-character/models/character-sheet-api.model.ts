@@ -40,6 +40,48 @@ export interface CreateCharacterSheetRequest {
   inventoryItemIds?: number[];
 }
 
+export interface UpdateCharacterSheetRequest {
+  name?: string;
+  pronouns?: string;
+  level?: number;
+  evasion?: number;
+  armorMax?: number;
+  armorMarked?: number;
+  majorDamageThreshold?: number;
+  severeDamageThreshold?: number;
+  agilityModifier?: number;
+  agilityMarked?: boolean;
+  strengthModifier?: number;
+  strengthMarked?: boolean;
+  finesseModifier?: number;
+  finesseMarked?: boolean;
+  instinctModifier?: number;
+  instinctMarked?: boolean;
+  presenceModifier?: number;
+  presenceMarked?: boolean;
+  knowledgeModifier?: number;
+  knowledgeMarked?: boolean;
+  hitPointMax?: number;
+  hitPointMarked?: number;
+  stressMax?: number;
+  stressMarked?: number;
+  hopeMax?: number;
+  hopeMarked?: number;
+  gold?: number;
+  activePrimaryWeaponId?: number | null;
+  activeSecondaryWeaponId?: number | null;
+  activeArmorId?: number | null;
+  communityCardIds?: number[];
+  ancestryCardIds?: number[];
+  subclassCardIds?: number[];
+  domainCardIds?: number[];
+  equippedDomainCardIds?: number[];
+  vaultDomainCardIds?: number[];
+  inventoryWeaponIds?: number[];
+  inventoryArmorIds?: number[];
+  inventoryItemIds?: number[];
+}
+
 export interface CreateExperienceRequest {
   characterSheetId: number;
   description: string;
@@ -128,6 +170,7 @@ export interface SubclassCardResponse {
   id: number;
   name: string;
   description?: string;
+  associatedClassId?: number;
   associatedClassName?: string;
   subclassPathName?: string;
   domainNames?: string[];
@@ -189,6 +232,9 @@ export interface CharacterSheetResponse {
   inventoryWeaponIds: number[];
   inventoryArmorIds: number[];
   inventoryItemIds: number[];
+  proficiency: number;
+  equippedDomainCardIds: number[];
+  vaultDomainCardIds: number[];
   experienceIds: number[];
   createdAt: string;
   lastModifiedAt: string;

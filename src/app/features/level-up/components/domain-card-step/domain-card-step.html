@@ -1,0 +1,77 @@
+<div class="domain-card-step">
+  <div class="step-header">
+    <p class="step-instruction">Choose a new domain card to add to your collection</p>
+    <div class="selection-badge" [class.complete]="isSelectionComplete()" aria-live="polite">
+      <span class="selection-badge__count">{{ selectionCount() }}</span>
+      <span class="selection-badge__sep">/</span>
+      <span class="selection-badge__max">{{ maxSelections() }}</span>
+    </div>
+  </div>
+
+  @if (selectedCards().length > 0) {
+    <div class="selected-tiles" role="list" aria-label="Selected domain cards">
+      @for (card of selectedCards(); track card.id) {
+        <div class="selected-tile" role="listitem">
+          <span class="selected-tile__label">Selected</span>
+          <span class="selected-tile__name">{{ card.name }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  @if (availableLevels().length > 1) {
+    <div class="level-filter">
+      <span class="level-filter__label">Filter by level:</span>
+      <div class="level-filter__pills">
+        <button type="button" class="level-pill" [class.active]="isAllSelected"
+          (click)="selectAllLevels()">All</button>
+        @for (level of availableLevels(); track level) {
+          <button type="button" class="level-pill"
+            [class.active]="isLevelSelected(level) && !isAllSelected"
+            (click)="toggleLevel(level)">{{ level }}</button>
+        }
+      </div>
+    </div>
+  }
+
+  <app-card-selection-grid
+    [cards]="filteredCards()"
+    [loading]="loading()"
+    [selectedCards]="selectedCards()"
+    [maxSelections]="maxSelections()"
+    [collapsibleFeatures]="true"
+    layout="wide"
+    [skeletonCount]="6"
+    (cardsSelected)="onMultiCardsSelected($event)"
+    (cardSelected)="onSingleCardSelected($event)"
+  />
+
+  @if (selectedCards().length > 0) {
+    <div class="equip-section">
+      <label class="equip-toggle">
+        <input type="checkbox" [checked]="equipNewCard()" (change)="onEquipToggle()" />
+        Equip selected cards
+      </label>
+
+      @if (needsUnequip) {
+        <div class="unequip-section">
+          <p class="unequip-hint">You have {{ maxEquippedDomainCards() }} cards equipped. Choose one to unequip:</p>
+          <div class="unequip-list">
+            @for (card of equippedDomainCards(); track card.id) {
+              <button class="unequip-card" [class.selected]="unequipCardId() === card.id"
+                (click)="onUnequipCard(card.id)">
+                <span class="unequip-card__name">{{ card.name }}</span>
+                @if (card.domainName) {
+                  <span class="unequip-card__domain">{{ card.domainName }}</span>
+                }
+                @if (card.level !== undefined) {
+                  <span class="unequip-card__level">Lvl {{ card.level }}</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

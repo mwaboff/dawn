@@ -1,0 +1,18 @@
+<div class="dialog-backdrop" (click)="onBackdropClick($event)" (keydown)="onKeydown($event)" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+  <div class="dialog-panel">
+    <h2 class="dialog-title">{{ title() }}</h2>
+    <p class="dialog-message">{{ message() }}</p>
+    <div class="dialog-actions">
+      <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="processing()" (click)="onCancel()">
+        {{ cancelLabel() }}
+      </button>
+      <button type="button" class="dialog-btn dialog-btn--confirm" [disabled]="processing()" (click)="onConfirm()">
+        @if (processing()) {
+          Processing...
+        } @else {
+          {{ confirmLabel() }}
+        }
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of, throwError, Subject } from 'rxjs';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 
 const mockResponse: CharacterSheetResponse = {
@@ -35,6 +36,9 @@ const mockResponse: CharacterSheetResponse = {
   hopeMarked: 0,
   gold: 50,
   ownerId: 1,
+  proficiency: 1,
+  equippedDomainCardIds: [],
+  vaultDomainCardIds: [],
   communityCardIds: [],
   ancestryCardIds: [],
   subclassCardIds: [],
@@ -50,14 +54,22 @@ const mockResponse: CharacterSheetResponse = {
 describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
   let component: CharacterSheet;
-  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn> };
+  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn> };
+  let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
-    mockService = { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse) };
+    mockService = { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse), updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)) };
+    mockAuthService = {
+      user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
+    };
+    mockRouter = { navigate: vi.fn() };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
       providers: [
         { provide: CharacterSheetService, useValue: mockService },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: Router, useValue: mockRouter },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -393,6 +405,281 @@ describe('CharacterSheet', () => {
       fixture.detectChanges();
 
       expect(component.getSubSkills('Unknown')).toEqual([]);
+    });
+  });
+
+  describe('isOwner', () => {
+    it('returns true when user id matches sheet ownerId', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(true);
+    });
+
+    it('returns false when user id does not match sheet ownerId', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(false);
+    });
+
+    it('returns false when no user is logged in', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue(null);
+      fixture.detectChanges();
+
+      expect(component.isOwner()).toBe(false);
+    });
+  });
+
+  describe('canLevelUp', () => {
+    it('returns true when owner and level < 10', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(true);
+    });
+
+    it('returns false when level is 10', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(false);
+    });
+
+    it('returns false when not owner', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      expect(component.canLevelUp()).toBe(false);
+    });
+  });
+
+  describe('level up button', () => {
+    it('renders when canLevelUp is true', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-up-btn')).toBeTruthy();
+    });
+
+    it('is hidden when canLevelUp is false', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue(null);
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-up-btn')).toBeNull();
+    });
+
+    it('onLevelUp navigates to /character/:id/level-up', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onLevelUp();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/character', 1, 'level-up']);
+    });
+  });
+
+  describe('domain card swap', () => {
+    const domainSheetResponse: CharacterSheetResponse = {
+      ...mockResponse,
+      equippedDomainCardIds: [10, 11],
+      vaultDomainCardIds: [12],
+      domainCards: [
+        { id: 10, name: 'Fireball', features: [] },
+        { id: 11, name: 'Ice Shield', features: [] },
+        { id: 12, name: 'Wind Rush', features: [] },
+      ],
+    };
+
+    it('onVaultCard moves card from equipped to vault', () => {
+      createComponent('1', of(domainSheetResponse));
+      fixture.detectChanges();
+
+      component.onVaultCard(10);
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.equippedDomainCards.map(c => c.id)).toEqual([11]);
+      expect(sheet.vaultDomainCards.map(c => c.id)).toEqual([12, 10]);
+    });
+
+    it('onVaultCard calls updateCharacterSheet with new IDs', () => {
+      createComponent('1', of(domainSheetResponse));
+      fixture.detectChanges();
+
+      component.onVaultCard(10);
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        equippedDomainCardIds: [11],
+        vaultDomainCardIds: [12, 10],
+      });
+    });
+
+    it('onEquipCard moves card from vault to equipped', () => {
+      createComponent('1', of(domainSheetResponse));
+      fixture.detectChanges();
+
+      component.onEquipCard(12);
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.equippedDomainCards.map(c => c.id)).toEqual([10, 11, 12]);
+      expect(sheet.vaultDomainCards).toEqual([]);
+    });
+
+    it('canEquipCard returns true when below max', () => {
+      createComponent('1', of(domainSheetResponse));
+      fixture.detectChanges();
+
+      expect(component.canEquipCard()).toBe(true);
+    });
+
+    it('canEquipCard returns false when at max', () => {
+      const fullSheet: CharacterSheetResponse = {
+        ...mockResponse,
+        equippedDomainCardIds: [1, 2, 3, 4, 5],
+        vaultDomainCardIds: [6],
+        domainCards: [
+          { id: 1, name: 'A', features: [] },
+          { id: 2, name: 'B', features: [] },
+          { id: 3, name: 'C', features: [] },
+          { id: 4, name: 'D', features: [] },
+          { id: 5, name: 'E', features: [] },
+          { id: 6, name: 'F', features: [] },
+        ],
+      };
+      createComponent('1', of(fullSheet));
+      fixture.detectChanges();
+
+      expect(component.canEquipCard()).toBe(false);
+    });
+
+    it('onEquipCard does nothing when at max equipped', () => {
+      const fullSheet: CharacterSheetResponse = {
+        ...mockResponse,
+        equippedDomainCardIds: [1, 2, 3, 4, 5],
+        vaultDomainCardIds: [6],
+        domainCards: [
+          { id: 1, name: 'A', features: [] },
+          { id: 2, name: 'B', features: [] },
+          { id: 3, name: 'C', features: [] },
+          { id: 4, name: 'D', features: [] },
+          { id: 5, name: 'E', features: [] },
+          { id: 6, name: 'F', features: [] },
+        ],
+      };
+      createComponent('1', of(fullSheet));
+      fixture.detectChanges();
+
+      component.onEquipCard(6);
+
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('debounced resource saving', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('toggleResourceBox triggers updateCharacterSheet after debounce for HP', () => {
+      const saveResponse$ = new Subject<CharacterSheetResponse>();
+      createComponent('1');
+      mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
+      fixture.detectChanges();
+
+      component.toggleResourceBox('hp', 3);
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(800);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        hitPointMarked: 3,
+        armorMarked: 0,
+      });
+    });
+
+    it('batches rapid HP toggles into a single save', () => {
+      const saveResponse$ = new Subject<CharacterSheetResponse>();
+      createComponent('1');
+      mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
+      fixture.detectChanges();
+
+      component.toggleResourceBox('hp', 3);
+      component.toggleResourceBox('hp', 5);
+      component.toggleResourceBox('hp', 7);
+
+      vi.advanceTimersByTime(800);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(1);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        hitPointMarked: 7,
+        armorMarked: 0,
+      });
+    });
+
+    it('isSavingHealth is true while save is in flight', () => {
+      const saveResponse$ = new Subject<CharacterSheetResponse>();
+      createComponent('1');
+      mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
+      fixture.detectChanges();
+
+      component.toggleResourceBox('hp', 3);
+      vi.advanceTimersByTime(800);
+
+      expect(component.isSavingHealth()).toBe(true);
+
+      saveResponse$.next(mockResponse);
+      saveResponse$.complete();
+
+      expect(component.isSavingHealth()).toBe(false);
+    });
+
+    it('adjustGold triggers updateCharacterSheet after debounce', () => {
+      const saveResponse$ = new Subject<CharacterSheetResponse>();
+      createComponent('1');
+      mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
+      fixture.detectChanges();
+
+      component.adjustGold(10);
+      vi.advanceTimersByTime(800);
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        gold: 60,
+      });
+    });
+
+    it('non-owner toggling resources does not call updateCharacterSheet', () => {
+      createComponent('1');
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      component.toggleResourceBox('hp', 3);
+      vi.advanceTimersByTime(800);
+
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('toggleResourceBox for hope triggers hopeStress save pipeline', () => {
+      const saveResponse$ = new Subject<CharacterSheetResponse>();
+      createComponent('1');
+      mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
+      fixture.detectChanges();
+
+      component.toggleResourceBox('hope', 2);
+      vi.advanceTimersByTime(800);
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        hopeMarked: 2,
+        stressMarked: 0,
+      });
     });
   });
 });

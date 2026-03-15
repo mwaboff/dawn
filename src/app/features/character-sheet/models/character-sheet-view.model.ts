@@ -1,5 +1,6 @@
 export interface CharacterSheetView {
   id: number;
+  ownerId: number;
   name: string;
   pronouns?: string;
   level: number;
@@ -29,6 +30,9 @@ export interface CharacterSheetView {
   ancestryCards: CardSummary[];
   communityCards: CardSummary[];
   domainCards: DomainCardSummary[];
+  equippedDomainCards: DomainCardSummary[];
+  vaultDomainCards: DomainCardSummary[];
+  maxEquippedDomainCards: number;
   inventoryWeapons: WeaponDisplay[];
   inventoryArmors: ArmorDisplay[];
   inventoryItems: LootDisplay[];
@@ -110,6 +114,7 @@ export interface CardSummary {
 }
 
 export interface SubclassCardSummary extends CardSummary {
+  associatedClassId?: number;
   associatedClassName?: string;
   subclassPathName?: string;
   domainNames?: string[];

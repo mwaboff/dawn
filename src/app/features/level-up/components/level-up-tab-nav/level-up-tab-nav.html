@@ -1,0 +1,44 @@
+<nav class="chapter-trail" role="tablist" aria-label="Level-up steps">
+  <div class="trail-scroll" #trailScroll>
+    <div class="trail-line" #trailLine aria-hidden="true"></div>
+    @for (tab of tabs(); track tab.id; let i = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="chapter-marker"
+        [class.active]="activeTab() === tab.id"
+        [class.completed]="isTabCompleted(tab.id)"
+        [class.disabled]="isTabDisabled(tab.id)"
+        [attr.aria-selected]="activeTab() === tab.id"
+        [attr.aria-disabled]="isTabDisabled(tab.id)"
+        [attr.aria-label]="'Step ' + (i + 1) + ': ' + tab.label"
+        [id]="'lu-tab-' + tab.id"
+        [attr.aria-controls]="'lu-panel-' + tab.id"
+        (click)="selectTab(tab.id)"
+      >
+        <span class="marker-pip" aria-hidden="true">
+          @if (isTabCompleted(tab.id) && activeTab() !== tab.id) {
+            ✓
+          } @else {
+            {{ i + 1 }}
+          }
+        </span>
+        <span class="marker-label">{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+</nav>
+
+<div class="step-arrows">
+  <button type="button" class="arrow-button arrow-prev" [disabled]="isFirstStep()"
+    [attr.aria-label]="'Go to previous step: ' + prevLabel()" (click)="goToPrevious()">
+    <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    <span class="arrow-text">{{ prevLabel() }}</span>
+  </button>
+  <span class="step-indicator">{{ activeLabel() }}</span>
+  <button type="button" class="arrow-button arrow-next" [disabled]="isNextDisabled()"
+    [attr.aria-label]="'Go to next step: ' + nextLabel()" (click)="goToNext()">
+    <span class="arrow-text">{{ nextLabel() }}</span>
+    <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+  </button>
+</div>

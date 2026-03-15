@@ -48,13 +48,7 @@ function extractModifiers(response: DomainCardResponse): { target: string; opera
 }
 
 function buildDescription(response: DomainCardResponse): string {
-  if (response.description) return response.description;
-  const parts: string[] = [];
-  const domainName = response.associatedDomain?.name;
-  if (domainName) {
-    parts.push(`${formatTitleCase(response.type)} from the ${domainName} domain.`);
-  }
-  return parts.join(' ');
+  return response.description ?? '';
 }
 
 export function mapDomainCardResponseToCardData(response: DomainCardResponse): CardData {
