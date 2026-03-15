@@ -31,6 +31,19 @@
 .card-meta__label { font-family: var(--font-display); font-weight: 700; color: rgba(212,160,86,.65); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; }
 .card-meta__badge { font-family: var(--font-display); text-transform: uppercase; font-size: .75rem; letter-spacing: .08em; border: 1px solid rgba(184,127,212,.35); border-radius: 2px; padding: .1rem .35rem; color: var(--color-card-subclass); }
 .card-description { font-family: var(--font-body); font-size: .875rem; color: rgba(212,192,160,.85); line-height: 1.5; margin: 0; font-style: italic; }
+
+.panel--hope-stress { border-color: rgba(212,160,86,.2); background: rgba(26,20,15,.6); }
+.hope-stress-grid { display: flex; flex-direction: column; gap: .5rem; }
+.hope-stress-track { display: flex; align-items: center; gap: .6rem; }
+.hope-stress-track__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; min-width: 3rem; font-weight: 600; }
+.hope-stress-track__label--hope { color: var(--color-hope, #d4a056); }
+.hope-stress-track__label--stress { color: var(--color-stress, #c05050); }
+.hope-stress-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(212,160,86,.15) 20%, rgba(212,160,86,.15) 80%, transparent); }
+.resource-box--stress { border-color: rgba(160,50,50,.35); }
+.resource-box--stress:hover { border-color: rgba(160,50,50,.6); background: rgba(160,50,50,.1); }
+.resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
+.resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
+
 .gold-total { display: flex; align-items: baseline; justify-content: center; gap: .4rem; margin-bottom: .75rem; }
 .gold-total__icon { font-size: 1.25rem; color: var(--color-accent); }
 .gold-total__value { font-size: 1.75rem; font-weight: 900; color: var(--color-accent); font-family: var(--font-display); }
@@ -47,18 +60,6 @@
 .gold-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .gold-btn--add:hover { border-color: rgba(74,124,89,.6); background: rgba(74,124,89,.15); color: var(--color-damage-minor); }
 .gold-btn--subtract:hover { border-color: rgba(160,50,50,.5); background: rgba(160,50,50,.12); color: var(--color-damage-severe); }
-
-.panel--hope-stress { border-color: rgba(212,160,86,.2); background: rgba(26,20,15,.6); }
-.hope-stress-grid { display: flex; flex-direction: column; gap: .5rem; }
-.hope-stress-track { display: flex; align-items: center; gap: .6rem; }
-.hope-stress-track__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; min-width: 3rem; font-weight: 600; }
-.hope-stress-track__label--hope { color: var(--color-hope, #d4a056); }
-.hope-stress-track__label--stress { color: var(--color-stress, #c05050); }
-.hope-stress-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(212,160,86,.15) 20%, rgba(212,160,86,.15) 80%, transparent); }
-.resource-box--stress { border-color: rgba(160,50,50,.35); }
-.resource-box--stress:hover { border-color: rgba(160,50,50,.6); background: rgba(160,50,50,.1); }
-.resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
-.resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
 
 .inventory-section { margin-bottom: 1.5rem; }
 .inventory-section__title { font-size: .8rem; text-transform: uppercase; letter-spacing: .25em; color: var(--color-accent); margin: 0 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid rgba(212,160,86,.2); }
@@ -77,42 +78,17 @@
 .inventory-item__stat { font-family: var(--font-body); font-size: .8rem; color: rgba(212,160,86,.6); white-space: nowrap; }
 
 @media (max-width: 768px) {
-  .sheet-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .traits-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .card-group__list--grid {
-    grid-template-columns: 1fr;
-  }
+  .sheet-columns { grid-template-columns: 1fr; }
+  .traits-row { grid-template-columns: repeat(3, 1fr); }
+  .card-group__list--grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
-  .sheet-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .traits-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .trait-badge__subskills {
-    display: none;
-  }
-
-  .level-badge {
-    width: 44px;
-    height: 44px;
-  }
-
-  .level-badge__value {
-    font-size: 1.2rem;
-  }
+  .sheet-header { flex-direction: column; gap: 0.75rem; align-items: flex-start; }
+  .traits-row { grid-template-columns: repeat(3, 1fr); }
+  .trait-badge__subskills { display: none; }
+  .level-badge { width: 44px; height: 44px; }
+  .level-badge__value { font-size: 1.2rem; }
 }
 
 .shield:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }

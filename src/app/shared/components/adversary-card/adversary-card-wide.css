@@ -1,0 +1,31 @@
+.adversary-card--wide { flex-flow: row; }
+
+.adversary-card--wide .adversary-card__header {
+  flex-shrink: 0;
+  width: 220px;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  border-bottom: none;
+  border-right: 1px solid rgba(199,64,64,.25);
+  padding: 1.5rem 1.25rem;
+}
+
+.adversary-card--wide .adversary-card__header-main {
+  flex-flow: column;
+  align-items: flex-start;
+}
+
+.adversary-card--wide .adversary-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .adversary-card--wide { flex-flow: column; }
+  .adversary-card--wide .adversary-card__header {
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(199,64,64,.25);
+  }
+}

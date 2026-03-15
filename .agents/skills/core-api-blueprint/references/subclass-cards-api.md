@@ -85,6 +85,7 @@ Cookie: AUTH_TOKEN=<jwt>
         "lastModifiedAt": "2026-03-13T10:00:00"
       },
       "domainNames": ["Blade", "Bone"],
+      "domainIds": [1, 2],
       "spellcastingTrait": {
         "trait": "INSTINCT",
         "description": "Intuition, awareness, and natural understanding",
@@ -166,6 +167,7 @@ Cookie: AUTH_TOKEN=<jwt>
     "lastModifiedAt": "2026-03-13T10:00:00"
   },
   "domainNames": [],
+  "domainIds": [],
   "level": "FOUNDATION",
   "createdAt": "2026-03-13T10:00:00",
   "lastModifiedAt": "2026-03-13T10:00:00"
@@ -329,6 +331,7 @@ POST /api/dh/cards/subclass/bulk
     "subclassPathId": 1,
     "subclassPathName": "Warden of Renewal",
     "domainNames": [],
+    "domainIds": [],
     "level": "FOUNDATION",
     "createdAt": "2026-03-13T10:00:00",
     "lastModifiedAt": "2026-03-13T10:00:00"
@@ -347,6 +350,7 @@ POST /api/dh/cards/subclass/bulk
     "subclassPathId": 1,
     "subclassPathName": "Warden of Renewal",
     "domainNames": [],
+    "domainIds": [],
     "level": "SPECIALIZATION",
     "createdAt": "2026-03-13T10:00:00",
     "lastModifiedAt": "2026-03-13T10:00:00"
@@ -408,6 +412,7 @@ PUT /api/dh/cards/subclass/{id}
   "subclassPathId": 1,
   "subclassPathName": "Warden of Renewal",
   "domainNames": [],
+  "domainIds": [],
   "level": "SPECIALIZATION",
   "createdAt": "2026-03-13T10:00:00",
   "lastModifiedAt": "2026-03-13T10:05:00"
@@ -469,6 +474,7 @@ Restores a soft-deleted subclass card (clears `deletedAt` timestamp).
   "subclassPathId": 1,
   "subclassPathName": "Warden of Renewal",
   "domainNames": [],
+  "domainIds": [],
   "level": "FOUNDATION",
   "createdAt": "2026-03-13T10:00:00",
   "lastModifiedAt": "2026-03-13T10:10:00"
@@ -652,7 +658,7 @@ The `expand` query parameter controls which relationships are returned as full o
 | `subclassPath` | Includes full `SubclassPathResponse` object |
 | `costTags` | Includes full `CardCostTagResponse` objects; also propagates to nested feature cost tags |
 
-Without expansion, the response still includes summary fields: `expansionName`, `associatedClassId`, `associatedClassName`, `subclassPathId`, `subclassPathName`, `domainNames`, `spellcastingTrait`.
+Without expansion, the response still includes summary fields: `expansionName`, `associatedClassId`, `associatedClassName`, `subclassPathId`, `subclassPathName`, `domainNames`, `domainIds`, `spellcastingTrait`.
 
 ---
 
@@ -679,6 +685,7 @@ Without expansion, the response still includes summary fields: `expansionName`, 
 | `subclassPathName` | string | Yes | Subclass path name |
 | `subclassPath` | object | Only with `?expand=subclassPath` | Full SubclassPathResponse |
 | `domainNames` | string[] | Yes | Domain names from path |
+| `domainIds` | long[] | Yes | Domain IDs from path |
 | `spellcastingTrait` | object | If path has spellcasting | TraitInfo with `trait`, `description`, `examples` |
 | `level` | string | Yes | Subclass level enum value |
 | `createdAt` | datetime | Yes | Creation timestamp |

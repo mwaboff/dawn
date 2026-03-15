@@ -1,0 +1,69 @@
+<div class="card-group">
+  <h3 class="card-group__heading" [class]="'card-group__heading--' + cardType()">{{ heading() }}</h3>
+  <div class="card-group__list" [class.card-group__list--grid]="useGrid()">
+    @for (card of cards(); track card.id) {
+      <div class="expandable-card" [class]="'expandable-card--' + cardType()">
+        <button class="expandable-card__header" (click)="onToggle(card.id)"
+                [attr.aria-expanded]="isExpanded(card.id)"
+                [attr.aria-controls]="'card-body-' + card.id">
+          <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isExpanded(card.id)" aria-hidden="true">&#9654;</span>
+          <h4 class="expandable-card__name">{{ card.name }}</h4>
+          @if (isDomainCard(card)) {
+            <div class="expandable-card__meta">
+              @if (card.domainName) {
+                <span class="expandable-card__domain">{{ card.domainName }}</span>
+              }
+              @if (card.level !== undefined) {
+                <span class="expandable-card__meta-badge">Lvl {{ card.level }}</span>
+              }
+              @if (card.type) {
+                <span class="expandable-card__meta-badge">{{ card.type }}</span>
+              }
+              @if (card.recallCost !== undefined) {
+                <span class="expandable-card__meta-badge">Recall: {{ card.recallCost }}</span>
+              }
+            </div>
+          }
+        </button>
+        @if (isExpanded(card.id)) {
+          <div class="expandable-card__body" [id]="'card-body-' + card.id">
+            @if (isSubclassCard(card)) {
+              <div class="card-meta">
+                @if (card.associatedClassName) {
+                  <span class="card-meta__item"><span class="card-meta__label">Class:</span> {{ card.associatedClassName }}</span>
+                }
+                @if (card.subclassPathName) {
+                  <span class="card-meta__item"><span class="card-meta__label">Path:</span> {{ card.subclassPathName }}</span>
+                }
+                @if (card.level) {
+                  <span class="card-meta__item card-meta__badge">{{ card.level }}</span>
+                }
+                @if (card.domainNames && card.domainNames.length > 0) {
+                  <span class="card-meta__item"><span class="card-meta__label">Domains:</span> {{ card.domainNames.join(', ') }}</span>
+                }
+              </div>
+            }
+            @if (card.description) {
+              <p class="card-description">{{ card.description }}</p>
+            }
+            @for (feature of card.features; track feature.name) {
+              <div>
+                @if (feature.name) {
+                  <strong class="feature-row__name">{{ feature.name }}</strong>
+                }
+                <p class="feature-row__description">{{ feature.description }}</p>
+                @if (feature.tags.length > 0) {
+                  <div class="feature-row__tags">
+                    @for (tag of feature.tags; track tag) {
+                      <span class="feature-tag">{{ tag }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

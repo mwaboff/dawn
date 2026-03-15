@@ -6,7 +6,7 @@ import { CardFeatureItem } from '../daggerheart-card/card-feature-item/card-feat
 @Component({
   selector: 'app-adversary-card',
   templateUrl: './adversary-card.html',
-  styleUrl: './adversary-card.css',
+  styleUrls: ['./adversary-card.css', './adversary-card-wide.css'],
   imports: [CardFeatureItem],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

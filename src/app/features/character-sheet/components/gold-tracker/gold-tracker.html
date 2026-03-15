@@ -1,0 +1,22 @@
+<div class="gold-total" aria-live="polite">
+  <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
+  <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
+  <span class="gold-total__label">gold</span>
+</div>
+<div class="gold-controls" role="group" aria-label="Adjust gold">
+  <div class="gold-denomination">
+    <button class="gold-btn gold-btn--subtract" (click)="onAdjust(-1)" aria-label="Remove 1 gold (handful)">&#8722;</button>
+    <span class="gold-denomination__label">Handful<span class="gold-denomination__value">(1)</span></span>
+    <button class="gold-btn gold-btn--add" (click)="onAdjust(1)" aria-label="Add 1 gold (handful)">+</button>
+  </div>
+  <div class="gold-denomination">
+    <button class="gold-btn gold-btn--subtract" (click)="onAdjust(-10)" aria-label="Remove 10 gold (bag)">&#8722;</button>
+    <span class="gold-denomination__label">Bag<span class="gold-denomination__value">(10)</span></span>
+    <button class="gold-btn gold-btn--add" (click)="onAdjust(10)" aria-label="Add 10 gold (bag)">+</button>
+  </div>
+  <div class="gold-denomination">
+    <button class="gold-btn gold-btn--subtract" (click)="onAdjust(-100)" aria-label="Remove 100 gold (chest)">&#8722;</button>
+    <span class="gold-denomination__label">Chest<span class="gold-denomination__value">(100)</span></span>
+    <button class="gold-btn gold-btn--add" (click)="onAdjust(100)" aria-label="Add 100 gold (chest)">+</button>
+  </div>
+</div>

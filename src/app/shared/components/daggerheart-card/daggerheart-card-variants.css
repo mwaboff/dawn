@@ -1,0 +1,33 @@
+.card--type-class { --ca: #d4a056; --cd: rgba(212,160,86,.3); --cg: rgba(212,160,86,.15); }
+.card--type-subclass { --ca: #b87fd4; --cd: rgba(184,127,212,.3); --cg: rgba(184,127,212,.15); }
+.card--type-heritage { --ca: #d45656; --cd: rgba(212,86,86,.3); --cg: rgba(212,86,86,.15); }
+.card--type-community { --ca: #56d478; --cd: rgba(86,212,120,.3); --cg: rgba(86,212,120,.15); }
+.card--type-ancestry { --ca: #d4c256; --cd: rgba(212,194,86,.3); --cg: rgba(212,194,86,.15); }
+.card--type-domain { --ca: #d48056; --cd: rgba(212,128,86,.3); --cg: rgba(212,128,86,.15); }
+.card--type-weapon { --ca: #c75050; --cd: rgba(199,80,80,.3); --cg: rgba(199,80,80,.15); }
+.card--type-armor { --ca: #5080c7; --cd: rgba(80,128,199,.3); --cg: rgba(80,128,199,.15); }
+.card--type-loot { --ca: #c7a850; --cd: rgba(199,168,80,.3); --cg: rgba(199,168,80,.15); }
+.card--type-companion { --ca: #6bad56; --cd: rgba(107,173,86,.3); --cg: rgba(107,173,86,.15); }
+.card--type-subclassPath { --ca: #56b4c7; --cd: rgba(86,180,199,.3); --cg: rgba(86,180,199,.15); }
+
+.card--selected::after {
+  content: '\2713'; position: absolute; top: .5rem; right: .5rem;
+  width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;
+  background: var(--ca); color: #1a1412;
+  font-size: .75rem; font-weight: 900; border-radius: 50%; z-index: 5; line-height: 1;
+}
+
+.card__features { border-top: 1px solid rgba(212,160,86,.15); margin-top: .75rem; padding-top: .5rem; }
+.card__features-toggle {
+  display: flex; align-items: center; gap: .4rem;
+  background: none; border: none; cursor: pointer; padding: .25rem 0;
+  font-family: var(--font-display); font-size: .9rem; font-weight: 600;
+  color: var(--ca); text-transform: uppercase; letter-spacing: .08em;
+}
+.card__features-toggle:hover { opacity: .85; }
+.card__features-toggle-icon { display: inline-block; transition: transform .2s ease; font-size: .75rem; }
+.card__features-toggle-icon--expanded { transform: rotate(90deg); }
+.card__features-list { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.card__features-list--expanded { max-height: 2000px; overflow: visible; }
+
+.card--disabled { opacity: 0.5; pointer-events: none; filter: grayscale(0.3); }

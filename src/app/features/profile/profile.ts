@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -7,13 +7,14 @@ import { PaginatedResponse } from '../../shared/models/api.model';
 import { CharacterSummary, ClassEntry } from './models/profile.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { environment } from '../../../environments/environment';
+import { RosterList } from './components/roster-list/roster-list';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RosterList],
 })
 export class Profile implements OnInit {
   private readonly router = inject(Router);
@@ -34,8 +35,6 @@ export class Profile implements OnInit {
       day: 'numeric',
     });
   });
-
-  readonly hasCharacters = computed(() => this.characters().length > 0);
 
   ngOnInit(): void {
     const userId = this.user()?.id;
