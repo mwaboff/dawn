@@ -228,7 +228,7 @@ Character advancement options available during level-up. Each type has a minimum
 
 | Value | Description | Min Tier |
 |-------|-------------|----------|
-| `BOOST_TRAITS` | +1 to two unmarked traits, mark them | 2 |
+| `BOOST_TRAITS` | +1 to two traits, mark them. Traits must be unmarked unless entering Tier 3 or 4 (levels 5, 8) where marks are cleared first | 2 |
 | `GAIN_HP` | +1 hit point max | 2 |
 | `GAIN_STRESS` | +1 stress max | 2 |
 | `BOOST_EXPERIENCES` | +1 modifier to two experiences | 2 |

@@ -52,7 +52,15 @@ export class AdvancementConfig implements OnInit {
     return this.advancement().type;
   }
 
-  get unmarkedTraits(): TraitDisplay[] {
+  get marksWillBeCleared(): boolean {
+    const options = this.levelUpOptions();
+    return options.isTierTransition && (options.nextTier === 3 || options.nextTier === 4);
+  }
+
+  get selectableTraits(): TraitDisplay[] {
+    if (this.marksWillBeCleared) {
+      return this.characterSheet().traits;
+    }
     return this.characterSheet().traits.filter(t => !t.marked);
   }
 

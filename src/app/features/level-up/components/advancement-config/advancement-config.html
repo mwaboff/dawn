@@ -1,9 +1,9 @@
 @switch (type) {
   @case ('BOOST_TRAITS') {
     <div class="config-section">
-      <p class="config-hint">Select 2 unmarked traits to boost (+1 each, both become marked)</p>
+      <p class="config-hint">Select 2 {{ marksWillBeCleared ? 'traits' : 'unmarked traits' }} to boost (+1 each, both become marked)</p>
       <div class="trait-checkboxes">
-        @for (trait of unmarkedTraits; track trait.name) {
+        @for (trait of selectableTraits; track trait.name) {
           <label class="trait-checkbox" [class.selected]="isTraitSelected(trait.name)">
             <input type="checkbox" [checked]="isTraitSelected(trait.name)"
               [disabled]="!isTraitSelected(trait.name) && selectedTraits().length >= 2"

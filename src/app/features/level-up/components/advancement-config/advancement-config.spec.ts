@@ -167,6 +167,59 @@ describe('AdvancementConfig', () => {
       expect(names).not.toContain('Finesse');
     });
 
+    it('should include marked traits during tier 3 transition', () => {
+      host.levelUpOptions.set({
+        ...mockLevelUpOptions,
+        currentLevel: 4,
+        nextLevel: 5,
+        currentTier: 2,
+        nextTier: 3,
+        isTierTransition: true,
+      });
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxes = compiled.querySelectorAll('.trait-checkbox');
+      expect(checkboxes.length).toBe(6);
+
+      const names = Array.from(checkboxes).map(
+        cb => cb.querySelector('.trait-checkbox__name')?.textContent?.trim()
+      );
+      expect(names).toContain('Finesse');
+    });
+
+    it('should include marked traits during tier 4 transition', () => {
+      host.levelUpOptions.set({
+        ...mockLevelUpOptions,
+        currentLevel: 7,
+        nextLevel: 8,
+        currentTier: 3,
+        nextTier: 4,
+        isTierTransition: true,
+      });
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxes = compiled.querySelectorAll('.trait-checkbox');
+      expect(checkboxes.length).toBe(6);
+    });
+
+    it('should NOT include marked traits during tier 2 transition', () => {
+      host.levelUpOptions.set({
+        ...mockLevelUpOptions,
+        currentLevel: 1,
+        nextLevel: 2,
+        currentTier: 1,
+        nextTier: 2,
+        isTierTransition: true,
+      });
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxes = compiled.querySelectorAll('.trait-checkbox');
+      expect(checkboxes.length).toBe(5);
+    });
+
     it('should display trait modifiers', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const modifiers = compiled.querySelectorAll('.trait-checkbox__modifier');
