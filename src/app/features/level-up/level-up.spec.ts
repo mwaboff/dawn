@@ -73,7 +73,7 @@ function makeOptionsResponse(overrides: Partial<LevelUpOptionsResponse> = {}): L
     nextLevel: 5,
     currentTier: 2,
     nextTier: 3,
-    isTierTransition: true,
+    tierTransition: true,
     availableAdvancements: [
       { type: 'BOOST_TRAITS', description: '+1 to two traits', limitPerTier: 3, usedInTier: 0, remaining: 3, mutuallyExclusiveWith: null },
       { type: 'GAIN_HP', description: '+1 HP', limitPerTier: 2, usedInTier: 0, remaining: 2, mutuallyExclusiveWith: null },
@@ -199,7 +199,7 @@ describe('LevelUp', () => {
   });
 
   it('computes visible tabs for non-tier transition', () => {
-    createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({ isTierTransition: false, currentTier: 2, nextTier: 2 })));
+    createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({ tierTransition: false, currentTier: 2, nextTier: 2 })));
     fixture.detectChanges();
 
     const tabIds = component.visibleTabs().map(t => t.id);
@@ -300,7 +300,7 @@ describe('LevelUp', () => {
         nextLevel: 3,
         currentTier: 1,
         nextTier: 2,
-        isTierTransition: true,
+        tierTransition: true,
         availableAdvancements: [
           { type: 'BOOST_TRAITS', description: '+1 to two traits', limitPerTier: 3, usedInTier: 0, remaining: 3, mutuallyExclusiveWith: null },
           { type: 'UPGRADE_SUBCLASS', description: 'Upgrade subclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
@@ -318,7 +318,7 @@ describe('LevelUp', () => {
         nextLevel: 4,
         currentTier: 2,
         nextTier: 2,
-        isTierTransition: false,
+        tierTransition: false,
         availableAdvancements: [
           { type: 'GAIN_HP', description: '+1 HP', limitPerTier: 2, usedInTier: 0, remaining: 2, mutuallyExclusiveWith: null },
           { type: 'MULTICLASS', description: 'Multiclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'UPGRADE_SUBCLASS' },

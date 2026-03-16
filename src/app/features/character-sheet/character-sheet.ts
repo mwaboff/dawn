@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
@@ -13,11 +13,10 @@ import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-vi
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner],
+  imports: [SavingSpinner, RouterLink],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
 
@@ -206,13 +205,6 @@ export class CharacterSheet implements OnInit {
           this.swapInFlight.set(false);
         },
       });
-  }
-
-  onLevelUp(): void {
-    const sheet = this.characterSheet();
-    if (sheet) {
-      this.router.navigate(['/character', sheet.id, 'level-up']);
-    }
   }
 
   private initSavePipelines(): void {

@@ -23,7 +23,7 @@
             <h1 class="level-up-header__name">{{ sheet.name }}</h1>
             <p class="level-up-header__transition">
               Lvl {{ levelUpOptions()!.currentLevel }} → Lvl {{ levelUpOptions()!.nextLevel }}
-              @if (levelUpOptions()!.isTierTransition) {
+              @if (levelUpOptions()!.tierTransition) {
                 <span class="tier-badge">Tier {{ levelUpOptions()!.nextTier }}</span>
               }
             </p>

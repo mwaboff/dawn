@@ -166,7 +166,7 @@ export class LevelUp implements OnInit {
 
     const request = assembleLevelUpRequest({
       advancements,
-      newExperienceDescription: (options.isTierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
+      newExperienceDescription: (options.tierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
       newDomainCardId: domainCards[0].id,
       equipNewDomainCard: this.equipNewDomainCard(),
       unequipDomainCardId: this.unequipDomainCardId(),

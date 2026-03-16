@@ -61,7 +61,7 @@ const mockLevelUpOptions: LevelUpOptionsResponse = {
   nextLevel: 2,
   currentTier: 1,
   nextTier: 2,
-  isTierTransition: true,
+  tierTransition: true,
   availableAdvancements: [],
   domainCardLevelCap: null,
   accessibleDomainIds: [],

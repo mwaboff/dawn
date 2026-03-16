@@ -21,7 +21,7 @@ export interface LevelUpOptionsResponse {
   nextLevel: number;
   currentTier: number;
   nextTier: number;
-  isTierTransition: boolean;
+  tierTransition: boolean;
   availableAdvancements: AvailableAdvancement[];
   domainCardLevelCap: number | null;
   accessibleDomainIds: number[];

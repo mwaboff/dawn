@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
@@ -56,20 +56,18 @@ describe('CharacterSheet', () => {
   let component: CharacterSheet;
   let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn> };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
-  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
     mockService = { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse), updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)) };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
-    mockRouter = { navigate: vi.fn() };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
       providers: [
+        provideRouter([]),
         { provide: CharacterSheetService, useValue: mockService },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -476,13 +474,14 @@ describe('CharacterSheet', () => {
       expect(el.querySelector('.level-up-btn')).toBeNull();
     });
 
-    it('onLevelUp navigates to /character/:id/level-up', () => {
+    it('level-up link has correct href', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.onLevelUp();
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/character', 1, 'level-up']);
+      const el: HTMLElement = fixture.nativeElement;
+      const link = el.querySelector('.level-up-btn') as HTMLAnchorElement;
+      expect(link).toBeTruthy();
+      expect(link.pathname).toBe('/character/1/level-up');
     });
   });
 

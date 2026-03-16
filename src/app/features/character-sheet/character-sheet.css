@@ -49,6 +49,7 @@
 .trait-badge__subskill { font-family: var(--fb); font-size: .75rem; color: rgba(245,230,211,.65); text-transform: lowercase; }
 
 .level-up-btn {
+  display: block;
   width: 100%;
   padding: .2rem 0;
   margin-top: .15rem;
@@ -62,6 +63,8 @@
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
   transition: background .2s ease;
 }

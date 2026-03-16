@@ -54,7 +54,7 @@ export class AdvancementConfig implements OnInit {
 
   get marksWillBeCleared(): boolean {
     const options = this.levelUpOptions();
-    return options.isTierTransition && (options.nextTier === 3 || options.nextTier === 4);
+    return options.tierTransition && (options.nextTier === 3 || options.nextTier === 4);
   }
 
   get selectableTraits(): TraitDisplay[] {

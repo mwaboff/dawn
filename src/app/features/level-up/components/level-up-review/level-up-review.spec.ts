@@ -11,7 +11,7 @@ function buildLevelUpOptions(overrides: Partial<LevelUpOptionsResponse> = {}): L
     nextLevel: 2,
     currentTier: 1,
     nextTier: 1,
-    isTierTransition: false,
+    tierTransition: false,
     availableAdvancements: [],
     domainCardLevelCap: null,
     accessibleDomainIds: [1, 2],
@@ -93,13 +93,13 @@ describe('LevelUpReview', () => {
     expect(subtitle?.textContent).toContain('Level 4');
   });
 
-  it('should render tier transition info when isTierTransition is true', () => {
+  it('should render tier transition info when tierTransition is true', () => {
     host.levelUpOptions.set(buildLevelUpOptions({
       currentLevel: 4,
       nextLevel: 5,
       currentTier: 1,
       nextTier: 2,
-      isTierTransition: true,
+      tierTransition: true,
     }));
     hostFixture.detectChanges();
 
@@ -111,8 +111,8 @@ describe('LevelUpReview', () => {
     expect(tier?.textContent).toContain('Tier 2');
   });
 
-  it('should not render tier info when isTierTransition is false', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: false }));
+  it('should not render tier info when tierTransition is false', () => {
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: false }));
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
@@ -121,7 +121,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should render tier achievements section for tier transition', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: true }));
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: true }));
     host.newExperienceDescription.set('Defeated the dragon');
     hostFixture.detectChanges();
 
@@ -138,7 +138,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should not render tier achievements section when not a tier transition', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: false }));
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: false }));
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;

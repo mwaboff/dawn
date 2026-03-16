@@ -3,14 +3,14 @@
     <h3 class="review-banner__title">Level Up Summary</h3>
     <p class="review-banner__subtitle">
       Level {{ levelUpOptions().currentLevel }} → Level {{ levelUpOptions().nextLevel }}
-      @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
+      @if (levelUpOptions().tierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
         <span class="review-banner__tier">(Tier {{ levelUpOptions().currentTier }} → Tier {{ levelUpOptions().nextTier }})</span>
       }
     </p>
   </div>
 
   <div class="review-sections">
-    @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
+    @if (levelUpOptions().tierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
       <div class="review-section">
         <h4 class="review-section__title">Tier Achievements</h4>
         <div class="review-section__content">

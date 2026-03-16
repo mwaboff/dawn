@@ -62,7 +62,7 @@ const mockLevelUpOptions: LevelUpOptionsResponse = {
   nextLevel: 2,
   currentTier: 1,
   nextTier: 2,
-  isTierTransition: true,
+  tierTransition: true,
   availableAdvancements: [],
   domainCardLevelCap: null,
   accessibleDomainIds: [],
@@ -174,7 +174,7 @@ describe('AdvancementConfig', () => {
         nextLevel: 5,
         currentTier: 2,
         nextTier: 3,
-        isTierTransition: true,
+        tierTransition: true,
       });
       hostFixture.detectChanges();
 
@@ -195,7 +195,7 @@ describe('AdvancementConfig', () => {
         nextLevel: 8,
         currentTier: 3,
         nextTier: 4,
-        isTierTransition: true,
+        tierTransition: true,
       });
       hostFixture.detectChanges();
 
@@ -211,7 +211,7 @@ describe('AdvancementConfig', () => {
         nextLevel: 2,
         currentTier: 1,
         nextTier: 2,
-        isTierTransition: true,
+        tierTransition: true,
       });
       hostFixture.detectChanges();
 
