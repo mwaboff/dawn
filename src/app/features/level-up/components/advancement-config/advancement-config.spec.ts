@@ -14,6 +14,7 @@ const mockCharacterSheet: CharacterSheetView = {
   ownerId: 1,
   name: 'Test Hero',
   level: 2,
+  proficiency: { base: 1, modified: 1, hasModifier: false, modifierSources: [] },
   evasion: { base: 10, modified: 10, hasModifier: false, modifierSources: [] },
   hitPointMax: { base: 6, modified: 6, hasModifier: false, modifierSources: [] },
   armorScore: { base: 0, modified: 0, hasModifier: false, modifierSources: [] },

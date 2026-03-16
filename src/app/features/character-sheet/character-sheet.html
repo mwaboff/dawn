@@ -35,13 +35,13 @@
         }
       </div>
       <div class="sheet-header__stats">
-        <div class="level-badge">
+        <div class="level-badge" [class.level-badge--can-level]="canLevelUp()">
           <span class="level-badge__label">Lvl</span>
           <span class="level-badge__value">{{ sheet.level }}</span>
+          @if (canLevelUp()) {
+            <button class="level-up-btn" (click)="onLevelUp()">Level+</button>
+          }
         </div>
-        @if (canLevelUp()) {
-          <button class="level-up-btn" (click)="onLevelUp()">Level Up</button>
-        }
         <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
           <span class="shield__label">Evasion</span>
           <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
@@ -64,13 +64,24 @@
             </div>
           }
         </div>
+        <div class="shield" [class.shield--interactive]="sheet.proficiency.hasModifier" [attr.tabindex]="sheet.proficiency.hasModifier ? 0 : null" [attr.aria-label]="sheet.proficiency.hasModifier ? 'Proficiency ' + sheet.proficiency.modified + ' (hover or focus for modifier breakdown)' : null">
+          <span class="shield__label">Prof</span>
+          <span class="shield__value" [class.shield__value--modified]="sheet.proficiency.hasModifier">{{ sheet.proficiency.modified }}</span>
+          @if (sheet.proficiency.hasModifier) {
+            <div class="modifier-tooltip" role="tooltip">
+              @for (source of sheet.proficiency.modifierSources; track source.sourceName) {
+                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
+              }
+            </div>
+          }
+        </div>
       </div>
     </header>
 
     <section class="traits-section" aria-label="Traits">
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
-          <div class="trait-badge" [class.trait-badge--marked]="trait.marked"
+          <div class="trait-badge"
                [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier) + (trait.marked ? ', marked' : '')">
             <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
             <span class="trait-badge__modifier" aria-hidden="true">{{ formatModifier(trait.modifier) }}</span>

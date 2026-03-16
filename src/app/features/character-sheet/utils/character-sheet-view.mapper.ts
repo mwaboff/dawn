@@ -35,6 +35,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     pronouns: sheet.pronouns,
     level: sheet.level,
 
+    proficiency: applyModifiers(sheet.proficiency, modifiers, 'PROFICIENCY'),
     evasion: applyModifiers(sheet.evasion, modifiers, 'EVASION'),
     hitPointMax: applyModifiers(sheet.hitPointMax, modifiers, 'HIT_POINT_MAX'),
     armorScore: applyModifiers(sheet.armorMax, modifiers, 'ARMOR_SCORE'),

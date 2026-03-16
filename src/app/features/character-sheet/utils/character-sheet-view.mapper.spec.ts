@@ -483,5 +483,13 @@ describe('mapToCharacterSheetView', () => {
 
       expect(result.armorScore.base).toBe(4);
     });
+
+    it('maps proficiency as a DisplayStat', () => {
+      const result = mapToCharacterSheetView(makeSheet({ proficiency: 2 }));
+
+      expect(result.proficiency.base).toBe(2);
+      expect(result.proficiency.modified).toBe(2);
+      expect(result.proficiency.hasModifier).toBe(false);
+    });
   });
 });

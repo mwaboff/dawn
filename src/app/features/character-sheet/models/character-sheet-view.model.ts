@@ -5,6 +5,7 @@ export interface CharacterSheetView {
   pronouns?: string;
   level: number;
 
+  proficiency: DisplayStat;
   evasion: DisplayStat;
   hitPointMax: DisplayStat;
   armorScore: DisplayStat;
