@@ -501,7 +501,7 @@ curl -b "AUTH_TOKEN=<token>" \
     },
     {
       "type": "UPGRADE_SUBCLASS",
-      "remaining": 3,
+      "remaining": 1,
       "mutuallyExclusiveWith": ["MULTICLASS"]
     },
     {
@@ -511,7 +511,7 @@ curl -b "AUTH_TOKEN=<token>" \
     },
     {
       "type": "MULTICLASS",
-      "remaining": 3,
+      "remaining": 2,
       "mutuallyExclusiveWith": ["UPGRADE_SUBCLASS"]
     }
   ],
@@ -650,6 +650,8 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
 | `400`  | Advancement type not available in target tier                          |
 | `400`  | Advancement type usage exceeded for tier                               |
 | `400`  | Mutual exclusion violation (UPGRADE_SUBCLASS vs MULTICLASS)            |
+| `400`  | Duplicate BOOST_TRAITS with overlapping traits across choices          |
+| `400`  | Duplicate MULTICLASS targeting the same class in both choices          |
 | `400`  | BOOST_TRAITS: traits already marked (except at levels 5/8 tier transitions) or wrong count |
 | `400`  | BOOST_EXPERIENCES: experience IDs invalid or wrong count               |
 | `400`  | Domain card not from accessible domain or exceeds level cap            |

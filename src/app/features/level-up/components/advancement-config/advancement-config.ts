@@ -1,4 +1,4 @@
-import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, computed, inject, OnInit, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { SubclassPathSelector } from '../../../../shared/components/subclass-path-selector/subclass-path-selector';
 import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
@@ -7,6 +7,7 @@ import { CardData } from '../../../../shared/components/daggerheart-card/daggerh
 import { DomainService } from '../../../../shared/services/domain.service';
 import { SubclassService } from '../../../../shared/services/subclass.service';
 import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-advancement-config',
@@ -26,6 +27,7 @@ export class AdvancementConfig implements OnInit {
   readonly initialChoice = input<AdvancementChoice>();
 
   readonly newExperienceDescription = input<string>('');
+  readonly excludedTraits = input<TraitEnum[]>([]);
 
   readonly configChanged = output<AdvancementChoice>();
 
@@ -40,6 +42,22 @@ export class AdvancementConfig implements OnInit {
   readonly subclassCards = signal<CardData[]>([]);
   readonly subclassCardsLoading = signal(false);
   readonly selectedSubclassCard = signal<CardData | undefined>(undefined);
+
+  readonly ownedSubclassCardIds = computed(() => this.characterSheet().subclassCards.map(c => c.id));
+
+  constructor() {
+    effect(() => {
+      const excluded = this.excludedTraits();
+      if (excluded.length === 0) return;
+
+      const current = this.selectedTraits();
+      const filtered = current.filter(t => !excluded.includes(t));
+      if (filtered.length !== current.length) {
+        this.selectedTraits.set(filtered);
+        this.emitChoice({ type: 'BOOST_TRAITS', traits: filtered });
+      }
+    });
+  }
 
   readonly subclassPaths = signal<CardData[]>([]);
   readonly subclassPathsLoading = signal(false);
@@ -92,19 +110,25 @@ export class AdvancementConfig implements OnInit {
     const current = this.selectedTraits();
     const idx = current.indexOf(traitEnum);
 
+    let updated: TraitEnum[];
     if (idx >= 0) {
-      this.selectedTraits.set(current.filter(t => t !== traitEnum));
+      updated = current.filter(t => t !== traitEnum);
     } else if (current.length < 2) {
-      const updated = [...current, traitEnum];
-      this.selectedTraits.set(updated);
-      if (updated.length === 2) {
-        this.emitChoice({ type: 'BOOST_TRAITS', traits: updated });
-      }
+      updated = [...current, traitEnum];
+    } else {
+      return;
     }
+
+    this.selectedTraits.set(updated);
+    this.emitChoice({ type: 'BOOST_TRAITS', traits: updated });
   }
 
   isTraitSelected(traitName: string): boolean {
     return this.selectedTraits().includes(traitName.toUpperCase() as TraitEnum);
+  }
+
+  isTraitExcluded(traitName: string): boolean {
+    return this.excludedTraits().includes(traitName.toUpperCase() as TraitEnum);
   }
 
   private get totalExperienceSelections(): number {
@@ -202,24 +226,24 @@ export class AdvancementConfig implements OnInit {
 
   private loadSubclassUpgrades(): void {
     const sheet = this.characterSheet();
-    const classIds = new Set(
+    const classIds = [...new Set(
       sheet.subclassCards
         .map(c => c.associatedClassId)
         .filter((id): id is number => id != null)
-    );
+    )];
 
-    if (classIds.size === 0) return;
+    if (classIds.length === 0) return;
     this.subclassCardsLoading.set(true);
 
-    const classId = [...classIds][0];
-    this.subclassService.getSubclasses(classId).subscribe({
-      next: cards => {
+    forkJoin(classIds.map(id => this.subclassService.getSubclasses(id))).subscribe({
+      next: results => {
+        const allCards = results.flat();
         const currentPathNames = new Set(
           sheet.subclassCards
             .map(c => c.subclassPathName)
             .filter((name): name is string => name != null)
         );
-        const filtered = cards.filter(c => {
+        const filtered = allCards.filter(c => {
           const pathName = c.metadata?.['subclassPathName'] as string;
           return pathName && currentPathNames.has(pathName);
         });

@@ -334,21 +334,18 @@
                         [attr.aria-controls]="'card-body-' + card.id">
                   <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
                   <h4 class="expandable-card__name">{{ card.name }}</h4>
+                  @if (card.level) {
+                    <span class="expandable-card__meta-badge expandable-card__meta-badge--subclass">{{ card.level }}</span>
+                  }
                 </button>
                 @if (isCardExpanded(card.id)) {
                   <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     <div class="card-meta">
-                      @if (card.associatedClassName) {
-                        <span class="card-meta__item"><span class="card-meta__label">Class:</span> {{ card.associatedClassName }}</span>
-                      }
-                      @if (card.subclassPathName) {
-                        <span class="card-meta__item"><span class="card-meta__label">Path:</span> {{ card.subclassPathName }}</span>
-                      }
-                      @if (card.level) {
-                        <span class="card-meta__item card-meta__badge">{{ card.level }}</span>
-                      }
                       @if (card.domainNames && card.domainNames.length > 0) {
                         <span class="card-meta__item"><span class="card-meta__label">Domains:</span> {{ card.domainNames.join(', ') }}</span>
+                      }
+                      @if (card.associatedClassName) {
+                        <span class="card-meta__item"><span class="card-meta__label">Class:</span> {{ card.associatedClassName }}</span>
                       }
                     </div>
                     @if (card.description) {

@@ -25,3 +25,7 @@
   color: #d4a056; background: rgba(212, 160, 86, .15);
   padding: .1rem .4rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .03em;
 }
+
+.trait-checkbox.excluded { opacity: .5; border-color: #ccc; cursor: not-allowed; }
+.trait-checkbox.excluded:hover { border-color: #ccc; }
+.trait-excluded-note { font-family: 'Lora', serif; font-size: .75rem; color: #999; font-style: italic; }

@@ -15,7 +15,20 @@
         (keydown.space)="toggleAdvancement(adv); $event.preventDefault()">
         <div class="advancement-tile__header">
           <span class="advancement-tile__label">{{ formatTypeLabel(adv.type) }}</span>
-          <span class="advancement-tile__count">{{ adv.remaining }}/{{ adv.limitPerTier }}</span>
+          <span class="advancement-tile__right">
+            @if (isSelected(adv.type)) {
+              <span class="advancement-tile__quantity">
+                @if (selectionCount(adv.type) > 1) {
+                  <button class="qty-btn" (click)="decrementAdvancement(adv, $event)" aria-label="Remove one">−</button>
+                }
+                <span class="qty-value" [class.highlighted]="selectionCount(adv.type) > 1">×{{ selectionCount(adv.type) }}</span>
+                @if (canIncrement(adv)) {
+                  <button class="qty-btn" (click)="incrementAdvancement(adv, $event)" aria-label="Add another">+</button>
+                }
+              </span>
+            }
+            <span class="advancement-tile__count">{{ adv.remaining }}/{{ adv.limitPerTier }}</span>
+          </span>
         </div>
         <p class="advancement-tile__description">
           {{ adv.description }}
@@ -29,16 +42,22 @@
       </div>
 
       @if (isSelected(adv.type) && needsConfig(adv.type)) {
-        <div class="advancement-config-wrapper">
-          <app-advancement-config
-            [advancement]="adv"
-            [characterSheet]="characterSheet()"
-            [levelUpOptions]="levelUpOptions()"
-            [initialChoice]="getChoice(adv.type)"
-            [newExperienceDescription]="newExperienceDescription()"
-            (configChanged)="onConfigChanged(adv.type, $event)"
-          />
-        </div>
+        @for (instance of getSelectionInstances(adv.type); track instance) {
+          <div class="advancement-config-wrapper">
+            @if (selectionCount(adv.type) > 1) {
+              <p class="config-instance-label">Selection {{ instance + 1 }}</p>
+            }
+            <app-advancement-config
+              [advancement]="adv"
+              [characterSheet]="characterSheet()"
+              [levelUpOptions]="levelUpOptions()"
+              [initialChoice]="getChoiceForInstance(adv.type, instance)"
+              [newExperienceDescription]="newExperienceDescription()"
+              [excludedTraits]="getExcludedTraits(instance)"
+              (configChanged)="onConfigChangedForInstance(adv.type, instance, $event)"
+            />
+          </div>
+        }
       }
     }
   </div>

@@ -28,6 +28,7 @@ const MOCK_SUBCLASS_CARDS: CardData[] = [
     [cards]="cards()"
     [selectedCard]="selectedCard()"
     [collapsibleFeatures]="collapsibleFeatures()"
+    [ownedCardIds]="ownedCardIds()"
     (cardSelected)="onCardSelected($event)"
   />`,
   imports: [SubclassPathSelector],
@@ -36,6 +37,7 @@ class TestHost {
   cards = signal<CardData[]>([]);
   selectedCard = signal<CardData | undefined>(undefined);
   collapsibleFeatures = signal(false);
+  ownedCardIds = signal<number[]>([]);
   lastSelectedCard: CardData | undefined;
 
   onCardSelected(card: CardData): void {
@@ -189,5 +191,121 @@ describe('SubclassPathSelector', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const card = compiled.querySelector('app-daggerheart-card');
     expect(card).toBeTruthy();
+  });
+
+  describe('upgrade mode (ownedCardIds provided)', () => {
+    beforeEach(() => {
+      host.cards.set(MOCK_SUBCLASS_CARDS);
+      host.ownedCardIds.set([100, 200]);
+      fixture.detectChanges();
+    });
+
+    it('should default to the next upgrade tab instead of Foundation', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const activeTab = compiled.querySelector('.tabbed-path__tab--active');
+      expect(activeTab?.textContent).toContain('Specialization');
+    });
+
+    it('should apply owned class to tabs with owned cards', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      expect(firstPathTabs[0].classList.contains('tabbed-path__tab--owned')).toBe(true);
+    });
+
+    it('should apply next class to tabs with next upgrade cards', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      expect(firstPathTabs[1].classList.contains('tabbed-path__tab--next')).toBe(true);
+    });
+
+    it('should apply locked class to tabs beyond the next upgrade', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      expect(firstPathTabs[2].classList.contains('tabbed-path__tab--locked')).toBe(true);
+    });
+
+    it('should show owned badge on owned tabs', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const badge = compiled.querySelector('.tab-badge--owned');
+      expect(badge).toBeTruthy();
+    });
+
+    it('should show card-state--owned wrapper for owned cards', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      (firstPathTabs[0] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const wrapper = compiled.querySelector('.card-state--owned');
+      expect(wrapper).toBeTruthy();
+    });
+
+    it('should show Owned badge on owned card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      (firstPathTabs[0] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const badge = compiled.querySelector('.card-state-badge--owned');
+      expect(badge?.textContent).toContain('Owned');
+    });
+
+    it('should emit the next upgrade card when clicked', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeTruthy();
+      expect(host.lastSelectedCard?.id).toBe(101);
+    });
+
+    it('should not emit when clicking an owned card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      (firstPathTabs[0] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeUndefined();
+    });
+
+    it('should not emit when clicking a locked card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      (firstPathTabs[2] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeUndefined();
+    });
+
+    it('should show card-state--locked wrapper for locked cards', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      (firstPathTabs[2] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const wrapper = compiled.querySelector('.card-state--locked');
+      expect(wrapper).toBeTruthy();
+    });
+
+    it('should allow tabs to still be clickable for browsing', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+
+      (firstPathTabs[2] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(firstPathTabs[2].classList.contains('tabbed-path__tab--active')).toBe(true);
+      const card = compiled.querySelector('app-daggerheart-card');
+      expect(card).toBeTruthy();
+    });
   });
 });

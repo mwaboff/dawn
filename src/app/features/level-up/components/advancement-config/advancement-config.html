@@ -4,17 +4,21 @@
       <p class="config-hint">Select 2 {{ marksWillBeCleared ? 'traits' : 'unmarked traits' }} to boost (+1 each, both become marked)</p>
       <div class="trait-checkboxes">
         @for (trait of selectableTraits; track trait.name) {
-          <label class="trait-checkbox" [class.selected]="isTraitSelected(trait.name)">
+          <label class="trait-checkbox" [class.selected]="isTraitSelected(trait.name)" [class.excluded]="isTraitExcluded(trait.name)">
             <input type="checkbox" [checked]="isTraitSelected(trait.name)"
-              [disabled]="!isTraitSelected(trait.name) && selectedTraits().length >= 2"
+              [disabled]="isTraitExcluded(trait.name) || (!isTraitSelected(trait.name) && selectedTraits().length >= 2)"
               (change)="toggleTrait(trait.name)" />
             <span class="trait-checkbox__name">{{ trait.name }}</span>
-            <span class="trait-checkbox__modifier">
-              {{ trait.modifier >= 0 ? '+' : '' }}{{ trait.modifier }}
-              @if (isTraitSelected(trait.name)) {
-                <span class="trait-boost-arrow"> → {{ trait.modifier + 1 >= 0 ? '+' : '' }}{{ trait.modifier + 1 }}</span>
-              }
-            </span>
+            @if (isTraitExcluded(trait.name)) {
+              <span class="trait-excluded-note">(chosen in other selection)</span>
+            } @else {
+              <span class="trait-checkbox__modifier">
+                {{ trait.modifier >= 0 ? '+' : '' }}{{ trait.modifier }}
+                @if (isTraitSelected(trait.name)) {
+                  <span class="trait-boost-arrow"> → {{ trait.modifier + 1 >= 0 ? '+' : '' }}{{ trait.modifier + 1 }}</span>
+                }
+              </span>
+            }
           </label>
         }
       </div>
@@ -77,13 +81,14 @@
   }
   @case ('UPGRADE_SUBCLASS') {
     <div class="config-section">
-      <p class="config-hint">Select an upgraded subclass card from your path</p>
+      <p class="config-hint">Select the next upgrade for your subclass path</p>
       @if (subclassCardsLoading()) {
         <app-card-selection-grid [cards]="[]" [loading]="true" [skeletonCount]="3" />
       } @else {
         <app-subclass-path-selector
           [cards]="subclassCards()"
           [selectedCard]="selectedSubclassCard()"
+          [ownedCardIds]="ownedSubclassCardIds()"
           [collapsibleFeatures]="true"
           (cardSelected)="onSubclassCardSelected($event)"
         />

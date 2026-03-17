@@ -5,39 +5,73 @@
         <button
           class="tabbed-path__tab"
           [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
+          [class.tabbed-path__tab--owned]="getTabState(path, 'FOUNDATION') === 'owned'"
+          [class.tabbed-path__tab--next]="getTabState(path, 'FOUNDATION') === 'next'"
+          [class.tabbed-path__tab--locked]="getTabState(path, 'FOUNDATION') === 'locked'"
           (click)="setPathLevelTab(path.pathId, 'FOUNDATION')"
           role="tab"
           [attr.aria-selected]="getPathLevelTab(path.pathId) === 'FOUNDATION'"
-        >Foundation</button>
+        >
+          Foundation
+          @if (getTabState(path, 'FOUNDATION') === 'owned') {
+            <span class="tab-badge tab-badge--owned">&#10003;</span>
+          }
+        </button>
         @if (path.specialization) {
           <button
             class="tabbed-path__tab"
             [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
+            [class.tabbed-path__tab--owned]="getTabState(path, 'SPECIALIZATION') === 'owned'"
+            [class.tabbed-path__tab--next]="getTabState(path, 'SPECIALIZATION') === 'next'"
+            [class.tabbed-path__tab--locked]="getTabState(path, 'SPECIALIZATION') === 'locked'"
             (click)="setPathLevelTab(path.pathId, 'SPECIALIZATION')"
             role="tab"
             [attr.aria-selected]="getPathLevelTab(path.pathId) === 'SPECIALIZATION'"
-          >Specialization</button>
+          >
+            Specialization
+            @if (getTabState(path, 'SPECIALIZATION') === 'owned') {
+              <span class="tab-badge tab-badge--owned">&#10003;</span>
+            }
+          </button>
         }
         @if (path.mastery) {
           <button
             class="tabbed-path__tab"
             [class.tabbed-path__tab--active]="getPathLevelTab(path.pathId) === 'MASTERY'"
+            [class.tabbed-path__tab--owned]="getTabState(path, 'MASTERY') === 'owned'"
+            [class.tabbed-path__tab--next]="getTabState(path, 'MASTERY') === 'next'"
+            [class.tabbed-path__tab--locked]="getTabState(path, 'MASTERY') === 'locked'"
             (click)="setPathLevelTab(path.pathId, 'MASTERY')"
             role="tab"
             [attr.aria-selected]="getPathLevelTab(path.pathId) === 'MASTERY'"
-          >Mastery</button>
+          >
+            Mastery
+            @if (getTabState(path, 'MASTERY') === 'owned') {
+              <span class="tab-badge tab-badge--owned">&#10003;</span>
+            }
+          </button>
         }
       </div>
 
       @let activeCard = getPathCardForLevel(path, getPathLevelTab(path.pathId));
       @if (activeCard) {
-        <app-daggerheart-card
-          [card]="activeCard"
-          [selected]="isCardSelected(path.foundation)"
-          [collapsibleFeatures]="collapsibleFeatures()"
-          layout="wide"
-          (cardClicked)="cardSelected.emit(path.foundation)"
-        />
+        @let state = getCardState(activeCard.id);
+        <div class="card-state-wrapper"
+          [class.card-state--owned]="state === 'owned'"
+          [class.card-state--next]="state === 'next'"
+          [class.card-state--locked]="state === 'locked'"
+        >
+          @if (state === 'owned') {
+            <div class="card-state-badge card-state-badge--owned">Owned</div>
+          }
+          <app-daggerheart-card
+            [card]="activeCard"
+            [selected]="isActiveCardSelected(path, activeCard)"
+            [collapsibleFeatures]="collapsibleFeatures()"
+            layout="wide"
+            (cardClicked)="onCardClicked(path, activeCard)"
+          />
+        </div>
       }
     </div>
   }

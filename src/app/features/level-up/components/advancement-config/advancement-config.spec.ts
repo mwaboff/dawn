@@ -3,7 +3,7 @@ import { Component, signal } from '@angular/core';
 import { of } from 'rxjs';
 
 import { AdvancementConfig } from './advancement-config';
-import { AvailableAdvancement, AdvancementChoice, LevelUpOptionsResponse } from '../../models/level-up-api.model';
+import { AvailableAdvancement, AdvancementChoice, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView } from '../../../character-sheet/models/character-sheet-view.model';
 import { DomainService } from '../../../../shared/services/domain.service';
 import { SubclassService } from '../../../../shared/services/subclass.service';
@@ -99,6 +99,7 @@ function createBoostExperiencesAdvancement(): AvailableAdvancement {
       [characterSheet]="characterSheet()"
       [levelUpOptions]="levelUpOptions()"
       [initialChoice]="initialChoice()"
+      [excludedTraits]="excludedTraits()"
       (configChanged)="onConfigChanged($event)"
     />
   `,
@@ -109,6 +110,7 @@ class TestHost {
   characterSheet = signal<CharacterSheetView>(mockCharacterSheet);
   levelUpOptions = signal<LevelUpOptionsResponse>(mockLevelUpOptions);
   initialChoice = signal<AdvancementChoice | undefined>(undefined);
+  excludedTraits = signal<TraitEnum[]>([]);
   lastEmittedChoice: AdvancementChoice | null = null;
 
   onConfigChanged(choice: AdvancementChoice): void {
@@ -393,6 +395,68 @@ describe('AdvancementConfig', () => {
     });
   });
 
+  describe('UPGRADE_SUBCLASS', () => {
+    beforeEach(() => {
+      host.advancement.set({
+        type: 'UPGRADE_SUBCLASS',
+        description: 'Upgrade subclass',
+        limitPerTier: 1,
+        usedInTier: 0,
+        remaining: 1,
+        mutuallyExclusiveWith: 'MULTICLASS',
+      });
+      host.characterSheet.set({
+        ...mockCharacterSheet,
+        subclassCards: [
+          { id: 100, name: 'Troubadour', description: '', features: [], associatedClassId: 1, associatedClassName: 'Bard', subclassPathName: 'Troubadour', level: 'FOUNDATION' },
+        ],
+      });
+      hostFixture.detectChanges();
+    });
+
+    it('should load subclass cards for all character class IDs', () => {
+      expect(mockSubclassService.getSubclasses).toHaveBeenCalledWith(1);
+    });
+
+    it('should load subclass cards for multiple classes when multiclassed', async () => {
+      mockSubclassService.getSubclasses.mockClear();
+
+      const multiclassFixture = TestBed.createComponent(TestHost);
+      const multiclassHost = multiclassFixture.componentInstance;
+      multiclassHost.advancement.set({
+        type: 'UPGRADE_SUBCLASS',
+        description: 'Upgrade subclass',
+        limitPerTier: 1,
+        usedInTier: 0,
+        remaining: 1,
+        mutuallyExclusiveWith: 'MULTICLASS',
+      });
+      multiclassHost.characterSheet.set({
+        ...mockCharacterSheet,
+        subclassCards: [
+          { id: 100, name: 'Troubadour', description: '', features: [], associatedClassId: 1, associatedClassName: 'Bard', subclassPathName: 'Troubadour', level: 'FOUNDATION' },
+          { id: 300, name: 'Berserker', description: '', features: [], associatedClassId: 2, associatedClassName: 'Warrior', subclassPathName: 'Berserker', level: 'FOUNDATION' },
+        ],
+      });
+      multiclassFixture.detectChanges();
+
+      expect(mockSubclassService.getSubclasses).toHaveBeenCalledWith(1);
+      expect(mockSubclassService.getSubclasses).toHaveBeenCalledWith(2);
+    });
+
+    it('should render subclass path selector', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const selector = compiled.querySelector('app-subclass-path-selector');
+      expect(selector).toBeTruthy();
+    });
+
+    it('should display upgrade hint text', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const hint = compiled.querySelector('.config-hint');
+      expect(hint?.textContent).toContain('next upgrade');
+    });
+  });
+
   describe('GAIN_DOMAIN_CARD', () => {
     beforeEach(() => {
       host.advancement.set({
@@ -421,6 +485,85 @@ describe('AdvancementConfig', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const grid = compiled.querySelector('app-card-selection-grid');
       expect(grid).toBeTruthy();
+    });
+  });
+
+  describe('excluded traits', () => {
+    beforeEach(() => {
+      host.excludedTraits.set(['AGILITY', 'STRENGTH']);
+      hostFixture.detectChanges();
+    });
+
+    it('should show excluded class on traits in excludedTraits list', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxLabels = compiled.querySelectorAll('.trait-checkbox');
+
+      const agilityLabel = Array.from(checkboxLabels).find(
+        el => el.querySelector('.trait-checkbox__name')?.textContent?.trim() === 'Agility'
+      );
+      expect(agilityLabel?.classList.contains('excluded')).toBe(true);
+    });
+
+    it('should disable excluded trait checkboxes', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxLabels = compiled.querySelectorAll('.trait-checkbox');
+
+      const agilityLabel = Array.from(checkboxLabels).find(
+        el => el.querySelector('.trait-checkbox__name')?.textContent?.trim() === 'Agility'
+      );
+      const input = agilityLabel?.querySelector('input') as HTMLInputElement;
+      expect(input.disabled).toBe(true);
+    });
+
+    it('should show exclusion note for excluded traits', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const notes = compiled.querySelectorAll('.trait-excluded-note');
+      expect(notes.length).toBe(2);
+      expect(notes[0].textContent).toContain('chosen in other selection');
+    });
+
+    it('should not show modifier for excluded traits', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxLabels = compiled.querySelectorAll('.trait-checkbox');
+
+      const agilityLabel = Array.from(checkboxLabels).find(
+        el => el.querySelector('.trait-checkbox__name')?.textContent?.trim() === 'Agility'
+      );
+      const modifier = agilityLabel?.querySelector('.trait-checkbox__modifier');
+      expect(modifier).toBeNull();
+    });
+
+    it('should not apply excluded styling to non-excluded traits', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxLabels = compiled.querySelectorAll('.trait-checkbox');
+
+      const instinctLabel = Array.from(checkboxLabels).find(
+        el => el.querySelector('.trait-checkbox__name')?.textContent?.trim() === 'Instinct'
+      );
+      expect(instinctLabel?.classList.contains('excluded')).toBe(false);
+    });
+
+    it('should auto-deselect a trait that becomes excluded', () => {
+      // First, clear excluded so we can select
+      host.excludedTraits.set([]);
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const checkboxes = compiled.querySelectorAll('.trait-checkbox input') as NodeListOf<HTMLInputElement>;
+
+      // Select Agility (index 0)
+      checkboxes[0].click();
+      hostFixture.detectChanges();
+
+      const labels = compiled.querySelectorAll('.trait-checkbox');
+      expect(labels[0].classList.contains('selected')).toBe(true);
+
+      // Now exclude Agility
+      host.excludedTraits.set(['AGILITY']);
+      hostFixture.detectChanges();
+
+      expect(labels[0].classList.contains('selected')).toBe(false);
+      expect(labels[0].classList.contains('excluded')).toBe(true);
     });
   });
 });
