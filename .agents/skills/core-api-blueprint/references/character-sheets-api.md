@@ -254,7 +254,8 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
     "communityCardIds": [1],
     "ancestryCardIds": [2],
     "subclassCardIds": [3, 4],
-    "domainCardIds": [8, 9],
+    "equippedDomainCardIds": [8],
+    "vaultDomainCardIds": [9],
     "inventoryWeaponIds": [5],
     "inventoryArmorIds": [6],
     "inventoryItemIds": [7]
@@ -303,8 +304,8 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
   "ancestryCardIds": [2],
   "subclassCardIds": [3, 4],
   "domainCardIds": [8, 9],
-  "equippedDomainCardIds": [],
-  "vaultDomainCardIds": [8, 9],
+  "equippedDomainCardIds": [8],
+  "vaultDomainCardIds": [9],
   "inventoryWeaponIds": [5],
   "inventoryArmorIds": [6],
   "inventoryItemIds": [7],
@@ -500,7 +501,7 @@ curl -b "AUTH_TOKEN=<token>" \
     },
     {
       "type": "UPGRADE_SUBCLASS",
-      "remaining": 3,
+      "remaining": 1,
       "mutuallyExclusiveWith": ["MULTICLASS"]
     },
     {
@@ -510,7 +511,7 @@ curl -b "AUTH_TOKEN=<token>" \
     },
     {
       "type": "MULTICLASS",
-      "remaining": 3,
+      "remaining": 2,
       "mutuallyExclusiveWith": ["UPGRADE_SUBCLASS"]
     }
   ],
@@ -649,7 +650,9 @@ curl -X POST -b "AUTH_TOKEN=<token>" \
 | `400`  | Advancement type not available in target tier                          |
 | `400`  | Advancement type usage exceeded for tier                               |
 | `400`  | Mutual exclusion violation (UPGRADE_SUBCLASS vs MULTICLASS)            |
-| `400`  | BOOST_TRAITS: traits already marked or wrong count                     |
+| `400`  | Duplicate BOOST_TRAITS with overlapping traits across choices          |
+| `400`  | Duplicate MULTICLASS targeting the same class in both choices          |
+| `400`  | BOOST_TRAITS: traits already marked (except at levels 5/8 tier transitions) or wrong count |
 | `400`  | BOOST_EXPERIENCES: experience IDs invalid or wrong count               |
 | `400`  | Domain card not from accessible domain or exceeds level cap            |
 | `400`  | Equipped domain card count would exceed 5                              |
@@ -839,16 +842,21 @@ All fields marked **required** must be present. Equipment and collection IDs are
 | `communityCardIds`       | long[]    | No       | Each must reference existing CommunityCard    |
 | `ancestryCardIds`        | long[]    | No       | Each must reference existing AncestryCard     |
 | `subclassCardIds`        | long[]    | No       | Each must reference existing SubclassCard     |
-| `domainCardIds`          | long[]    | No       | Each must reference existing DomainCard       |
+| `equippedDomainCardIds`  | long[]    | No       | Must be provided with `vaultDomainCardIds`. Each must reference existing DomainCard. No duplicates within or across lists. |
+| `vaultDomainCardIds`     | long[]    | No       | Must be provided with `equippedDomainCardIds`. Each must reference existing DomainCard. No duplicates within or across lists. |
 | `inventoryWeaponIds`     | long[]    | No       | Each must reference existing Weapon           |
 | `inventoryArmorIds`      | long[]    | No       | Each must reference existing Armor            |
 | `inventoryItemIds`       | long[]    | No       | Each must reference existing Loot             |
+
+**Domain cards** use `equippedDomainCardIds` and `vaultDomainCardIds` instead of a single `domainCardIds` field. Both must be provided together. A card ID must not appear in both lists or be duplicated within a list. The equipped list determines which domain cards are actively equipped (max 5), and the vault list holds unequipped domain cards.
 
 ### UpdateCharacterSheetRequest
 
 All fields are optional. Only non-null fields are applied. Same validation rules as create but no required fields.
 
-Collection fields (`communityCardIds`, `ancestryCardIds`, `subclassCardIds`, `domainCardIds`, `inventoryWeaponIds`, `inventoryArmorIds`, `inventoryItemIds`) replace the entire collection when provided. Omit to leave the collection unchanged.
+Collection fields (`communityCardIds`, `ancestryCardIds`, `subclassCardIds`, `inventoryWeaponIds`, `inventoryArmorIds`, `inventoryItemIds`) replace the entire collection when provided. Omit to leave the collection unchanged.
+
+**Domain cards** use `equippedDomainCardIds` and `vaultDomainCardIds` (same rules as create). Both must be provided together to update domain cards.
 
 ### CharacterSheetResponse
 
@@ -945,7 +953,7 @@ One of the two advancement choices included in a `LevelUpRequest`.
 | Field                       | Type    | Required     | Validation / Notes                                                              |
 |-----------------------------|---------|--------------|---------------------------------------------------------------------------------|
 | `type`                      | AdvancementType | Yes  | The advancement type to apply. Must be available in the target tier.             |
-| `traits`                    | Trait[] | BOOST_TRAITS | Exactly 2 currently unmarked traits.                                            |
+| `traits`                    | Trait[] | BOOST_TRAITS | Exactly 2 traits. Must be unmarked, except during tier transitions at levels 5 and 8 where marks are cleared. |
 | `experienceIds`             | long[]  | BOOST_EXPERIENCES | Exactly 2 experience IDs belonging to the character.                       |
 | `boostNewExperience`        | boolean | No           | `false`. When `true`, automatically includes the newly created tier transition experience as the second boost target. Only valid during tier transitions with BOOST_EXPERIENCES. |
 | `domainCardId`              | long    | GAIN_DOMAIN_CARD | ID of a domain card from an accessible domain, within level cap.            |

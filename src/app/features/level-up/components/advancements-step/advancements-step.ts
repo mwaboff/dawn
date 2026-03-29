@@ -1,11 +1,12 @@
 import { Component, input, output, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AdvancementConfig } from '../advancement-config/advancement-config';
-import { AvailableAdvancement, AdvancementChoice, AdvancementType, LevelUpOptionsResponse } from '../../models/level-up-api.model';
+import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
+import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView } from '../../../character-sheet/models/character-sheet-view.model';
 
 @Component({
   selector: 'app-advancements-step',
-  imports: [AdvancementConfig],
+  imports: [AdvancementConfig, FormatTextPipe],
   templateUrl: './advancements-step.html',
   styleUrl: './advancements-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,12 +43,30 @@ export class AdvancementsStep implements OnInit {
     return false;
   }
 
-  getChoice(type: AdvancementType): AdvancementChoice | undefined {
-    return this.selectedChoices().find(c => c.type === type);
+  selectionCount(type: AdvancementType): number {
+    return this.selectedChoices().filter(c => c.type === type).length;
+  }
+
+  getSelectionInstances(type: AdvancementType): number[] {
+    const count = this.selectionCount(type);
+    return Array.from({ length: count }, (_, i) => i);
+  }
+
+  getChoiceForInstance(type: AdvancementType, instanceIndex: number): AdvancementChoice | undefined {
+    const choices = this.selectedChoices().filter(c => c.type === type);
+    return choices[instanceIndex];
   }
 
   needsConfig(type: AdvancementType): boolean {
     return ['BOOST_TRAITS', 'BOOST_EXPERIENCES', 'UPGRADE_SUBCLASS', 'MULTICLASS'].includes(type);
+  }
+
+  canIncrement(adv: AvailableAdvancement): boolean {
+    const count = this.selectionCount(adv.type);
+    if (count !== 1) return false;
+    if (this.selectedChoices().length >= 2) return false;
+    if (adv.remaining < count + 1) return false;
+    return true;
   }
 
   toggleAdvancement(adv: AvailableAdvancement): void {
@@ -70,10 +89,51 @@ export class AdvancementsStep implements OnInit {
     }
   }
 
-  onConfigChanged(type: AdvancementType, choice: AdvancementChoice): void {
-    const updated = this.selectedChoices().map(c => c.type === type ? choice : c);
+  incrementAdvancement(adv: AvailableAdvancement, event: Event): void {
+    event.stopPropagation();
+    if (!this.canIncrement(adv)) return;
+
+    const choice: AdvancementChoice = { type: adv.type };
+    const updated = [...this.selectedChoices(), choice];
+    this.selectedChoices.set(updated);
+    if (!this.needsConfig(adv.type)) {
+      this.advancementsChanged.emit(updated);
+    }
+  }
+
+  decrementAdvancement(adv: AvailableAdvancement, event: Event): void {
+    event.stopPropagation();
+    const current = this.selectedChoices();
+    const lastIdx = current.map(c => c.type).lastIndexOf(adv.type);
+    if (lastIdx < 0) return;
+
+    const updated = current.filter((_, i) => i !== lastIdx);
     this.selectedChoices.set(updated);
     this.advancementsChanged.emit(updated);
+  }
+
+  onConfigChangedForInstance(type: AdvancementType, instanceIndex: number, choice: AdvancementChoice): void {
+    const current = this.selectedChoices();
+    let matchIndex = 0;
+    const updated = current.map(c => {
+      if (c.type === type) {
+        if (matchIndex === instanceIndex) {
+          matchIndex++;
+          return choice;
+        }
+        matchIndex++;
+      }
+      return c;
+    });
+    this.selectedChoices.set(updated);
+    this.advancementsChanged.emit(updated);
+  }
+
+  getExcludedTraits(instanceIndex: number): TraitEnum[] {
+    const choices = this.selectedChoices().filter(c => c.type === 'BOOST_TRAITS');
+    return choices
+      .filter((_, i) => i !== instanceIndex)
+      .flatMap(c => c.traits ?? []);
   }
 
   isExclusiveVisible(exclusiveType: AdvancementType): boolean {
@@ -81,23 +141,28 @@ export class AdvancementsStep implements OnInit {
   }
 
   getStatArrow(type: AdvancementType): string | null {
-    if (!this.isSelected(type)) return null;
+    const count = this.selectionCount(type);
+    if (count === 0) return null;
     const sheet = this.characterSheet();
     if (type === 'GAIN_HP') {
       const cur = sheet.hitPointMax.modified;
-      return `${cur} → ${cur + 1}`;
+      return `${cur} → ${cur + count}`;
     }
     if (type === 'GAIN_STRESS') {
       const cur = sheet.stressMax.modified;
-      return `${cur} → ${cur + 1}`;
+      return `${cur} → ${cur + count}`;
     }
     if (type === 'BOOST_EVASION') {
       const base = sheet.evasion.base;
       const modified = sheet.evasion.modified;
       if (sheet.evasion.hasModifier) {
-        return `Base ${base} → ${base + 1}, Total ${modified} → ${modified + 1}`;
+        return `Base ${base} → ${base + count}, Total ${modified} → ${modified + count}`;
       }
-      return `${base} → ${base + 1}`;
+      return `${base} → ${base + count}`;
+    }
+    if (type === 'BOOST_PROFICIENCY') {
+      const cur = sheet.proficiency.modified;
+      return `${cur} → ${cur + count}`;
     }
     return null;
   }

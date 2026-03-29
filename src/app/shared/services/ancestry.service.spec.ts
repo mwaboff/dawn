@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { AncestryService } from './ancestry.service';
-import { AncestryCardResponse } from '../models/ancestry-api.model';
+import { AncestryCardResponse, CreateMixedAncestryRequest } from '../models/ancestry-api.model';
 import { PaginatedResponse } from '../models/api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 
@@ -106,5 +106,58 @@ describe('AncestryService', () => {
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
 
     expect(error?.status).toBe(500);
+  });
+
+  describe('createMixedAncestry', () => {
+    it('should POST to /mixed endpoint with request body', () => {
+      const request: CreateMixedAncestryRequest = {
+        name: 'Elf / Dwarf',
+        description: 'A blend of Elf and Dwarf heritage.',
+        expansionId: 1,
+        featureIds: [10, 20],
+      };
+
+      service.createMixedAncestry(request).subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === `${baseUrl}/mixed`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(request);
+      req.flush(buildAncestryCardResponse({ id: 99, name: 'Elf / Dwarf' }));
+    });
+
+    it('should send withCredentials: true', () => {
+      const request: CreateMixedAncestryRequest = {
+        name: 'Mixed',
+        description: 'Mixed heritage',
+        expansionId: 1,
+        featureIds: [1, 2],
+      };
+
+      service.createMixedAncestry(request).subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === `${baseUrl}/mixed`);
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(buildAncestryCardResponse());
+    });
+
+    it('should map response through ancestry mapper', () => {
+      const request: CreateMixedAncestryRequest = {
+        name: 'Elf / Dwarf',
+        description: 'Blend',
+        expansionId: 1,
+        featureIds: [10, 20],
+      };
+
+      let result: CardData | undefined;
+      service.createMixedAncestry(request).subscribe(data => (result = data));
+
+      const req = httpTesting.expectOne(r => r.url === `${baseUrl}/mixed`);
+      req.flush(buildAncestryCardResponse({ id: 99, name: 'Elf / Dwarf' }));
+
+      expect(result).toBeDefined();
+      expect(result!.id).toBe(99);
+      expect(result!.name).toBe('Elf / Dwarf');
+      expect(result!.cardType).toBe('ancestry');
+    });
   });
 });

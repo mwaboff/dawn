@@ -27,9 +27,10 @@
 .sheet-class__subclass { font-style: italic; text-transform: none; letter-spacing: .02em; color: rgba(245,230,211,.75); }
 .sheet-class__sep,.sheet-class__divider { color: rgba(212,160,86,.5); }
 
-.level-badge { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--ca); background: rgba(212,160,86,.1); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
-.level-badge__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.8); line-height: 1; }
-.level-badge__value { font-size: 1.5rem; font-weight: 900; color: var(--ca); line-height: 1; }
+.level-badge { width: 56px; border-radius: 8px 8px 10px 10px; border: 2px solid var(--cg); background: rgba(212,160,86,.06); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; padding: .35rem 0 .25rem; gap: 0; }
+.level-badge--can-level { padding-bottom: 0; }
+.level-badge__label { font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.7); line-height: 1; }
+.level-badge__value { font-size: 1.4rem; font-weight: 900; color: var(--ca); line-height: 1.1; }
 
 .shield { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 72px; min-height: 72px; background: rgba(26,20,15,.8); border: 2px solid var(--cg); border-radius: 6px 6px 16px 16px; padding: .5rem .25rem; position: relative; flex-shrink: 0; }
 .shield__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--cl); white-space: nowrap; }
@@ -41,7 +42,6 @@
 
 .traits-row { display: grid; grid-template-columns: repeat(6,1fr); gap: .5rem; }
 .trait-badge { display: flex; flex-direction: column; align-items: center; padding: .5rem .25rem .35rem; background: rgba(212,160,86,.04); border: 1px solid rgba(212,160,86,.15); border-radius: 4px; gap: .15rem; position: relative; }
-.trait-badge--marked { border-color: rgba(212,160,86,.5); background: rgba(212,160,86,.08); }
 .trait-badge__abbr { font-size: .9rem; text-transform: uppercase; letter-spacing: .1em; color: var(--cl); }
 .trait-badge__modifier { font-size: 1.4rem; font-weight: 700; color: var(--cp); line-height: 1; }
 .trait-badge__marked-dot { position: absolute; top: 3px; right: 5px; font-size: .75rem; color: var(--ca); }
@@ -49,22 +49,49 @@
 .trait-badge__subskill { font-family: var(--fb); font-size: .75rem; color: rgba(245,230,211,.65); text-transform: lowercase; }
 
 .level-up-btn {
-  padding: .5rem 1rem;
-  background: linear-gradient(to bottom, rgba(212,160,86,.2), rgba(212,160,86,.1));
-  border: 1.5px solid var(--ca);
-  border-radius: 4px;
+  display: block;
+  width: 100%;
+  padding: .2rem 0;
+  margin-top: .15rem;
+  background: rgba(212,160,86,.12);
+  border: none;
+  border-top: 1px solid rgba(212,160,86,.25);
+  border-radius: 0 0 6px 6px;
   color: var(--ca);
   font-family: var(--font-display);
-  font-size: .8rem;
+  font-size: .6rem;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: .08em;
   text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
-  transition: all .2s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
+  transition: background .2s ease;
 }
-.level-up-btn:hover { background: linear-gradient(to bottom, rgba(212,160,86,.35), rgba(212,160,86,.2)); border-color: var(--cl); }
-.level-up-btn:focus-visible { outline: 2px solid var(--ca); outline-offset: 2px; }
+.level-up-btn:hover { background: rgba(212,160,86,.25); }
+.level-up-btn:focus-visible { outline: 2px solid var(--ca); outline-offset: -2px; }
+
+.level-down-btn {
+  display: block;
+  width: 100%;
+  padding: .2rem 0;
+  margin-top: .15rem;
+  background: rgba(180,100,80,.12);
+  border: none;
+  border-top: 1px solid rgba(180,100,80,.25);
+  border-radius: 0 0 6px 6px;
+  color: rgb(200,130,100);
+  font-family: var(--font-display);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.level-down-btn:hover { background: rgba(180,100,80,.25); }
+.level-down-btn:focus-visible { outline: 2px solid rgb(200,130,100); outline-offset: -2px; }
 
 .sheet-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }

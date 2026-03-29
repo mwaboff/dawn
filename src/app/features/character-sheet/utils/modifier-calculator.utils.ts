@@ -56,26 +56,22 @@ export function applyModifiers(
 export function collectEquipmentModifiers(sheet: CharacterSheetResponse): SourcedModifier[] {
   const modifiers: SourcedModifier[] = [];
 
-  if (sheet.activeArmor?.features) {
-    for (const feature of sheet.activeArmor.features) {
-      if (feature.modifiers) {
-        modifiers.push(...feature.modifiers.map(m => toSourced(m, sheet.activeArmor!.name)));
+  for (const entry of sheet.inventoryArmors ?? []) {
+    if (entry.equipped && entry.armor?.features) {
+      for (const feature of entry.armor.features) {
+        if (feature.modifiers) {
+          modifiers.push(...feature.modifiers.map(m => toSourced(m, entry.armor!.name)));
+        }
       }
     }
   }
 
-  if (sheet.activePrimaryWeapon?.features) {
-    for (const feature of sheet.activePrimaryWeapon.features) {
-      if (feature.modifiers) {
-        modifiers.push(...feature.modifiers.map(m => toSourced(m, sheet.activePrimaryWeapon!.name)));
-      }
-    }
-  }
-
-  if (sheet.activeSecondaryWeapon?.features) {
-    for (const feature of sheet.activeSecondaryWeapon.features) {
-      if (feature.modifiers) {
-        modifiers.push(...feature.modifiers.map(m => toSourced(m, sheet.activeSecondaryWeapon!.name)));
+  for (const entry of sheet.inventoryWeapons ?? []) {
+    if (entry.equipped && entry.weapon?.features) {
+      for (const feature of entry.weapon.features) {
+        if (feature.modifiers) {
+          modifiers.push(...feature.modifiers.map(m => toSourced(m, entry.weapon!.name)));
+        }
       }
     }
   }

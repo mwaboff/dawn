@@ -39,9 +39,9 @@ function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSh
     ancestryCardIds: [],
     subclassCardIds: [],
     domainCardIds: [],
-    inventoryWeaponIds: [],
-    inventoryArmorIds: [],
-    inventoryItemIds: [],
+    inventoryWeapons: [],
+    inventoryArmors: [],
+    inventoryItems: [],
     experienceIds: [],
     createdAt: '2024-01-01T00:00:00Z',
     lastModifiedAt: '2024-01-01T00:00:00Z',
@@ -187,50 +187,38 @@ describe('collectEquipmentModifiers', () => {
 
   it('returns empty array when equipment has no features', () => {
     const sheet = makeSheet({
-      activeArmor: { id: 1, name: 'Test Armor' },
+      inventoryArmors: [{ id: 200, armorId: 1, equipped: true, armor: { id: 1, name: 'Test Armor' } }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toEqual([]);
   });
 
   it('collects modifiers from armor features', () => {
     const sheet = makeSheet({
-      activeArmor: {
-        id: 1,
-        name: 'Heavy Armor',
-        features: [
-          {
-            description: 'Adds evasion',
-            modifiers: [{ target: 'EVASION', operation: 'ADD', value: 2 }],
-          },
-        ],
-      },
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: true,
+        armor: {
+          id: 1, name: 'Heavy Armor',
+          features: [{ description: 'Adds evasion', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 2 }] }],
+        },
+      }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({ target: 'EVASION', operation: 'ADD', value: 2, sourceName: 'Heavy Armor' });
   });
 
   it('collects modifiers from primary weapon features', () => {
     const sheet = makeSheet({
-      activePrimaryWeapon: {
-        id: 1,
-        name: 'Sword',
-        features: [
-          {
-            description: 'Grants bonus',
-            modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 1 }],
-          },
-        ],
-      },
+      inventoryWeapons: [{
+        id: 100, weaponId: 1, equipped: true, slot: 'PRIMARY',
+        weapon: {
+          id: 1, name: 'Sword',
+          features: [{ description: 'Grants bonus', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 1 }] }],
+        },
+      }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toHaveLength(1);
     expect(result[0].target).toBe('HIT_POINT_MAX');
     expect(result[0].sourceName).toBe('Sword');
@@ -238,20 +226,15 @@ describe('collectEquipmentModifiers', () => {
 
   it('collects modifiers from secondary weapon features', () => {
     const sheet = makeSheet({
-      activeSecondaryWeapon: {
-        id: 2,
-        name: 'Dagger',
-        features: [
-          {
-            description: 'Swift strike',
-            modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }],
-          },
-        ],
-      },
+      inventoryWeapons: [{
+        id: 101, weaponId: 2, equipped: true, slot: 'SECONDARY',
+        weapon: {
+          id: 2, name: 'Dagger',
+          features: [{ description: 'Swift strike', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }],
+        },
+      }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toHaveLength(1);
     expect(result[0].target).toBe('EVASION');
     expect(result[0].sourceName).toBe('Dagger');
@@ -259,58 +242,47 @@ describe('collectEquipmentModifiers', () => {
 
   it('collects modifiers from all equipment combined', () => {
     const sheet = makeSheet({
-      activeArmor: {
-        id: 1,
-        name: 'Armor',
-        features: [{ description: 'A', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }],
-      },
-      activePrimaryWeapon: {
-        id: 2,
-        name: 'Sword',
-        features: [{ description: 'B', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 2 }] }],
-      },
-      activeSecondaryWeapon: {
-        id: 3,
-        name: 'Shield',
-        features: [{ description: 'C', modifiers: [{ target: 'ARMOR_SCORE', operation: 'ADD', value: 1 }] }],
-      },
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: true,
+        armor: { id: 1, name: 'Armor', features: [{ description: 'A', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] },
+      }],
+      inventoryWeapons: [
+        {
+          id: 100, weaponId: 2, equipped: true, slot: 'PRIMARY',
+          weapon: { id: 2, name: 'Sword', features: [{ description: 'B', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 2 }] }] },
+        },
+        {
+          id: 101, weaponId: 3, equipped: true, slot: 'SECONDARY',
+          weapon: { id: 3, name: 'Shield', features: [{ description: 'C', modifiers: [{ target: 'ARMOR_SCORE', operation: 'ADD', value: 1 }] }] },
+        },
+      ],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toHaveLength(3);
   });
 
   it('skips features that have no modifiers array', () => {
     const sheet = makeSheet({
-      activeArmor: {
-        id: 1,
-        name: 'Armor',
-        features: [{ description: 'No modifiers here' }],
-      },
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: true,
+        armor: { id: 1, name: 'Armor', features: [{ description: 'No modifiers here' }] },
+      }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result).toEqual([]);
   });
 
   it('includes equipment name as sourceName', () => {
     const sheet = makeSheet({
-      activeArmor: {
-        id: 1,
-        name: 'Enchanted Plate',
-        features: [
-          {
-            description: 'Evasion penalty',
-            modifiers: [{ target: 'EVASION', operation: 'ADD', value: -2 }],
-          },
-        ],
-      },
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: true,
+        armor: {
+          id: 1, name: 'Enchanted Plate',
+          features: [{ description: 'Evasion penalty', modifiers: [{ target: 'EVASION', operation: 'ADD', value: -2 }] }],
+        },
+      }],
     });
-
     const result = collectEquipmentModifiers(sheet);
-
     expect(result[0].sourceName).toBe('Enchanted Plate');
   });
 });

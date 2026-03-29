@@ -3,6 +3,12 @@ import { TraitAssignments } from '../models/trait.model';
 import { Experience } from '../models/experience.model';
 import { CharacterSheetData, DEFAULT_MAJOR_THRESHOLD, DEFAULT_SEVERE_THRESHOLD } from '../models/character-sheet.model';
 
+export const MAX_EQUIPPED_DOMAIN_CARDS = 5;
+
+function deduplicateIds(ids: number[]): number[] {
+  return [...new Set(ids)];
+}
+
 export function assembleCharacterSheet(params: {
   name: string;
   pronouns?: string;
@@ -30,10 +36,6 @@ export function assembleCharacterSheet(params: {
     : DEFAULT_SEVERE_THRESHOLD;
 
   const armorMax = armor ? ((armor.metadata?.['baseScore'] as number) ?? 0) : 0;
-
-  const weaponIds: number[] = [];
-  if (params.primaryWeapon) weaponIds.push(params.primaryWeapon.id);
-  if (params.secondaryWeapon) weaponIds.push(params.secondaryWeapon.id);
 
   return {
     name: params.name,
@@ -63,17 +65,30 @@ export function assembleCharacterSheet(params: {
     presenceMarked: false,
     knowledgeMarked: false,
     gold: 0,
-    activePrimaryWeaponId: params.primaryWeapon?.id ?? null,
-    activeSecondaryWeaponId: params.secondaryWeapon?.id ?? null,
-    activeArmorId: armor?.id ?? null,
-    inventoryWeaponIds: weaponIds,
-    inventoryArmorIds: armor ? [armor.id] : [],
+    inventoryWeapons: buildInventoryWeapons(params.primaryWeapon, params.secondaryWeapon),
+    inventoryArmors: armor ? [{ armorId: armor.id, equipped: true }] : [],
     communityCardIds: [params.communityCard.id],
     ancestryCardIds: [params.ancestryCard.id],
     subclassCardIds: [params.subclassCard.id],
-    domainCardIds: params.domainCards.map((c) => c.id),
+    domainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)),
+    equippedDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(0, MAX_EQUIPPED_DOMAIN_CARDS),
+    vaultDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(MAX_EQUIPPED_DOMAIN_CARDS),
     experiences: params.experiences
       .filter((exp) => exp.name.trim() !== '' && exp.modifier !== null)
       .map((exp) => ({ name: exp.name.trim(), modifier: exp.modifier! })),
   };
+}
+
+function buildInventoryWeapons(
+  primary: CardData | null,
+  secondary: CardData | null,
+): { weaponId: number; equipped: boolean; slot?: 'PRIMARY' | 'SECONDARY' }[] {
+  const weapons: { weaponId: number; equipped: boolean; slot?: 'PRIMARY' | 'SECONDARY' }[] = [];
+  if (primary) {
+    weapons.push({ weaponId: primary.id, equipped: true, slot: 'PRIMARY' });
+  }
+  if (secondary) {
+    weapons.push({ weaponId: secondary.id, equipped: true, slot: 'SECONDARY' });
+  }
+  return weapons;
 }

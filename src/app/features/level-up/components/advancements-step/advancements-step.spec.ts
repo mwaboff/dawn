@@ -14,6 +14,7 @@ const mockCharacterSheet: CharacterSheetView = {
   ownerId: 1,
   name: 'Test Hero',
   level: 2,
+  proficiency: { base: 1, modified: 1, hasModifier: false, modifierSources: [] },
   evasion: { base: 10, modified: 10, hasModifier: false, modifierSources: [] },
   hitPointMax: { base: 6, modified: 6, hasModifier: false, modifierSources: [] },
   armorScore: { base: 0, modified: 0, hasModifier: false, modifierSources: [] },
@@ -60,7 +61,7 @@ const mockLevelUpOptions: LevelUpOptionsResponse = {
   nextLevel: 2,
   currentTier: 1,
   nextTier: 2,
-  isTierTransition: true,
+  tierTransition: true,
   availableAdvancements: [],
   domainCardLevelCap: null,
   accessibleDomainIds: [],
@@ -336,5 +337,237 @@ describe('AdvancementsStep', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
     const exclusives = compiled.querySelectorAll('.advancement-tile__exclusive');
     expect(exclusives.length).toBe(0);
+  });
+
+  describe('duplicate advancement selections', () => {
+    it('should show quantity badge when a tile is selected', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const qtyValue = tiles[0].querySelector('.qty-value');
+      expect(qtyValue).toBeTruthy();
+      expect(qtyValue?.textContent?.trim()).toBe('×1');
+    });
+
+    it('should show increment button when type can be selected twice', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      // GAIN_HP has remaining=2, so can be incremented
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]');
+      expect(incrementBtn).toBeTruthy();
+    });
+
+    it('should not show increment button when remaining is 1', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      // BOOST_PROFICIENCY has remaining=1
+      (tiles[4] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const incrementBtn = tiles[4].querySelector('.qty-btn[aria-label="Add another"]');
+      expect(incrementBtn).toBeNull();
+    });
+
+    it('should not show increment button when total selections are already 2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      // Select two different types
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      (tiles[1] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]');
+      expect(incrementBtn).toBeNull();
+    });
+
+    it('should increment to ×2 when increment button is clicked', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const qtyValue = tiles[0].querySelector('.qty-value');
+      expect(qtyValue?.textContent?.trim()).toBe('×2');
+      expect(qtyValue?.classList.contains('highlighted')).toBe(true);
+    });
+
+    it('should show decrement button when selected ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const decrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Remove one"]');
+      expect(decrementBtn).toBeTruthy();
+    });
+
+    it('should decrement from ×2 to ×1', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const decrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Remove one"]') as HTMLElement;
+      decrementBtn.click();
+      hostFixture.detectChanges();
+
+      const qtyValue = tiles[0].querySelector('.qty-value');
+      expect(qtyValue?.textContent?.trim()).toBe('×1');
+    });
+
+    it('should remove both instances when tile is clicked at ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      // Click the tile itself to deselect
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      expect(tiles[0].classList.contains('selected')).toBe(false);
+      const qtyValue = tiles[0].querySelector('.qty-value');
+      expect(qtyValue).toBeNull();
+    });
+
+    it('should emit advancementsChanged with 2 entries for ×2 non-config type', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      expect(host.lastEmittedAdvancements?.length).toBe(2);
+      expect(host.lastEmittedAdvancements?.[0].type).toBe('GAIN_HP');
+      expect(host.lastEmittedAdvancements?.[1].type).toBe('GAIN_HP');
+    });
+
+    it('should show cumulative stat arrow for GAIN_HP ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const arrow = tiles[0].querySelector('.stat-boost-arrow');
+      expect(arrow?.textContent).toContain('6 → 8');
+    });
+
+    it('should show two config panels for configurable type at ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      // Select BOOST_TRAITS (index 2, remaining=2, configurable)
+      (tiles[2] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[2].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const configWrappers = compiled.querySelectorAll('.advancement-config-wrapper');
+      expect(configWrappers.length).toBe(2);
+    });
+
+    it('should show selection labels when configurable type is at ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[2] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[2].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      const labels = compiled.querySelectorAll('.config-instance-label');
+      expect(labels.length).toBe(2);
+      expect(labels[0].textContent).toContain('Selection 1');
+      expect(labels[1].textContent).toContain('Selection 2');
+    });
+
+    it('should not show selection labels for configurable type at ×1', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[2] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const labels = compiled.querySelectorAll('.config-instance-label');
+      expect(labels.length).toBe(0);
+    });
+
+    it('should show stat arrow for BOOST_PROFICIENCY when selected', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      // Select BOOST_PROFICIENCY (index 4)
+      (tiles[4] as HTMLElement).click();
+      hostFixture.detectChanges();
+
+      const arrow = tiles[4].querySelector('.stat-boost-arrow');
+      expect(arrow).toBeTruthy();
+      expect(arrow?.textContent).toContain('1 → 2');
+    });
+
+    it('should update selection count display for ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const instruction = compiled.querySelector('.step-instruction');
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      expect(instruction?.textContent).toContain('1/2');
+
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+      expect(instruction?.textContent).toContain('2/2');
+    });
+
+    it('should disable other tiles when same type is selected ×2', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const tiles = compiled.querySelectorAll('.advancement-tile');
+
+      (tiles[0] as HTMLElement).click();
+      hostFixture.detectChanges();
+      const incrementBtn = tiles[0].querySelector('.qty-btn[aria-label="Add another"]') as HTMLElement;
+      incrementBtn.click();
+      hostFixture.detectChanges();
+
+      expect(tiles[1].classList.contains('disabled')).toBe(true);
+      expect(tiles[2].classList.contains('disabled')).toBe(true);
+    });
   });
 });

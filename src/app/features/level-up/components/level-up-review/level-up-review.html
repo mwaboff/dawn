@@ -3,14 +3,14 @@
     <h3 class="review-banner__title">Level Up Summary</h3>
     <p class="review-banner__subtitle">
       Level {{ levelUpOptions().currentLevel }} → Level {{ levelUpOptions().nextLevel }}
-      @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
+      @if (levelUpOptions().tierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
         <span class="review-banner__tier">(Tier {{ levelUpOptions().currentTier }} → Tier {{ levelUpOptions().nextTier }})</span>
       }
     </p>
   </div>
 
   <div class="review-sections">
-    @if (levelUpOptions().isTierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
+    @if (levelUpOptions().tierTransition || levelUpOptions().currentTier !== levelUpOptions().nextTier) {
       <div class="review-section">
         <h4 class="review-section__title">Tier Achievements</h4>
         <div class="review-section__content">
@@ -74,16 +74,15 @@
       </div>
     </div>
 
-    @if (trades().length > 0) {
+    @if (tradeDisplayPairs().length > 0) {
       <div class="review-section">
         <h4 class="review-section__title">Domain Card Trades</h4>
         <div class="review-section__content">
-          @for (trade of trades(); track $index; let i = $index) {
-            <div class="review-item">
-              <span class="review-item__label">Trade {{ i + 1 }}</span>
-              <span class="review-item__value">
-                {{ trade.tradeOutCardIds.length }} out / {{ trade.tradeInCardIds.length }} in
-              </span>
+          @for (pair of tradeDisplayPairs(); track $index) {
+            <div class="review-item review-item--trade">
+              <span class="review-item__label">{{ pair.gaveUpName }}</span>
+              <span class="review-item__arrow" aria-hidden="true">→</span>
+              <span class="review-item__value">{{ pair.receivedName }}</span>
             </div>
           }
         </div>

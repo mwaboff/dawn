@@ -1,14 +1,14 @@
 import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 
 import { CardData, CardType, CARD_TYPE_LABELS } from './daggerheart-card.model';
-import { escapeAndFormatHtml } from '../../utils/text.utils';
 import { CardFeatureItem } from './card-feature-item/card-feature-item';
+import { FormatTextPipe } from '../../pipes/format-text.pipe';
 
 @Component({
   selector: 'app-daggerheart-card',
   templateUrl: './daggerheart-card.html',
   styleUrls: ['./daggerheart-card.css', './daggerheart-card-variants.css', './daggerheart-card-wide.css'],
-  imports: [CardFeatureItem],
+  imports: [CardFeatureItem, FormatTextPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DaggerheartCard {
@@ -41,10 +41,6 @@ export class DaggerheartCard {
   toggleFeatures(event: Event): void {
     event.stopPropagation();
     this.featuresExpanded.set(!this.featuresExpanded());
-  }
-
-  formatText(text: string): string {
-    return escapeAndFormatHtml(text);
   }
 
   typeLabel(type: CardType): string {

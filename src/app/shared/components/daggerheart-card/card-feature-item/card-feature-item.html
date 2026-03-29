@@ -5,7 +5,7 @@
       <span class="card__feature-subtitle">{{ feature().subtitle }}</span>
     }
   </div>
-  <p class="card__feature-description" [innerHTML]="formatText(feature().description)"></p>
+  <p class="card__feature-description" [innerHTML]="feature().description | formatText"></p>
   @if (feature().tags?.length) {
     <div class="card__feature-tags">
       @for (tag of feature().tags; track tag) {

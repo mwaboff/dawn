@@ -3,59 +3,49 @@
     <p class="step-instruction">Optionally trade domain cards for different ones (equal swaps)</p>
     <div class="trade-actions">
       <button type="button" class="trade-btn trade-btn--skip" [class.active]="skipped()" (click)="onSkip()">Skip Trades</button>
-      <button type="button" class="trade-btn trade-btn--add" (click)="onAddTrade()">+ Add Trade</button>
     </div>
   </div>
 
   @if (skipped()) {
     <p class="skip-message">No trades will be made this level-up.</p>
-  }
-
-  @for (trade of trades(); track $index; let i = $index) {
+  } @else {
     <div class="trade-row">
-      <div class="trade-row__header">
-        <h4 class="trade-row__title">Trade {{ i + 1 }}</h4>
-        <button type="button" class="trade-row__remove" (click)="onRemoveTrade(i)" aria-label="Remove trade">&#10005;</button>
-      </div>
-
-      <div class="trade-columns">
-        <div class="trade-column">
-          <h5 class="trade-column__label">Cards to give up</h5>
-          <div class="trade-card-list">
-            @for (card of characterDomainCards(); track card.id) {
-              <button class="trade-card-btn"
-                [class.selected]="isCardInTradeOut(trade, card)"
-                [disabled]="isCardDisabledForTrade(trade, card)"
-                (click)="onToggleTradeOut(i, card)">
-                <span class="trade-card-btn__name">{{ card.name }}</span>
-                @if (card.domainName) {
-                  <span class="trade-card-btn__meta">{{ card.domainName }}</span>
-                }
-              </button>
-            }
-          </div>
-        </div>
-
-        <div class="trade-column">
-          <h5 class="trade-column__label">Cards to receive ({{ trade.tradedOut.length }} needed)</h5>
-          <app-card-selection-grid
-            [cards]="tradableCards()"
-            [loading]="tradableCardsLoading()"
-            [selectedCards]="trade.tradedIn"
-            [maxSelections]="trade.tradedOut.length || 1"
-            [collapsibleFeatures]="true"
-            (cardsSelected)="onTradeInSelected(i, $event)"
-          />
+      <div class="trade-section">
+        <h5 class="trade-section__label">Cards to give up</h5>
+        <div class="trade-card-list">
+          @for (card of characterDomainCards(); track card.id) {
+            <button class="trade-card-btn"
+              [class.selected]="isCardInTradeOut(trade(), card)"
+              (click)="onToggleTradeOut(card)">
+              <span class="trade-card-btn__name">{{ card.name }}</span>
+              @if (card.domainName) {
+                <span class="trade-card-btn__meta">{{ card.domainName }}</span>
+              }
+            </button>
+          }
         </div>
       </div>
 
-      @if (trade.tradedIn.length > 0) {
+      <div class="trade-section">
+        <h5 class="trade-section__label">Cards to receive ({{ trade().tradedOut.length }} needed)</h5>
+        <app-card-selection-grid
+          [cards]="filteredTradableCards()"
+          [loading]="tradableCardsLoading()"
+          [selectedCards]="trade().tradedIn"
+          [maxSelections]="trade().tradedOut.length || 1"
+          [collapsibleFeatures]="true"
+          layout="wide"
+          (cardsSelected)="onTradeInSelected($event)"
+        />
+      </div>
+
+      @if (trade().tradedIn.length > 0) {
         <div class="equip-section">
           <p class="equip-label">Equip traded-in cards:</p>
-          @for (card of trade.tradedIn; track card.id) {
+          @for (card of trade().tradedIn; track card.id) {
             <label class="equip-checkbox">
-              <input type="checkbox" [checked]="isEquipChecked(trade, card.id)"
-                (change)="onToggleEquipTradeIn(i, card.id)" />
+              <input type="checkbox" [checked]="isEquipChecked(trade(), card.id)"
+                (change)="onToggleEquipTradeIn(card.id)" />
               {{ card.name }}
             </label>
           }

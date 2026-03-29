@@ -120,12 +120,42 @@
   gap: 0.75rem;
 }
 
-.submit-error {
-  color: var(--color-error, #c0392b);
-  font-size: 0.85rem;
-  font-family: var(--font-body, 'Lora', serif);
-  text-align: center;
+.submit-error-banner {
+  background: color-mix(in srgb, #8b3a2a 12%, var(--color-parchment-light, #f5ede0));
+  border: 1px solid color-mix(in srgb, #8b3a2a 40%, var(--color-border, #c8a87a));
+  border-left: 3px solid #8b3a2a;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.submit-error-title {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b2a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin: 0;
+}
+
+.submit-error-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.submit-error-item {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.8rem;
+  color: #5a2415;
+  padding: 0.2rem 0;
+}
+
+.submit-error-field {
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .submit-button {
@@ -150,4 +180,23 @@
 .submit-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.review-badge {
+  display: inline-block;
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gold, #d4a056);
+  border: 1px solid var(--color-gold, #d4a056);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.review-row--indented {
+  padding-left: 1rem;
 }

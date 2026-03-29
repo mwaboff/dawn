@@ -6,6 +6,7 @@ import { ReviewSection } from './review-section';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments } from '../../models/trait.model';
 import { Experience } from '../../models/experience.model';
+import { SubmitError } from '../../models/submit-error.model';
 
 function makeCard(overrides: Partial<CardData> = {}): CardData {
   return {
@@ -68,7 +69,7 @@ class TestHost {
     makeCard({ id: 11, cardType: 'domain', name: 'Bone Cage', subtitle: 'Bone' }),
   ];
   submitting = false;
-  submitError: string | null = null;
+  submitError: SubmitError | null = null;
   submitClickCount = 0;
   onSubmitClicked(): void { this.submitClickCount++; }
 }
@@ -172,6 +173,66 @@ describe('ReviewSection', () => {
     expect((fixture.nativeElement.textContent as string)).toContain('6+');
   });
 
+  describe('Mixed Ancestry', () => {
+    it('should display mixed badge when ancestry is mixed', () => {
+      host.ancestryCard = makeCard({
+        cardType: 'ancestry',
+        name: 'Elf / Dwarf',
+        metadata: { isMixed: true },
+        features: [
+          { name: 'Darkvision', description: 'See in darkness' },
+          { name: 'Stonecunning', description: 'Know stone' },
+        ],
+      });
+      fixture.detectChanges();
+      const badge = fixture.nativeElement.querySelector('.review-badge');
+      expect(badge).toBeTruthy();
+      expect(badge.textContent.trim()).toBe('Mixed');
+    });
+
+    it('should not display mixed badge for single ancestry', () => {
+      fixture.detectChanges();
+      const badge = fixture.nativeElement.querySelector('.review-badge');
+      expect(badge).toBeNull();
+    });
+
+    it('should display feature names when ancestry is mixed', () => {
+      host.ancestryCard = makeCard({
+        cardType: 'ancestry',
+        name: 'Elf / Dwarf',
+        metadata: { isMixed: true },
+        features: [
+          { name: 'Darkvision', description: 'See in darkness' },
+          { name: 'Stonecunning', description: 'Know stone' },
+        ],
+      });
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Darkvision');
+      expect(text).toContain('Stonecunning');
+    });
+
+    it('should indent mixed ancestry feature rows', () => {
+      host.ancestryCard = makeCard({
+        cardType: 'ancestry',
+        name: 'Elf / Dwarf',
+        metadata: { isMixed: true },
+        features: [
+          { name: 'Darkvision', description: 'See in darkness' },
+        ],
+      });
+      fixture.detectChanges();
+      const indentedRows = fixture.nativeElement.querySelectorAll('.review-row--indented');
+      expect(indentedRows.length).toBe(1);
+    });
+
+    it('should not display feature rows for non-mixed ancestry', () => {
+      fixture.detectChanges();
+      const indentedRows = fixture.nativeElement.querySelectorAll('.review-row--indented');
+      expect(indentedRows.length).toBe(0);
+    });
+  });
+
   describe('Submit Button', () => {
     it('should render the submit button', () => {
       fixture.detectChanges();
@@ -212,17 +273,32 @@ describe('ReviewSection', () => {
       expect(host.submitClickCount).toBe(1);
     });
 
-    it('should display submitError message when provided', () => {
-      host.submitError = 'Failed to create character. Please try again.';
+    it('should display generic error message when provided', () => {
+      host.submitError = { message: 'Failed to create character. Please try again.' };
       fixture.detectChanges();
-      const error = fixture.nativeElement.querySelector('.submit-error') as HTMLElement;
-      expect(error?.textContent?.trim()).toContain('Failed to create character');
+      const banner = fixture.nativeElement.querySelector('.submit-error-banner') as HTMLElement;
+      const title = fixture.nativeElement.querySelector('.submit-error-title') as HTMLElement;
+      expect(banner).toBeTruthy();
+      expect(title?.textContent?.trim()).toContain('Failed to create character');
     });
 
-    it('should not display error element when submitError is null', () => {
+    it('should display field errors when provided', () => {
+      host.submitError = {
+        message: 'Validation Failed',
+        fieldErrors: { name: 'Character name is required' },
+      };
       fixture.detectChanges();
-      const error = fixture.nativeElement.querySelector('.submit-error');
-      expect(error).toBeNull();
+      const title = fixture.nativeElement.querySelector('.submit-error-title') as HTMLElement;
+      const items = fixture.nativeElement.querySelectorAll('.submit-error-item');
+      expect(title?.textContent?.trim()).toContain('Validation Failed');
+      expect(items.length).toBe(1);
+      expect(items[0].textContent).toContain('Character name is required');
+    });
+
+    it('should not display error banner when submitError is null', () => {
+      fixture.detectChanges();
+      const banner = fixture.nativeElement.querySelector('.submit-error-banner');
+      expect(banner).toBeNull();
     });
   });
 });

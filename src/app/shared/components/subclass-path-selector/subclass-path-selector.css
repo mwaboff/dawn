@@ -47,6 +47,46 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+.tabbed-path__tab--owned:not(.tabbed-path__tab--active) { color: #9a8a7a; }
+.tabbed-path__tab--next:not(.tabbed-path__tab--active) { color: #d4a056; }
+.tabbed-path__tab--locked:not(.tabbed-path__tab--active) { color: #c4b9ac; }
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.25rem;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+.tab-badge--owned { color: #6b8e5e; }
+
+.card-state-wrapper {
+  position: relative;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+.card-state--owned { opacity: 0.7; filter: saturate(0.8); }
+.card-state--locked { opacity: 0.5; filter: saturate(0.6); }
+
+.card-state-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 2;
+  pointer-events: none;
+}
+.card-state-badge--owned {
+  color: #5a4230;
+  background: rgba(212, 160, 86, 0.15);
+  border: 1px solid rgba(212, 160, 86, 0.25);
+}
+
 @media (max-width: 640px) {
   .card-grid {
     grid-template-columns: 1fr;

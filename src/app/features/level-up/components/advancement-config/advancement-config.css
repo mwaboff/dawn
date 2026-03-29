@@ -25,3 +25,18 @@
   color: #d4a056; background: rgba(212, 160, 86, .15);
   padding: .1rem .4rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .03em;
 }
+
+.trait-checkbox.excluded { opacity: .5; border-color: #ccc; cursor: not-allowed; }
+.trait-checkbox.excluded:hover { border-color: #ccc; }
+.trait-excluded-note { font-family: 'Lora', serif; font-size: .75rem; color: #999; font-style: italic; }
+
+.class-filter { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.class-filter__label { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+.class-filter__pills { display: flex; gap: .375rem; flex-wrap: wrap; }
+.class-pill {
+  font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600;
+  padding: .25rem .75rem; border-radius: 999px; border: 1px solid #d8c8a8;
+  background: #faf7f2; color: #5a4230; cursor: pointer; transition: all .15s ease;
+}
+.class-pill:hover { border-color: #d4a056; }
+.class-pill.active { background: #d4a056; color: #fff; border-color: #d4a056; }

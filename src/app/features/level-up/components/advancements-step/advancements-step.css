@@ -11,10 +11,28 @@
 
 .advancement-tile__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .25rem; }
 .advancement-tile__label { font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 700; color: #3e2723; }
+.advancement-tile__right { display: flex; align-items: center; gap: .5rem; }
 .advancement-tile__count { font-family: 'Lora', serif; font-size: .8rem; color: #7a5c46; }
 .advancement-tile__description { font-family: 'Lora', serif; font-size: .85rem; color: #5a4230; margin: 0; line-height: 1.4; }
 .advancement-tile__exclusive { font-family: 'Lora', serif; font-size: .75rem; color: #b33; font-style: italic; display: block; margin-top: .35rem; }
 
+.advancement-tile__quantity { display: flex; align-items: center; gap: .25rem; }
+.qty-value { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600; color: #5a4230; }
+.qty-value.highlighted { color: #d4a056; }
+.qty-btn {
+  width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 1px solid #d4a056;
+  background: transparent; color: #d4a056; font-size: .85rem; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .15s ease; padding: 0;
+}
+.qty-btn:hover { background: rgba(212, 160, 86, .15); }
+
 .advancement-config-wrapper { padding: .75rem 1rem; margin-top: -.25rem; background: rgba(212, 160, 86, .04); border: 1px solid rgba(212, 160, 86, .2); border-top: none; border-radius: 0 0 6px 6px; }
+
+.config-instance-label {
+  font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600;
+  color: #d4a056; margin: 0 0 .5rem; padding-bottom: .35rem;
+  border-bottom: 1px solid rgba(212, 160, 86, .2);
+}
 
 .stat-boost-arrow { color: #2e7d32; font-weight: 600; }

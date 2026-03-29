@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
 import { CardSummary, SubclassCardSummary, DomainCardSummary } from '../../models/character-sheet-view.model';
+import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 
 export type CardType = 'subclass' | 'ancestry' | 'community' | 'domain';
 export type AnyCardSummary = CardSummary | SubclassCardSummary | DomainCardSummary;
@@ -9,6 +10,7 @@ export type AnyCardSummary = CardSummary | SubclassCardSummary | DomainCardSumma
   templateUrl: './expandable-card-list.html',
   styleUrl: './expandable-card-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormatTextPipe],
 })
 export class ExpandableCardList {
   readonly heading = input.required<string>();

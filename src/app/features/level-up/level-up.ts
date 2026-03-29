@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { mapToCharacterSheetView } from '../character-sheet/utils/character-sheet-view.mapper';
 import { CharacterSheetView } from '../character-sheet/models/character-sheet-view.model';
-import { LevelUpOptionsResponse, AdvancementChoice, AvailableAdvancement, DomainCardTradeRequest } from './models/level-up-api.model';
+import { LevelUpOptionsResponse, AdvancementChoice, AvailableAdvancement, DomainCardTradeRequest, TradeDisplayPair } from './models/level-up-api.model';
 import { LevelUpTab, LevelUpTabId } from './models/level-up.model';
 import { computeVisibleTabs } from './utils/level-up-steps.utils';
 import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils';
@@ -51,6 +51,7 @@ export class LevelUp implements OnInit {
   readonly equipNewDomainCard = signal(false);
   readonly unequipDomainCardId = signal<number | undefined>(undefined);
   readonly trades = signal<DomainCardTradeRequest[]>([]);
+  readonly tradeDisplayPairs = signal<TradeDisplayPair[]>([]);
 
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -152,6 +153,10 @@ export class LevelUp implements OnInit {
     this.markStepComplete('domain-trades');
   }
 
+  onTradeDisplayChanged(pairs: TradeDisplayPair[]): void {
+    this.tradeDisplayPairs.set(pairs);
+  }
+
   onSubmit(): void {
     const options = this.levelUpOptions();
     const domainCards = this.selectedDomainCards();
@@ -166,7 +171,7 @@ export class LevelUp implements OnInit {
 
     const request = assembleLevelUpRequest({
       advancements,
-      newExperienceDescription: (options.isTierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
+      newExperienceDescription: (options.tierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
       newDomainCardId: domainCards[0].id,
       equipNewDomainCard: this.equipNewDomainCard(),
       unequipDomainCardId: this.unequipDomainCardId(),

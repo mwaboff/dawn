@@ -91,8 +91,7 @@ describe('assembleCharacterSheet', () => {
     expect(result.armorMax).toBe(3);
     expect(result.majorDamageThreshold).toBe(4);
     expect(result.severeDamageThreshold).toBe(8);
-    expect(result.activeArmorId).toBe(5);
-    expect(result.inventoryArmorIds).toEqual([5]);
+    expect(result.inventoryArmors).toEqual([{ armorId: 5, equipped: true }]);
   });
 
   it('should map trait modifiers', () => {
@@ -119,16 +118,15 @@ describe('assembleCharacterSheet', () => {
     const primary = makeCard(10, 'weapon');
     const secondary = makeCard(11, 'weapon');
     const result = assembleCharacterSheet({ ...baseParams, primaryWeapon: primary, secondaryWeapon: secondary });
-    expect(result.activePrimaryWeaponId).toBe(10);
-    expect(result.activeSecondaryWeaponId).toBe(11);
-    expect(result.inventoryWeaponIds).toEqual([10, 11]);
+    expect(result.inventoryWeapons).toEqual([
+      { weaponId: 10, equipped: true, slot: 'PRIMARY' },
+      { weaponId: 11, equipped: true, slot: 'SECONDARY' },
+    ]);
   });
 
   it('should set null weapon IDs when no weapons', () => {
     const result = assembleCharacterSheet(baseParams);
-    expect(result.activePrimaryWeaponId).toBeNull();
-    expect(result.activeSecondaryWeaponId).toBeNull();
-    expect(result.inventoryWeaponIds).toEqual([]);
+    expect(result.inventoryWeapons).toEqual([]);
   });
 
   it('should include card IDs for ancestry, community, subclass', () => {
@@ -142,6 +140,28 @@ describe('assembleCharacterSheet', () => {
     const domainCards = [makeCard(20, 'domain'), makeCard(21, 'domain')];
     const result = assembleCharacterSheet({ ...baseParams, domainCards });
     expect(result.domainCardIds).toEqual([20, 21]);
+  });
+
+  it('should auto-equip all domain cards when 5 or fewer', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(21, 'domain'), makeCard(22, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.equippedDomainCardIds).toEqual([20, 21, 22]);
+    expect(result.vaultDomainCardIds).toEqual([]);
+  });
+
+  it('should auto-equip first 5 and vault the rest when more than 5', () => {
+    const domainCards = Array.from({ length: 7 }, (_, i) => makeCard(30 + i, 'domain'));
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.equippedDomainCardIds).toEqual([30, 31, 32, 33, 34]);
+    expect(result.vaultDomainCardIds).toEqual([35, 36]);
+  });
+
+  it('should deduplicate domain card IDs', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(20, 'domain'), makeCard(21, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards });
+    expect(result.domainCardIds).toEqual([20, 21]);
+    expect(result.equippedDomainCardIds).toEqual([20, 21]);
+    expect(result.vaultDomainCardIds).toEqual([]);
   });
 
   it('should filter incomplete experiences', () => {

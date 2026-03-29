@@ -1,0 +1,56 @@
+<main class="level-down-page">
+  <div class="grain-overlay page-grain" aria-hidden="true"></div>
+
+  @if (loading()) {
+    <div class="level-down-loading" role="status" aria-live="polite">
+      <p class="loading-text">Loading...</p>
+    </div>
+  } @else if (error(); as err) {
+    <div class="level-down-error" role="alert">
+      <h2 class="error-title">Error</h2>
+      <p class="error-message">{{ err }}</p>
+    </div>
+  } @else {
+    <div class="content-area">
+      <div class="parchment-container max-level-container">
+        <div class="max-level-crest" aria-hidden="true">
+          <svg class="crest-diamond" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 4L76 40L40 76L4 40Z" stroke="#d4a056" stroke-width="1.5" fill="none"/>
+            <path d="M40 14L66 40L40 66L14 40Z" stroke="#c9a87c" stroke-width="0.75" fill="none" opacity="0.5"/>
+            <text x="40" y="45" text-anchor="middle" font-family="Cinzel, serif" font-size="16" font-weight="700" fill="#d4a056">X</text>
+          </svg>
+        </div>
+
+        <p class="max-level-epithet">Legend of the Realm</p>
+        <h1 class="max-level-name">{{ characterName() }}</h1>
+
+        <div class="max-level-badge">
+          <span class="badge-rule" aria-hidden="true"></span>
+          <span class="badge-text">Level {{ characterLevel() }}</span>
+          <span class="badge-rule" aria-hidden="true"></span>
+        </div>
+
+        <p class="max-level-message">
+          This hero has reached the pinnacle of power. Their legend is complete.
+        </p>
+
+        <div class="max-level-actions">
+          <a class="max-level-back" [routerLink]="['/character', characterId]">Back to Character</a>
+          <button type="button" class="max-level-level-down" (click)="onLevelDownClick()">Level Down</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showConfirmDialog()) {
+    <app-confirm-dialog
+      title="Level Down"
+      message="This will undo the most recent level-up and revert all changes. This action cannot be undone. Are you sure?"
+      confirmLabel="Level Down"
+      cancelLabel="Cancel"
+      [processing]="processing()"
+      (confirmed)="onConfirm()"
+      (cancelled)="onCancel()"
+    />
+  }
+</main>

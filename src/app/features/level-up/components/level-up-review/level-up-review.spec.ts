@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 
 import { LevelUpReview } from './level-up-review';
-import { AdvancementChoice, DomainCardTradeRequest, LevelUpOptionsResponse } from '../../models/level-up-api.model';
+import { AdvancementChoice, TradeDisplayPair, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildLevelUpOptions(overrides: Partial<LevelUpOptionsResponse> = {}): LevelUpOptionsResponse {
@@ -11,7 +11,7 @@ function buildLevelUpOptions(overrides: Partial<LevelUpOptionsResponse> = {}): L
     nextLevel: 2,
     currentTier: 1,
     nextTier: 1,
-    isTierTransition: false,
+    tierTransition: false,
     availableAdvancements: [],
     domainCardLevelCap: null,
     accessibleDomainIds: [1, 2],
@@ -39,7 +39,7 @@ function buildCardData(overrides: Partial<CardData> = {}): CardData {
       [newExperienceDescription]="newExperienceDescription()"
       [selectedDomainCards]="selectedDomainCards()"
       [equipNewDomainCard]="equipNewDomainCard()"
-      [trades]="trades()"
+      [tradeDisplayPairs]="tradeDisplayPairs()"
       [submitting]="submitting()"
       [submitError]="submitError()"
       (submitClicked)="onSubmitClicked()"
@@ -53,7 +53,7 @@ class TestHost {
   newExperienceDescription = signal('');
   selectedDomainCards = signal<CardData[]>([]);
   equipNewDomainCard = signal(false);
-  trades = signal<DomainCardTradeRequest[]>([]);
+  tradeDisplayPairs = signal<TradeDisplayPair[]>([]);
   submitting = signal(false);
   submitError = signal<string | null>(null);
   submitClickedCount = 0;
@@ -93,13 +93,13 @@ describe('LevelUpReview', () => {
     expect(subtitle?.textContent).toContain('Level 4');
   });
 
-  it('should render tier transition info when isTierTransition is true', () => {
+  it('should render tier transition info when tierTransition is true', () => {
     host.levelUpOptions.set(buildLevelUpOptions({
       currentLevel: 4,
       nextLevel: 5,
       currentTier: 1,
       nextTier: 2,
-      isTierTransition: true,
+      tierTransition: true,
     }));
     hostFixture.detectChanges();
 
@@ -111,8 +111,8 @@ describe('LevelUpReview', () => {
     expect(tier?.textContent).toContain('Tier 2');
   });
 
-  it('should not render tier info when isTierTransition is false', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: false }));
+  it('should not render tier info when tierTransition is false', () => {
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: false }));
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
@@ -121,7 +121,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should render tier achievements section for tier transition', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: true }));
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: true }));
     host.newExperienceDescription.set('Defeated the dragon');
     hostFixture.detectChanges();
 
@@ -138,7 +138,7 @@ describe('LevelUpReview', () => {
   });
 
   it('should not render tier achievements section when not a tier transition', () => {
-    host.levelUpOptions.set(buildLevelUpOptions({ isTierTransition: false }));
+    host.levelUpOptions.set(buildLevelUpOptions({ tierTransition: false }));
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
@@ -209,8 +209,8 @@ describe('LevelUpReview', () => {
   });
 
   it('should render trades section when trades are provided', () => {
-    host.trades.set([
-      { tradeOutCardIds: [1, 2], tradeInCardIds: [3], equipTradedInCardIds: [] },
+    host.tradeDisplayPairs.set([
+      { gaveUpName: 'Flame Strike', receivedName: 'Lightning Bolt' },
     ]);
     hostFixture.detectChanges();
 
@@ -220,13 +220,14 @@ describe('LevelUpReview', () => {
 
     expect(titlesText).toContain('Domain Card Trades');
 
-    const items = compiled.querySelectorAll('.review-item__value');
-    const texts = Array.from(items).map(i => i.textContent?.trim());
-    expect(texts.some(t => t?.includes('2 out / 1 in'))).toBe(true);
+    const labels = compiled.querySelectorAll('.review-item--trade .review-item__label');
+    const values = compiled.querySelectorAll('.review-item--trade .review-item__value');
+    expect(labels[0]?.textContent?.trim()).toBe('Flame Strike');
+    expect(values[0]?.textContent?.trim()).toBe('Lightning Bolt');
   });
 
   it('should not render trades section when trades are empty', () => {
-    host.trades.set([]);
+    host.tradeDisplayPairs.set([]);
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;

@@ -21,7 +21,7 @@ export interface LevelUpOptionsResponse {
   nextLevel: number;
   currentTier: number;
   nextTier: number;
-  isTierTransition: boolean;
+  tierTransition: boolean;
   availableAdvancements: AvailableAdvancement[];
   domainCardLevelCap: number | null;
   accessibleDomainIds: number[];
@@ -52,6 +52,11 @@ export interface LevelUpRequest {
   equipNewDomainCard?: boolean;
   unequipDomainCardId?: number;
   trades?: DomainCardTradeRequest[];
+}
+
+export interface TradeDisplayPair {
+  gaveUpName: string;
+  receivedName: string;
 }
 
 export interface LevelUpResponse {

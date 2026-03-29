@@ -8,7 +8,7 @@
     >
       <span class="category-icon">{{ category.icon }}</span>
       <span class="category-label">{{ category.label }}</span>
-      <span class="category-description">{{ category.description }}</span>
+      <span class="category-description" [innerHTML]="category.description | formatText"></span>
     </button>
   }
 </div>

@@ -21,10 +21,18 @@ export interface AncestryCardResponse {
   cardType: 'ANCESTRY';
   expansionId: number;
   isOfficial: boolean;
+  isMixed?: boolean;
   featureIds: number[];
   features: AncestryFeatureResponse[];
   costTagIds: number[];
   costTags: AncestryCostTag[];
   createdAt: string;
   lastModifiedAt: string;
+}
+
+export interface CreateMixedAncestryRequest {
+  name: string;
+  description: string;
+  expansionId: number;
+  featureIds: [number, number];
 }

@@ -10,11 +10,6 @@
       <h2 class="error-title">Cannot Level Up</h2>
       <p class="error-message">{{ err }}</p>
     </div>
-  } @else if (isMaxLevel()) {
-    <div class="level-up-error" role="alert">
-      <h2 class="error-title">Maximum Level</h2>
-      <p class="error-message">This character is already at level 10.</p>
-    </div>
   } @else if (characterSheet(); as sheet) {
     <div class="content-area">
       <div class="parchment-container">
@@ -23,7 +18,7 @@
             <h1 class="level-up-header__name">{{ sheet.name }}</h1>
             <p class="level-up-header__transition">
               Lvl {{ levelUpOptions()!.currentLevel }} → Lvl {{ levelUpOptions()!.nextLevel }}
-              @if (levelUpOptions()!.isTierTransition) {
+              @if (levelUpOptions()!.tierTransition) {
                 <span class="tier-badge">Tier {{ levelUpOptions()!.nextTier }}</span>
               }
             </p>
@@ -84,8 +79,11 @@
                 [characterDomainCards]="equippedDomainCards()"
                 [accessibleDomainIds]="levelUpOptions()!.accessibleDomainIds"
                 [domainCardLevelCap]="levelUpOptions()!.domainCardLevelCap"
-                [newDomainCard]="selectedDomainCards()[0]"
+                [ownedDomainCardIds]="ownedDomainCardIds()"
+                [targetLevel]="levelUpOptions()!.nextLevel"
+                [newDomainCards]="selectedDomainCards()"
                 (tradesChanged)="onTradesChanged($event)"
+                (tradeDisplayChanged)="onTradeDisplayChanged($event)"
               />
             }
             @case ('review') {
@@ -95,7 +93,7 @@
                 [newExperienceDescription]="newExperienceDescription()"
                 [selectedDomainCards]="selectedDomainCards()"
                 [equipNewDomainCard]="equipNewDomainCard()"
-                [trades]="trades()"
+                [tradeDisplayPairs]="tradeDisplayPairs()"
                 [submitting]="submitting()"
                 [submitError]="submitError()"
                 (submitClicked)="onSubmit()"

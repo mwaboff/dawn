@@ -1,16 +1,18 @@
-import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, computed, inject, OnInit, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { SubclassPathSelector } from '../../../../shared/components/subclass-path-selector/subclass-path-selector';
+import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView, TraitDisplay, ExperienceDisplay } from '../../../character-sheet/models/character-sheet-view.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { DomainService } from '../../../../shared/services/domain.service';
 import { SubclassService } from '../../../../shared/services/subclass.service';
 import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-advancement-config',
-  imports: [CardSelectionGrid, SubclassPathSelector],
+  imports: [CardSelectionGrid, SubclassPathSelector, FormatTextPipe],
   templateUrl: './advancement-config.html',
   styleUrl: './advancement-config.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,7 @@ export class AdvancementConfig implements OnInit {
   readonly initialChoice = input<AdvancementChoice>();
 
   readonly newExperienceDescription = input<string>('');
+  readonly excludedTraits = input<TraitEnum[]>([]);
 
   readonly configChanged = output<AdvancementChoice>();
 
@@ -41,18 +44,57 @@ export class AdvancementConfig implements OnInit {
   readonly subclassCardsLoading = signal(false);
   readonly selectedSubclassCard = signal<CardData | undefined>(undefined);
 
-  readonly subclassPaths = signal<CardData[]>([]);
-  readonly subclassPathsLoading = signal(false);
-  readonly selectedPath = signal<CardData | undefined>(undefined);
-  readonly foundationCards = signal<CardData[]>([]);
-  readonly foundationCardsLoading = signal(false);
-  readonly selectedFoundationCard = signal<CardData | undefined>(undefined);
+  readonly multiclassCards = signal<CardData[]>([]);
+  readonly multiclassCardsLoading = signal(false);
+  readonly selectedMulticlassCard = signal<CardData | undefined>(undefined);
+  readonly multiclassClassFilter = signal<string | null>(null);
+
+  readonly ownedSubclassCardIds = computed(() => this.characterSheet().subclassCards.map(c => c.id));
+
+  readonly multiclassAvailableClasses = computed(() => {
+    const cards = this.multiclassCards();
+    const classNames = new Set<string>();
+    for (const card of cards) {
+      const className = card.metadata?.['associatedClassName'] as string;
+      if (className) classNames.add(className);
+    }
+    return [...classNames].sort();
+  });
+
+  readonly filteredMulticlassCards = computed(() => {
+    const filter = this.multiclassClassFilter();
+    const cards = this.multiclassCards();
+    if (!filter) return cards;
+    return cards.filter(c => (c.metadata?.['associatedClassName'] as string) === filter);
+  });
+
+  constructor() {
+    effect(() => {
+      const excluded = this.excludedTraits();
+      if (excluded.length === 0) return;
+
+      const current = this.selectedTraits();
+      const filtered = current.filter(t => !excluded.includes(t));
+      if (filtered.length !== current.length) {
+        this.selectedTraits.set(filtered);
+        this.emitChoice({ type: 'BOOST_TRAITS', traits: filtered });
+      }
+    });
+  }
 
   get type(): AdvancementType {
     return this.advancement().type;
   }
 
-  get unmarkedTraits(): TraitDisplay[] {
+  get marksWillBeCleared(): boolean {
+    const options = this.levelUpOptions();
+    return options.tierTransition && (options.nextTier === 3 || options.nextTier === 4);
+  }
+
+  get selectableTraits(): TraitDisplay[] {
+    if (this.marksWillBeCleared) {
+      return this.characterSheet().traits;
+    }
     return this.characterSheet().traits.filter(t => !t.marked);
   }
 
@@ -75,7 +117,7 @@ export class AdvancementConfig implements OnInit {
     } else if (this.type === 'UPGRADE_SUBCLASS') {
       this.loadSubclassUpgrades();
     } else if (this.type === 'MULTICLASS') {
-      this.loadSubclassPaths();
+      this.loadMulticlassCards();
     }
   }
 
@@ -84,19 +126,25 @@ export class AdvancementConfig implements OnInit {
     const current = this.selectedTraits();
     const idx = current.indexOf(traitEnum);
 
+    let updated: TraitEnum[];
     if (idx >= 0) {
-      this.selectedTraits.set(current.filter(t => t !== traitEnum));
+      updated = current.filter(t => t !== traitEnum);
     } else if (current.length < 2) {
-      const updated = [...current, traitEnum];
-      this.selectedTraits.set(updated);
-      if (updated.length === 2) {
-        this.emitChoice({ type: 'BOOST_TRAITS', traits: updated });
-      }
+      updated = [...current, traitEnum];
+    } else {
+      return;
     }
+
+    this.selectedTraits.set(updated);
+    this.emitChoice({ type: 'BOOST_TRAITS', traits: updated });
   }
 
   isTraitSelected(traitName: string): boolean {
     return this.selectedTraits().includes(traitName.toUpperCase() as TraitEnum);
+  }
+
+  isTraitExcluded(traitName: string): boolean {
+    return this.excludedTraits().includes(traitName.toUpperCase() as TraitEnum);
   }
 
   private get totalExperienceSelections(): number {
@@ -159,18 +207,13 @@ export class AdvancementConfig implements OnInit {
     this.emitChoice({ type: 'UPGRADE_SUBCLASS', subclassCardId: card.id });
   }
 
-  onPathSelected(card: CardData): void {
-    this.selectedPath.set(card);
-    this.selectedFoundationCard.set(undefined);
-    this.loadFoundationCards(card);
+  onMulticlassClassFilterSelected(className: string | null): void {
+    this.multiclassClassFilter.set(className);
   }
 
-  onFoundationCardSelected(card: CardData): void {
-    this.selectedFoundationCard.set(card);
-    const path = this.selectedPath();
-    if (path) {
-      this.emitChoice({ type: 'MULTICLASS', subclassCardId: card.id });
-    }
+  onMulticlassCardSelected(card: CardData): void {
+    this.selectedMulticlassCard.set(card);
+    this.emitChoice({ type: 'MULTICLASS', subclassCardId: card.id });
   }
 
   private emitChoice(choice: AdvancementChoice): void {
@@ -194,24 +237,24 @@ export class AdvancementConfig implements OnInit {
 
   private loadSubclassUpgrades(): void {
     const sheet = this.characterSheet();
-    const classIds = new Set(
+    const classIds = [...new Set(
       sheet.subclassCards
         .map(c => c.associatedClassId)
         .filter((id): id is number => id != null)
-    );
+    )];
 
-    if (classIds.size === 0) return;
+    if (classIds.length === 0) return;
     this.subclassCardsLoading.set(true);
 
-    const classId = [...classIds][0];
-    this.subclassService.getSubclasses(classId).subscribe({
-      next: cards => {
+    forkJoin(classIds.map(id => this.subclassService.getSubclasses(id))).subscribe({
+      next: results => {
+        const allCards = results.flat();
         const currentPathNames = new Set(
           sheet.subclassCards
             .map(c => c.subclassPathName)
             .filter((name): name is string => name != null)
         );
-        const filtered = cards.filter(c => {
+        const filtered = allCards.filter(c => {
           const pathName = c.metadata?.['subclassPathName'] as string;
           return pathName && currentPathNames.has(pathName);
         });
@@ -222,39 +265,36 @@ export class AdvancementConfig implements OnInit {
     });
   }
 
-  private loadSubclassPaths(): void {
-    this.subclassPathsLoading.set(true);
+  private loadMulticlassCards(): void {
+    this.multiclassCardsLoading.set(true);
     this.subclassPathService.getSubclassPaths().subscribe({
       next: paths => {
-        const existingClassNames = new Set(this.characterSheet().subclassCards.map(c => c.associatedClassName));
-        const filtered = paths.filter(p => {
-          const className = p.metadata?.['associatedClassName'] as string;
-          return className && !existingClassNames.has(className);
-        });
-        this.subclassPaths.set(filtered);
-        this.subclassPathsLoading.set(false);
-      },
-      error: () => this.subclassPathsLoading.set(false),
-    });
-  }
+        const existingClassIds = new Set(
+          this.characterSheet().subclassCards
+            .map(c => c.associatedClassId)
+            .filter((id): id is number => id != null)
+        );
+        const eligibleClassIds = [...new Set(
+          paths
+            .map(p => p.metadata?.['associatedClassId'] as number)
+            .filter(id => id != null && !existingClassIds.has(id))
+        )];
 
-  private loadFoundationCards(path: CardData): void {
-    const classId = path.metadata?.['associatedClassId'] as number;
-    if (!classId) return;
+        if (eligibleClassIds.length === 0) {
+          this.multiclassCards.set([]);
+          this.multiclassCardsLoading.set(false);
+          return;
+        }
 
-    this.foundationCardsLoading.set(true);
-    this.subclassService.getSubclasses(classId).subscribe({
-      next: cards => {
-        const pathName = path.name;
-        const filtered = cards.filter(c => {
-          const level = c.metadata?.['level'] as string;
-          const subclassPathName = c.metadata?.['subclassPathName'] as string;
-          return level === 'Foundation' && subclassPathName === pathName;
+        forkJoin(eligibleClassIds.map(id => this.subclassService.getSubclasses(id))).subscribe({
+          next: results => {
+            this.multiclassCards.set(results.flat());
+            this.multiclassCardsLoading.set(false);
+          },
+          error: () => this.multiclassCardsLoading.set(false),
         });
-        this.foundationCards.set(filtered);
-        this.foundationCardsLoading.set(false);
       },
-      error: () => this.foundationCardsLoading.set(false),
+      error: () => this.multiclassCardsLoading.set(false),
     });
   }
 }

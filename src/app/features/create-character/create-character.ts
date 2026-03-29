@@ -8,6 +8,7 @@ import { SubclassPathSelector } from '../../shared/components/subclass-path-sele
 import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
+import { AncestrySelector, MixedAncestrySelection } from './components/ancestry-selector/ancestry-selector';
 import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { ClassService } from '../../shared/services/class.service';
@@ -27,10 +28,11 @@ import { CharacterSheetResponse } from './models/character-sheet-api.model';
 import { CharacterSheetData } from './models/character-sheet.model';
 import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
 import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
+import { SubmitError, parseSubmitError } from './models/submit-error.model';
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ReviewSection],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ReviewSection],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,7 +85,8 @@ export class CreateCharacter implements OnInit {
   readonly characterName = signal('');
   readonly characterPronouns = signal('');
   readonly submitting = signal(false);
-  readonly submitError = signal<string | null>(null);
+  readonly submitError = signal<SubmitError | null>(null);
+  readonly mixedAncestrySelection = signal<MixedAncestrySelection | null>(null);
 
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
   readonly selectedSubclassCard = computed(() => this.selectedCards()['subclass']);
@@ -164,6 +167,28 @@ export class CreateCharacter implements OnInit {
         this.clearDomainCardSelections();
       }
     }
+  }
+
+  onMixedAncestrySelected(selection: MixedAncestrySelection): void {
+    this.mixedAncestrySelection.set(selection);
+    const tempCard: CardData = {
+      id: -1,
+      name: `${selection.ancestry1.name} / ${selection.ancestry2.name}`,
+      description: `A blend of ${selection.ancestry1.name} and ${selection.ancestry2.name} heritage.`,
+      cardType: 'ancestry',
+      features: [selection.feature1, selection.feature2],
+      metadata: { isMixed: true },
+    };
+    this.selectedCards.set({ ...this.selectedCards(), ancestry: tempCard });
+    this.markStepComplete('ancestry');
+  }
+
+  onAncestryDeselected(): void {
+    const updated = { ...this.selectedCards() };
+    delete updated['ancestry'];
+    this.selectedCards.set(updated);
+    this.mixedAncestrySelection.set(null);
+    this.invalidateSteps('ancestry', true);
   }
 
   loadSubclassCards(): void {
@@ -351,34 +376,46 @@ export class CreateCharacter implements OnInit {
   }
 
   onSubmitCharacter(): void {
-    const characterData = assembleCharacterSheet({
-      name: this.characterName(),
-      pronouns: this.characterPronouns(),
-      classCard: this.selectedClassCard()!,
-      subclassCard: this.selectedSubclassCard()!,
-      ancestryCard: this.selectedAncestryCard()!,
-      communityCard: this.selectedCommunityCard()!,
-      traits: this.traitAssignments()!,
-      primaryWeapon: this.selectedPrimaryWeapon(),
-      secondaryWeapon: this.selectedSecondaryWeapon(),
-      armor: this.selectedArmor(),
-      experiences: this.experienceAssignments(),
-      domainCards: this.selectedDomainCards(),
-    });
-
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.submitCharacterSheet(characterData).subscribe({
+    const mixedSelection = this.mixedAncestrySelection();
+
+    const ancestryCard$ = mixedSelection
+      ? this.ancestryService.createMixedAncestry({
+          name: `${mixedSelection.ancestry1.name} / ${mixedSelection.ancestry2.name}`,
+          description: `A blend of ${mixedSelection.ancestry1.name} and ${mixedSelection.ancestry2.name} heritage.`,
+          expansionId: mixedSelection.expansionId,
+          featureIds: [mixedSelection.feature1.id!, mixedSelection.feature2.id!],
+        })
+      : of(this.selectedAncestryCard()!);
+
+    ancestryCard$.pipe(
+      switchMap(ancestryCard => {
+        const characterData = assembleCharacterSheet({
+          name: this.characterName(),
+          pronouns: this.characterPronouns(),
+          classCard: this.selectedClassCard()!,
+          subclassCard: this.selectedSubclassCard()!,
+          ancestryCard,
+          communityCard: this.selectedCommunityCard()!,
+          traits: this.traitAssignments()!,
+          primaryWeapon: this.selectedPrimaryWeapon(),
+          secondaryWeapon: this.selectedSecondaryWeapon(),
+          armor: this.selectedArmor(),
+          experiences: this.experienceAssignments(),
+          domainCards: this.selectedDomainCards(),
+        });
+        return this.submitCharacterSheet(characterData);
+      }),
+    ).subscribe({
       next: (sheet) => {
         this.submitting.set(false);
         this.router.navigate(['/character', sheet.id]);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.submitting.set(false);
-        this.submitError.set(
-          (err.error?.message as string | undefined) ?? 'Failed to create character. Please try again.',
-        );
+        this.submitError.set(parseSubmitError(err));
       },
     });
   }

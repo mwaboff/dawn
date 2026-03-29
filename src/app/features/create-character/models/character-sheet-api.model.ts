@@ -28,16 +28,15 @@ export interface CreateCharacterSheetRequest {
   hopeMax: number;
   hopeMarked: number;
   gold: number;
-  activePrimaryWeaponId?: number | null;
-  activeSecondaryWeaponId?: number | null;
-  activeArmorId?: number | null;
   communityCardIds?: number[];
   ancestryCardIds?: number[];
   subclassCardIds?: number[];
   domainCardIds?: number[];
-  inventoryWeaponIds?: number[];
-  inventoryArmorIds?: number[];
-  inventoryItemIds?: number[];
+  equippedDomainCardIds?: number[];
+  vaultDomainCardIds?: number[];
+  inventoryWeapons?: InventoryWeaponRequest[];
+  inventoryArmors?: InventoryArmorRequest[];
+  inventoryItems?: InventoryLootRequest[];
 }
 
 export interface UpdateCharacterSheetRequest {
@@ -68,18 +67,15 @@ export interface UpdateCharacterSheetRequest {
   hopeMax?: number;
   hopeMarked?: number;
   gold?: number;
-  activePrimaryWeaponId?: number | null;
-  activeSecondaryWeaponId?: number | null;
-  activeArmorId?: number | null;
   communityCardIds?: number[];
   ancestryCardIds?: number[];
   subclassCardIds?: number[];
   domainCardIds?: number[];
   equippedDomainCardIds?: number[];
   vaultDomainCardIds?: number[];
-  inventoryWeaponIds?: number[];
-  inventoryArmorIds?: number[];
-  inventoryItemIds?: number[];
+  inventoryWeapons?: InventoryWeaponRequest[];
+  inventoryArmors?: InventoryArmorRequest[];
+  inventoryItems?: InventoryLootRequest[];
 }
 
 export interface CreateExperienceRequest {
@@ -116,6 +112,42 @@ export interface ModifierResponse {
 export interface CostTagResponse {
   label: string;
   category: string;
+}
+
+export interface InventoryWeaponRequest {
+  weaponId: number;
+  equipped?: boolean;
+  slot?: 'PRIMARY' | 'SECONDARY';
+}
+
+export interface InventoryArmorRequest {
+  armorId: number;
+  equipped?: boolean;
+}
+
+export interface InventoryLootRequest {
+  lootId: number;
+}
+
+export interface InventoryWeaponResponse {
+  id: number;
+  weaponId: number;
+  equipped: boolean;
+  slot?: 'PRIMARY' | 'SECONDARY';
+  weapon?: WeaponResponse;
+}
+
+export interface InventoryArmorResponse {
+  id: number;
+  armorId: number;
+  equipped: boolean;
+  armor?: ArmorResponse;
+}
+
+export interface InventoryLootResponse {
+  id: number;
+  lootId: number;
+  loot?: LootApiResponse;
 }
 
 export interface DamageRollResponse {
@@ -222,16 +254,10 @@ export interface CharacterSheetResponse {
   hopeMarked: number;
   gold: number;
   ownerId: number;
-  activePrimaryWeaponId?: number | null;
-  activeSecondaryWeaponId?: number | null;
-  activeArmorId?: number | null;
   communityCardIds: number[];
   ancestryCardIds: number[];
   subclassCardIds: number[];
   domainCardIds: number[];
-  inventoryWeaponIds: number[];
-  inventoryArmorIds: number[];
-  inventoryItemIds: number[];
   proficiency: number;
   equippedDomainCardIds: number[];
   vaultDomainCardIds: number[];
@@ -239,14 +265,11 @@ export interface CharacterSheetResponse {
   createdAt: string;
   lastModifiedAt: string;
   experiences?: ExperienceResponse[];
-  activePrimaryWeapon?: WeaponResponse;
-  activeSecondaryWeapon?: WeaponResponse;
-  activeArmor?: ArmorResponse;
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];
   subclassCards?: SubclassCardResponse[];
   domainCards?: DomainCardResponse[];
-  inventoryWeapons?: WeaponResponse[];
-  inventoryArmors?: ArmorResponse[];
-  inventoryItems?: LootApiResponse[];
+  inventoryWeapons?: InventoryWeaponResponse[];
+  inventoryArmors?: InventoryArmorResponse[];
+  inventoryItems?: InventoryLootResponse[];
 }

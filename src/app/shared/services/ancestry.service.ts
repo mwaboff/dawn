@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../models/api.model';
-import { AncestryCardResponse } from '../models/ancestry-api.model';
+import { AncestryCardResponse, CreateMixedAncestryRequest } from '../models/ancestry-api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapAncestryResponseToCardData } from '../mappers/ancestry.mapper';
 
@@ -21,5 +21,11 @@ export class AncestryService {
     return this.http
       .get<PaginatedResponse<AncestryCardResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => response.content.map(mapAncestryResponseToCardData)));
+  }
+
+  createMixedAncestry(request: CreateMixedAncestryRequest): Observable<CardData> {
+    return this.http
+      .post<AncestryCardResponse>(`${this.baseUrl}/mixed`, request, { withCredentials: true })
+      .pipe(map(mapAncestryResponseToCardData));
   }
 }

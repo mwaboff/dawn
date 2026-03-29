@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 
 interface Feature {
   icon: string;
@@ -10,7 +11,8 @@ interface Feature {
   selector: 'app-home',
   templateUrl: './home.html',
   styleUrl: './home.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormatTextPipe],
 })
 export class Home {
   readonly features: Feature[] = [

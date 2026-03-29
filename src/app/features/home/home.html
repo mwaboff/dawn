@@ -65,7 +65,7 @@
 
         <div class="feature-text">
           <h3 class="feature-title">{{ feature.title }}</h3>
-          <p class="feature-description">{{ feature.description }}</p>
+          <p class="feature-description" [innerHTML]="feature.description | formatText"></p>
         </div>
       </article>
     }

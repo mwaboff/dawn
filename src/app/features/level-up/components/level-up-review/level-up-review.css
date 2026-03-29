@@ -29,3 +29,8 @@
 .submit-btn:hover:not(:disabled) { background: linear-gradient(to bottom, #e0ad62, #d4a056); box-shadow: 0 4px 12px rgba(212,160,86,.4); }
 .submit-btn:focus-visible { outline: 2px solid #d4a056; outline-offset: 3px; }
 .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.review-item--trade { justify-content: flex-start; }
+.review-item--trade .review-item__label { flex: 1; text-align: left; }
+.review-item--trade .review-item__value { flex: 1; text-align: left; }
+.review-item__arrow { font-family: 'Lora', serif; font-size: .85rem; color: #d4a056; flex-shrink: 0; padding: 0 .5rem; }
