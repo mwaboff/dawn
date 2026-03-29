@@ -19,7 +19,7 @@
           @if (feature.name) {
             <strong class="feature-row__name">{{ feature.name }}</strong>
           }
-          <p class="feature-row__description">{{ feature.description }}</p>
+          <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
           @if (feature.tags.length > 0) {
             <div class="feature-row__tags">
               @for (tag of feature.tags; track tag) {

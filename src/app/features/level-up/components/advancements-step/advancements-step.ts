@@ -1,11 +1,12 @@
 import { Component, input, output, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AdvancementConfig } from '../advancement-config/advancement-config';
+import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView } from '../../../character-sheet/models/character-sheet-view.model';
 
 @Component({
   selector: 'app-advancements-step',
-  imports: [AdvancementConfig],
+  imports: [AdvancementConfig, FormatTextPipe],
   templateUrl: './advancements-step.html',
   styleUrl: './advancements-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

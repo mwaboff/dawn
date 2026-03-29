@@ -23,7 +23,7 @@
     <!-- Card Body -->
     <div class="card__body">
       @if (card().description) {
-        <p class="card__description" [innerHTML]="formatText(card().description)"></p>
+        <p class="card__description" [innerHTML]="card().description | formatText"></p>
       }
 
       <!-- Tags -->

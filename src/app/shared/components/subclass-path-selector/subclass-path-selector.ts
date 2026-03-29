@@ -25,6 +25,7 @@ export class SubclassPathSelector {
   readonly selectedCard = input<CardData>();
   readonly collapsibleFeatures = input<boolean>(false);
   readonly ownedCardIds = input<number[]>([]);
+  readonly foundationOnly = input<boolean>(false);
   readonly cardSelected = output<CardData>();
 
   private readonly pathLevelTabs = signal<Map<number, SubclassLevel>>(new Map());
@@ -58,6 +59,16 @@ export class SubclassPathSelector {
   private readonly cardStateMap = computed(() => {
     const ownedIds = new Set(this.ownedCardIds());
     const states = new Map<number, CardUpgradeState>();
+
+    if (this.foundationOnly() && ownedIds.size === 0) {
+      for (const path of this.subclassPaths()) {
+        states.set(path.foundation.id, 'normal');
+        if (path.specialization) states.set(path.specialization.id, 'locked');
+        if (path.mastery) states.set(path.mastery.id, 'locked');
+      }
+      return states;
+    }
+
     if (ownedIds.size === 0) return states;
 
     for (const path of this.subclassPaths()) {
@@ -132,6 +143,9 @@ export class SubclassPathSelector {
       if (this.getCardState(card.id) === 'next') {
         this.cardSelected.emit(card);
       }
+      return;
+    }
+    if (this.foundationOnly() && this.getCardState(card.id) === 'locked') {
       return;
     }
     this.cardSelected.emit(path.foundation);

@@ -1,0 +1,252 @@
+.ancestry-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bloodline-choice {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  max-width: 480px;
+  margin: 0 auto 0.5rem;
+}
+
+.bloodline-banner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-parchment-light, #f5ede0);
+  border: 1px solid var(--color-border, #c8a87a);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.bloodline-banner:first-child {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+}
+
+.bloodline-banner:last-child {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+
+.bloodline-banner--active {
+  border-color: var(--color-gold, #d4a056);
+  box-shadow: inset 0 -3px 0 var(--color-gold, #d4a056);
+  background: color-mix(in srgb, var(--color-parchment-light, #f5ede0) 90%, var(--color-gold, #d4a056));
+}
+
+.bloodline-banner__icon {
+  font-size: 1.25rem;
+  color: var(--color-gold, #d4a056);
+}
+
+.bloodline-banner__title {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text, #2c1a0e);
+}
+
+.bloodline-banner__desc {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #7a6245);
+}
+
+.bloodline-divider {
+  width: 1px;
+  background: var(--color-gold, #d4a056);
+  align-self: stretch;
+}
+
+.step-instruction {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #7a6245);
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}
+
+.step-action {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.proceed-button {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-parchment-light, #f5ede0);
+  background: var(--color-gold, #d4a056);
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.proceed-button:hover {
+  background: color-mix(in srgb, var(--color-gold, #d4a056) 80%, #2c1a0e);
+}
+
+.back-link {
+  background: none;
+  border: none;
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.8rem;
+  color: var(--color-gold, #d4a056);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.back-link:hover {
+  color: color-mix(in srgb, var(--color-gold, #d4a056) 80%, #2c1a0e);
+}
+
+.feature-forge {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  position: relative;
+}
+
+.feature-forge::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-gold, #d4a056);
+  transform: translateX(-50%);
+}
+
+.feature-forge::after {
+  content: '\25C6';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-gold, #d4a056);
+  font-size: 0.75rem;
+  background: var(--color-parchment, #f0e6d3);
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.forge-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.forge-ancestry-name {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text, #2c1a0e);
+  text-align: center;
+  margin: 0;
+}
+
+.forge-instruction {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #7a6245);
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+}
+
+.forge-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  background: var(--color-parchment-light, #f5ede0);
+  border: 1px solid var(--color-border, #c8a87a);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.forge-feature:hover {
+  border-color: var(--color-gold, #d4a056);
+}
+
+.forge-feature--selected {
+  border-color: var(--color-gold, #d4a056);
+  box-shadow: 0 0 0 1px var(--color-gold, #d4a056), 0 2px 8px rgba(212, 160, 86, 0.15);
+}
+
+.forge-feature__name {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text, #2c1a0e);
+}
+
+.forge-feature__desc {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #7a6245);
+  line-height: 1.4;
+}
+
+.forge-feature__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.forge-feature__tag {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-gold, #d4a056);
+  background: color-mix(in srgb, var(--color-gold, #d4a056) 10%, transparent);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
+}
+
+.forge-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.forge-result__name {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #2c1a0e);
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .feature-forge {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .feature-forge::before,
+  .feature-forge::after {
+    display: none;
+  }
+}

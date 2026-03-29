@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { FeatureDisplay } from '../../models/character-sheet-view.model';
+import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 
 export interface EquipmentStat {
   label: string;
@@ -11,6 +12,7 @@ export interface EquipmentStat {
   templateUrl: './equipment-card.html',
   styleUrl: './equipment-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FormatTextPipe],
 })
 export class EquipmentCard {
   readonly name = input.required<string>();

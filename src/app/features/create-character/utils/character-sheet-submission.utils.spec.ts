@@ -32,11 +32,8 @@ function buildCharacterSheetData(overrides: Partial<CharacterSheetData> = {}): C
     knowledgeModifier: -1,
     knowledgeMarked: false,
     gold: 0,
-    activePrimaryWeaponId: 10,
-    activeSecondaryWeaponId: null,
-    activeArmorId: 5,
-    inventoryWeaponIds: [10],
-    inventoryArmorIds: [5],
+    inventoryWeapons: [{ weaponId: 10, equipped: true, slot: 'PRIMARY' as const }],
+    inventoryArmors: [{ armorId: 5, equipped: true }],
     communityCardIds: [1],
     ancestryCardIds: [2],
     subclassCardIds: [3],
@@ -87,13 +84,15 @@ describe('toCreateCharacterSheetRequest', () => {
     expect(result.knowledgeModifier).toBe(-1);
   });
 
-  it('should map equipment IDs', () => {
+  it('should map inventory arrays', () => {
     const result = toCreateCharacterSheetRequest(buildCharacterSheetData());
-    expect(result.activePrimaryWeaponId).toBe(10);
-    expect(result.activeSecondaryWeaponId).toBeNull();
-    expect(result.activeArmorId).toBe(5);
-    expect(result.inventoryWeaponIds).toEqual([10]);
-    expect(result.inventoryArmorIds).toEqual([5]);
+    expect(result.inventoryWeapons).toEqual([{ weaponId: 10, equipped: true, slot: 'PRIMARY' }]);
+    expect(result.inventoryArmors).toEqual([{ armorId: 5, equipped: true }]);
+  });
+
+  it('should always set inventoryItems to empty array', () => {
+    const result = toCreateCharacterSheetRequest(buildCharacterSheetData());
+    expect(result.inventoryItems).toEqual([]);
   });
 
   it('should map card IDs', () => {
@@ -106,21 +105,16 @@ describe('toCreateCharacterSheetRequest', () => {
     expect(result.vaultDomainCardIds).toEqual([]);
   });
 
-  it('should always set inventoryItemIds to empty array', () => {
-    const result = toCreateCharacterSheetRequest(buildCharacterSheetData());
-    expect(result.inventoryItemIds).toEqual([]);
-  });
-
   it('should handle undefined pronouns', () => {
     const result = toCreateCharacterSheetRequest(buildCharacterSheetData({ pronouns: undefined }));
     expect(result.pronouns).toBeUndefined();
   });
 
-  it('should handle null weapon IDs', () => {
+  it('should handle empty inventory arrays', () => {
     const result = toCreateCharacterSheetRequest(
-      buildCharacterSheetData({ activePrimaryWeaponId: null, activeSecondaryWeaponId: null }),
+      buildCharacterSheetData({ inventoryWeapons: [], inventoryArmors: [] }),
     );
-    expect(result.activePrimaryWeaponId).toBeNull();
-    expect(result.activeSecondaryWeaponId).toBeNull();
+    expect(result.inventoryWeapons).toEqual([]);
+    expect(result.inventoryArmors).toEqual([]);
   });
 });

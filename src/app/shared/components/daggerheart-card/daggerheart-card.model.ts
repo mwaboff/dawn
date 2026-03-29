@@ -26,6 +26,7 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
 };
 
 export interface CardFeature {
+  id?: number;
   name: string;
   description: string;
   subtitle?: string;

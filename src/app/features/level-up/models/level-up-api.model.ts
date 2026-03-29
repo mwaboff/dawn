@@ -54,6 +54,11 @@ export interface LevelUpRequest {
   trades?: DomainCardTradeRequest[];
 }
 
+export interface TradeDisplayPair {
+  gaveUpName: string;
+  receivedName: string;
+}
+
 export interface LevelUpResponse {
   characterSheet: CharacterSheetResponse;
   advancementLogId: number;

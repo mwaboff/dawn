@@ -91,8 +91,7 @@ describe('assembleCharacterSheet', () => {
     expect(result.armorMax).toBe(3);
     expect(result.majorDamageThreshold).toBe(4);
     expect(result.severeDamageThreshold).toBe(8);
-    expect(result.activeArmorId).toBe(5);
-    expect(result.inventoryArmorIds).toEqual([5]);
+    expect(result.inventoryArmors).toEqual([{ armorId: 5, equipped: true }]);
   });
 
   it('should map trait modifiers', () => {
@@ -119,16 +118,15 @@ describe('assembleCharacterSheet', () => {
     const primary = makeCard(10, 'weapon');
     const secondary = makeCard(11, 'weapon');
     const result = assembleCharacterSheet({ ...baseParams, primaryWeapon: primary, secondaryWeapon: secondary });
-    expect(result.activePrimaryWeaponId).toBe(10);
-    expect(result.activeSecondaryWeaponId).toBe(11);
-    expect(result.inventoryWeaponIds).toEqual([10, 11]);
+    expect(result.inventoryWeapons).toEqual([
+      { weaponId: 10, equipped: true, slot: 'PRIMARY' },
+      { weaponId: 11, equipped: true, slot: 'SECONDARY' },
+    ]);
   });
 
   it('should set null weapon IDs when no weapons', () => {
     const result = assembleCharacterSheet(baseParams);
-    expect(result.activePrimaryWeaponId).toBeNull();
-    expect(result.activeSecondaryWeaponId).toBeNull();
-    expect(result.inventoryWeaponIds).toEqual([]);
+    expect(result.inventoryWeapons).toEqual([]);
   });
 
   it('should include card IDs for ancestry, community, subclass', () => {

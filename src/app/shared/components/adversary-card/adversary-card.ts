@@ -2,12 +2,13 @@ import { Component, input, signal, ChangeDetectionStrategy } from '@angular/core
 
 import { AdversaryData } from './adversary-card.model';
 import { CardFeatureItem } from '../daggerheart-card/card-feature-item/card-feature-item';
+import { FormatTextPipe } from '../../pipes/format-text.pipe';
 
 @Component({
   selector: 'app-adversary-card',
   templateUrl: './adversary-card.html',
   styleUrls: ['./adversary-card.css', './adversary-card-wide.css'],
-  imports: [CardFeatureItem],
+  imports: [CardFeatureItem, FormatTextPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdversaryCard {

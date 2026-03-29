@@ -1,5 +1,5 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
-import { AdvancementChoice, AdvancementType, DomainCardTradeRequest, LevelUpOptionsResponse } from '../../models/level-up-api.model';
+import { AdvancementChoice, AdvancementType, TradeDisplayPair, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 @Component({
@@ -14,7 +14,7 @@ export class LevelUpReview {
   readonly newExperienceDescription = input<string>('');
   readonly selectedDomainCards = input.required<CardData[]>();
   readonly equipNewDomainCard = input<boolean>(false);
-  readonly trades = input<DomainCardTradeRequest[]>([]);
+  readonly tradeDisplayPairs = input<TradeDisplayPair[]>([]);
   readonly submitting = input(false);
   readonly submitError = input<string | null>(null);
 

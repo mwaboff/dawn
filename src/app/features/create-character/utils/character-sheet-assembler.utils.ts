@@ -37,10 +37,6 @@ export function assembleCharacterSheet(params: {
 
   const armorMax = armor ? ((armor.metadata?.['baseScore'] as number) ?? 0) : 0;
 
-  const weaponIds: number[] = [];
-  if (params.primaryWeapon) weaponIds.push(params.primaryWeapon.id);
-  if (params.secondaryWeapon) weaponIds.push(params.secondaryWeapon.id);
-
   return {
     name: params.name,
     pronouns: params.pronouns || undefined,
@@ -69,11 +65,8 @@ export function assembleCharacterSheet(params: {
     presenceMarked: false,
     knowledgeMarked: false,
     gold: 0,
-    activePrimaryWeaponId: params.primaryWeapon?.id ?? null,
-    activeSecondaryWeaponId: params.secondaryWeapon?.id ?? null,
-    activeArmorId: armor?.id ?? null,
-    inventoryWeaponIds: weaponIds,
-    inventoryArmorIds: armor ? [armor.id] : [],
+    inventoryWeapons: buildInventoryWeapons(params.primaryWeapon, params.secondaryWeapon),
+    inventoryArmors: armor ? [{ armorId: armor.id, equipped: true }] : [],
     communityCardIds: [params.communityCard.id],
     ancestryCardIds: [params.ancestryCard.id],
     subclassCardIds: [params.subclassCard.id],
@@ -84,4 +77,18 @@ export function assembleCharacterSheet(params: {
       .filter((exp) => exp.name.trim() !== '' && exp.modifier !== null)
       .map((exp) => ({ name: exp.name.trim(), modifier: exp.modifier! })),
   };
+}
+
+function buildInventoryWeapons(
+  primary: CardData | null,
+  secondary: CardData | null,
+): { weaponId: number; equipped: boolean; slot?: 'PRIMARY' | 'SECONDARY' }[] {
+  const weapons: { weaponId: number; equipped: boolean; slot?: 'PRIMARY' | 'SECONDARY' }[] = [];
+  if (primary) {
+    weapons.push({ weaponId: primary.id, equipped: true, slot: 'PRIMARY' });
+  }
+  if (secondary) {
+    weapons.push({ weaponId: secondary.id, equipped: true, slot: 'SECONDARY' });
+  }
+  return weapons;
 }

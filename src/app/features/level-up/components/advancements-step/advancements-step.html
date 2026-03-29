@@ -31,7 +31,7 @@
           </span>
         </div>
         <p class="advancement-tile__description">
-          {{ adv.description }}
+          <span [innerHTML]="adv.description | formatText"></span>
           @if (getStatArrow(adv.type); as arrow) {
             <span class="stat-boost-arrow">({{ arrow }})</span>
           }

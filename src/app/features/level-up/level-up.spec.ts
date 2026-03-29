@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LevelUp } from './level-up';
@@ -45,9 +45,9 @@ function makeSheetResponse(overrides: Partial<CharacterSheetResponse> = {}): Cha
     ancestryCardIds: [],
     subclassCardIds: [100],
     domainCardIds: [10, 11, 12],
-    inventoryWeaponIds: [],
-    inventoryArmorIds: [],
-    inventoryItemIds: [],
+    inventoryWeapons: [],
+    inventoryArmors: [],
+    inventoryItems: [],
     experienceIds: [200, 201],
     createdAt: '2026-01-01T00:00:00Z',
     lastModifiedAt: '2026-01-01T00:00:00Z',
@@ -96,7 +96,7 @@ describe('LevelUp', () => {
     undoLevelUp: ReturnType<typeof vi.fn>;
   };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
-  let mockRouter: { navigate: ReturnType<typeof vi.fn> };
+  let mockRouter: Router;
 
   function createComponent(
     id: string,
@@ -112,17 +112,17 @@ describe('LevelUp', () => {
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
-    mockRouter = { navigate: vi.fn() };
-
     TestBed.configureTestingModule({
       imports: [LevelUp],
       providers: [
+        provideRouter([]),
         { provide: CharacterSheetService, useValue: mockCharacterSheetService },
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: mockRouter },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => id } } } },
       ],
     });
+    mockRouter = TestBed.inject(Router);
+    vi.spyOn(mockRouter, 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(LevelUp);
     component = fixture.componentInstance;
   }
@@ -171,6 +171,7 @@ describe('LevelUp', () => {
     TestBed.configureTestingModule({
       imports: [LevelUp],
       providers: [
+        provideRouter([]),
         { provide: CharacterSheetService, useValue: {
           getCharacterSheet: vi.fn().mockReturnValue(of(makeSheetResponse())),
           getLevelUpOptions: vi.fn().mockReturnValue(of(makeOptionsResponse())),
@@ -178,7 +179,6 @@ describe('LevelUp', () => {
           undoLevelUp: vi.fn(),
         }},
         { provide: AuthService, useValue: mockAuthService },
-        { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
       ],
     });

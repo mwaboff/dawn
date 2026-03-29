@@ -3,6 +3,7 @@ import { AncestryCardResponse, AncestryFeatureResponse } from '../models/ancestr
 
 function mapFeature(feature: AncestryFeatureResponse): CardFeature {
   return {
+    id: feature.id,
     name: feature.name,
     description: feature.description,
     subtitle: 'Ancestry Feature',
@@ -21,5 +22,6 @@ export function mapAncestryResponseToCardData(response: AncestryCardResponse): C
     description: response.description,
     cardType: 'ancestry',
     features: features.length > 0 ? features : undefined,
+    metadata: { expansionId: response.expansionId },
   };
 }

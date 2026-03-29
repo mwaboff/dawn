@@ -1,8 +1,8 @@
-import { Component, input, output, signal, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { DomainService } from '../../../../shared/services/domain.service';
-import { DomainCardTradeRequest } from '../../models/level-up-api.model';
+import { DomainCardTradeRequest, TradeDisplayPair } from '../../models/level-up-api.model';
 import { DomainCardSummary } from '../../../character-sheet/models/character-sheet-view.model';
 
 export interface TradeRow {
@@ -24,15 +24,24 @@ export class DomainTradeStep implements OnInit {
   readonly characterDomainCards = input.required<DomainCardSummary[]>();
   readonly accessibleDomainIds = input.required<number[]>();
   readonly domainCardLevelCap = input.required<number | null>();
-  readonly newDomainCard = input<CardData>();
+  readonly newDomainCards = input<CardData[]>([]);
   readonly initialTrades = input<DomainCardTradeRequest[]>([]);
+  readonly ownedDomainCardIds = input<number[]>([]);
+  readonly targetLevel = input<number | null>(null);
 
   readonly tradesChanged = output<DomainCardTradeRequest[]>();
+  readonly tradeDisplayChanged = output<TradeDisplayPair[]>();
 
-  readonly trades = signal<TradeRow[]>([]);
+  readonly trade = signal<TradeRow>({ tradedOut: [], tradedIn: [], equipTradedIn: [] });
   readonly tradableCards = signal<CardData[]>([]);
   readonly tradableCardsLoading = signal(false);
   readonly skipped = signal(false);
+
+  readonly filteredTradableCards = computed(() => {
+    const excludeIds = new Set(this.newDomainCards().map(c => c.id));
+    if (excludeIds.size === 0) return this.tradableCards();
+    return this.tradableCards().filter(c => !excludeIds.has(c.id));
+  });
 
   ngOnInit(): void {
     this.loadTradableCards();
@@ -40,57 +49,34 @@ export class DomainTradeStep implements OnInit {
 
   onSkip(): void {
     this.skipped.set(true);
-    this.trades.set([]);
+    this.trade.set({ tradedOut: [], tradedIn: [], equipTradedIn: [] });
     this.tradesChanged.emit([]);
+    this.tradeDisplayChanged.emit([]);
   }
 
-  onAddTrade(): void {
-    this.skipped.set(false);
-    this.trades.update(t => [...t, { tradedOut: [], tradedIn: [], equipTradedIn: [] }]);
-  }
-
-  onRemoveTrade(index: number): void {
-    this.trades.update(t => t.filter((_, i) => i !== index));
-    this.emitTrades();
-  }
-
-  onToggleTradeOut(tradeIndex: number, card: DomainCardSummary): void {
-    this.trades.update(trades => {
-      const updated = [...trades];
-      const row = { ...updated[tradeIndex] };
+  onToggleTradeOut(card: DomainCardSummary): void {
+    this.trade.update(row => {
       const idx = row.tradedOut.findIndex(c => c.id === card.id);
       if (idx >= 0) {
-        row.tradedOut = row.tradedOut.filter(c => c.id !== card.id);
-      } else {
-        row.tradedOut = [...row.tradedOut, card];
+        return { ...row, tradedOut: row.tradedOut.filter(c => c.id !== card.id) };
       }
-      updated[tradeIndex] = row;
-      return updated;
+      return { ...row, tradedOut: [...row.tradedOut, card] };
     });
     this.emitTrades();
   }
 
-  onTradeInSelected(tradeIndex: number, cards: CardData[]): void {
-    this.trades.update(trades => {
-      const updated = [...trades];
-      updated[tradeIndex] = { ...updated[tradeIndex], tradedIn: cards };
-      return updated;
-    });
+  onTradeInSelected(cards: CardData[]): void {
+    this.trade.update(row => ({ ...row, tradedIn: cards }));
     this.emitTrades();
   }
 
-  onToggleEquipTradeIn(tradeIndex: number, cardId: number): void {
-    this.trades.update(trades => {
-      const updated = [...trades];
-      const row = { ...updated[tradeIndex] };
+  onToggleEquipTradeIn(cardId: number): void {
+    this.trade.update(row => {
       const idx = row.equipTradedIn.indexOf(cardId);
       if (idx >= 0) {
-        row.equipTradedIn = row.equipTradedIn.filter(id => id !== cardId);
-      } else {
-        row.equipTradedIn = [...row.equipTradedIn, cardId];
+        return { ...row, equipTradedIn: row.equipTradedIn.filter(id => id !== cardId) };
       }
-      updated[tradeIndex] = row;
-      return updated;
+      return { ...row, equipTradedIn: [...row.equipTradedIn, cardId] };
     });
     this.emitTrades();
   }
@@ -100,11 +86,7 @@ export class DomainTradeStep implements OnInit {
   }
 
   isCardTradedOut(card: DomainCardSummary): boolean {
-    return this.trades().some(t => t.tradedOut.some(c => c.id === card.id));
-  }
-
-  isCardDisabledForTrade(trade: TradeRow, card: DomainCardSummary): boolean {
-    return this.isCardTradedOut(card) && !this.isCardInTradeOut(trade, card);
+    return this.trade().tradedOut.some(c => c.id === card.id);
   }
 
   isEquipChecked(trade: TradeRow, cardId: number): boolean {
@@ -116,20 +98,29 @@ export class DomainTradeStep implements OnInit {
   }
 
   get availableForTradeOut(): DomainCardSummary[] {
-    const tradedOutIds = new Set(this.trades().flatMap(t => t.tradedOut.map(c => c.id)));
-    const newCardId = this.newDomainCard()?.id;
-    return this.characterDomainCards().filter(c => !tradedOutIds.has(c.id) && c.id !== newCardId);
+    const tradedOutIds = new Set(this.trade().tradedOut.map(c => c.id));
+    const newCardIds = new Set(this.newDomainCards().map(c => c.id));
+    return this.characterDomainCards().filter(c => !tradedOutIds.has(c.id) && !newCardIds.has(c.id));
   }
 
   private emitTrades(): void {
-    const requests: DomainCardTradeRequest[] = this.trades()
-      .filter(t => this.isTradeValid(t))
-      .map(t => ({
+    const t = this.trade();
+    if (this.isTradeValid(t)) {
+      this.tradesChanged.emit([{
         tradeOutCardIds: t.tradedOut.map(c => c.id),
         tradeInCardIds: t.tradedIn.map(c => c.id),
         equipTradedInCardIds: t.equipTradedIn,
-      }));
-    this.tradesChanged.emit(requests);
+      }]);
+      this.tradeDisplayChanged.emit(
+        t.tradedOut.map((out, i) => ({
+          gaveUpName: out.name,
+          receivedName: t.tradedIn[i]?.name ?? '',
+        }))
+      );
+    } else {
+      this.tradesChanged.emit([]);
+      this.tradeDisplayChanged.emit([]);
+    }
   }
 
   private loadTradableCards(): void {
@@ -137,11 +128,17 @@ export class DomainTradeStep implements OnInit {
     if (domainIds.length === 0) return;
 
     const cap = this.domainCardLevelCap();
-    const levels = cap ? Array.from({ length: cap }, (_, i) => i + 1) : undefined;
+    const target = this.targetLevel();
+    const effectiveCap = cap != null && target != null ? Math.min(cap, target) : (cap ?? target);
+    const levels = effectiveCap ? Array.from({ length: effectiveCap }, (_, i) => i + 1) : undefined;
+    const owned = new Set(this.ownedDomainCardIds());
 
     this.tradableCardsLoading.set(true);
     this.domainService.getDomainCards(domainIds, 0, 100, levels).subscribe({
-      next: cards => { this.tradableCards.set(cards); this.tradableCardsLoading.set(false); },
+      next: cards => {
+        this.tradableCards.set(cards.filter(c => !owned.has(c.id)));
+        this.tradableCardsLoading.set(false);
+      },
       error: () => this.tradableCardsLoading.set(false),
     });
   }

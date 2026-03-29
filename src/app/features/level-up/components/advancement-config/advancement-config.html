@@ -33,7 +33,7 @@
             <input type="checkbox" [checked]="isExperienceSelected(exp.id)"
               [disabled]="!isExperienceSelected(exp.id) && isExperienceAtMax()"
               (change)="toggleExperience(exp.id)" />
-            <span class="experience-checkbox__desc">{{ exp.description }}</span>
+            <span class="experience-checkbox__desc" [innerHTML]="exp.description | formatText"></span>
             <span class="experience-checkbox__mod">
               +{{ exp.modifier }}
               @if (isExperienceSelected(exp.id)) {
@@ -97,22 +97,28 @@
   }
   @case ('MULTICLASS') {
     <div class="config-section">
-      <p class="config-hint">Choose a new class path</p>
-      <app-card-selection-grid
-        [cards]="subclassPaths()"
-        [loading]="subclassPathsLoading()"
-        [selectedCard]="selectedPath()"
-        [collapsibleFeatures]="true"
-        (cardSelected)="onPathSelected($event)"
-      />
-      @if (selectedPath()) {
-        <p class="config-hint">Select the Foundation card</p>
-        <app-card-selection-grid
-          [cards]="foundationCards()"
-          [loading]="foundationCardsLoading()"
-          [selectedCard]="selectedFoundationCard()"
+      <p class="config-hint">Choose a new class path — select a Foundation card</p>
+      @if (multiclassCardsLoading()) {
+        <app-card-selection-grid [cards]="[]" [loading]="true" [skeletonCount]="3" />
+      } @else {
+        @if (multiclassAvailableClasses().length > 1) {
+          <div class="class-filter">
+            <span class="class-filter__label">Filter by class:</span>
+            <div class="class-filter__pills">
+              <button class="class-pill" [class.active]="multiclassClassFilter() === null" (click)="onMulticlassClassFilterSelected(null)">All</button>
+              @for (className of multiclassAvailableClasses(); track className) {
+                <button class="class-pill" [class.active]="multiclassClassFilter() === className" (click)="onMulticlassClassFilterSelected(className)">{{ className }}</button>
+              }
+            </div>
+          </div>
+        }
+        <app-subclass-path-selector
+          [cards]="filteredMulticlassCards()"
+          [selectedCard]="selectedMulticlassCard()"
+          [ownedCardIds]="[]"
+          [foundationOnly]="true"
           [collapsibleFeatures]="true"
-          (cardSelected)="onFoundationCardSelected($event)"
+          (cardSelected)="onMulticlassCardSelected($event)"
         />
       }
     </div>

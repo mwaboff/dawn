@@ -1,13 +1,16 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
+import { KeyValuePipe } from '@angular/common';
 
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments, TRAITS } from '../../models/trait.model';
 import { Experience } from '../../models/experience.model';
 import { DEFAULT_MAJOR_THRESHOLD, DEFAULT_SEVERE_THRESHOLD } from '../../models/character-sheet.model';
 import { calculateDisplayEvasion } from '../../utils/stat-calculator.utils';
+import { SubmitError } from '../../models/submit-error.model';
 
 @Component({
   selector: 'app-review-section',
+  imports: [KeyValuePipe],
   templateUrl: './review-section.html',
   styleUrl: './review-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,7 +29,7 @@ export class ReviewSection {
 
   readonly submitClicked = output<void>();
   readonly submitting = input<boolean>(false);
-  readonly submitError = input<string | null>(null);
+  readonly submitError = input<SubmitError | null>(null);
 
   readonly traitList = TRAITS;
 

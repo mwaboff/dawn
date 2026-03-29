@@ -5,15 +5,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
+import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-view.model';
+import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 
 @Component({
   selector: 'app-character-sheet',
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -23,6 +25,7 @@ export class CharacterSheet implements OnInit {
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly characterSheet = signal<CharacterSheetView | null>(null);
+  private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   private readonly expandedCardIds = signal<Set<number>>(new Set());
 
   private readonly localHpMarked = signal<number | null>(null);
@@ -61,6 +64,11 @@ export class CharacterSheet implements OnInit {
     return this.isOwner() && sheet !== null && sheet.level < 10;
   });
 
+  readonly canLevelDown = computed(() => {
+    const sheet = this.characterSheet();
+    return this.isOwner() && sheet !== null && sheet.level >= 10;
+  });
+
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (isNaN(id) || id <= 0) {
@@ -75,9 +83,6 @@ export class CharacterSheet implements OnInit {
   private loadCharacterSheet(id: number): void {
     const expandFields = [
       'experiences',
-      'activePrimaryWeapon',
-      'activeSecondaryWeapon',
-      'activeArmor',
       'communityCards',
       'ancestryCards',
       'subclassCards',
@@ -94,6 +99,7 @@ export class CharacterSheet implements OnInit {
       .getCharacterSheet(id, expandFields)
       .subscribe({
         next: (response) => {
+          this.rawSheet.set(response);
           this.characterSheet.set(mapToCharacterSheetView(response));
           this.loading.set(false);
         },
@@ -168,6 +174,174 @@ export class CharacterSheet implements OnInit {
 
   onEquipCard(cardId: number): void {
     this.swapDomainCard(cardId, 'to-equipped');
+  }
+
+  isWeaponEquipped(weaponId: number): 'primary' | 'secondary' | null {
+    const raw = this.rawSheet();
+    if (!raw) return null;
+    const entry = (raw.inventoryWeapons ?? []).find(w => w.weaponId === weaponId && w.equipped);
+    if (!entry) return null;
+    return entry.slot === 'PRIMARY' ? 'primary' : 'secondary';
+  }
+
+  isArmorEquipped(armorId: number): boolean {
+    const raw = this.rawSheet();
+    if (!raw) return false;
+    return (raw.inventoryArmors ?? []).some(a => a.armorId === armorId && a.equipped);
+  }
+
+  canEquipPrimaryWeapon(): boolean {
+    const raw = this.rawSheet();
+    if (!raw) return false;
+    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'PRIMARY');
+  }
+
+  canEquipSecondaryWeapon(): boolean {
+    const raw = this.rawSheet();
+    if (!raw) return false;
+    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'SECONDARY');
+  }
+
+  canEquipArmor(): boolean {
+    const raw = this.rawSheet();
+    if (!raw) return false;
+    return !(raw.inventoryArmors ?? []).some(a => a.equipped);
+  }
+
+  onEquipWeapon(weaponId: number, slot: 'primary' | 'secondary'): void {
+    const raw = this.rawSheet();
+    if (!raw || this.swapInFlight()) return;
+
+    if (this.isWeaponEquipped(weaponId)) return;
+
+    const apiSlot = slot === 'primary' ? 'PRIMARY' as const : 'SECONDARY' as const;
+    const updatedWeapons = (raw.inventoryWeapons ?? []).map(w => {
+      if (w.weaponId === weaponId) {
+        return { ...w, equipped: true, slot: apiSlot };
+      }
+      return w;
+    });
+
+    const updatedRaw = { ...raw, inventoryWeapons: updatedWeapons };
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+    this.swapInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, {
+        inventoryWeapons: updatedWeapons.map(w => ({
+          weaponId: w.weaponId,
+          equipped: w.equipped,
+          ...(w.slot ? { slot: w.slot } : {}),
+        })),
+      })
+      .subscribe({
+        next: () => this.swapInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(raw);
+          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.swapInFlight.set(false);
+        },
+      });
+  }
+
+  onUnequipWeapon(slot: 'primary' | 'secondary'): void {
+    const raw = this.rawSheet();
+    if (!raw || this.swapInFlight()) return;
+
+    const apiSlot = slot === 'primary' ? 'PRIMARY' : 'SECONDARY';
+    const updatedWeapons = (raw.inventoryWeapons ?? []).map(w => {
+      if (w.slot === apiSlot) {
+        return { ...w, equipped: false, slot: undefined };
+      }
+      return w;
+    });
+
+    const updatedRaw = { ...raw, inventoryWeapons: updatedWeapons };
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+    this.swapInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, {
+        inventoryWeapons: updatedWeapons.map(w => ({
+          weaponId: w.weaponId,
+          equipped: w.equipped,
+          ...(w.slot ? { slot: w.slot } : {}),
+        })),
+      })
+      .subscribe({
+        next: () => this.swapInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(raw);
+          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.swapInFlight.set(false);
+        },
+      });
+  }
+
+  onEquipArmor(armorId: number): void {
+    const raw = this.rawSheet();
+    if (!raw || this.swapInFlight()) return;
+
+    const updatedArmors = (raw.inventoryArmors ?? []).map(a => {
+      if (a.armorId === armorId) {
+        return { ...a, equipped: true };
+      }
+      return a;
+    });
+
+    const updatedRaw = { ...raw, inventoryArmors: updatedArmors };
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+    this.swapInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, {
+        inventoryArmors: updatedArmors.map(a => ({
+          armorId: a.armorId,
+          equipped: a.equipped,
+        })),
+      })
+      .subscribe({
+        next: () => this.swapInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(raw);
+          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.swapInFlight.set(false);
+        },
+      });
+  }
+
+  onUnequipArmor(): void {
+    const raw = this.rawSheet();
+    if (!raw || this.swapInFlight()) return;
+
+    const updatedArmors = (raw.inventoryArmors ?? []).map(a => ({
+      ...a,
+      equipped: false,
+    }));
+
+    const updatedRaw = { ...raw, inventoryArmors: updatedArmors };
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+    this.swapInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, {
+        inventoryArmors: updatedArmors.map(a => ({
+          armorId: a.armorId,
+          equipped: a.equipped,
+        })),
+      })
+      .subscribe({
+        next: () => this.swapInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(raw);
+          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.swapInFlight.set(false);
+        },
+      });
   }
 
   private swapDomainCard(cardId: number, direction: 'to-vault' | 'to-equipped'): void {

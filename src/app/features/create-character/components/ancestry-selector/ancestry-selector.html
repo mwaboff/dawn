@@ -1,0 +1,104 @@
+<div class="ancestry-selector">
+  <div class="bloodline-choice" role="radiogroup" aria-label="Ancestry type">
+    <button
+      class="bloodline-banner"
+      [class.bloodline-banner--active]="mode() === 'single'"
+      role="radio"
+      [attr.aria-checked]="mode() === 'single'"
+      (click)="setMode('single')"
+    >
+      <span class="bloodline-banner__icon">&#9830;</span>
+      <span class="bloodline-banner__title">Pure Lineage</span>
+      <span class="bloodline-banner__desc">Choose one ancestry</span>
+    </button>
+    <span class="bloodline-divider" aria-hidden="true"></span>
+    <button
+      class="bloodline-banner"
+      [class.bloodline-banner--active]="mode() === 'mixed'"
+      role="radio"
+      [attr.aria-checked]="mode() === 'mixed'"
+      (click)="setMode('mixed')"
+    >
+      <span class="bloodline-banner__icon">&#9826;&#9826;</span>
+      <span class="bloodline-banner__title">Mixed Heritage</span>
+      <span class="bloodline-banner__desc">Blend two ancestries</span>
+    </button>
+  </div>
+
+  @if (mode() === 'single') {
+    <app-card-selection-grid
+      [cards]="cards()"
+      [loading]="loading()"
+      [error]="error()"
+      [selectedCard]="selectedCard()"
+      [skeletonCount]="6"
+      [collapsibleFeatures]="true"
+      layout="wide"
+      (cardSelected)="onSingleAncestrySelected($event)"
+    />
+  } @else {
+    @if (mixedStep() === 'pick-ancestries') {
+      <p class="step-instruction">Choose two ancestries to blend</p>
+      <app-card-selection-grid
+        [cards]="cards()"
+        [loading]="loading()"
+        [error]="error()"
+        [selectedCards]="selectedAncestries()"
+        [maxSelections]="2"
+        [skeletonCount]="6"
+        [collapsibleFeatures]="true"
+        layout="wide"
+        (cardsSelected)="onAncestriesSelected($event)"
+      />
+      @if (canProceedToFeatures()) {
+        <div class="step-action">
+          <button class="proceed-button" (click)="proceedToFeatures()">
+            Choose Features
+          </button>
+        </div>
+      }
+    }
+
+    @if (mixedStep() === 'pick-features') {
+      <button class="back-link" (click)="backToAncestries()">
+        &larr; Change ancestries
+      </button>
+
+      <div class="feature-forge">
+        @for (ancestry of selectedAncestries(); track ancestry.id) {
+          <div class="forge-column">
+            <h4 class="forge-ancestry-name">{{ ancestry.name }}</h4>
+            <p class="forge-instruction">Pick one feature</p>
+            @for (feature of ancestry.features ?? []; track feature.name) {
+              <button
+                class="forge-feature"
+                [class.forge-feature--selected]="isFeatureSelected(ancestry.id, feature)"
+                (click)="toggleFeature(ancestry.id, feature)"
+                [attr.aria-pressed]="isFeatureSelected(ancestry.id, feature)"
+              >
+                <span class="forge-feature__name">{{ feature.name }}</span>
+                <span class="forge-feature__desc" [innerHTML]="feature.description | formatText"></span>
+                @if (feature.tags?.length) {
+                  <span class="forge-feature__tags">
+                    @for (tag of feature.tags; track tag) {
+                      <span class="forge-feature__tag">{{ tag }}</span>
+                    }
+                  </span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      @if (mixedSelectionComplete()) {
+        <div class="forge-result">
+          <p class="forge-result__name">{{ mixedName() }}</p>
+          <button class="proceed-button" (click)="confirmMixedSelection()">
+            Forge Ancestry
+          </button>
+        </div>
+      }
+    }
+  }
+</div>

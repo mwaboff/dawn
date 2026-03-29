@@ -43,9 +43,9 @@ const mockResponse: CharacterSheetResponse = {
   ancestryCardIds: [],
   subclassCardIds: [],
   domainCardIds: [],
-  inventoryWeaponIds: [],
-  inventoryArmorIds: [],
-  inventoryItemIds: [],
+  inventoryWeapons: [],
+  inventoryArmors: [],
+  inventoryItems: [],
   experienceIds: [],
   createdAt: '2026-01-01T00:00:00',
   lastModifiedAt: '2026-01-01T00:00:00',
@@ -144,9 +144,6 @@ describe('CharacterSheet', () => {
 
     expect(mockService.getCharacterSheet).toHaveBeenCalledWith(42, [
       'experiences',
-      'activePrimaryWeapon',
-      'activeSecondaryWeapon',
-      'activeArmor',
       'communityCards',
       'ancestryCards',
       'subclassCards',
@@ -456,6 +453,32 @@ describe('CharacterSheet', () => {
     });
   });
 
+  describe('canLevelDown', () => {
+    it('returns true when owner and level is 10', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      expect(component.canLevelDown()).toBe(true);
+    });
+
+    it('returns false when level is below 10', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.canLevelDown()).toBe(false);
+    });
+
+    it('returns false when not owner', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      fixture.detectChanges();
+
+      expect(component.canLevelDown()).toBe(false);
+    });
+  });
+
   describe('level up button', () => {
     it('renders when canLevelUp is true', () => {
       createComponent('1');
@@ -482,6 +505,56 @@ describe('CharacterSheet', () => {
       const link = el.querySelector('.level-up-btn') as HTMLAnchorElement;
       expect(link).toBeTruthy();
       expect(link.pathname).toBe('/character/1/level-up');
+    });
+
+    it('does not show Level+ at level 10', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-up-btn')).toBeNull();
+    });
+  });
+
+  describe('level down button', () => {
+    it('renders when canLevelDown is true (level 10)', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      const btn = el.querySelector('.level-down-btn');
+      expect(btn).toBeTruthy();
+      expect(btn?.textContent?.trim()).toBe('Level-');
+    });
+
+    it('is hidden when level is below 10', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-down-btn')).toBeNull();
+    });
+
+    it('level-down link has correct href', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      const link = el.querySelector('.level-down-btn') as HTMLAnchorElement;
+      expect(link).toBeTruthy();
+      expect(link.pathname).toBe('/character/1/level-down');
+    });
+
+    it('level badge has can-level class at level 10', () => {
+      const maxLevelResponse = { ...mockResponse, level: 10 };
+      createComponent('1', of(maxLevelResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      expect(el.querySelector('.level-badge--can-level')).toBeTruthy();
     });
   });
 
@@ -578,6 +651,234 @@ describe('CharacterSheet', () => {
       component.onEquipCard(6);
 
       expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('equipment equip/unequip', () => {
+    const weaponResponse = {
+      ...mockResponse,
+      inventoryWeapons: [
+        { id: 100, weaponId: 100, equipped: true, slot: 'PRIMARY' as const, weapon: { id: 100, name: 'Longsword', trait: 'Strength', range: 'Melee', burden: 'One-handed', features: [] } },
+        { id: 101, weaponId: 101, equipped: false, weapon: { id: 101, name: 'Shortbow', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] } },
+      ],
+    };
+
+    const armorResponse = {
+      ...mockResponse,
+      inventoryArmors: [
+        { id: 200, armorId: 200, equipped: true, armor: { id: 200, name: 'Chainmail', baseScore: 5, features: [] } },
+        { id: 201, armorId: 201, equipped: false, armor: { id: 201, name: 'Leather', baseScore: 3, features: [] } },
+      ],
+    };
+
+    it('isWeaponEquipped returns primary for equipped primary weapon', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      expect(component.isWeaponEquipped(100)).toBe('primary');
+    });
+
+    it('isWeaponEquipped returns null for unequipped weapon', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      expect(component.isWeaponEquipped(101)).toBeNull();
+    });
+
+    it('isArmorEquipped returns true for equipped armor', () => {
+      createComponent('1', of(armorResponse));
+      fixture.detectChanges();
+
+      expect(component.isArmorEquipped(200)).toBe(true);
+    });
+
+    it('isArmorEquipped returns false for unequipped armor', () => {
+      createComponent('1', of(armorResponse));
+      fixture.detectChanges();
+
+      expect(component.isArmorEquipped(201)).toBe(false);
+    });
+
+    it('canEquipPrimaryWeapon returns false when primary slot is occupied', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      expect(component.canEquipPrimaryWeapon()).toBe(false);
+    });
+
+    it('canEquipPrimaryWeapon returns true when primary slot is empty', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.canEquipPrimaryWeapon()).toBe(true);
+    });
+
+    it('canEquipArmor returns false when armor slot is occupied', () => {
+      createComponent('1', of(armorResponse));
+      fixture.detectChanges();
+
+      expect(component.canEquipArmor()).toBe(false);
+    });
+
+    it('canEquipArmor returns true when armor slot is empty', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.canEquipArmor()).toBe(true);
+    });
+
+    it('onEquipWeapon equips weapon to primary slot and calls service', () => {
+      const unequippedResponse = {
+        ...weaponResponse,
+        inventoryWeapons: weaponResponse.inventoryWeapons.map(w => ({ ...w, equipped: false, slot: undefined })),
+      };
+      createComponent('1', of(unequippedResponse));
+      fixture.detectChanges();
+
+      component.onEquipWeapon(100, 'primary');
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activePrimaryWeapon?.id).toBe(100);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+      inventoryWeapons: [
+        { weaponId: 100, equipped: true, slot: 'PRIMARY' },
+        { weaponId: 101, equipped: false },
+      ],
+    });
+    });
+
+    it('onEquipWeapon equips weapon to secondary slot and calls service', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      component.onEquipWeapon(101, 'secondary');
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activeSecondaryWeapon?.id).toBe(101);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        inventoryWeapons: [
+          { weaponId: 100, equipped: true, slot: 'PRIMARY' },
+          { weaponId: 101, equipped: true, slot: 'SECONDARY' },
+        ],
+      });
+    });
+
+    it('onUnequipWeapon clears primary slot and calls service', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      component.onUnequipWeapon('primary');
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activePrimaryWeapon).toBeNull();
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+      inventoryWeapons: [
+        { weaponId: 100, equipped: false },
+        { weaponId: 101, equipped: false },
+      ],
+    });
+    });
+
+    it('onEquipArmor equips armor and calls service', () => {
+      const unequippedArmorResponse = {
+        ...armorResponse,
+        inventoryArmors: armorResponse.inventoryArmors.map(a => ({ ...a, equipped: false })),
+      };
+      createComponent('1', of(unequippedArmorResponse));
+      fixture.detectChanges();
+
+      component.onEquipArmor(200);
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activeArmor?.id).toBe(200);
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+      inventoryArmors: [
+        { armorId: 200, equipped: true },
+        { armorId: 201, equipped: false },
+      ],
+    });
+    });
+
+    it('onUnequipArmor clears armor and calls service', () => {
+      createComponent('1', of(armorResponse));
+      fixture.detectChanges();
+
+      component.onUnequipArmor();
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activeArmor).toBeNull();
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+      inventoryArmors: [
+        { armorId: 200, equipped: false },
+        { armorId: 201, equipped: false },
+      ],
+    });
+    });
+
+    it('onEquipWeapon reverts on error', () => {
+      const unequippedResponse = {
+        ...weaponResponse,
+        inventoryWeapons: weaponResponse.inventoryWeapons.map(w => ({ ...w, equipped: false, slot: undefined })),
+      };
+      createComponent('1', of(unequippedResponse));
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+      fixture.detectChanges();
+
+      component.onEquipWeapon(100, 'primary');
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activePrimaryWeapon).toBeNull();
+    });
+
+    it('onUnequipArmor reverts on error', () => {
+      createComponent('1', of(armorResponse));
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+      fixture.detectChanges();
+
+      component.onUnequipArmor();
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activeArmor?.id).toBe(200);
+    });
+
+    it('onEquipWeapon prevents equipping same weapon to both slots', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      component.onEquipWeapon(100, 'secondary');
+
+      const sheet = component.characterSheet()!;
+      expect(sheet.activeSecondaryWeapon).toBeNull();
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('renders equipped badge for equipped weapon in inventory', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      const badge = el.querySelector('.equipped-badge');
+      expect(badge).toBeTruthy();
+      expect(badge?.textContent?.trim()).toBe('Primary');
+    });
+
+    it('renders equip buttons for unequipped weapon', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      const equipBtns = el.querySelectorAll('.card-swap-btn--equip');
+      expect(equipBtns.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('renders unequip button for equipped weapon', () => {
+      createComponent('1', of(weaponResponse));
+      fixture.detectChanges();
+
+      const el: HTMLElement = fixture.nativeElement;
+      const unequipBtn = el.querySelector('.card-swap-btn--vault');
+      expect(unequipBtn).toBeTruthy();
+      expect(unequipBtn?.textContent).toContain('Unequip');
     });
   });
 

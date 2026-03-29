@@ -127,10 +127,27 @@ describe('mapAncestryResponseToCardData', () => {
     expect(result.subtitle).toBeUndefined();
   });
 
-  it('should not set metadata', () => {
-    const response = buildAncestryCardResponse();
+  it('should set metadata with expansionId', () => {
+    const response = buildAncestryCardResponse({ expansionId: 5 });
     const result = mapAncestryResponseToCardData(response);
+    expect(result.metadata).toEqual({ expansionId: 5 });
+  });
 
-    expect(result.metadata).toBeUndefined();
+  it('should map feature id', () => {
+    const response = buildAncestryCardResponse({
+      features: [
+        {
+          id: 42,
+          name: 'Purposeful Design',
+          description: 'Decide who made you',
+          featureType: 'ANCESTRY',
+          expansionId: 1,
+          costTagIds: [],
+          costTags: [],
+        },
+      ],
+    });
+    const result = mapAncestryResponseToCardData(response);
+    expect(result.features![0].id).toBe(42);
   });
 });

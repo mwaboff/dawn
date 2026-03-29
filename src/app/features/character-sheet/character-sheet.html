@@ -35,11 +35,14 @@
         }
       </div>
       <div class="sheet-header__stats">
-        <div class="level-badge" [class.level-badge--can-level]="canLevelUp()">
+        <div class="level-badge" [class.level-badge--can-level]="canLevelUp() || canLevelDown()">
           <span class="level-badge__label">Lvl</span>
           <span class="level-badge__value">{{ sheet.level }}</span>
           @if (canLevelUp()) {
             <a class="level-up-btn" [routerLink]="['/character', sheet.id, 'level-up']">Level+</a>
+          }
+          @if (canLevelDown()) {
+            <a class="level-down-btn" [routerLink]="['/character', sheet.id, 'level-down']">Level-</a>
           }
         </div>
         <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
@@ -176,7 +179,7 @@
             @for (exp of sheet.experiences; track exp.id) {
               <div class="experience-item">
                 <span class="experience-item__modifier">{{ formatModifier(exp.modifier) }}</span>
-                <span class="experience-item__description">{{ exp.description }}</span>
+                <span class="experience-item__description" [innerHTML]="exp.description | formatText"></span>
               </div>
             }
           </div>
@@ -210,7 +213,7 @@
                       @if (feature.name) {
                         <strong class="feature-row__name">{{ feature.name }}</strong>
                       }
-                      <p class="feature-row__description">{{ feature.description }}</p>
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                       @if (feature.tags.length > 0) {
                         <div class="feature-row__tags">
                           @for (tag of feature.tags; track tag) {
@@ -245,7 +248,7 @@
                       @if (feature.name) {
                         <strong class="feature-row__name">{{ feature.name }}</strong>
                       }
-                      <p class="feature-row__description">{{ feature.description }}</p>
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                     </div>
                   }
                 </div>
@@ -276,7 +279,7 @@
                       @if (feature.name) {
                         <strong class="feature-row__name">{{ feature.name }}</strong>
                       }
-                      <p class="feature-row__description">{{ feature.description }}</p>
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                       @if (feature.tags.length > 0) {
                         <div class="feature-row__tags">
                           @for (tag of feature.tags; track tag) {
@@ -349,14 +352,14 @@
                       }
                     </div>
                     @if (card.description) {
-                      <p class="card-description">{{ card.description }}</p>
+                      <p class="card-description" [innerHTML]="card.description | formatText"></p>
                     }
                     @for (feature of card.features; track feature.name) {
                       <div>
                         @if (feature.name) {
                           <strong class="feature-row__name">{{ feature.name }}</strong>
                         }
-                        <p class="feature-row__description">{{ feature.description }}</p>
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                         @if (feature.tags.length > 0) {
                           <div class="feature-row__tags">
                             @for (tag of feature.tags; track tag) {
@@ -389,14 +392,14 @@
                 @if (isCardExpanded(card.id)) {
                   <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
-                      <p class="card-description">{{ card.description }}</p>
+                      <p class="card-description" [innerHTML]="card.description | formatText"></p>
                     }
                     @for (feature of card.features; track feature.name) {
                       <div>
                         @if (feature.name) {
                           <strong class="feature-row__name">{{ feature.name }}</strong>
                         }
-                        <p class="feature-row__description">{{ feature.description }}</p>
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                         @if (feature.tags.length > 0) {
                           <div class="feature-row__tags">
                             @for (tag of feature.tags; track tag) {
@@ -429,14 +432,14 @@
                 @if (isCardExpanded(card.id)) {
                   <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
-                      <p class="card-description">{{ card.description }}</p>
+                      <p class="card-description" [innerHTML]="card.description | formatText"></p>
                     }
                     @for (feature of card.features; track feature.name) {
                       <div>
                         @if (feature.name) {
                           <strong class="feature-row__name">{{ feature.name }}</strong>
                         }
-                        <p class="feature-row__description">{{ feature.description }}</p>
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                         @if (feature.tags.length > 0) {
                           <div class="feature-row__tags">
                             @for (tag of feature.tags; track tag) {
@@ -486,14 +489,14 @@
                 @if (isCardExpanded(card.id)) {
                   <div class="expandable-card__body" [id]="'card-body-' + card.id">
                     @if (card.description) {
-                      <p class="card-description">{{ card.description }}</p>
+                      <p class="card-description" [innerHTML]="card.description | formatText"></p>
                     }
                     @for (feature of card.features; track feature.name) {
                       <div>
                         @if (feature.name) {
                           <strong class="feature-row__name">{{ feature.name }}</strong>
                         }
-                        <p class="feature-row__description">{{ feature.description }}</p>
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                         @if (feature.tags.length > 0) {
                           <div class="feature-row__tags">
                             @for (tag of feature.tags; track tag) {
@@ -562,7 +565,12 @@
               <div class="inventory-group__list">
                 @for (weapon of sheet.inventoryWeapons; track weapon.id) {
                   <div class="inventory-item">
-                    <span class="inventory-item__name">{{ weapon.name }}</span>
+                    <div class="inventory-item__header">
+                      <span class="inventory-item__name">{{ weapon.name }}</span>
+                      @if (isWeaponEquipped(weapon.id); as slot) {
+                        <span class="equipped-badge">{{ slot === 'primary' ? 'Primary' : 'Secondary' }}</span>
+                      }
+                    </div>
                     <div class="inventory-item__stats">
                       @if (weapon.damage) {
                         <span class="inventory-item__stat">{{ weapon.damage }}</span>
@@ -574,6 +582,30 @@
                         <span class="inventory-item__stat">{{ weapon.burden }}</span>
                       }
                     </div>
+                    @if (isOwner()) {
+                      <div class="card-swap-action">
+                        @if (isWeaponEquipped(weapon.id); as slot) {
+                          <button class="card-swap-btn card-swap-btn--vault"
+                                  (click)="onUnequipWeapon(slot === 'primary' ? 'primary' : 'secondary')"
+                                  aria-label="Unequip {{ weapon.name }}">
+                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
+                          </button>
+                        } @else {
+                          <button class="card-swap-btn card-swap-btn--equip"
+                                  [disabled]="!canEquipPrimaryWeapon()"
+                                  (click)="onEquipWeapon(weapon.id, 'primary')"
+                                  aria-label="Equip {{ weapon.name }} as primary">
+                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Primary
+                          </button>
+                          <button class="card-swap-btn card-swap-btn--equip"
+                                  [disabled]="!canEquipSecondaryWeapon()"
+                                  (click)="onEquipWeapon(weapon.id, 'secondary')"
+                                  aria-label="Equip {{ weapon.name }} as secondary">
+                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Secondary
+                          </button>
+                        }
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -588,10 +620,36 @@
               <div class="inventory-group__list">
                 @for (armor of sheet.inventoryArmors; track armor.id) {
                   <div class="inventory-item">
-                    <span class="inventory-item__name">{{ armor.name }}</span>
+                    <div class="inventory-item__header">
+                      <span class="inventory-item__name">{{ armor.name }}</span>
+                      @if (isArmorEquipped(armor.id)) {
+                        <span class="equipped-badge">Equipped</span>
+                      }
+                    </div>
                     <div class="inventory-item__stats">
                       <span class="inventory-item__stat">Score: {{ armor.baseScore }}</span>
                     </div>
+                    @if (isOwner()) {
+                      <div class="card-swap-action">
+                        @if (isArmorEquipped(armor.id)) {
+                          <button class="card-swap-btn card-swap-btn--vault"
+                                  (click)="onUnequipArmor()"
+                                  aria-label="Unequip {{ armor.name }}">
+                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
+                          </button>
+                        } @else {
+                          <button class="card-swap-btn card-swap-btn--equip"
+                                  [disabled]="!canEquipArmor()"
+                                  (click)="onEquipArmor(armor.id)"
+                                  aria-label="Equip {{ armor.name }}">
+                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
+                          </button>
+                          @if (!canEquipArmor()) {
+                            <span class="card-swap-hint">Unequip current armor first</span>
+                          }
+                        }
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -658,14 +716,14 @@
               @if (isCardExpanded(card.id)) {
                 <div class="expandable-card__body" [id]="'card-body-' + card.id">
                   @if (card.description) {
-                    <p class="card-description">{{ card.description }}</p>
+                    <p class="card-description" [innerHTML]="card.description | formatText"></p>
                   }
                   @for (feature of card.features; track feature.name) {
                     <div>
                       @if (feature.name) {
                         <strong class="feature-row__name">{{ feature.name }}</strong>
                       }
-                      <p class="feature-row__description">{{ feature.description }}</p>
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
                       @if (feature.tags.length > 0) {
                         <div class="feature-row__tags">
                           @for (tag of feature.tags; track tag) {

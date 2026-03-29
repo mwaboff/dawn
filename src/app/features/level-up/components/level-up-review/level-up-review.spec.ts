@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 
 import { LevelUpReview } from './level-up-review';
-import { AdvancementChoice, DomainCardTradeRequest, LevelUpOptionsResponse } from '../../models/level-up-api.model';
+import { AdvancementChoice, TradeDisplayPair, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildLevelUpOptions(overrides: Partial<LevelUpOptionsResponse> = {}): LevelUpOptionsResponse {
@@ -39,7 +39,7 @@ function buildCardData(overrides: Partial<CardData> = {}): CardData {
       [newExperienceDescription]="newExperienceDescription()"
       [selectedDomainCards]="selectedDomainCards()"
       [equipNewDomainCard]="equipNewDomainCard()"
-      [trades]="trades()"
+      [tradeDisplayPairs]="tradeDisplayPairs()"
       [submitting]="submitting()"
       [submitError]="submitError()"
       (submitClicked)="onSubmitClicked()"
@@ -53,7 +53,7 @@ class TestHost {
   newExperienceDescription = signal('');
   selectedDomainCards = signal<CardData[]>([]);
   equipNewDomainCard = signal(false);
-  trades = signal<DomainCardTradeRequest[]>([]);
+  tradeDisplayPairs = signal<TradeDisplayPair[]>([]);
   submitting = signal(false);
   submitError = signal<string | null>(null);
   submitClickedCount = 0;
@@ -209,8 +209,8 @@ describe('LevelUpReview', () => {
   });
 
   it('should render trades section when trades are provided', () => {
-    host.trades.set([
-      { tradeOutCardIds: [1, 2], tradeInCardIds: [3], equipTradedInCardIds: [] },
+    host.tradeDisplayPairs.set([
+      { gaveUpName: 'Flame Strike', receivedName: 'Lightning Bolt' },
     ]);
     hostFixture.detectChanges();
 
@@ -220,13 +220,14 @@ describe('LevelUpReview', () => {
 
     expect(titlesText).toContain('Domain Card Trades');
 
-    const items = compiled.querySelectorAll('.review-item__value');
-    const texts = Array.from(items).map(i => i.textContent?.trim());
-    expect(texts.some(t => t?.includes('2 out / 1 in'))).toBe(true);
+    const labels = compiled.querySelectorAll('.review-item--trade .review-item__label');
+    const values = compiled.querySelectorAll('.review-item--trade .review-item__value');
+    expect(labels[0]?.textContent?.trim()).toBe('Flame Strike');
+    expect(values[0]?.textContent?.trim()).toBe('Lightning Bolt');
   });
 
   it('should not render trades section when trades are empty', () => {
-    host.trades.set([]);
+    host.tradeDisplayPairs.set([]);
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;

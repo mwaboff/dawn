@@ -8,6 +8,9 @@ import {
   DomainCardResponse,
   FeatureResponse,
   ExperienceResponse,
+  InventoryWeaponResponse,
+  InventoryArmorResponse,
+  InventoryLootResponse,
 } from '../../create-character/models/character-sheet-api.model';
 import {
   CharacterSheetView,
@@ -53,9 +56,9 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
 
     traits: mapTraits(sheet),
 
-    activePrimaryWeapon: sheet.activePrimaryWeapon ? mapWeapon(sheet.activePrimaryWeapon) : null,
-    activeSecondaryWeapon: sheet.activeSecondaryWeapon ? mapWeapon(sheet.activeSecondaryWeapon) : null,
-    activeArmor: sheet.activeArmor ? mapArmor(sheet.activeArmor) : null,
+    activePrimaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'PRIMARY'),
+    activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY'),
+    activeArmor: mapFirstEquippedArmor(sheet.inventoryArmors),
 
     subclassCards: (sheet.subclassCards ?? []).map(c => mapSubclassCardSummary(c)),
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
@@ -63,9 +66,9 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
     ...splitDomainCards(sheet),
     maxEquippedDomainCards: 5,
-    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapWeapon(w)),
-    inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapArmor(a)),
-    inventoryItems: (sheet.inventoryItems ?? []).map(mapLoot),
+    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapInventoryWeapon(w)),
+    inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapInventoryArmor(a)),
+    inventoryItems: (sheet.inventoryItems ?? []).map(i => mapInventoryLoot(i)),
 
     experiences: (sheet.experiences ?? []).map(mapExperience),
 
@@ -187,4 +190,35 @@ function extractClassEntries(subclassCards: SubclassCardResponse[]): ClassEntry[
     }
   }
   return [...seen.values()];
+}
+
+function mapEquippedWeapon(weapons: InventoryWeaponResponse[] | undefined, slot: 'PRIMARY' | 'SECONDARY'): WeaponDisplay | null {
+  const entry = (weapons ?? []).find(w => w.slot === slot);
+  return entry?.weapon ? mapWeapon(entry.weapon) : null;
+}
+
+function mapFirstEquippedArmor(armors: InventoryArmorResponse[] | undefined): ArmorDisplay | null {
+  const entry = (armors ?? []).find(a => a.equipped);
+  return entry?.armor ? mapArmor(entry.armor) : null;
+}
+
+function mapInventoryWeapon(entry: InventoryWeaponResponse): WeaponDisplay {
+  if (entry.weapon) {
+    return mapWeapon(entry.weapon);
+  }
+  return { id: entry.weaponId, name: '', damage: '', trait: '', range: '', burden: '', features: [] };
+}
+
+function mapInventoryArmor(entry: InventoryArmorResponse): ArmorDisplay {
+  if (entry.armor) {
+    return mapArmor(entry.armor);
+  }
+  return { id: entry.armorId, name: '', baseScore: 0, features: [] };
+}
+
+function mapInventoryLoot(entry: InventoryLootResponse): LootDisplay {
+  if (entry.loot) {
+    return mapLoot(entry.loot);
+  }
+  return { id: entry.lootId, name: '', isConsumable: false, costTags: [] };
 }

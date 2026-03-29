@@ -35,12 +35,8 @@ export interface CharacterSheetData {
 
   gold: number;
 
-  activePrimaryWeaponId: number | null;
-  activeSecondaryWeaponId: number | null;
-  activeArmorId: number | null;
-
-  inventoryWeaponIds: number[];
-  inventoryArmorIds: number[];
+  inventoryWeapons: { weaponId: number; equipped: boolean; slot?: 'PRIMARY' | 'SECONDARY' }[];
+  inventoryArmors: { armorId: number; equipped: boolean }[];
 
   communityCardIds: number[];
   ancestryCardIds: number[];

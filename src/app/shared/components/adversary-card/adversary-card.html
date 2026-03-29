@@ -95,7 +95,7 @@
 
     @if (adversary().description) {
       <div class="adversary-card__description-section">
-        <p class="adversary-card__description">{{ adversary().description }}</p>
+        <p class="adversary-card__description" [innerHTML]="adversary().description | formatText"></p>
       </div>
     }
   </div>

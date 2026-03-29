@@ -23,8 +23,20 @@
       <h3 class="review-card-title">Ancestry &amp; Community</h3>
       <div class="review-row">
         <span class="review-label">Ancestry</span>
-        <span class="review-value">{{ ancestryCard().name }}</span>
+        <span class="review-value">
+          {{ ancestryCard().name }}
+          @if (ancestryCard().metadata?.['isMixed']) {
+            <span class="review-badge">Mixed</span>
+          }
+        </span>
       </div>
+      @if (ancestryCard().metadata?.['isMixed'] && ancestryCard().features?.length) {
+        @for (feature of ancestryCard().features; track feature.name) {
+          <div class="review-row review-row--indented">
+            <span class="review-label">{{ feature.name }}</span>
+          </div>
+        }
+      }
       <div class="review-row">
         <span class="review-label">Community</span>
         <span class="review-value">{{ communityCard().name }}</span>
@@ -141,8 +153,19 @@
   </div>
 
   <div class="submit-section">
-    @if (submitError()) {
-      <p class="submit-error">{{ submitError() }}</p>
+    @if (submitError(); as error) {
+      <div class="submit-error-banner" role="alert">
+        <p class="submit-error-title">{{ error.message }}</p>
+        @if (error.fieldErrors) {
+          <ul class="submit-error-list">
+            @for (entry of error.fieldErrors | keyvalue; track entry.key) {
+              <li class="submit-error-item">
+                <span class="submit-error-field">{{ entry.key }}:</span> {{ entry.value }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
     }
     <button
       class="submit-button"

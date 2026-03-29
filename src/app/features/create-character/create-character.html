@@ -49,15 +49,14 @@
             }
           }
           @case ('ancestry') {
-            <app-card-selection-grid
+            <app-ancestry-selector
               [cards]="ancestryCards()"
               [loading]="ancestryCardsLoading()"
               [error]="ancestryCardsError()"
               [selectedCard]="selectedAncestryCard()"
-              [skeletonCount]="6"
-              [collapsibleFeatures]="true"
-              layout="wide"
-              (cardSelected)="onCardClicked($event)"
+              (ancestrySelected)="onCardClicked($event)"
+              (mixedAncestrySelected)="onMixedAncestrySelected($event)"
+              (ancestryDeselected)="onAncestryDeselected()"
             />
           }
           @case ('community') {

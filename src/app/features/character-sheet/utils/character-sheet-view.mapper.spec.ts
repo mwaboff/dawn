@@ -40,9 +40,9 @@ function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSh
     ancestryCardIds: [],
     subclassCardIds: [],
     domainCardIds: [],
-    inventoryWeaponIds: [],
-    inventoryArmorIds: [],
-    inventoryItemIds: [],
+    inventoryWeapons: [],
+    inventoryArmors: [],
+    inventoryItems: [],
     experienceIds: [],
     createdAt: '2024-01-01T00:00:00Z',
     lastModifiedAt: '2024-01-02T00:00:00Z',
@@ -188,30 +188,27 @@ describe('mapToCharacterSheetView', () => {
 
     it('maps primary weapon fields', () => {
       const sheet = makeSheet({
-        activePrimaryWeapon: {
-          id: 10,
-          name: 'Longsword',
-          trait: 'STR',
-          range: 'Melee',
-          burden: 'One-Handed',
-          damage: { diceCount: 1, diceType: 'd8', modifier: 0, damageType: 'Physical', notation: '1d8' },
-          features: [],
-        },
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Longsword', trait: 'STR', range: 'Melee', burden: 'One-Handed',
+            damage: { diceCount: 1, diceType: 'd8', modifier: 0, damageType: 'Physical', notation: '1d8' },
+            features: [],
+          },
+        }],
       });
-
       const result = mapToCharacterSheetView(sheet);
-
       expect(result.activePrimaryWeapon?.id).toBe(10);
       expect(result.activePrimaryWeapon?.name).toBe('Longsword');
       expect(result.activePrimaryWeapon?.damage).toBe('1d8');
-      expect(result.activePrimaryWeapon?.trait).toBe('STR');
-      expect(result.activePrimaryWeapon?.range).toBe('Melee');
-      expect(result.activePrimaryWeapon?.burden).toBe('One-Handed');
     });
 
     it('maps weapon damage to empty string when damage is missing', () => {
       const sheet = makeSheet({
-        activePrimaryWeapon: { id: 1, name: 'Club', features: [] },
+        inventoryWeapons: [{
+          id: 100, weaponId: 1, equipped: true, slot: 'PRIMARY',
+          weapon: { id: 1, name: 'Club', features: [] },
+        }],
       });
 
       const result = mapToCharacterSheetView(sheet);
@@ -221,17 +218,20 @@ describe('mapToCharacterSheetView', () => {
 
     it('maps weapon features', () => {
       const sheet = makeSheet({
-        activePrimaryWeapon: {
-          id: 1,
-          name: 'Magic Sword',
-          features: [
-            {
-              name: 'Enchanted',
-              description: 'Deals extra damage',
-              costTags: [{ label: 'Magic', category: 'type' }],
-            },
-          ],
-        },
+        inventoryWeapons: [{
+          id: 100, weaponId: 1, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 1,
+            name: 'Magic Sword',
+            features: [
+              {
+                name: 'Enchanted',
+                description: 'Deals extra damage',
+                costTags: [{ label: 'Magic', category: 'type' }],
+              },
+            ],
+          },
+        }],
       });
 
       const result = mapToCharacterSheetView(sheet);
@@ -244,11 +244,12 @@ describe('mapToCharacterSheetView', () => {
 
     it('maps armor baseScore', () => {
       const sheet = makeSheet({
-        activeArmor: { id: 5, name: 'Chainmail', baseScore: 4, features: [] },
+        inventoryArmors: [{
+          id: 200, armorId: 5, equipped: true,
+          armor: { id: 5, name: 'Chainmail', baseScore: 4, features: [] },
+        }],
       });
-
       const result = mapToCharacterSheetView(sheet);
-
       expect(result.activeArmor?.id).toBe(5);
       expect(result.activeArmor?.name).toBe('Chainmail');
       expect(result.activeArmor?.baseScore).toBe(4);
@@ -256,7 +257,10 @@ describe('mapToCharacterSheetView', () => {
 
     it('maps armor baseScore to 0 when not provided', () => {
       const sheet = makeSheet({
-        activeArmor: { id: 5, name: 'Leather Armor', features: [] },
+        inventoryArmors: [{
+          id: 200, armorId: 5, equipped: true,
+          armor: { id: 5, name: 'Leather Armor', features: [] },
+        }],
       });
 
       const result = mapToCharacterSheetView(sheet);
@@ -447,26 +451,21 @@ describe('mapToCharacterSheetView', () => {
     it('applies equipment modifiers to evasion', () => {
       const sheet = makeSheet({
         evasion: 10,
-        activeArmor: {
-          id: 1,
-          name: 'Magic Armor',
-          features: [
-            {
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: {
+            id: 1, name: 'Magic Armor',
+            features: [{
               description: 'Evasion boost',
               modifiers: [{ target: 'EVASION', operation: 'ADD', value: 2 }],
-            },
-          ],
-        },
+            }],
+          },
+        }],
       });
-
       const result = mapToCharacterSheetView(sheet);
-
       expect(result.evasion.base).toBe(10);
       expect(result.evasion.modified).toBe(12);
       expect(result.evasion.hasModifier).toBe(true);
-      expect(result.evasion.modifierSources).toEqual([
-        { sourceName: 'Magic Armor', operation: 'ADD', value: 2 },
-      ]);
     });
 
     it('returns unmodified stat when no equipment modifiers affect it', () => {

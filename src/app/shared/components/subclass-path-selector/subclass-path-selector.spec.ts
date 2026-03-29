@@ -29,6 +29,7 @@ const MOCK_SUBCLASS_CARDS: CardData[] = [
     [selectedCard]="selectedCard()"
     [collapsibleFeatures]="collapsibleFeatures()"
     [ownedCardIds]="ownedCardIds()"
+    [foundationOnly]="foundationOnly()"
     (cardSelected)="onCardSelected($event)"
   />`,
   imports: [SubclassPathSelector],
@@ -38,6 +39,7 @@ class TestHost {
   selectedCard = signal<CardData | undefined>(undefined);
   collapsibleFeatures = signal(false);
   ownedCardIds = signal<number[]>([]);
+  foundationOnly = signal(false);
   lastSelectedCard: CardData | undefined;
 
   onCardSelected(card: CardData): void {
@@ -191,6 +193,75 @@ describe('SubclassPathSelector', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const card = compiled.querySelector('app-daggerheart-card');
     expect(card).toBeTruthy();
+  });
+
+  describe('foundationOnly mode', () => {
+    beforeEach(() => {
+      host.cards.set(MOCK_SUBCLASS_CARDS);
+      host.foundationOnly.set(true);
+      fixture.detectChanges();
+    });
+
+    it('should mark Specialization and Mastery tabs as locked', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+      expect(firstPathTabs[0].classList.contains('tabbed-path__tab--locked')).toBe(false);
+      expect(firstPathTabs[1].classList.contains('tabbed-path__tab--locked')).toBe(true);
+      expect(firstPathTabs[2].classList.contains('tabbed-path__tab--locked')).toBe(true);
+    });
+
+    it('should show Foundation card in normal state', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const wrapper = compiled.querySelector('.card-state-wrapper');
+      expect(wrapper?.classList.contains('card-state--locked')).toBe(false);
+      expect(wrapper?.classList.contains('card-state--owned')).toBe(false);
+    });
+
+    it('should show locked state when viewing Specialization card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+      (tabs[1] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const wrapper = compiled.querySelector('.card-state--locked');
+      expect(wrapper).toBeTruthy();
+    });
+
+    it('should emit cardSelected with foundation card when foundation is clicked', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeTruthy();
+      expect(host.lastSelectedCard?.id).toBe(100);
+    });
+
+    it('should not emit when clicking a locked Specialization card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+      (tabs[1] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeUndefined();
+    });
+
+    it('should not emit when clicking a locked Mastery card', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+      (tabs[2] as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+      cardInner.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard).toBeUndefined();
+    });
   });
 
   describe('upgrade mode (ownedCardIds provided)', () => {
