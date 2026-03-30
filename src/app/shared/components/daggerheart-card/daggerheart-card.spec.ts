@@ -262,6 +262,21 @@ describe('DaggerheartCard', () => {
       expect(card.classList.contains('card--wide')).toBe(true);
       expect(card.classList.contains('card--selected')).toBe(true);
     });
+
+    it('should allow feature expansion without clipping in wide layout', () => {
+      host.layout.set('wide');
+      host.collapsibleFeatures.set(true);
+      host.card.set(MOCK_CARD_WITH_FEATURES);
+      fixture.detectChanges();
+
+      const toggle = fixture.nativeElement.querySelector('.card__features-toggle');
+      toggle.click();
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card') as HTMLElement;
+      const computedStyle = getComputedStyle(card);
+      expect(computedStyle.overflow).not.toBe('clip');
+    });
   });
 
   describe('Disabled State', () => {

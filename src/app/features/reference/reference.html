@@ -4,20 +4,23 @@
     <p class="reference-subtitle">Browse the archives of Daggerheart</p>
   </header>
 
-  <app-category-selector
-    [categories]="categoryConfigs"
-    [activeCategory]="activeCategorySignal()"
-    (categorySelected)="onCategorySelected($event)"
-  />
-
-  @if (activeCategorySignal() && activeFilters().length > 0) {
-    <app-reference-filters
-      [filters]="activeFilters()"
-      [currentValues]="filtersSignal()"
-      (filtersChanged)="onFiltersChanged($event)"
+  <div class="reference-toolbar">
+    <app-category-selector
+      [categories]="categoryConfigs"
+      [activeCategory]="activeCategorySignal()"
+      (categorySelected)="onCategorySelected($event)"
     />
-  }
 
+    @if (activeCategorySignal() && activeFilters().length > 0) {
+      <app-reference-filters
+        [filters]="activeFilters()"
+        [currentValues]="filtersSignal()"
+        (filtersChanged)="onFiltersChanged($event)"
+      />
+    }
+  </div>
+
+  <div class="reference-content">
   @if (loadingSignal()) {
     <app-card-skeleton [count]="6" />
   }
@@ -72,4 +75,5 @@
       (pageChanged)="onPageChanged($event)"
     />
   }
+  </div>
 </div>

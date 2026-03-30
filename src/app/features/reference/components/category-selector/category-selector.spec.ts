@@ -43,7 +43,7 @@ describe('CategorySelector', () => {
   });
 
   it('should render all categories', () => {
-    const buttons = fixture.nativeElement.querySelectorAll('.category-btn');
+    const buttons = fixture.nativeElement.querySelectorAll('.category-tab');
     expect(buttons.length).toBe(CATEGORY_CONFIGS.length);
   });
 
@@ -57,13 +57,24 @@ describe('CategorySelector', () => {
     expect(icons.length).toBe(CATEGORY_CONFIGS.length);
   });
 
-  it('should display category descriptions', () => {
-    const descriptions = fixture.nativeElement.querySelectorAll('.category-description');
-    expect(descriptions[0].textContent.trim()).toBe('Magic and skill domains');
+  it('should render as a horizontal strip with tablist role', () => {
+    const strip = fixture.nativeElement.querySelector('.category-strip');
+    expect(strip).toBeTruthy();
+    expect(strip.getAttribute('role')).toBe('tablist');
+  });
+
+  it('should set tab role on each button', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.category-tab');
+    expect(buttons[0].getAttribute('role')).toBe('tab');
+  });
+
+  it('should set description as title tooltip', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('.category-tab');
+    expect(buttons[0].getAttribute('title')).toBe(CATEGORY_CONFIGS[0].description);
   });
 
   it('should emit categorySelected when a button is clicked', () => {
-    const buttons = fixture.nativeElement.querySelectorAll('.category-btn');
+    const buttons = fixture.nativeElement.querySelectorAll('.category-tab');
     buttons[0].click();
     fixture.detectChanges();
 
@@ -71,7 +82,7 @@ describe('CategorySelector', () => {
   });
 
   it('should emit the correct category id when a non-first button is clicked', () => {
-    const buttons = fixture.nativeElement.querySelectorAll('.category-btn');
+    const buttons = fixture.nativeElement.querySelectorAll('.category-tab');
     buttons[5].click();
     fixture.detectChanges();
 
@@ -89,8 +100,8 @@ describe('CategorySelector', () => {
     activeHost.activeCategory = 'classes';
     activeFixture.detectChanges();
 
-    const buttons = activeFixture.nativeElement.querySelectorAll('.category-btn');
-    expect(buttons[1].classList.contains('category-btn--active')).toBe(true);
+    const buttons = activeFixture.nativeElement.querySelectorAll('.category-tab');
+    expect(buttons[1].classList.contains('category-tab--active')).toBe(true);
 
     activeFixture.destroy();
   });
@@ -106,8 +117,8 @@ describe('CategorySelector', () => {
     activeHost.activeCategory = 'classes';
     activeFixture.detectChanges();
 
-    const buttons = activeFixture.nativeElement.querySelectorAll('.category-btn');
-    expect(buttons[0].classList.contains('category-btn--active')).toBe(false);
+    const buttons = activeFixture.nativeElement.querySelectorAll('.category-tab');
+    expect(buttons[0].classList.contains('category-tab--active')).toBe(false);
 
     activeFixture.destroy();
   });
@@ -116,7 +127,24 @@ describe('CategorySelector', () => {
     host.activeCategory = null;
     fixture.detectChanges();
 
-    const activeButtons = fixture.nativeElement.querySelectorAll('.category-btn--active');
+    const activeButtons = fixture.nativeElement.querySelectorAll('.category-tab--active');
     expect(activeButtons.length).toBe(0);
+  });
+
+  it('should set aria-selected on active tab', () => {
+    fixture.destroy();
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [TestHostComponent] });
+
+    const activeFixture = TestBed.createComponent(TestHostComponent);
+    activeFixture.componentInstance.activeCategory = 'classes';
+    activeFixture.detectChanges();
+
+    const buttons = activeFixture.nativeElement.querySelectorAll('.category-tab');
+    expect(buttons[1].getAttribute('aria-selected')).toBe('true');
+    expect(buttons[0].getAttribute('aria-selected')).toBe('false');
+
+    activeFixture.destroy();
   });
 });
