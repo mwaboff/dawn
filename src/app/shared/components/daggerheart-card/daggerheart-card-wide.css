@@ -1,4 +1,4 @@
-.card--wide { max-height: none; flex-direction: row; }
+.card--wide { max-height: none; flex-direction: row; overflow: visible; }
 .card--wide::before { display: none; }
 .card--wide .card__content { flex-direction: row; padding: 0; }
 .card--wide .card__header {

@@ -237,4 +237,69 @@ describe('ReferenceFilters', () => {
     const labels = el.querySelectorAll('.filter-label');
     expect(labels.length).toBe(2);
   });
+
+  it('should sync internal values when currentValues input changes', () => {
+    host.filters.set([DROPDOWN_FILTER]);
+    host.currentValues.set({ level: 'FOUNDATION' });
+    fixture.autoDetectChanges();
+
+    const component = fixture.debugElement.query(
+      (de) => de.componentInstance instanceof ReferenceFilters
+    ).componentInstance as ReferenceFilters;
+
+    expect(component.getValues()['level']).toBe('FOUNDATION');
+
+    host.currentValues.set({});
+    fixture.detectChanges();
+
+    expect(component.getValues()['level']).toBeUndefined();
+  });
+
+  it('should strip empty string values from emitted filters', () => {
+    host.filters.set([DROPDOWN_FILTER]);
+    fixture.detectChanges();
+
+    const select = el.querySelector('select#filter-level') as HTMLSelectElement;
+    select.value = 'FOUNDATION';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(host.lastEmitted?.['level']).toBe('FOUNDATION');
+
+    select.value = '';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(host.lastEmitted).toBeDefined();
+    expect('level' in host.lastEmitted!).toBe(false);
+  });
+
+  it('should coerce numeric values for dynamic-dropdown selections', () => {
+    host.filters.set([DYNAMIC_FILTER]);
+    fixture.detectChanges();
+
+    const select = el.querySelector('select#filter-expansionId') as HTMLSelectElement;
+    select.value = '1';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(host.lastEmitted?.['expansionId']).toBe(1);
+  });
+
+  it('should strip dynamic-dropdown value when reset to All', () => {
+    host.filters.set([DYNAMIC_FILTER]);
+    fixture.detectChanges();
+
+    const select = el.querySelector('select#filter-expansionId') as HTMLSelectElement;
+    select.value = '1';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    select.value = '';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(host.lastEmitted).toBeDefined();
+    expect('expansionId' in host.lastEmitted!).toBe(false);
+  });
 });

@@ -124,15 +124,20 @@
     flex-direction: column;
   }
 
+  .filter-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .clear-btn {
     align-self: flex-start;
   }
 
   .filter-control {
-    min-width: 100%;
+    min-width: 0;
   }
 
   .filter-select {
-    min-width: 100%;
+    min-width: 0;
   }
 }

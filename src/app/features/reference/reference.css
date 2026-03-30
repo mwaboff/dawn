@@ -7,8 +7,32 @@
 }
 
 .reference-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   text-align: center;
+  position: relative;
+}
+
+.reference-header::after {
+  content: '\u25C6';
+  display: block;
+  text-align: center;
+  color: rgba(212, 160, 86, 0.4);
+  font-size: 0.625rem;
+  margin-top: 1rem;
+  letter-spacing: 0.5em;
+}
+
+.reference-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg-dark);
+  border-bottom: 1px solid rgba(212, 160, 86, 0.15);
+  padding: 1rem 0;
+}
+
+.reference-content {
+  margin-top: 1.5rem;
 }
 
 .reference-title {
@@ -108,4 +132,14 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .reference-title {
+    font-size: 1.75rem;
+  }
+
+  .reference-toolbar {
+    padding: 0.75rem 0;
+  }
 }

@@ -34,7 +34,7 @@
                 class="filter-select"
                 [id]="'filter-' + filter.key"
                 [value]="getSelectValue(filter.key)"
-                (change)="onFilterChange(filter.key, $any($event.target).value ? +$any($event.target).value || $any($event.target).value : '')"
+                (change)="onDynamicDropdownChange(filter.key, $any($event.target).value)"
               >
                 <option value="">All</option>
                 @for (option of getDynamicOptions(filter.dynamicSource); track option.id) {

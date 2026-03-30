@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, effect, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal, effect, inject } from '@angular/core';
 import { FilterDefinition } from '../../models/reference.model';
 import { ExpansionService } from '../../../../shared/services/expansion.service';
 import { ClassService } from '../../../../shared/services/class.service';
@@ -10,7 +10,7 @@ import { DomainService } from '../../../../shared/services/domain.service';
   styleUrl: './reference-filters.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReferenceFilters implements OnInit {
+export class ReferenceFilters {
   private readonly expansionService = inject(ExpansionService);
   private readonly classService = inject(ClassService);
   private readonly domainService = inject(DomainService);
@@ -27,6 +27,10 @@ export class ReferenceFilters implements OnInit {
   readonly domainOptions = signal<{ id: number; name: string }[]>([]);
 
   constructor() {
+    effect(() => {
+      this.values.set({ ...this.currentValues() });
+    });
+
     effect(() => {
       const filterDefs = this.filters();
       const dynamicSources = new Set(
@@ -56,14 +60,24 @@ export class ReferenceFilters implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.values.set({ ...this.currentValues() });
-  }
-
-  onFilterChange(key: string, value: unknown): void {
-    const updated = { ...this.values(), [key]: value };
+  onFilterChange(key: string, rawValue: unknown): void {
+    const updated = { ...this.values() };
+    if (rawValue === '' || rawValue === null || rawValue === undefined) {
+      delete updated[key];
+    } else {
+      updated[key] = rawValue;
+    }
     this.values.set(updated);
     this.filtersChanged.emit(updated);
+  }
+
+  onDynamicDropdownChange(key: string, rawValue: string): void {
+    if (!rawValue) {
+      this.onFilterChange(key, '');
+      return;
+    }
+    const numeric = Number(rawValue);
+    this.onFilterChange(key, Number.isNaN(numeric) ? rawValue : numeric);
   }
 
   onToggle(key: string): void {
