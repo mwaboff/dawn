@@ -1,0 +1,208 @@
+<div class="card-edit">
+  <div class="card-edit-toolbar">
+    <button type="button" class="btn btn--secondary" (click)="onBack()">Back to Cards</button>
+    <div class="toolbar-actions">
+      @if (saveSuccess()) {
+        <span class="save-success">Saved successfully</span>
+      }
+      @if (error()) {
+        <span class="save-error">{{ error() }}</span>
+      }
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="!hasPendingChanges() || saving()"
+        (click)="onSave()">
+        @if (saving()) {
+          Saving...
+        } @else {
+          Save Changes
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card-edit-loading">Loading card data...</div>
+  }
+
+  @if (!loading() && rawCard()) {
+    <div class="card-edit-content">
+      <div class="card-edit-form">
+        <form [formGroup]="cardForm">
+          <div class="form-group">
+            <label class="form-label" for="card-name">Name</label>
+            <input id="card-name" type="text" class="form-input" formControlName="name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="card-description">Description</label>
+            <textarea id="card-description" class="form-textarea" formControlName="description" rows="4"></textarea>
+          </div>
+
+          @switch (cardType()) {
+            @case ('domainCard') {
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="level">Level</label>
+                  <input id="level" type="number" class="form-input" formControlName="level" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="recallCost">Recall Cost</label>
+                  <input id="recallCost" type="number" class="form-input" formControlName="recallCost" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="domainCardType">Type</label>
+                  <select id="domainCardType" class="form-select" formControlName="type">
+                    <option value="SPELL">Spell</option>
+                    <option value="GRIMOIRE">Grimoire</option>
+                    <option value="ABILITY">Ability</option>
+                    <option value="TRANSFORMATION">Transformation</option>
+                    <option value="WILD">Wild</option>
+                  </select>
+                </div>
+              </div>
+            }
+            @case ('class') {
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="startingEvasion">Starting Evasion</label>
+                  <input id="startingEvasion" type="number" class="form-input" formControlName="startingEvasion" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="startingHitPoints">Starting Hit Points</label>
+                  <input id="startingHitPoints" type="number" class="form-input" formControlName="startingHitPoints" />
+                </div>
+              </div>
+            }
+            @case ('weapon') {
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="weaponTier">Tier</label>
+                  <input id="weaponTier" type="number" class="form-input" formControlName="tier" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="trait">Trait</label>
+                  <select id="trait" class="form-select" formControlName="trait">
+                    <option value="AGILITY">Agility</option>
+                    <option value="STRENGTH">Strength</option>
+                    <option value="FINESSE">Finesse</option>
+                    <option value="INSTINCT">Instinct</option>
+                    <option value="PRESENCE">Presence</option>
+                    <option value="KNOWLEDGE">Knowledge</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="range">Range</label>
+                  <select id="range" class="form-select" formControlName="range">
+                    <option value="MELEE">Melee</option>
+                    <option value="RANGED">Ranged</option>
+                    <option value="VERY_CLOSE">Very Close</option>
+                    <option value="CLOSE">Close</option>
+                    <option value="FAR">Far</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="burden">Burden</label>
+                  <select id="burden" class="form-select" formControlName="burden">
+                    <option value="ONE_HANDED">One-Handed</option>
+                    <option value="TWO_HANDED">Two-Handed</option>
+                  </select>
+                </div>
+              </div>
+            }
+            @case ('armor') {
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="armorTier">Tier</label>
+                  <input id="armorTier" type="number" class="form-input" formControlName="tier" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="baseScore">Base Score</label>
+                  <input id="baseScore" type="number" class="form-input" formControlName="baseScore" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="baseMajorThreshold">Major Threshold</label>
+                  <input id="baseMajorThreshold" type="number" class="form-input" formControlName="baseMajorThreshold" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="baseSevereThreshold">Severe Threshold</label>
+                  <input id="baseSevereThreshold" type="number" class="form-input" formControlName="baseSevereThreshold" />
+                </div>
+              </div>
+            }
+            @case ('loot') {
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="lootTier">Tier</label>
+                  <input id="lootTier" type="number" class="form-input" formControlName="tier" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cost">Cost</label>
+                  <input id="cost" type="text" class="form-input" formControlName="cost" />
+                </div>
+                <div class="form-group form-group--checkbox">
+                  <label class="form-label">
+                    <input type="checkbox" formControlName="isConsumable" />
+                    Consumable
+                  </label>
+                </div>
+              </div>
+            }
+          }
+        </form>
+
+        @if (features().length > 0) {
+          <div class="features-section">
+            <h3 class="features-title">Features</h3>
+            @for (feature of features(); track feature.id; let i = $index) {
+              <div class="feature-item" [class.feature-item--dirty]="feature.form.dirty">
+                <button type="button" class="feature-header" (click)="toggleFeature(i)">
+                  <span class="feature-name">{{ feature.form.getRawValue().name }}</span>
+                  @if (feature.form.dirty) {
+                    <span class="feature-dirty-dot"></span>
+                  }
+                  <span class="feature-toggle">{{ feature.expanded ? '−' : '+' }}</span>
+                </button>
+                @if (feature.expanded) {
+                  <div class="feature-body">
+                    <form [formGroup]="feature.form">
+                      <div class="form-group">
+                        <label class="form-label" [attr.for]="'feature-name-' + feature.id">Name</label>
+                        <input [id]="'feature-name-' + feature.id" type="text" class="form-input" formControlName="name" />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" [attr.for]="'feature-desc-' + feature.id">Description</label>
+                        <textarea [id]="'feature-desc-' + feature.id" class="form-textarea" formControlName="description" rows="3"></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" [attr.for]="'feature-type-' + feature.id">Feature Type</label>
+                        <input [id]="'feature-type-' + feature.id" type="text" class="form-input" formControlName="featureType" />
+                      </div>
+                    </form>
+                    @if (feature.pristine.costTags && feature.pristine.costTags.length > 0) {
+                      <div class="feature-tags">
+                        <span class="form-label">Cost Tags:</span>
+                        @for (tag of feature.pristine.costTags; track tag.id) {
+                          <span class="tag">{{ tag.label }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="card-edit-preview">
+        <div class="preview-sticky">
+          <h3 class="preview-title">Preview</h3>
+          @if (previewCard(); as preview) {
+            <app-daggerheart-card [card]="preview" [layout]="'wide'" [collapsibleFeatures]="true" />
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

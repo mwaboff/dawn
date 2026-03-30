@@ -1,0 +1,54 @@
+<div class="bulk-upload">
+  <div class="bulk-upload-form">
+    <div class="form-group">
+      <label for="cardType" class="form-label">Card Type</label>
+      <select id="cardType" class="form-select" [ngModel]="selectedType()" (ngModelChange)="onTypeChange($event)">
+        <option value="" disabled>Select a card type...</option>
+        @for (option of cardTypeOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="jsonInput" class="form-label">JSON Data</label>
+      <textarea
+        id="jsonInput"
+        class="form-textarea"
+        rows="20"
+        placeholder='[&#10;  { "name": "Example", ... },&#10;  ...&#10;]'
+        [ngModel]="jsonInput()"
+        (ngModelChange)="onJsonChange($event)"
+      ></textarea>
+    </div>
+
+    @if (validationError()) {
+      <div class="message message--error">{{ validationError() }}</div>
+    }
+    @if (validationSuccess()) {
+      <div class="message message--success">{{ validationSuccess() }}</div>
+    }
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--secondary" (click)="onClear()">Clear</button>
+      <button type="button" class="btn btn--secondary" [disabled]="!canValidate()" (click)="onValidate()">Validate</button>
+      <button type="button" class="btn btn--primary" [disabled]="!canUpload()" (click)="onUpload()">
+        @if (uploading()) {
+          Uploading...
+        } @else {
+          Upload
+        }
+      </button>
+    </div>
+
+    @if (uploadResult(); as result) {
+      <div class="message" [class.message--success]="result.success" [class.message--error]="!result.success">
+        @if (result.success) {
+          Successfully uploaded {{ result.count }} item{{ result.count === 1 ? '' : 's' }}.
+        } @else {
+          Upload failed: {{ result.error }}
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -65,11 +65,33 @@ describe('Navbar', () => {
     });
   });
 
-  describe('onProfile', () => {
-    it('should navigate to profile page', () => {
-      const navigateSpy = vi.spyOn(router, 'navigate');
-      component.onProfile();
-      expect(navigateSpy).toHaveBeenCalledWith(['/profile']);
+  describe('admin link', () => {
+    it('should show admin link when user is admin', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      vi.spyOn(authService, 'isAdmin').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const adminLink = compiled.querySelector('a[routerLink="/admin"]');
+      expect(adminLink).toBeTruthy();
+    });
+
+    it('should not show admin link when user is not admin', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      vi.spyOn(authService, 'isAdmin').mockReturnValue(false);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const adminLink = compiled.querySelector('a[routerLink="/admin"]');
+      expect(adminLink).toBeFalsy();
+    });
+  });
+
+  describe('profile link', () => {
+    it('should render profile as routerLink', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const profileLink = compiled.querySelector('a[routerLink="/profile"]');
+      expect(profileLink).toBeTruthy();
     });
   });
 
