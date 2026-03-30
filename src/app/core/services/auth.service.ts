@@ -11,6 +11,10 @@ export class AuthService {
   private readonly currentUser = signal<UserResponse | null>(null);
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly user = computed(() => this.currentUser());
+  readonly isAdmin = computed(() => {
+    const user = this.currentUser();
+    return user !== null && (user.role === 'ADMIN' || user.role === 'OWNER');
+  });
 
   private readonly http = inject(HttpClient);
 

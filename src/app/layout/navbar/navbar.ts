@@ -71,7 +71,4 @@ export class Navbar {
     });
   }
 
-  onProfile(): void {
-    this.router.navigate(['/profile']);
-  }
 }

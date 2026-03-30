@@ -1,0 +1,67 @@
+<div class="card-search">
+  <div class="search-controls">
+    <div class="category-bar">
+      @for (cat of categories; track cat.id) {
+        <button
+          type="button"
+          class="category-pill"
+          [class.category-pill--active]="activeCategory() === cat.id"
+          (click)="onCategorySelected(cat.id)">
+          {{ cat.label }}
+        </button>
+      }
+    </div>
+
+    @if (activeCategory()) {
+      <div class="search-input-wrapper">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search by name..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+    }
+  </div>
+
+  @if (!activeCategory()) {
+    <div class="search-empty">
+      <p>Select a category above to browse cards.</p>
+    </div>
+  }
+
+  @if (loading()) {
+    <app-card-skeleton [count]="6" />
+  }
+
+  @if (error() && !loading()) {
+    <div class="search-error">
+      <p>Failed to load cards. Please try again.</p>
+    </div>
+  }
+
+  @if (!loading() && !error() && activeCategory() && filteredCards().length > 0) {
+    <app-card-selection-grid
+      [cards]="filteredCards()"
+      [loading]="false"
+      [error]="false"
+      [maxSelections]="0"
+      [layout]="'wide'"
+      [collapsibleFeatures]="true"
+      (cardSelected)="onCardSelected($event)"
+    />
+  }
+
+  @if (!loading() && !error() && activeCategory() && filteredCards().length === 0 && hasCards()) {
+    <div class="search-empty">
+      <p>No cards match your search.</p>
+    </div>
+  }
+
+  @if (!loading() && !error() && activeCategory() && !hasCards()) {
+    <div class="search-empty">
+      <p>No cards found in this category.</p>
+    </div>
+  }
+</div>
