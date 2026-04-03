@@ -1,10 +1,12 @@
+import { Role } from '../../shared/models/role.model';
+
 export interface UserResponse {
   id: number;
   username: string;
   email: string;
   avatarUrl?: string;
   timezone?: string;
-  role: string;
+  role: Role;
   createdAt: string;
   lastModifiedAt: string;
 }
