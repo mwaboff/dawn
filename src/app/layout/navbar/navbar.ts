@@ -60,8 +60,13 @@ export class Navbar {
   }
 
   onCreateCharacter(): void {
-    this.router.navigate(['/create-character']);
     this.closeDropdown();
+    this.router.navigate(['/create-character']);
+  }
+
+  onCreateCampaign(): void {
+    this.closeDropdown();
+    this.router.navigate(['/campaigns/create']);
   }
 
   onLogout(): void {

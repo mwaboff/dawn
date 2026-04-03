@@ -23,10 +23,14 @@
               <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCharacter()">
                 Create Character
               </button>
+              <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCampaign()">
+                Create Campaign
+              </button>
             </div>
           }
         </div>
         <a routerLink="/reference" class="nav-link">Reference</a>
+        <a routerLink="/campaigns" class="nav-link">Campaigns</a>
         <a routerLink="/profile" class="nav-link">Profile</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-link nav-link-admin">Admin</a>

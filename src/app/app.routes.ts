@@ -37,6 +37,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then(m => m.Profile)
       },
       {
+        path: 'campaigns/join/:token',
+        loadComponent: () => import('./features/campaign-join/campaign-join').then(m => m.CampaignJoin)
+      },
+      {
         path: 'admin',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
