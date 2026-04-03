@@ -28,4 +28,18 @@
     (viewCharacter)="onViewCharacter($event)"
     (createCharacter)="onCreateCharacter()"
   />
+
+  <div class="profile-divider">
+    <div class="profile-divider-line"></div>
+    <span class="profile-divider-label">Campaigns</span>
+    <div class="profile-divider-line"></div>
+  </div>
+
+  <app-campaign-roster
+    [campaigns]="campaigns()"
+    [loading]="campaignsLoading()"
+    [error]="campaignsError()"
+    (viewCampaign)="onViewCampaign($event)"
+    (createCampaign)="onCreateCampaign()"
+  />
 </div>

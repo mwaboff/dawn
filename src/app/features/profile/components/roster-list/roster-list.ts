@@ -13,6 +13,7 @@ export class RosterList {
   readonly characters = input.required<CharacterSummary[]>();
   readonly loading = input.required<boolean>();
   readonly error = input.required<boolean>();
+  readonly showCreateButton = input(true);
 
   readonly viewCharacter = output<number>();
   readonly createCharacter = output<void>();

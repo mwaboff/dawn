@@ -4,27 +4,34 @@ import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http'
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { PaginatedResponse } from '../../shared/models/api.model';
+import { CampaignService } from '../../shared/services/campaign.service';
+import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { CharacterSummary, ClassEntry } from './models/profile.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { environment } from '../../../environments/environment';
 import { RosterList } from './components/roster-list/roster-list';
+import { CampaignRoster } from './components/campaign-roster/campaign-roster';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RosterList],
+  imports: [RosterList, CampaignRoster],
 })
 export class Profile implements OnInit {
   private readonly router = inject(Router);
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly campaignService = inject(CampaignService);
 
   readonly user = this.authService.user;
   readonly characters = signal<CharacterSummary[]>([]);
   readonly charactersLoading = signal(true);
   readonly charactersError = signal(false);
+  readonly campaigns = signal<CampaignResponse[]>([]);
+  readonly campaignsLoading = signal(true);
+  readonly campaignsError = signal(false);
 
   readonly joinDate = computed(() => {
     const createdAt = this.user()?.createdAt;
@@ -43,6 +50,7 @@ export class Profile implements OnInit {
       return;
     }
     this.loadCharacters(userId);
+    this.loadCampaigns();
   }
 
   onViewCharacter(id: number): void {
@@ -51,6 +59,14 @@ export class Profile implements OnInit {
 
   onCreateCharacter(): void {
     this.router.navigate(['/create-character']);
+  }
+
+  onViewCampaign(id: number): void {
+    this.router.navigate(['/campaign', id]);
+  }
+
+  onCreateCampaign(): void {
+    this.router.navigate(['/campaigns/create']);
   }
 
   private loadCharacters(ownerId: number): void {
@@ -82,6 +98,19 @@ export class Profile implements OnInit {
         }
         this.charactersLoading.set(false);
       });
+  }
+
+  private loadCampaigns(): void {
+    this.campaignService.getMyCampaigns(0, 50, 'creator').subscribe({
+      next: (response) => {
+        this.campaigns.set(response.content);
+        this.campaignsLoading.set(false);
+      },
+      error: () => {
+        this.campaignsError.set(true);
+        this.campaignsLoading.set(false);
+      },
+    });
   }
 
   private mapToSummary(sheet: CharacterSheetResponse): CharacterSummary {
