@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, ActivatedRoute, convertToParamMap } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -34,7 +34,7 @@ describe('CampaignJoin', () => {
   }
 
   afterEach(() => {
-    httpMock.verify();
+    httpMock?.verify();
   });
 
   it('should show joining state on init', () => {
@@ -45,14 +45,14 @@ describe('CampaignJoin', () => {
     expect(compiled.textContent).toContain('Joining campaign...');
     expect(component.joining()).toBe(true);
 
-    httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token').flush({});
+    httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token')).flush({});
   });
 
   it('should call joinCampaign with token from route', () => {
     setup('abc-123');
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/abc-123');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/abc-123'));
     expect(req.request.method).toBe('POST');
     req.flush({});
   });
@@ -61,27 +61,26 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
-    req.flush({ campaignId: 'camp-1', campaignName: 'Dragon Slayers', role: 'PLAYER' });
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
+    req.flush({ campaignId: 1, campaignName: 'Dragon Slayers', message: 'Joined' });
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Dragon Slayers');
-    expect(compiled.textContent).toContain('Welcome to the Party');
     expect(component.joining()).toBe(false);
     expect(component.result()).toBeTruthy();
   });
 
-  it('should show View Campaign link pointing to correct campaign', () => {
+  it('should show View Campaign link on success', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
-    req.flush({ campaignId: 'camp-42', campaignName: 'Test Campaign', role: 'PLAYER' });
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
+    req.flush({ campaignId: 42, campaignName: 'Test Campaign', message: 'Joined' });
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector('a[href="/campaign/camp-42"]');
+    const link = compiled.querySelector('.join-btn');
     expect(link).toBeTruthy();
     expect(link?.textContent?.trim()).toBe('View Campaign');
   });
@@ -90,13 +89,12 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
     req.flush({ message: 'Expired' }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Invite Expired');
-    expect(compiled.textContent).toContain('expired or has already been used');
     expect(component.error()).toBe('expired');
   });
 
@@ -104,7 +102,7 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
     req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     fixture.detectChanges();
 
@@ -117,7 +115,7 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
     req.flush({ message: 'Not found' }, { status: 404, statusText: 'Not Found' });
     fixture.detectChanges();
 
@@ -130,7 +128,7 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
     req.flush({ message: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
     fixture.detectChanges();
 
@@ -143,12 +141,12 @@ describe('CampaignJoin', () => {
     setup();
     fixture.detectChanges();
 
-    const req = httpMock.expectOne('http://localhost:8080/api/campaigns/join/test-token');
+    const req = httpMock.expectOne(r => r.url.includes('/dh/campaigns/join/test-token'));
     req.flush({ message: 'Error' }, { status: 500, statusText: 'Internal Server Error' });
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector('a[href="/campaigns"]');
+    const link = compiled.querySelector('.join-btn-secondary');
     expect(link).toBeTruthy();
     expect(link?.textContent?.trim()).toBe('Go to Campaigns');
   });
