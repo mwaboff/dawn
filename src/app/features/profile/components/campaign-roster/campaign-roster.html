@@ -1,0 +1,49 @@
+<section class="campaign-roster">
+  @if (loading()) {
+    <div class="roster-loading">
+      @for (i of [1, 2]; track i) {
+        <div class="roster-skeleton"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="roster-message">
+      <p>Something went wrong loading your campaigns.</p>
+    </div>
+  } @else if (campaigns().length === 0) {
+    <div class="roster-empty">
+      <p class="roster-empty-text">No adventures yet</p>
+      <button type="button" class="roster-create-btn" (click)="createCampaign.emit()">
+        Create Your First Campaign
+      </button>
+    </div>
+  } @else {
+    <ol class="roster-list">
+      @for (campaign of campaigns(); track campaign.id) {
+        <li class="roster-entry" tabindex="0" role="button"
+            (click)="viewCampaign.emit(campaign.id)"
+            (keydown.enter)="viewCampaign.emit(campaign.id)">
+          <div class="roster-info">
+            <div class="roster-name-row">
+              <span class="roster-character-name">{{ campaign.name }}</span>
+              @if (campaign.isEnded) {
+                <span class="roster-badge">Ended</span>
+              }
+            </div>
+            <p class="roster-class">
+              <span class="roster-class-name">GM: {{ campaign.creator?.username ?? 'Unknown' }}</span>
+              <span class="roster-class-sep" aria-hidden="true"> · </span>
+              <span class="roster-class-subclass">{{ campaign.playerIds.length }} players</span>
+            </p>
+          </div>
+          <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </li>
+      }
+    </ol>
+    <div class="roster-footer">
+      <a routerLink="/campaigns" class="roster-add-link">View All Campaigns</a>
+    </div>
+  }
+</section>

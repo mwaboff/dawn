@@ -10,6 +10,7 @@ import { CharacterSummary } from '../../models/profile.model';
       [characters]="characters()"
       [loading]="loading()"
       [error]="error()"
+      [showCreateButton]="showCreateButton()"
       (viewCharacter)="viewedId = $event"
       (createCharacter)="createCalled = true"
     />
@@ -20,6 +21,7 @@ class TestHost {
   characters = signal<CharacterSummary[]>([]);
   loading = signal(false);
   error = signal(false);
+  showCreateButton = signal(true);
   viewedId: number | null = null;
   createCalled = false;
 }
@@ -188,5 +190,33 @@ describe('RosterList', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.roster-add-link')).toBeTruthy();
+  });
+
+  it('should show create button when showCreateButton is true (default)', () => {
+    fixture.detectChanges();
+
+    expect(el.querySelector('.roster-create-btn')).toBeTruthy();
+  });
+
+  it('should hide create button when showCreateButton is false', () => {
+    host.showCreateButton.set(false);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.roster-create-btn')).toBeFalsy();
+  });
+
+  it('should show "No characters yet" text when showCreateButton is false and empty', () => {
+    host.showCreateButton.set(false);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.roster-empty-text')?.textContent?.trim()).toBe('No characters yet');
+  });
+
+  it('should hide new character link when showCreateButton is false and characters exist', () => {
+    host.showCreateButton.set(false);
+    host.characters.set([makeCharacter()]);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.roster-add-link')).toBeFalsy();
   });
 });

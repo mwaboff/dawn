@@ -65,15 +65,20 @@ describe('Profile', () => {
     httpMock.verify();
   });
 
+  function flushInitRequests(sheetData: unknown[] = [], campaignData: unknown[] = []) {
+    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
+    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged(campaignData));
+  }
+
   it('should create', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    flushInitRequests();
     expect(component).toBeTruthy();
   });
 
   it('should display the username', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    flushInitRequests();
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
@@ -82,7 +87,7 @@ describe('Profile', () => {
 
   it('should format the join date', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    flushInitRequests();
     fixture.detectChanges();
     expect(component.joinDate()).toContain('2025');
   });
@@ -93,11 +98,12 @@ describe('Profile', () => {
     expect(req.request.params.get('ownerId')).toBe('42');
     expect(req.request.params.get('expand')).toBe('subclassCards');
     req.flush(wrapPaged([]));
+    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
   });
 
   it('should render the roster-list child component', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    flushInitRequests();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-roster-list')).toBeTruthy();
@@ -105,9 +111,7 @@ describe('Profile', () => {
 
   it('should pass characters to roster-list', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
-      makeSheet({ id: 1, name: 'Aragorn', level: 5 }),
-    ]));
+    flushInitRequests([makeSheet({ id: 1, name: 'Aragorn', level: 5 })]);
     fixture.detectChanges();
 
     expect(component.characters().length).toBe(1);
@@ -118,6 +122,7 @@ describe('Profile', () => {
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
       .flush(null, { status: 403, statusText: 'Forbidden' });
+    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
     fixture.detectChanges();
 
     expect(component.charactersError()).toBe(false);
@@ -128,6 +133,7 @@ describe('Profile', () => {
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
       .flush(null, { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
     fixture.detectChanges();
 
     expect(component.charactersError()).toBe(true);
@@ -157,19 +163,57 @@ describe('Profile', () => {
 
   it('should extract class entries from expanded subclassCards', () => {
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([
+    flushInitRequests([
       makeSheet({
         id: 1, name: 'Theron', level: 4,
         subclassCards: [
           { id: 10, name: 'Foundation', associatedClassName: 'Guardian', subclassPathName: 'Stalwart' },
         ],
       }),
-    ]));
+    ]);
     fixture.detectChanges();
 
     const classEntries = component.characters()[0].classEntries;
     expect(classEntries.length).toBe(1);
     expect(classEntries[0].className).toBe('Guardian');
     expect(classEntries[0].subclassName).toBe('Stalwart');
+  });
+
+  it('should fetch campaigns on init', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    const req = httpMock.expectOne(r => r.url.includes('/campaigns/mine'));
+    expect(req.request.params.get('expand')).toBe('creator');
+    req.flush(wrapPaged([]));
+  });
+
+  it('should render CampaignRoster component', () => {
+    fixture.detectChanges();
+    flushInitRequests();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeTruthy();
+  });
+
+  it('should handle campaign fetch error', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    httpMock.expectOne(r => r.url.includes('/campaigns/mine'))
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(component.campaignsError()).toBe(true);
+  });
+
+  it('should navigate to campaign on viewCampaign', () => {
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    component.onViewCampaign(5);
+    expect(navigateSpy).toHaveBeenCalledWith(['/campaign', 5]);
+  });
+
+  it('should navigate to campaigns/create on createCampaign', () => {
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    component.onCreateCampaign();
+    expect(navigateSpy).toHaveBeenCalledWith(['/campaigns/create']);
   });
 });
