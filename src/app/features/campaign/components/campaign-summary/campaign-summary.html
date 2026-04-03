@@ -1,0 +1,13 @@
+<div class="summary">
+  <span class="summary-eyebrow">Campaign</span>
+  <div class="summary-name-row">
+    <h1 class="summary-name">{{ campaign().name }}</h1>
+    @if (isEnded()) {
+      <span class="summary-badge-ended">Ended</span>
+    }
+  </div>
+  <p class="summary-gm">Game Master: {{ gmName() }}</p>
+  @if (campaign().description) {
+    <p class="summary-description">{{ campaign().description }}</p>
+  }
+</div>

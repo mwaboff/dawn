@@ -1,0 +1,91 @@
+<div class="campaign">
+  <div class="grain-overlay campaign-grain"></div>
+
+  @if (loading()) {
+    <div class="campaign-loading">
+      <div class="campaign-skeleton campaign-skeleton-title"></div>
+      <div class="campaign-skeleton campaign-skeleton-meta"></div>
+      <div class="campaign-skeleton campaign-skeleton-body"></div>
+    </div>
+  } @else if (errorStatus() === 403) {
+    <div class="campaign-error">
+      <h1 class="campaign-error-title">Access Denied</h1>
+      <p class="campaign-error-text">You do not have permission to view this campaign.</p>
+    </div>
+  } @else if (errorStatus() === 404) {
+    <div class="campaign-error">
+      <h1 class="campaign-error-title">Campaign Not Found</h1>
+      <p class="campaign-error-text">This campaign may have been removed or does not exist.</p>
+    </div>
+  } @else if (errorStatus()) {
+    <div class="campaign-error">
+      <h1 class="campaign-error-title">Something Went Wrong</h1>
+      <p class="campaign-error-text">Failed to load this campaign. Please try again later.</p>
+    </div>
+  } @else if (campaign(); as c) {
+    <app-campaign-summary [campaign]="c" />
+
+    @if (canManage() && hasPending()) {
+      <div class="campaign-divider">
+        <div class="campaign-divider-line"></div>
+        <span class="campaign-divider-label">Pending Submissions</span>
+        <div class="campaign-divider-line"></div>
+      </div>
+
+      <div class="campaign-section">
+        <app-campaign-pending-list
+          [campaign]="c"
+          (approve)="onApproveCharacter($event)"
+          (reject)="onRejectCharacter($event)"
+          (viewCharacter)="onViewCharacter($event)"
+        />
+      </div>
+    }
+
+    <div class="campaign-divider">
+      <div class="campaign-divider-line"></div>
+      <span class="campaign-divider-label">Players</span>
+      <div class="campaign-divider-line"></div>
+    </div>
+
+    <div class="campaign-section">
+      <app-campaign-player-list
+        [campaign]="c"
+        [canManage]="canManage()"
+        [confirmingKickId]="confirmingKickId()"
+        (kickPlayer)="onKickPlayer($event)"
+        (viewPlayer)="onViewPlayer($event)"
+        (cancelKick)="onCancelKick()"
+      />
+    </div>
+
+    <div class="campaign-divider">
+      <div class="campaign-divider-line"></div>
+      <span class="campaign-divider-label">Characters</span>
+      <div class="campaign-divider-line"></div>
+    </div>
+
+    <div class="campaign-section">
+      <app-campaign-character-list
+        [campaign]="c"
+        [canManage]="canManage()"
+        [confirmingRemoveId]="confirmingRemoveId()"
+        (removeCharacter)="onRemoveCharacter($event)"
+        (viewCharacter)="onViewCharacter($event)"
+        (cancelRemove)="onCancelRemove()"
+      />
+    </div>
+
+    @if (canManage()) {
+      <div class="campaign-divider">
+        <div class="campaign-divider-line"></div>
+        <span class="campaign-divider-label">Invite</span>
+        <div class="campaign-divider-line"></div>
+      </div>
+
+      <div class="campaign-section">
+        <app-campaign-invite [campaignId]="c.id" />
+      </div>
+    }
+  }
+</div>

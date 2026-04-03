@@ -1,0 +1,31 @@
+<section class="pending-list">
+  @if (pendingSheets().length === 0) {
+    <div class="pending-list-empty">
+      <p>No pending submissions.</p>
+    </div>
+  } @else {
+    <ol class="pending-roster">
+      @for (sheet of pendingSheets(); track sheet.id) {
+        <li
+          class="pending-entry"
+          tabindex="0"
+          role="button"
+          (click)="onViewCharacter(sheet.id)"
+          (keydown.enter)="onViewCharacter(sheet.id)"
+        >
+          <span class="pending-level">{{ sheet.level }}</span>
+          <div class="pending-info">
+            <span class="pending-name">{{ sheet.name }}</span>
+            @if (sheet.ownerUsername) {
+              <span class="pending-owner">by {{ sheet.ownerUsername }}</span>
+            }
+          </div>
+          <div class="pending-actions">
+            <button type="button" class="pending-approve-btn" (click)="onApprove(sheet.id, $event)">Approve</button>
+            <button type="button" class="pending-reject-btn" (click)="onReject(sheet.id, $event)">Reject</button>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</section>

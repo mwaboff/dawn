@@ -30,9 +30,12 @@ export interface CampaignCharacterSheet {
   pronouns?: string;
   level: number;
   ownerId: number;
+  ownerUsername?: string;
+  subclassCards?: { associatedClassName?: string }[];
   createdAt: string;
   lastModifiedAt: string;
 }
+
 
 export interface CampaignCharacterSummary {
   id: number;

@@ -1,0 +1,1358 @@
+[
+  {
+    "name": "Troubadour",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Troubadour",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Gifted Performer",
+        "description": "You can play three different types of songs, once each per long rest; describe how you perform for others to gain the listed benefit:\n\n- **Relaxing Song:** You and all allies within Close range clear a Hit Point.\n- **Epic Song:** Make a target within Close range temporarily Vulnerable.\n- **Heartbreaking Song:** You and all allies within Close range gain a Hope.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Troubadour",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Troubadour",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Maestro",
+        "description": "Your rallying songs steel the courage of those who listen. When you give a Rally Die to an ally, they can gain a Hope or clear a Stress.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Troubadour",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Troubadour",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Virtuoso",
+        "description": "Virtuoso",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Wordsmith",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Wordsmith",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Rousing Speech",
+        "description": "Once per long rest, you can give a heartfelt, inspiring speech. All allies within Far range clear 2 Stress.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      },
+      {
+        "name": "Heart of a Poet",
+        "description": "After you make an action roll to impress, persuade, or offend someone, you can spend a Hope to add a d4 to the roll.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Hope",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Wordsmith",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Wordsmith",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Eloquent",
+        "description": "Your moving words boost morale. Once per session, when you encourage an ally, you can do one of the following:\n\n- Allow them to find a mundane object or tool they need.\n- Help an Ally without spending Hope.\n- Give them an additional downtime move during their next rest.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/session",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Wordsmith",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 1,
+    "subclassPath": {
+      "name": "Wordsmith",
+      "spellcastingTrait": "PRESENCE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Epic Poetry",
+        "description": "Epic Poetry",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Warden of the Elements",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of the Elements",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Elemental Incarnation",
+        "description": "Mark a Stress to Channel one of the following elements until you take Severe damage or until your next rest:\n\n- **Fire:** When an adversary within Melee range deals damage to you, they take 1d10 magic damage.\n- **Earth:** Gain a bonus to your damage thresholds equal to your Proficiency.\n- **Water:** When you deal damage to an adversary within Melee range, all other adversaries within Very Close range must mark a Stress.\n- **Air:** You can hover, gaining advantage on Agility Rolls.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Warden of the Elements",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of the Elements",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Elemental Aura",
+        "description": "Once per rest while Channeling, you can assume an aura matching your element. The aura affects targets within Close range until your Channeling ends.\n\n- **Fire:** When an adversary marks 1 or more Hit Points, they must also mark a Stress.\n- **Earth:** Your allies gain a +1 bonus to Strength.\n- **Water:** When an adversary deals damage to you, you can mark a Stress to move them anywhere within Very Close range of where they are.\n- **Air:** When you or an ally takes damage from an attack beyond Melee range, reduce the damage by 1d8.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          },
+          {
+            "label": "1/rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Warden of the Elements",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of the Elements",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Elemental Dominion",
+        "description": "Elemental Dominion",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Warden of Renewal",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of Renewal",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Clarity of Nature",
+        "description": "Once per long rest, you can create a space of natural serenity within Close range. When you spend a few minutes resting within the space, clear Stress equal to your Instinct, distributed as you choose between you and your allies.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      },
+      {
+        "name": "Regeneration",
+        "description": "Touch a creature and spend 3 Hope. That creature clears 1d4 Hit Points.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "3 Hope",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Warden of Renewal",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of Renewal",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Regenerative Reach",
+        "description": "You can target creatures within Very Close range with your \"Regeneration\" feature.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Warden’s Protection",
+        "description": "Once per long rest, spend 2 Hope to clear 2 Hit Points on 1d4 allies within Close range.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "2 Hope",
+            "category": "COST"
+          },
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Warden of Renewal",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 2,
+    "subclassPath": {
+      "name": "Warden of Renewal",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Defender",
+        "description": "Defender",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Stalwart",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Stalwart"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Unwavering",
+        "description": "Gain a permanent +1 bonus to your damage thresholds.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "modifiers": [
+          {
+            "target": "MAJOR_DAMAGE_THRESHOLD",
+            "operation": "ADD",
+            "value": 1
+          },
+          {
+            "target": "SEVERE_DAMAGE_THRESHOLD",
+            "operation": "ADD",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "Iron Will",
+        "description": "When you take physical damage, you can mark an additional Armor Slot to reduce the severity.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Stalwart",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Stalwart"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Unrelenting",
+        "description": "Gain a permanent +2 bonus to your damage thresholds.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "modifiers": [
+          {
+            "target": "MAJOR_DAMAGE_THRESHOLD",
+            "operation": "ADD",
+            "value": 2
+          },
+          {
+            "target": "SEVERE_DAMAGE_THRESHOLD",
+            "operation": "ADD",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "name": "Partners-in-Arms",
+        "description": "When an ally within Very Close range takes damage, you can mark an Armor Slot to reduce the severity by one threshold.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Stalwart",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Stalwart"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Undaunted",
+        "description": "Undaunted",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Loyal Protector",
+        "description": "When an ally within Close range has 2 or fewer Hit Points and would take damage, you can mark a Stress to sprint to their side and take the damage instead.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Vengeance",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Vengeance"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "At Ease",
+        "description": "Gain an additional Stress slot.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "modifiers": [
+          {
+            "target": "STRESS_MAX",
+            "operation": "ADD",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "Revenge",
+        "description": "When an adversary within Melee range succeeds on an attack against you, you can mark 2 Stress to force the attacker to mark a Hit Point.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "2 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Vengeance",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Vengeance"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Act of Reprisal",
+        "description": "When an adversary damages an ally within Melee range, you gain a +1 bonus to your Proficiency for the next successful attack you make against that adversary.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Vengeance",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 3,
+    "subclassPath": {
+      "name": "Vengeance"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Nemesis",
+        "description": "Nemesis",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Beastbound",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Beastbound",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Companion",
+        "description": "You have an animal companion of your choice (at the GM's discretion). They stay by your side unless you tell them otherwise.\n\nTake the Ranger Companion sheet. When you level up your character, choose a level-up option for your companion from this sheet as well.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Beastbound",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Beastbound",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Expert Training",
+        "description": "Choose an additional level-up option for your companion.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Battle-Bonded",
+        "description": "When an adversary attacks you while they're within your companion's Melee range, you gain a +2 bonus to your Evasion against the attack.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Beastbound",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Beastbound",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Advanced Training",
+        "description": "Advanced Training",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Loyal Friend",
+        "description": "Once per long rest, when the damage from an attack would mark your companion's last Stress or your last Hit Point and you're within Close range of each other, you or your companion can rush to the other's side and take that damage instead.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Wayfinder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Wayfinder",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Ruthless Predator",
+        "description": "When you make a damage roll, you can mark a Stress to gain a +1 bonus to your Proficiency. Additionally, when you deal Severe damage to an adversary, they must mark a Stress.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      },
+      {
+        "name": "Path Forward",
+        "description": "When you're traveling to a place you've previously visited or you carry an object that has been at the location before, you can identify the shortest, most direct path to your destination.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Wayfinder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Wayfinder",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Elusive Predator",
+        "description": "When your Focus makes an attack against you, you gain a +2 bonus to your Evasion against the attack.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Wayfinder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 4,
+    "subclassPath": {
+      "name": "Wayfinder",
+      "spellcastingTrait": "AGILITY"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Apex Predator",
+        "description": "Apex Predator",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Nightwalker",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Nightwalker",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Shadow Stepper",
+        "description": "You can move from shadow to shadow. When you move into an area of darkness or a shadow cast by another creature or object, you can **mark a Stress** to disappear from where you are and reappear inside another shadow within Far range. When you reappear, you are Cloaked.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Nightwalker",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Nightwalker",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Dark Cloud",
+        "description": "Make a Spellcast Roll (15). On a success, create a temporary dark cloud that covers any area within Close range. Anyone in this cloud can't see outside of it, and anyone outside of it can't see in. You're considered Cloaked from any adversary for whom the cloud blocks line of sight.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Adrenaline",
+        "description": "While you're Vulnerable, add your level to your damage rolls.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Nightwalker",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Nightwalker",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Fleeting Shadow",
+        "description": "Fleeting Shadow",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Vanishing Act",
+        "description": "Mark a Stress to become Cloaked at any time. When Cloaked from this feature, you automatically clear the Restrained condition if you have it. You remain Cloaked in this way until you roll with Fear or until your next rest.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Syndicate",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Syndicate",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Well-Connected",
+        "description": "When you arrive in a prominent town or environment, you know somebody who calls this place home. Give them a name, note how you think they could be useful, and choose one fact from the following list:\n\n- They owe me a favor, but they'll be hard to find.\n- They're going to ask for something in exchange.\n- They're always in a great deal of trouble.\n- We used to be together. It's a long story.\n- We didn't part on great terms.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Syndicate",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Syndicate",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Contacts Everywhere",
+        "description": "Once per session, you can briefly call on a shady contact. Choose one of the following benefits and describe what brought them here to help you in this moment:\n\n- They provide 1 handful of gold, a unique tool, or a mundane object that the situation requires.\n- On your next action roll, their help provides a +3 bonus to the result of your Hope or Fear Die.\n- The next time you deal damage, they snipe from the shadows, adding 2d8 to your damage roll.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/session",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Syndicate",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 5,
+    "subclassPath": {
+      "name": "Syndicate",
+      "spellcastingTrait": "FINESSE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Reliable Backup",
+        "description": "Reliable Backup",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Divine Wielder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Divine Wielder",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Spirit Weapon",
+        "description": "When you have an equipped weapon with a range of Melee or Very Close, it can fly from your hand to attack an adversary within Close range and then return to you. You can mark a Stress to target an additional adversary within range with the same attack roll.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      },
+      {
+        "name": "Sparing Touch",
+        "description": "Once per long rest, touch a creature and clear 2 Hit Points or 2 Stress from them.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Divine Wielder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Divine Wielder",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Devout",
+        "description": "When you roll your Prayer Dice, you can roll an additional die and discard the lowest result. Additionally, you can use your \"Sparing Touch\" feature twice instead of once per long rest.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Divine Wielder",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Divine Wielder",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Sacred Resonance",
+        "description": "Sacred Resonance",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Winged Sentinel",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Winged Sentinel",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Wings of Light",
+        "description": "You can fly. While flying, you can do the following:\n\n- Mark a Stress to pick up and carry another willing creature approximately your size or smaller.\n- Spend a Hope to deal an extra 1d8 damage on a successful attack.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Hope",
+            "category": "COST"
+          },
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Winged Sentinel",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Winged Sentinel",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Ethereal Visage",
+        "description": "Your supernatural visage strikes awe and fear. While flying, you have advantage on Presence Rolls. When you succeed with Hope on a Presence Roll, you can remove a Fear from the GM's Fear pool instead of gaining Hope.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Winged Sentinel",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 6,
+    "subclassPath": {
+      "name": "Winged Sentinel",
+      "spellcastingTrait": "STRENGTH"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Ascendant",
+        "description": "Ascendant",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Power of the Gods",
+        "description": "While flying, you deal an extra 1d12 damage instead of 1d8 from your \"Wings of Light\" feature.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Elemental Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Elemental Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Elementalist",
+        "description": "Choose one of the following elements at character creation: air, earth, fire, lightning, water.\n\nYou can shape this element into harmless effects. Additionally, spend a Hope and describe how your control over this element helps an action roll you're about to make, then either gain a +2 bonus to the roll or a +3 bonus to the roll's damage.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Hope",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Elemental Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Elemental Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Natural Evasion",
+        "description": "You can call forth your element to protect you from harm. When an attack roll against you succeeds, you can mark a Stress and describe how you use your element to defend you. When you do, roll a d6 and add its result to your Evasion against the attack.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Elemental Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Elemental Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Transcendence",
+        "description": "Transcendence",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Primal Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Primal Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Manipulate Magic",
+        "description": "Your primal origin allows you to modify the essence of magic itself. After you cast a spell or make an attack using a weapon that deals magic damage, you can mark a Stress to do one of the following:\n\n- Extend the spell or attack's reach by one range\n- Gain a +2 bonus to the action roll's result\n- Double a damage die of your choice\n- Hit an additional target within range",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Primal Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Primal Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Enchanted Aid",
+        "description": "You can enhance the magic of others with your essence. When you Help an Ally with a Spellcast Roll, you can roll a d8 as your advantage die. Once per long rest, after an ally has made a Spellcast Roll with your help, you can swap the results of their Duality Dice.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Primal Origin",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 7,
+    "subclassPath": {
+      "name": "Primal Origin",
+      "spellcastingTrait": "INSTINCT"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Arcane Charge",
+        "description": "Arcane Charge",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Call of the Brave",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Brave"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Courage",
+        "description": "When you fail a roll with Fear, you gain a Hope.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Battle Ritual",
+        "description": "Once per long rest, before you attempt something incredibly dangerous or face off against a foe who clearly outmatches you, describe what ritual you perform or preparations you make. When you do, clear 2 Stress and gain 2 Hope.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Call of the Brave",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Brave"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Rise to the Challenge",
+        "description": "You are vigilant in the face of mounting danger. While you have 2 or fewer Hit Points unmarked, you can roll a d20 as your Hope Die.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Call of the Brave",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Brave"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Camaraderie",
+        "description": "Camaraderie",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Call of the Slayer",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Slayer"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Slayer",
+        "description": "You gain a pool of dice called Slayer Dice. On a roll with Hope, you can place a d6 on this card instead of gaining a Hope, adding the die to the pool. You can store a number of Slayer Dice equal to your Proficiency. When you make an attack roll or damage roll, you can spend any number of these Slayer Dice, rolling them and adding their result to the roll. At the end of each session, clear any unspent Slayer Dice on this card and gain a Hope per die cleared.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "Call of the Slayer",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Slayer"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Weapon Specialist",
+        "description": "You can wield multiple weapons with dangerous ease. When you succeed on an attack, you can spend a Hope to add one of the damage dice from your secondary weapon to the damage roll. Additionally, once per long rest when you roll your Slayer Dice, reroll any 1s.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Hope",
+            "category": "COST"
+          },
+          {
+            "label": "1/long rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Call of the Slayer",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 8,
+    "subclassPath": {
+      "name": "Call of the Slayer"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Martial Preparation",
+        "description": "Martial Preparation",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "School of Knowledge",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of Knowledge",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Prepared",
+        "description": "Take an additional domain card of your level or lower from a domain you have access to.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Adept",
+        "description": "When you Utilize an Experience, you can mark a Stress instead of spending a Hope. If you do, double your Experience modifier for that roll.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1 Stress",
+            "category": "COST"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "School of Knowledge",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of Knowledge",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Accomplished",
+        "description": "Take an additional domain card of your level or lower from a domain you have access to.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Perfect Recall",
+        "description": "Once per rest, when you recall a domain card in your vault, you can reduce its Recall Cost by 1.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "costTags": [
+          {
+            "label": "1/rest",
+            "category": "TIMING"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "School of Knowledge",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of Knowledge",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Brilliant",
+        "description": "Brilliant",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Honed Expertise",
+        "description": "When you use an Experience, roll a d6. On a result of 5 or higher, you can use it without spending Hope.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "School of War",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of War",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "FOUNDATION",
+    "features": [
+      {
+        "name": "Battlemage",
+        "description": "You've focused your studies on becoming an unconquerable force on the battlefield. Gain an additional Hit Point slot.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1,
+        "modifiers": [
+          {
+            "target": "HIT_POINT_MAX",
+            "operation": "ADD",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "name": "Face Your Fear",
+        "description": "When you succeed with Fear on an attack roll, you deal an extra 1d10 magic damage.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "School of War",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of War",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "SPECIALIZATION",
+    "features": [
+      {
+        "name": "Conjure Shield",
+        "description": "You can maintain a protective barrier of magic. While you have at least 2 Hope, you add your Proficiency to your Evasion.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Fueled by Fear",
+        "description": "The extra magic damage from your \"Face Your Fear\" feature increases to 2d10.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  },
+  {
+    "name": "School of War",
+    "expansionId": 1,
+    "isOfficial": true,
+    "associatedClassId": 9,
+    "subclassPath": {
+      "name": "School of War",
+      "spellcastingTrait": "KNOWLEDGE"
+    },
+    "level": "MASTERY",
+    "features": [
+      {
+        "name": "Thrive in Chaos",
+        "description": "Thrive in Chaos",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      },
+      {
+        "name": "Have No Fear",
+        "description": "The extra magic damage from your \"Face Your Fear\" feature increases to 3d10.",
+        "featureType": "SUBCLASS",
+        "expansionId": 1
+      }
+    ]
+  }
+]

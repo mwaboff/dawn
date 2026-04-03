@@ -1,0 +1,40 @@
+<div class="invite">
+  @if (!inviteUrl()) {
+    <button
+      type="button"
+      class="invite-generate-btn"
+      [disabled]="generating()"
+      (click)="onGenerate()"
+    >
+      @if (generating()) {
+        Generating...
+      } @else {
+        Generate Invite Link
+      }
+    </button>
+  } @else {
+    <div class="invite-result">
+      <div class="invite-url-row">
+        <input
+          type="text"
+          class="invite-url-input"
+          [value]="inviteUrl()"
+          readonly
+          aria-label="Invite URL"
+        />
+        <button type="button" class="invite-copy-btn" (click)="onCopy()">
+          @if (copied()) {
+            Copied!
+          } @else {
+            Copy
+          }
+        </button>
+      </div>
+      <p class="invite-note">Single-use link. Expires in 24 hours.</p>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="invite-error">{{ error() }}</p>
+  }
+</div>
