@@ -1,0 +1,59 @@
+<div class="sheet-picker">
+  <h3 class="sheet-picker-title">
+    {{ mode() === 'submit' ? 'Submit a Character' : 'Add an NPC' }}
+  </h3>
+
+  @if (loading()) {
+    <div class="sheet-picker-loading">
+      <div class="sheet-picker-skeleton"></div>
+      <div class="sheet-picker-skeleton"></div>
+    </div>
+  } @else if (error()) {
+    <p class="sheet-picker-message">Failed to load your characters.</p>
+  } @else if (availableSheets().length === 0) {
+    <p class="sheet-picker-message">
+      {{ mode() === 'submit'
+          ? 'All your characters are already in this campaign.'
+          : 'You have no characters to add as NPCs.' }}
+    </p>
+  } @else {
+    <ol class="sheet-picker-list">
+      @for (sheet of availableSheets(); track sheet.id) {
+        <li
+          class="sheet-picker-entry"
+          [class.selected]="selectedSheetId() === sheet.id"
+          (click)="onSelect(sheet.id)"
+          tabindex="0"
+          role="option"
+          [attr.aria-selected]="selectedSheetId() === sheet.id"
+          (keydown.enter)="onSelect(sheet.id)"
+        >
+          <span class="sheet-picker-level">{{ sheet.level }}</span>
+          <div class="sheet-picker-info">
+            <span class="sheet-picker-name">{{ sheet.name }}</span>
+            @if (getClassNames(sheet)) {
+              <span class="sheet-picker-class">{{ getClassNames(sheet) }}</span>
+            }
+          </div>
+          @if (selectedSheetId() === sheet.id) {
+            <svg class="sheet-picker-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          }
+        </li>
+      }
+    </ol>
+  }
+
+  <div class="sheet-picker-actions">
+    <button type="button" class="sheet-picker-cancel" (click)="cancelled.emit()">Cancel</button>
+    <button
+      type="button"
+      class="sheet-picker-confirm"
+      [disabled]="selectedSheetId() === null || submitting()"
+      (click)="onConfirm()"
+    >
+      {{ mode() === 'submit' ? 'Submit Character' : 'Add NPC' }}
+    </button>
+  </div>
+</div>

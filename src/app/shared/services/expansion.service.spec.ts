@@ -23,12 +23,14 @@ describe('ExpansionService', () => {
     httpTesting.verify();
   });
 
-  it('should call the correct endpoint', () => {
+  it('should call the correct endpoint with pagination params', () => {
     service.getExpansions().subscribe();
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    expect(req.request.params.get('page')).toBe('0');
+    expect(req.request.params.get('size')).toBe('100');
+    req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 100 });
   });
 
   it('should send withCredentials: true', () => {
@@ -36,14 +38,20 @@ describe('ExpansionService', () => {
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.withCredentials).toBe(true);
-    req.flush([]);
+    req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 100 });
   });
 
-  it('should return mapped expansion options', () => {
-    const mockData: ExpansionOption[] = [
-      { id: 1, name: 'Core Set' },
-      { id: 2, name: 'Expansion 1' },
-    ];
+  it('should extract content from paginated response', () => {
+    const mockData = {
+      content: [
+        { id: 1, name: 'Core Set' },
+        { id: 2, name: 'Expansion 1' },
+      ],
+      totalElements: 2,
+      totalPages: 1,
+      currentPage: 0,
+      pageSize: 100,
+    };
 
     let result: ExpansionOption[] | undefined;
     service.getExpansions().subscribe(data => (result = data));
@@ -59,7 +67,7 @@ describe('ExpansionService', () => {
   it('should cache the result and not make a second HTTP call', () => {
     service.getExpansions().subscribe();
     const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush([{ id: 1, name: 'Core Set' }]);
+    req.flush({ content: [{ id: 1, name: 'Core Set' }], totalElements: 1, totalPages: 1, currentPage: 0, pageSize: 100 });
 
     service.getExpansions().subscribe();
     httpTesting.expectNone(r => r.url === baseUrl);

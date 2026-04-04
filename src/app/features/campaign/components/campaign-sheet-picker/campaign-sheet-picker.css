@@ -1,0 +1,191 @@
+:host { display: block; }
+
+.sheet-picker-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+  margin: 0 0 1rem;
+}
+
+.sheet-picker-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sheet-picker-skeleton {
+  height: 56px;
+  background: rgba(245, 230, 211, 0.03);
+  border-radius: 2px;
+  animation: pickerPulse 1.5s ease-in-out infinite;
+}
+
+.sheet-picker-skeleton:nth-child(2) { animation-delay: 0.15s; }
+
+@keyframes pickerPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.sheet-picker-message {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: rgba(245, 230, 211, 0.4);
+  font-style: italic;
+  padding: 2rem;
+  text-align: center;
+  margin: 0;
+}
+
+.sheet-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sheet-picker-entry {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.125rem 1.25rem;
+  background: rgba(245, 230, 211, 0.03);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.sheet-picker-entry:first-child { border-radius: 4px 4px 0 0; }
+.sheet-picker-entry:last-child { border-radius: 0 0 4px 4px; }
+
+.sheet-picker-entry:hover { background: rgba(212, 160, 86, 0.08); }
+.sheet-picker-entry:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+.sheet-picker-entry.selected {
+  background: rgba(212, 160, 86, 0.1);
+  border-left-color: var(--color-accent);
+}
+
+.sheet-picker-level {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(245, 230, 211, 0.5);
+  border: 1px solid rgba(245, 230, 211, 0.15);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.sheet-picker-entry:hover .sheet-picker-level {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.sheet-picker-entry.selected .sheet-picker-level {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.sheet-picker-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.sheet-picker-name {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+}
+
+.sheet-picker-class {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
+.sheet-picker-check {
+  width: 20px;
+  height: 20px;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.sheet-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(245, 230, 211, 0.06);
+}
+
+.sheet-picker-cancel {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(245, 230, 211, 0.5);
+  background: none;
+  border: 1px solid rgba(245, 230, 211, 0.12);
+  padding: 0.625rem 1.25rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sheet-picker-cancel:hover {
+  color: var(--color-parchment);
+  border-color: rgba(245, 230, 211, 0.3);
+}
+
+.sheet-picker-confirm {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-accent);
+  background: rgba(212, 160, 86, 0.08);
+  border: 1px solid rgba(212, 160, 86, 0.25);
+  padding: 0.625rem 1.25rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sheet-picker-confirm:hover:not(:disabled) {
+  background: rgba(212, 160, 86, 0.15);
+}
+
+.sheet-picker-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sheet-picker-cancel:focus-visible,
+.sheet-picker-confirm:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .sheet-picker-entry {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}

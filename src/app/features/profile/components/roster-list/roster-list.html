@@ -11,10 +11,14 @@
     </div>
   } @else if (characters().length === 0) {
     <div class="roster-empty">
-      <p class="roster-empty-text">Your story awaits</p>
-      <button type="button" class="roster-create-btn" (click)="createCharacter.emit()">
-        Create Your First Character
-      </button>
+      <p class="roster-empty-text">
+        {{ showCreateButton() ? 'Your story awaits' : 'No characters yet' }}
+      </p>
+      @if (showCreateButton()) {
+        <button type="button" class="roster-create-btn" (click)="createCharacter.emit()">
+          Create Your First Character
+        </button>
+      }
     </div>
   } @else {
     <ol class="roster-list">
@@ -51,8 +55,10 @@
         </li>
       }
     </ol>
-    <div class="roster-footer">
-      <a routerLink="/create-character" class="roster-add-link">+ New Character</a>
-    </div>
+    @if (showCreateButton()) {
+      <div class="roster-footer">
+        <a routerLink="/create-character" class="roster-add-link">+ New Character</a>
+      </div>
+    }
   }
 </section>

@@ -1,0 +1,41 @@
+<div class="campaign-join">
+  <div class="join-card">
+    @if (joining()) {
+      <div class="join-loading">
+        <div class="join-spinner"></div>
+        <h2 class="join-title">Joining campaign...</h2>
+        <p class="join-message">Please wait while we add you to the campaign.</p>
+      </div>
+    } @else if (result(); as campaign) {
+      <div class="join-success">
+        <div class="join-icon">&#10003;</div>
+        <h2 class="join-title">Welcome to the Party!</h2>
+        <p class="join-message">You have joined <strong>{{ campaign.campaignName }}</strong>.</p>
+        <a [routerLink]="['/campaign', campaign.campaignId]" class="join-btn">View Campaign</a>
+      </div>
+    } @else if (error(); as errorType) {
+      <div class="join-error">
+        @switch (errorType) {
+          @case ('expired') {
+            <h2 class="join-title join-title-error">Invite Expired</h2>
+            <p class="join-message">This invite link has expired or has already been used.</p>
+          }
+          @case ('unauthorized') {
+            <h2 class="join-title join-title-error">Sign In Required</h2>
+            <p class="join-message">You need to sign in before joining a campaign.</p>
+            <a routerLink="/auth" class="join-btn">Sign In</a>
+          }
+          @case ('not-found') {
+            <h2 class="join-title join-title-error">Invalid Invite</h2>
+            <p class="join-message">This invite link is not valid. Please check the link and try again.</p>
+          }
+          @default {
+            <h2 class="join-title join-title-error">Something Went Wrong</h2>
+            <p class="join-message">An unexpected error occurred. Please try again later.</p>
+          }
+        }
+        <a routerLink="/campaigns" class="join-btn join-btn-secondary">Go to Campaigns</a>
+      </div>
+    }
+  </div>
+</div>

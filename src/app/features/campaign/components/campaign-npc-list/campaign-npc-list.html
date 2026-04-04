@@ -1,0 +1,44 @@
+<section class="character-list">
+  @if (characters().length === 0) {
+    <div class="character-list-empty">
+      <p>No NPCs in this campaign.</p>
+    </div>
+  } @else {
+    <ol class="character-roster">
+      @for (character of characters(); track character.id) {
+        <li
+          class="character-entry"
+          tabindex="0"
+          role="button"
+          (click)="onViewCharacter(character.id)"
+          (keydown.enter)="onViewCharacter(character.id)"
+        >
+          <span class="character-level">{{ character.level }}</span>
+          <div class="character-info">
+            <div class="character-name-row">
+              <span class="character-name">{{ character.name }}</span>
+              @if (character.ownerUsername) {
+                <span class="character-owner">{{ character.ownerUsername }}</span>
+              }
+            </div>
+            @if (getClassNames(character)) {
+              <p class="character-class">{{ getClassNames(character) }}</p>
+            }
+          </div>
+
+          @if (canManage()) {
+            <div class="character-actions">
+              @if (confirmingRemoveId() === character.id) {
+                <span class="character-confirm-text">Remove?</span>
+                <button type="button" class="character-confirm-yes" (click)="onRemoveClick(character.id, $event)">Yes</button>
+                <button type="button" class="character-confirm-cancel" (click)="onCancelRemove($event)">Cancel</button>
+              } @else {
+                <button type="button" class="character-remove-btn" (click)="onRemoveClick(character.id, $event)">Remove</button>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ol>
+  }
+</section>

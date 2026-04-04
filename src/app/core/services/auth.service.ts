@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserResponse, LoginRequest, RegisterRequest } from '../models/auth.model';
+import { isAtLeast } from '../../shared/models/role.model';
 
 export type { UserResponse, LoginRequest, RegisterRequest };
 
@@ -13,8 +14,13 @@ export class AuthService {
   readonly user = computed(() => this.currentUser());
   readonly isAdmin = computed(() => {
     const user = this.currentUser();
-    return user !== null && (user.role === 'ADMIN' || user.role === 'OWNER');
+    return user !== null && isAtLeast(user.role, 'ADMIN');
   });
+  readonly isModerator = computed(() => {
+    const user = this.currentUser();
+    return user !== null && isAtLeast(user.role, 'MODERATOR');
+  });
+  readonly isPrivileged = computed(() => this.isModerator());
 
   private readonly http = inject(HttpClient);
 

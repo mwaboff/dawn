@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, shareReplay } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ExpansionOption } from '../models/expansion-api.model';
+import { PaginatedResponse } from '../models/api.model';
 
 @Injectable({ providedIn: 'root' })
 export class ExpansionService {
@@ -13,9 +14,13 @@ export class ExpansionService {
 
   getExpansions(): Observable<ExpansionOption[]> {
     if (!this.expansions$) {
+      const params = new HttpParams().set('page', 0).set('size', 100);
       this.expansions$ = this.http
-        .get<ExpansionOption[]>(this.baseUrl, { withCredentials: true })
-        .pipe(shareReplay(1));
+        .get<PaginatedResponse<ExpansionOption>>(this.baseUrl, { params, withCredentials: true })
+        .pipe(
+          map(response => response.content),
+          shareReplay(1),
+        );
     }
     return this.expansions$;
   }

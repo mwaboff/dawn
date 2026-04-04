@@ -1,0 +1,53 @@
+<div class="player-profile">
+  <div class="grain-overlay player-grain"></div>
+
+  @if (playerLoading()) {
+    <header class="profile-header">
+      <div class="profile-identity">
+        <div class="profile-skeleton-eyebrow"></div>
+        <div class="profile-skeleton-name"></div>
+        <div class="profile-skeleton-joined"></div>
+      </div>
+    </header>
+  } @else if (error() === 'not-found') {
+    <div class="player-error">
+      <h2 class="player-error-title">Player Not Found</h2>
+      <p class="player-error-text">This adventurer doesn't seem to exist.</p>
+      <a routerLink="/" class="player-error-link">Back to Home</a>
+    </div>
+  } @else if (error() === 'unknown') {
+    <div class="player-error">
+      <h2 class="player-error-title">Something Went Wrong</h2>
+      <p class="player-error-text">We couldn't load this player's profile.</p>
+      <a routerLink="/" class="player-error-link">Back to Home</a>
+    </div>
+  } @else if (player(); as p) {
+    <header class="profile-header">
+      <div class="profile-identity">
+        <span class="profile-eyebrow">Adventurer</span>
+        <h1 class="profile-name">{{ p.username }}</h1>
+        <p class="profile-joined">Member since {{ joinDate() }}</p>
+      </div>
+      <div class="profile-sigil">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
+          <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
+        </svg>
+      </div>
+    </header>
+
+    <div class="profile-divider">
+      <div class="profile-divider-line"></div>
+      <span class="profile-divider-label">Characters</span>
+      <div class="profile-divider-line"></div>
+    </div>
+
+    <app-roster-list
+      [characters]="characters()"
+      [loading]="charactersLoading()"
+      [error]="charactersError()"
+      [showCreateButton]="false"
+      (viewCharacter)="onViewCharacter($event)"
+    />
+  }
+</div>

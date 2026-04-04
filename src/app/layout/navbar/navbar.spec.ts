@@ -95,6 +95,24 @@ describe('Navbar', () => {
     });
   });
 
+  describe('Campaigns link', () => {
+    it('should show Campaigns link when logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const link = compiled.querySelector('a[routerLink="/campaigns"]');
+      expect(link).toBeTruthy();
+    });
+
+    it('should not show Campaigns link when logged out', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const link = compiled.querySelector('a[routerLink="/campaigns"]');
+      expect(link).toBeFalsy();
+    });
+  });
+
   describe('Reference link', () => {
     it('should render Reference link when logged in', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
@@ -142,6 +160,28 @@ describe('Navbar', () => {
 
       expect(navigateSpy).toHaveBeenCalledWith(['/create-character']);
       expect(component.isDropdownOpen()).toBe(false);
+    });
+
+    it('should navigate to campaigns/create and close dropdown when onCreateCampaign is called', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.isDropdownOpen.set(true);
+
+      component.onCreateCampaign();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/campaigns/create']);
+      expect(component.isDropdownOpen()).toBe(false);
+    });
+
+    it('should show Create Campaign in dropdown when open', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isDropdownOpen.set(true);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const items = compiled.querySelectorAll('.nav-dropdown-item');
+      const texts = Array.from(items).map(el => el.textContent?.trim());
+      expect(texts).toContain('Create Campaign');
     });
 
     it('should render plus button when logged in', () => {

@@ -37,6 +37,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then(m => m.Profile)
       },
       {
+        path: 'campaigns',
+        loadComponent: () => import('./features/campaigns/campaigns').then(m => m.Campaigns)
+      },
+      {
+        path: 'campaigns/create',
+        loadComponent: () => import('./features/campaigns/create-campaign/create-campaign').then(m => m.CreateCampaign)
+      },
+      {
+        path: 'campaigns/join/:token',
+        loadComponent: () => import('./features/campaign-join/campaign-join').then(m => m.CampaignJoin)
+      },
+      {
+        path: 'campaign/:id',
+        loadComponent: () => import('./features/campaign/campaign').then(m => m.Campaign)
+      },
+      {
+        path: 'player/:id',
+        loadComponent: () => import('./features/player/player').then(m => m.Player)
+      },
+      {
         path: 'admin',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
