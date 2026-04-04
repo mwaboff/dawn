@@ -10,6 +10,8 @@ import { CampaignPlayerList } from './components/campaign-player-list/campaign-p
 import { CampaignCharacterList } from './components/campaign-character-list/campaign-character-list';
 import { CampaignInvite } from './components/campaign-invite/campaign-invite';
 import { CampaignPendingList } from './components/campaign-pending-list/campaign-pending-list';
+import { CampaignNpcList } from './components/campaign-npc-list/campaign-npc-list';
+import { CampaignSheetPicker } from './components/campaign-sheet-picker/campaign-sheet-picker';
 
 @Component({
   selector: 'app-campaign',
@@ -22,6 +24,8 @@ import { CampaignPendingList } from './components/campaign-pending-list/campaign
     CampaignCharacterList,
     CampaignInvite,
     CampaignPendingList,
+    CampaignNpcList,
+    CampaignSheetPicker,
   ],
 })
 export class Campaign implements OnInit {
@@ -35,6 +39,9 @@ export class Campaign implements OnInit {
   readonly errorStatus = signal<number | null>(null);
   readonly confirmingKickId = signal<number | null>(null);
   readonly confirmingRemoveId = signal<number | null>(null);
+  readonly confirmingRemoveNpcId = signal<number | null>(null);
+  readonly showSubmitPicker = signal(false);
+  readonly showNpcPicker = signal(false);
 
   readonly isGameMaster = computed(() => {
     const c = this.campaign();
@@ -45,6 +52,23 @@ export class Campaign implements OnInit {
 
   readonly canManage = computed(() => {
     return this.isGameMaster() || this.authService.isAdmin();
+  });
+
+  readonly isPlayer = computed(() => {
+    const c = this.campaign();
+    const userId = this.authService.user()?.id;
+    if (!c || !userId) return false;
+    return c.playerIds.includes(userId);
+  });
+
+  readonly allSheetIds = computed(() => {
+    const c = this.campaign();
+    if (!c) return [];
+    return [
+      ...c.pendingCharacterSheetIds,
+      ...c.playerCharacterIds,
+      ...c.nonPlayerCharacterIds,
+    ];
   });
 
   readonly hasPending = computed(() => {
@@ -124,9 +148,51 @@ export class Campaign implements OnInit {
     this.router.navigate(['/character', sheetId]);
   }
 
+  onSubmitCharacter(sheetId: number): void {
+    const c = this.campaign();
+    if (!c) return;
+    this.campaignService.submitCharacterSheet(c.id, sheetId).subscribe({
+      next: () => {
+        this.showSubmitPicker.set(false);
+        this.reloadCampaign();
+      },
+      error: () => this.reloadCampaign(),
+    });
+  }
+
+  onAddNpc(sheetId: number): void {
+    const c = this.campaign();
+    if (!c) return;
+    this.campaignService.addNpc(c.id, sheetId).subscribe({
+      next: () => {
+        this.showNpcPicker.set(false);
+        this.reloadCampaign();
+      },
+      error: () => this.reloadCampaign(),
+    });
+  }
+
+  onRemoveNpc(sheetId: number): void {
+    if (this.confirmingRemoveNpcId() === sheetId) {
+      this.confirmingRemoveNpcId.set(null);
+      const c = this.campaign();
+      if (!c) return;
+      this.campaignService.removeCharacterSheet(c.id, sheetId).subscribe({
+        next: () => this.reloadCampaign(),
+        error: () => this.reloadCampaign(),
+      });
+    } else {
+      this.confirmingRemoveNpcId.set(sheetId);
+    }
+  }
+
+  onCancelRemoveNpc(): void {
+    this.confirmingRemoveNpcId.set(null);
+  }
+
   private loadCampaign(id: number): void {
     this.campaignService
-      .getCampaign(id, 'creator,gameMasters,players,playerCharacters,pendingCharacterSheets')
+      .getCampaign(id, 'creator,gameMasters,players,playerCharacters,nonPlayerCharacters,pendingCharacterSheets')
       .pipe(
         catchError((err: HttpErrorResponse) => {
           this.errorStatus.set(err.status);
