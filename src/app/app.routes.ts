@@ -37,6 +37,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile').then(m => m.Profile)
       },
       {
+        path: 'profile/:id',
+        loadComponent: () => import('./features/profile/profile').then(m => m.Profile)
+      },
+      {
         path: 'campaigns',
         loadComponent: () => import('./features/campaigns/campaigns').then(m => m.Campaigns)
       },
@@ -54,7 +58,7 @@ export const routes: Routes = [
       },
       {
         path: 'player/:id',
-        loadComponent: () => import('./features/player/player').then(m => m.Player)
+        redirectTo: 'profile/:id',
       },
       {
         path: 'admin',

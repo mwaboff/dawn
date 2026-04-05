@@ -1,6 +1,7 @@
 export interface CharacterSheetView {
   id: number;
   ownerId: number;
+  ownerName?: string;
   name: string;
   pronouns?: string;
   level: number;

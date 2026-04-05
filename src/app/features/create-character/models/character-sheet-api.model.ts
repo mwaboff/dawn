@@ -254,6 +254,7 @@ export interface CharacterSheetResponse {
   hopeMarked: number;
   gold: number;
   ownerId: number;
+  ownerName?: string;
   communityCardIds: number[];
   ancestryCardIds: number[];
   subclassCardIds: number[];

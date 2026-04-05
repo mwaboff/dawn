@@ -105,6 +105,25 @@ describe('CharacterSheet', () => {
     expect(el.querySelector('.sheet-name')?.textContent?.trim()).toBe('Aragorn');
   });
 
+  it('shows owner name link when ownerName is present', () => {
+    createComponent('1', of({ ...mockResponse, ownerName: 'TestUser' }));
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    const ownerLink = el.querySelector('.sheet-owner') as HTMLAnchorElement;
+    expect(ownerLink).toBeTruthy();
+    expect(ownerLink.textContent?.trim()).toBe('by TestUser');
+    expect(ownerLink.pathname).toBe('/profile/1');
+  });
+
+  it('does not show owner link when ownerName is absent', () => {
+    createComponent('1');
+    fixture.detectChanges();
+
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.sheet-owner')).toBeNull();
+  });
+
   it('sets error state for non-numeric ID', () => {
     createComponent('abc');
     fixture.detectChanges();

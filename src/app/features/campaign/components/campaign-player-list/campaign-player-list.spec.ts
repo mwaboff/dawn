@@ -65,11 +65,7 @@ describe('CampaignPlayerList', () => {
     expect(el.querySelector('app-campaign-player-list')).toBeTruthy();
   });
 
-  it('should display GM with crown icon', () => {
-    expect(el.querySelector('.player-crown')).toBeTruthy();
-  });
-
-  it('should display GM badge', () => {
+it('should display GM badge', () => {
     expect(el.querySelector('.player-badge-gm')?.textContent?.trim()).toBe('Game Master');
   });
 

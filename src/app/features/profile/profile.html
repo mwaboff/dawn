@@ -1,45 +1,71 @@
 <div class="profile">
   <div class="grain-overlay profile-grain"></div>
 
-  <header class="profile-header">
-    <div class="profile-identity">
-      <span class="profile-eyebrow">Adventurer</span>
-      <h1 class="profile-name">{{ user()?.username }}</h1>
-      <p class="profile-joined">Member since {{ joinDate() }}</p>
+  @if (profileLoading()) {
+    <header class="profile-header">
+      <div class="profile-identity">
+        <div class="profile-skeleton-eyebrow"></div>
+        <div class="profile-skeleton-name"></div>
+        <div class="profile-skeleton-joined"></div>
+      </div>
+    </header>
+  } @else if (profileError() === 'not-found') {
+    <div class="profile-error">
+      <h2 class="profile-error-title">Player Not Found</h2>
+      <p class="profile-error-text">This adventurer doesn't seem to exist.</p>
+      <a routerLink="/" class="profile-error-link">Back to Home</a>
     </div>
-    <div class="profile-sigil">
-      <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-        <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
-        <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
-      </svg>
+  } @else if (profileError() === 'unknown') {
+    <div class="profile-error">
+      <h2 class="profile-error-title">Something Went Wrong</h2>
+      <p class="profile-error-text">We couldn't load this player's profile.</p>
+      <a routerLink="/" class="profile-error-link">Back to Home</a>
     </div>
-  </header>
+  } @else if (profileUser(); as user) {
+    <header class="profile-header">
+      <div class="profile-identity">
+        <span class="profile-eyebrow">Adventurer</span>
+        <h1 class="profile-name">{{ user.username }}</h1>
+        <p class="profile-joined">Member since {{ joinDate() }}</p>
+      </div>
+      <div class="profile-sigil">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
+          <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
+        </svg>
+      </div>
+    </header>
 
-  <div class="profile-divider">
-    <div class="profile-divider-line"></div>
-    <span class="profile-divider-label">Characters</span>
-    <div class="profile-divider-line"></div>
-  </div>
+    <div class="profile-divider">
+      <div class="profile-divider-line"></div>
+      <span class="profile-divider-label">Characters</span>
+      <div class="profile-divider-line"></div>
+    </div>
 
-  <app-roster-list
-    [characters]="characters()"
-    [loading]="charactersLoading()"
-    [error]="charactersError()"
-    (viewCharacter)="onViewCharacter($event)"
-    (createCharacter)="onCreateCharacter()"
-  />
+    <app-roster-list
+      [characters]="characters()"
+      [loading]="charactersLoading()"
+      [error]="charactersError()"
+      [showCreateButton]="isOwnProfile()"
+      (viewCharacter)="onViewCharacter($event)"
+      (createCharacter)="onCreateCharacter()"
+    />
 
-  <div class="profile-divider">
-    <div class="profile-divider-line"></div>
-    <span class="profile-divider-label">Campaigns</span>
-    <div class="profile-divider-line"></div>
-  </div>
+    @if (canViewCampaigns()) {
+      <div class="profile-divider">
+        <div class="profile-divider-line"></div>
+        <span class="profile-divider-label">Campaigns</span>
+        <div class="profile-divider-line"></div>
+      </div>
 
-  <app-campaign-roster
-    [campaigns]="campaigns()"
-    [loading]="campaignsLoading()"
-    [error]="campaignsError()"
-    (viewCampaign)="onViewCampaign($event)"
-    (createCampaign)="onCreateCampaign()"
-  />
+      <app-campaign-roster
+        [campaigns]="campaigns()"
+        [loading]="campaignsLoading()"
+        [error]="campaignsError()"
+        [showCreateButton]="isOwnProfile()"
+        (viewCampaign)="onViewCampaign($event)"
+        (createCampaign)="onCreateCampaign()"
+      />
+    }
+  }
 </div>

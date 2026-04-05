@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -87,9 +88,10 @@ export class Auth {
           this.isLoading.set(false);
           this.router.navigate(['/']);
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
           this.isLoading.set(false);
-          this.loginError.set('Login failed. Please check your credentials and try again.');
+          const message = error.error?.message || 'Login failed. Please check your credentials and try again.';
+          this.loginError.set(message);
         }
       });
     }
@@ -110,9 +112,10 @@ export class Auth {
           this.isLoading.set(false);
           this.router.navigate(['/']);
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
           this.isLoading.set(false);
-          this.signupError.set('Registration failed. Please try again.');
+          const message = error.error?.message || 'Registration failed. Please try again.';
+          this.signupError.set(message);
         }
       });
     }

@@ -70,6 +70,7 @@
         [campaign]="c"
         [canManage]="canManage()"
         [confirmingRemoveId]="confirmingRemoveId()"
+        [characterSummaries]="c.characterSummaries ?? []"
         (removeCharacter)="onRemoveCharacter($event)"
         (viewCharacter)="onViewCharacter($event)"
         (cancelRemove)="onCancelRemove()"

@@ -17,6 +17,9 @@
             <span class="sheet-pronouns">{{ sheet.pronouns }}</span>
           }
         </div>
+        @if (sheet.ownerName) {
+          <a class="sheet-owner" [routerLink]="['/profile', sheet.ownerId]">by {{ sheet.ownerName }}</a>
+        }
         @if (sheet.classEntries.length > 0) {
           <p class="sheet-class">
             @for (entry of sheet.classEntries; track entry.className; let last = $last) {
