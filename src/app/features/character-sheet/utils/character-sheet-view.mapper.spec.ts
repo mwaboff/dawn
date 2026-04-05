@@ -111,6 +111,20 @@ describe('mapToCharacterSheetView', () => {
 
       expect(result.gold).toBe(25);
     });
+
+    it('maps ownerName when present', () => {
+      const result = mapToCharacterSheetView(makeSheet({ ownerName: 'player1' }));
+
+      expect(result.ownerName).toBe('player1');
+    });
+
+    it('maps ownerName as undefined when not present', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.ownerName).toBeUndefined();
+    });
+
+
   });
 
   describe('traits', () => {

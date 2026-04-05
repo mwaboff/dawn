@@ -11,10 +11,14 @@
     </div>
   } @else if (campaigns().length === 0) {
     <div class="roster-empty">
-      <p class="roster-empty-text">No adventures yet</p>
-      <button type="button" class="roster-create-btn" (click)="createCampaign.emit()">
-        Create Your First Campaign
-      </button>
+      <p class="roster-empty-text">
+        {{ showCreateButton() ? 'No adventures yet' : 'No campaigns yet' }}
+      </p>
+      @if (showCreateButton()) {
+        <button type="button" class="roster-create-btn" (click)="createCampaign.emit()">
+          Create Your First Campaign
+        </button>
+      }
     </div>
   } @else {
     <ol class="roster-list">
@@ -42,8 +46,10 @@
         </li>
       }
     </ol>
-    <div class="roster-footer">
-      <a routerLink="/campaigns" class="roster-add-link">View All Campaigns</a>
-    </div>
+    @if (showCreateButton()) {
+      <div class="roster-footer">
+        <a routerLink="/campaigns" class="roster-add-link">View All Campaigns</a>
+      </div>
+    }
   }
 </section>

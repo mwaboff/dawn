@@ -58,6 +58,23 @@
   color: rgba(245, 230, 211, 0.35);
   font-style: italic;
   flex-shrink: 0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.character-owner:hover {
+  color: var(--color-accent);
+}
+
+.character-class-subclass {
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: rgba(245, 230, 211, 0.75);
+}
+
+.character-class-sep {
+  color: rgba(212, 160, 86, 0.5);
 }
 
 .character-class {

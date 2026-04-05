@@ -180,7 +180,52 @@ describe('Auth', () => {
     req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
 
     fixture.detectChanges();
+    expect(component.loginError()).toBe('Invalid credentials');
+  });
+
+  it('should fall back to generic login error when backend provides no message', () => {
+    component.loginForm.patchValue({
+      usernameOrEmail: 'test@example.com',
+      password: 'wrongpassword'
+    });
+    component.onLogin();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
+    req.flush(null, { status: 500, statusText: 'Internal Server Error' });
+
     expect(component.loginError()).toBe('Login failed. Please check your credentials and try again.');
+  });
+
+  it('should display backend error message on failed signup', () => {
+    component.setTab('signup');
+    component.signupForm.patchValue({
+      username: 'testuser',
+      email: 'test@example.com',
+      password: 'password123',
+      confirmPassword: 'password123'
+    });
+    component.onSignup();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
+    req.flush({ message: 'Username already exists' }, { status: 409, statusText: 'Conflict' });
+
+    expect(component.signupError()).toBe('Username already exists');
+  });
+
+  it('should fall back to generic signup error when backend provides no message', () => {
+    component.setTab('signup');
+    component.signupForm.patchValue({
+      username: 'testuser',
+      email: 'test@example.com',
+      password: 'password123',
+      confirmPassword: 'password123'
+    });
+    component.onSignup();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
+    req.flush(null, { status: 500, statusText: 'Internal Server Error' });
+
+    expect(component.signupError()).toBe('Registration failed. Please try again.');
   });
 
   it('should set loading state during login', () => {

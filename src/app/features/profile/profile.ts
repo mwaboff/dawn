@@ -1,14 +1,13 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { PaginatedResponse } from '../../shared/models/api.model';
-import { CampaignService } from '../../shared/services/campaign.service';
+import { UserResponse } from '../../core/models/auth.model';
+import { UserService } from '../../shared/services/user.service';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
+import { isAtLeast } from '../../shared/models/role.model';
 import { CharacterSummary, ClassEntry } from './models/profile.model';
-import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
-import { environment } from '../../../environments/environment';
 import { RosterList } from './components/roster-list/roster-list';
 import { CampaignRoster } from './components/campaign-roster/campaign-roster';
 
@@ -17,24 +16,38 @@ import { CampaignRoster } from './components/campaign-roster/campaign-roster';
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RosterList, CampaignRoster],
+  imports: [RosterList, CampaignRoster, RouterLink],
 })
 export class Profile implements OnInit {
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
-  private readonly campaignService = inject(CampaignService);
+  private readonly userService = inject(UserService);
 
-  readonly user = this.authService.user;
+  readonly profileUser = signal<UserResponse | null>(null);
+  readonly profileLoading = signal(true);
+  readonly profileError = signal<'not-found' | 'unknown' | null>(null);
   readonly characters = signal<CharacterSummary[]>([]);
   readonly charactersLoading = signal(true);
   readonly charactersError = signal(false);
   readonly campaigns = signal<CampaignResponse[]>([]);
   readonly campaignsLoading = signal(true);
   readonly campaignsError = signal(false);
+  readonly isOwnProfile = computed(() => {
+    const current = this.authService.user();
+    const viewed = this.profileUser();
+    return !!(current && viewed && current.id === viewed.id);
+  });
+
+  readonly canViewCampaigns = computed(() => {
+    const current = this.authService.user();
+    if (!current) return false;
+    if (this.isOwnProfile()) return true;
+    return isAtLeast(current.role, 'ADMIN');
+  });
 
   readonly joinDate = computed(() => {
-    const createdAt = this.user()?.createdAt;
+    const createdAt = this.profileUser()?.createdAt;
     if (!createdAt) return '';
     return new Date(createdAt).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -44,13 +57,39 @@ export class Profile implements OnInit {
   });
 
   ngOnInit(): void {
-    const userId = this.user()?.id;
-    if (!userId) {
-      this.router.navigate(['/auth']);
-      return;
+    const idParam = this.route.snapshot.paramMap.get('id');
+
+    if (idParam) {
+      const id = Number(idParam);
+      if (isNaN(id)) {
+        this.profileError.set('not-found');
+        this.profileLoading.set(false);
+        this.charactersLoading.set(false);
+        this.campaignsLoading.set(false);
+        return;
+      }
+
+      const currentUser = this.authService.user();
+      if (currentUser?.id === id) {
+        this.profileUser.set(currentUser);
+        this.profileLoading.set(false);
+        this.loadCharacters(id);
+        this.loadCampaignsIfAllowed(id);
+      } else {
+        this.loadProfileUser(id);
+        this.loadCharacters(id);
+      }
+    } else {
+      const currentUser = this.authService.user();
+      if (!currentUser) {
+        this.router.navigate(['/auth']);
+        return;
+      }
+      this.profileUser.set(currentUser);
+      this.profileLoading.set(false);
+      this.loadCharacters(currentUser.id);
+      this.loadCampaignsIfAllowed(currentUser.id);
     }
-    this.loadCharacters(userId);
-    this.loadCampaigns();
   }
 
   onViewCharacter(id: number): void {
@@ -69,51 +108,59 @@ export class Profile implements OnInit {
     this.router.navigate(['/campaigns/create']);
   }
 
-  private loadCharacters(ownerId: number): void {
-    const params = new HttpParams()
-      .set('ownerId', ownerId.toString())
-      .set('size', '100')
-      .set('expand', 'subclassCards');
-
-    this.http
-      .get<PaginatedResponse<CharacterSheetResponse>>(
-        `${environment.apiUrl}/dh/character-sheets`,
-        { params, withCredentials: true },
-      )
-      .pipe(
-        map(response => ({
-          ...response,
-          content: response.content.map(sheet => this.mapToSummary(sheet)),
-        })),
-        catchError((error: HttpErrorResponse) => {
-          if (error.status !== 403) {
-            this.charactersError.set(true);
-          }
-          return of(null);
-        }),
-      )
-      .subscribe((response) => {
-        if (response) {
-          this.characters.set(response.content);
+  private loadProfileUser(id: number): void {
+    this.userService.getUser(id).pipe(
+      catchError((err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          this.profileError.set('not-found');
+        } else {
+          this.profileError.set('unknown');
         }
-        this.charactersLoading.set(false);
-      });
-  }
-
-  private loadCampaigns(): void {
-    this.campaignService.getMyCampaigns(0, 50, 'creator').subscribe({
-      next: (response) => {
-        this.campaigns.set(response.content);
-        this.campaignsLoading.set(false);
-      },
-      error: () => {
-        this.campaignsError.set(true);
-        this.campaignsLoading.set(false);
-      },
+        return of(null);
+      }),
+    ).subscribe((user) => {
+      if (user) {
+        this.profileUser.set(user);
+        this.loadCampaignsIfAllowed(id);
+      }
+      this.profileLoading.set(false);
     });
   }
 
-  private mapToSummary(sheet: CharacterSheetResponse): CharacterSummary {
+  private loadCharacters(ownerId: number): void {
+    this.userService.getUserCharacterSheets(ownerId, 0, 100, 'subclassCards').pipe(
+      map(response => response.content.map(sheet => this.mapToSummary(sheet))),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status !== 403) {
+          this.charactersError.set(true);
+        }
+        return of([]);
+      }),
+    ).subscribe((characters) => {
+      this.characters.set(characters);
+      this.charactersLoading.set(false);
+    });
+  }
+
+  private loadCampaignsIfAllowed(userId: number): void {
+    if (!this.canViewCampaigns()) {
+      this.campaignsLoading.set(false);
+      return;
+    }
+    this.userService.getUserCampaigns(userId, 0, 50, 'creator').pipe(
+      catchError(() => {
+        this.campaignsError.set(true);
+        return of(null);
+      }),
+    ).subscribe((response) => {
+      if (response) {
+        this.campaigns.set(response.content);
+      }
+      this.campaignsLoading.set(false);
+    });
+  }
+
+  private mapToSummary(sheet: { id: number; name: string; pronouns?: string; level: number; subclassCards?: { associatedClassName?: string; subclassPathName?: string }[]; createdAt: string }): CharacterSummary {
     return {
       id: sheet.id,
       name: sheet.name,

@@ -34,6 +34,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
   return {
     id: sheet.id,
     ownerId: sheet.ownerId,
+    ownerName: sheet.ownerName,
     name: sheet.name,
     pronouns: sheet.pronouns,
     level: sheet.level,

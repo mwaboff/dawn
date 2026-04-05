@@ -192,7 +192,7 @@ export class Campaign implements OnInit {
 
   private loadCampaign(id: number): void {
     this.campaignService
-      .getCampaign(id, 'creator,gameMasters,players,playerCharacters,nonPlayerCharacters,pendingCharacterSheets')
+      .getCampaign(id, 'creator,gameMasters,players,playerCharacters,nonPlayerCharacters,pendingCharacterSheets,characterSummaries')
       .pipe(
         catchError((err: HttpErrorResponse) => {
           this.errorStatus.set(err.status);

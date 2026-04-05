@@ -13,6 +13,7 @@ export class CampaignRoster {
   readonly campaigns = input.required<CampaignResponse[]>();
   readonly loading = input.required<boolean>();
   readonly error = input.required<boolean>();
+  readonly showCreateButton = input(true);
 
   readonly viewCampaign = output<number>();
   readonly createCampaign = output<void>();

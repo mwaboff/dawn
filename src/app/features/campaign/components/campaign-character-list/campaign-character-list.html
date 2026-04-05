@@ -17,12 +17,25 @@
           <div class="character-info">
             <div class="character-name-row">
               <span class="character-name">{{ character.name }}</span>
-              @if (character.ownerUsername) {
-                <span class="character-owner">{{ character.ownerUsername }}</span>
+              @if (getSummary(character); as summary) {
+                <a class="character-owner" [routerLink]="['/profile', character.ownerId]" (click)="$event.stopPropagation()">{{ summary.ownerUsername }}</a>
               }
             </div>
-            @if (getClassNames(character)) {
-              <p class="character-class">{{ getClassNames(character) }}</p>
+            @if (getClassEntries(character); as entries) {
+              @if (entries.length > 0) {
+                <p class="character-class">
+                  @for (entry of entries; track entry.className; let last = $last) {
+                    <span>{{ entry.className }}</span>
+                    @if (entry.subclassName) {
+                      <span class="character-class-sep" aria-hidden="true"> · </span>
+                      <span class="character-class-subclass">{{ entry.subclassName }}</span>
+                    }
+                    @if (!last) {
+                      <span class="character-class-sep" aria-hidden="true"> / </span>
+                    }
+                  }
+                </p>
+              }
             }
           </div>
 

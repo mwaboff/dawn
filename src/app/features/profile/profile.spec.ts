@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, ActivatedRoute } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { vi } from 'vitest';
@@ -11,6 +11,24 @@ const mockUser: UserResponse = {
   username: 'testadventurer',
   email: 'test@example.com',
   role: 'USER',
+  createdAt: '2025-06-15T10:30:00',
+  lastModifiedAt: '2025-06-15T10:30:00',
+};
+
+const mockOtherUser: UserResponse = {
+  id: 99,
+  username: 'otherplayer',
+  email: 'other@example.com',
+  role: 'USER',
+  createdAt: '2025-03-10T08:00:00',
+  lastModifiedAt: '2025-03-10T08:00:00',
+};
+
+const mockAdminUser: UserResponse = {
+  id: 42,
+  username: 'testadventurer',
+  email: 'test@example.com',
+  role: 'ADMIN',
   createdAt: '2025-06-15T10:30:00',
   lastModifiedAt: '2025-06-15T10:30:00',
 };
@@ -35,185 +53,345 @@ function wrapPaged(content: unknown[]) {
   return { content, totalElements: content.length, totalPages: 1, currentPage: 0, pageSize: 100 };
 }
 
+function createActivatedRoute(paramId: string | null) {
+  return {
+    snapshot: {
+      paramMap: {
+        get: (key: string) => key === 'id' ? paramId : null,
+      },
+    },
+  };
+}
+
 describe('Profile', () => {
   let component: Profile;
   let fixture: ComponentFixture<Profile>;
   let httpMock: HttpTestingController;
   let router: Router;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  function setup(paramId: string | null = null, user: UserResponse | null = mockUser) {
+    TestBed.configureTestingModule({
       imports: [Profile],
       providers: [
         AuthService,
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: ActivatedRoute, useValue: createActivatedRoute(paramId) },
       ],
-    }).compileComponents();
+    });
 
     const authService = TestBed.inject(AuthService);
-    vi.spyOn(authService, 'user').mockReturnValue(mockUser);
+    vi.spyOn(authService, 'user').mockReturnValue(user);
 
     fixture = TestBed.createComponent(Profile);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
-  });
+  }
 
   afterEach(() => {
     httpMock.verify();
   });
 
-  function flushInitRequests(sheetData: unknown[] = [], campaignData: unknown[] = []) {
+  function flushOwnProfileRequests(sheetData: unknown[] = [], campaignData: unknown[] = []) {
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
-    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged(campaignData));
+    httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged(campaignData));
   }
 
-  it('should create', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-    expect(component).toBeTruthy();
+  function flushOtherProfileRequests(userData: UserResponse = mockOtherUser, sheetData: unknown[] = []) {
+    httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(userData);
+    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
+  }
+
+
+  describe('own profile (no :id param)', () => {
+    it('should create', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      expect(component).toBeTruthy();
+    });
+
+    it('should display the username', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-name')?.textContent?.trim()).toBe('testadventurer');
+    });
+
+    it('should format the join date', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+      expect(component.joinDate()).toContain('2025');
+    });
+
+    it('should set isOwnProfile to true', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      expect(component.isOwnProfile()).toBe(true);
+    });
+
+    it('should request character sheets via UserService', () => {
+      setup();
+      fixture.detectChanges();
+      const req = httpMock.expectOne(r => r.url.includes('/dh/character-sheets'));
+      expect(req.request.params.get('ownerId')).toBe('42');
+      expect(req.request.params.get('expand')).toBe('subclassCards');
+      req.flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+    });
+
+    it('should render the roster-list child component', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-roster-list')).toBeTruthy();
+    });
+
+    it('should pass characters to roster-list', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests([makeSheet({ id: 1, name: 'Aragorn', level: 5 })]);
+      fixture.detectChanges();
+      expect(component.characters().length).toBe(1);
+      expect(component.characters()[0].name).toBe('Aragorn');
+    });
+
+    it('should handle 403 gracefully as empty state', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
+        .flush(null, { status: 403, statusText: 'Forbidden' });
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      fixture.detectChanges();
+      expect(component.charactersError()).toBe(false);
+      expect(component.characters().length).toBe(0);
+    });
+
+    it('should show error state on non-403 errors', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      fixture.detectChanges();
+      expect(component.charactersError()).toBe(true);
+    });
+
+    it('should navigate to character sheet on viewCharacter', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onViewCharacter(7);
+      expect(navigateSpy).toHaveBeenCalledWith(['/character', 7]);
+    });
+
+    it('should navigate to create-character on createCharacter', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onCreateCharacter();
+      expect(navigateSpy).toHaveBeenCalledWith(['/create-character']);
+    });
+
+    it('should extract class entries from expanded subclassCards', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests([
+        makeSheet({
+          id: 1, name: 'Theron', level: 4,
+          subclassCards: [
+            { id: 10, name: 'Foundation', associatedClassName: 'Guardian', subclassPathName: 'Stalwart' },
+          ],
+        }),
+      ]);
+      fixture.detectChanges();
+      const classEntries = component.characters()[0].classEntries;
+      expect(classEntries.length).toBe(1);
+      expect(classEntries[0].className).toBe('Guardian');
+      expect(classEntries[0].subclassName).toBe('Stalwart');
+    });
+
+    it('should fetch campaigns on init', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
+      expect(req.request.params.get('expand')).toBe('creator');
+      req.flush(wrapPaged([]));
+    });
+
+    it('should render CampaignRoster component', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeTruthy();
+    });
+
+    it('should handle campaign fetch error', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns'))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      fixture.detectChanges();
+      expect(component.campaignsError()).toBe(true);
+    });
+
+    it('should navigate to campaign on viewCampaign', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onViewCampaign(5);
+      expect(navigateSpy).toHaveBeenCalledWith(['/campaign', 5]);
+    });
+
+    it('should navigate to campaigns/create on createCampaign', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onCreateCampaign();
+      expect(navigateSpy).toHaveBeenCalledWith(['/campaigns/create']);
+    });
   });
 
-  it('should display the username', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-    fixture.detectChanges();
+  describe('own profile via /profile/:id', () => {
+    it('should use auth data directly without fetching user', () => {
+      setup('42');
+      fixture.detectChanges();
 
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.profile-name')?.textContent?.trim()).toBe('testadventurer');
+      // Should NOT make a /users/42 request — uses auth data
+      httpMock.expectNone(r => r.url.includes('/users/42') && !r.url.includes('/campaigns') && !r.url.includes('/character-sheets'));
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+
+      expect(component.profileUser()).toEqual(mockUser);
+      expect(component.isOwnProfile()).toBe(true);
+    });
+
+    it('should load campaigns', () => {
+      setup('42');
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
+      expect(req.request.params.get('expand')).toBe('creator');
+      req.flush(wrapPaged([]));
+    });
   });
 
-  it('should format the join date', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-    fixture.detectChanges();
-    expect(component.joinDate()).toContain('2025');
+  describe('other user profile via /profile/:id', () => {
+    it('should fetch user from UserService', () => {
+      setup('99');
+      fixture.detectChanges();
+
+      const req = httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns'));
+      expect(req.request.method).toBe('GET');
+      req.flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+    });
+
+    it('should display the other user username', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-name')?.textContent?.trim()).toBe('otherplayer');
+    });
+
+    it('should set isOwnProfile to false', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      expect(component.isOwnProfile()).toBe(false);
+    });
+
+    it('should not fetch campaigns when non-admin views other profile', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      fixture.detectChanges();
+
+      httpMock.expectNone(r => r.url.includes('/users/99/campaigns'));
+      expect(component.canViewCampaigns()).toBe(false);
+      expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeFalsy();
+    });
+
+    it('should fetch campaigns when admin views other profile', () => {
+      setup('99', mockAdminUser);
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      const req = httpMock.expectOne(r => r.url.includes('/users/99/campaigns'));
+      expect(req.request.params.get('expand')).toBe('creator');
+      req.flush(wrapPaged([]));
+    });
+
+    it('should map character sheets to summaries', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests(mockOtherUser, [
+        makeSheet({
+          id: 1, name: 'Theron', level: 4, ownerId: 99,
+          subclassCards: [
+            { id: 10, name: 'Foundation', associatedClassName: 'Guardian', subclassPathName: 'Stalwart' },
+          ],
+        }),
+      ]);
+      fixture.detectChanges();
+
+      expect(component.characters().length).toBe(1);
+      expect(component.characters()[0].classEntries[0].className).toBe('Guardian');
+    });
   });
 
-  it('should request character sheets with ownerId and expand subclassCards', () => {
-    fixture.detectChanges();
-    const req = httpMock.expectOne(r => r.url.includes('/dh/character-sheets'));
-    expect(req.request.params.get('ownerId')).toBe('42');
-    expect(req.request.params.get('expand')).toBe('subclassCards');
-    req.flush(wrapPaged([]));
-    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
+  describe('error states', () => {
+    it('should show "Player Not Found" on 404', () => {
+      setup('99');
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns'))
+        .flush(null, { status: 404, statusText: 'Not Found' });
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-error-title')?.textContent?.trim()).toBe('Player Not Found');
+    });
+
+    it('should show "Something Went Wrong" on 500', () => {
+      setup('99');
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns'))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-error-title')?.textContent?.trim()).toBe('Something Went Wrong');
+    });
+
+    it('should show not-found for invalid ID', () => {
+      setup('abc');
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-error-title')?.textContent?.trim()).toBe('Player Not Found');
+    });
   });
 
-  it('should render the roster-list child component', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-    fixture.detectChanges();
+  describe('no user + no ID', () => {
+    it('should redirect to auth if no user', () => {
+      setup(null, null);
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('app-roster-list')).toBeTruthy();
-  });
-
-  it('should pass characters to roster-list', () => {
-    fixture.detectChanges();
-    flushInitRequests([makeSheet({ id: 1, name: 'Aragorn', level: 5 })]);
-    fixture.detectChanges();
-
-    expect(component.characters().length).toBe(1);
-    expect(component.characters()[0].name).toBe('Aragorn');
-  });
-
-  it('should handle 403 gracefully as empty state', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
-      .flush(null, { status: 403, statusText: 'Forbidden' });
-    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
-    fixture.detectChanges();
-
-    expect(component.charactersError()).toBe(false);
-    expect(component.characters().length).toBe(0);
-  });
-
-  it('should show error state on non-403 errors', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
-      .flush(null, { status: 500, statusText: 'Server Error' });
-    httpMock.expectOne(r => r.url.includes('/campaigns/mine')).flush(wrapPaged([]));
-    fixture.detectChanges();
-
-    expect(component.charactersError()).toBe(true);
-  });
-
-  it('should navigate to character sheet on viewCharacter', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate');
-    component.onViewCharacter(7);
-    expect(navigateSpy).toHaveBeenCalledWith(['/character', 7]);
-  });
-
-  it('should navigate to create-character on createCharacter', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate');
-    component.onCreateCharacter();
-    expect(navigateSpy).toHaveBeenCalledWith(['/create-character']);
-  });
-
-  it('should redirect to auth if no user', () => {
-    const authService = TestBed.inject(AuthService);
-    vi.spyOn(authService, 'user').mockReturnValue(null);
-    const navigateSpy = vi.spyOn(router, 'navigate');
-
-    component.ngOnInit();
-
-    expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
-  });
-
-  it('should extract class entries from expanded subclassCards', () => {
-    fixture.detectChanges();
-    flushInitRequests([
-      makeSheet({
-        id: 1, name: 'Theron', level: 4,
-        subclassCards: [
-          { id: 10, name: 'Foundation', associatedClassName: 'Guardian', subclassPathName: 'Stalwart' },
-        ],
-      }),
-    ]);
-    fixture.detectChanges();
-
-    const classEntries = component.characters()[0].classEntries;
-    expect(classEntries.length).toBe(1);
-    expect(classEntries[0].className).toBe('Guardian');
-    expect(classEntries[0].subclassName).toBe('Stalwart');
-  });
-
-  it('should fetch campaigns on init', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
-    const req = httpMock.expectOne(r => r.url.includes('/campaigns/mine'));
-    expect(req.request.params.get('expand')).toBe('creator');
-    req.flush(wrapPaged([]));
-  });
-
-  it('should render CampaignRoster component', () => {
-    fixture.detectChanges();
-    flushInitRequests();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeTruthy();
-  });
-
-  it('should handle campaign fetch error', () => {
-    fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
-    httpMock.expectOne(r => r.url.includes('/campaigns/mine'))
-      .flush(null, { status: 500, statusText: 'Server Error' });
-    fixture.detectChanges();
-
-    expect(component.campaignsError()).toBe(true);
-  });
-
-  it('should navigate to campaign on viewCampaign', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate');
-    component.onViewCampaign(5);
-    expect(navigateSpy).toHaveBeenCalledWith(['/campaign', 5]);
-  });
-
-  it('should navigate to campaigns/create on createCampaign', () => {
-    const navigateSpy = vi.spyOn(router, 'navigate');
-    component.onCreateCampaign();
-    expect(navigateSpy).toHaveBeenCalledWith(['/campaigns/create']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/auth']);
+    });
   });
 });
