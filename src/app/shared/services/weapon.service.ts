@@ -14,6 +14,13 @@ export interface WeaponOptions {
   damageType?: 'PHYSICAL' | 'MAGIC';
 }
 
+export interface PaginatedWeapons {
+  items: WeaponResponse[];
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WeaponService {
   private readonly http = inject(HttpClient);
@@ -41,6 +48,34 @@ export class WeaponService {
       .get<PaginatedResponse<WeaponResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => ({
         cards: response.content.map(mapWeaponResponseToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
+  }
+
+  getWeaponsRaw(options: WeaponOptions = {}): Observable<PaginatedWeapons> {
+    const { page = 0, size = 20, isPrimary, tier, damageType } = options;
+
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'expansion,features,costTags,modifiers');
+
+    if (isPrimary !== undefined) {
+      params = params.set('isPrimary', isPrimary);
+    }
+    if (tier !== undefined) {
+      params = params.set('tier', tier);
+    }
+    if (damageType !== undefined) {
+      params = params.set('damageType', damageType);
+    }
+
+    return this.http
+      .get<PaginatedResponse<WeaponResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        items: response.content,
         currentPage: response.currentPage,
         totalPages: response.totalPages,
         totalElements: response.totalElements,
