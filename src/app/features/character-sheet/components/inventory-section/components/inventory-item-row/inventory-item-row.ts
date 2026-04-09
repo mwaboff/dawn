@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../../../models/character-sheet-view.model';
 
 @Component({
@@ -23,28 +23,26 @@ export class InventoryItemRow {
   readonly equipClicked = output<string>();
   readonly unequipClicked = output<void>();
 
-  asWeapon(): WeaponDisplay | null {
-    return this.itemType() === 'weapon' ? (this.item() as WeaponDisplay) : null;
-  }
+  readonly weapon = computed<WeaponDisplay | null>(() =>
+    this.itemType() === 'weapon' ? (this.item() as WeaponDisplay) : null
+  );
 
-  asArmor(): ArmorDisplay | null {
-    return this.itemType() === 'armor' ? (this.item() as ArmorDisplay) : null;
-  }
+  readonly armor = computed<ArmorDisplay | null>(() =>
+    this.itemType() === 'armor' ? (this.item() as ArmorDisplay) : null
+  );
 
-  asLoot(): LootDisplay | null {
-    return this.itemType() === 'loot' ? (this.item() as LootDisplay) : null;
-  }
+  readonly loot = computed<LootDisplay | null>(() =>
+    this.itemType() === 'loot' ? (this.item() as LootDisplay) : null
+  );
 
-  weaponSlot(): 'primary' | 'secondary' | null {
+  readonly weaponSlot = computed<'primary' | 'secondary' | null>(() => {
     const state = this.equipState();
     if (state === 'primary') return 'primary';
     if (state === 'secondary') return 'secondary';
     return null;
-  }
+  });
 
-  isArmorEquipped(): boolean {
-    return this.equipState() === true;
-  }
+  readonly isArmorEquipped = computed<boolean>(() => this.equipState() === true);
 
   onRemoveClick(): void {
     this.removeClicked.emit();

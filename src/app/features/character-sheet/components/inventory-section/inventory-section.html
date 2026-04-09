@@ -1,7 +1,7 @@
 <div class="inventory-section__header">
   <h2 class="inventory-section__title">Inventory</h2>
   @if (isOwner()) {
-    <button class="add-btn" (click)="toggleAddPanel()" [attr.aria-expanded]="addPanelOpen()">
+    <button class="add-btn" (click)="toggleAddPanel()" [attr.aria-expanded]="addPanelOpen()" [attr.aria-label]="'Add ' + (activeItemType() === 'weapon' ? 'weapon' : activeItemType() === 'armor' ? 'armor' : 'loot') + ' to inventory'">
       + Add
     </button>
   }
@@ -41,7 +41,7 @@
 </div>
 
 <app-inventory-add-panel
-  [itemType]="activeTabAsItemType()"
+  [itemType]="activeItemType()"
   [open]="addPanelOpen()"
   (itemAdded)="onItemAdded($event)"
   (closed)="onAddPanelClosed()" />

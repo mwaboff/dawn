@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character-sheet-view.model';
 import { WeaponResponse } from '../../../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../../../shared/models/armor-api.model';
@@ -36,6 +36,12 @@ export class InventorySection {
   readonly addPanelOpen = signal(false);
   readonly confirmingRemoveId = signal<number | null>(null);
 
+  readonly activeItemType = computed<'weapon' | 'armor' | 'loot'>(() => {
+    const tab = this.activeTab();
+    if (tab === 'weapons') return 'weapon';
+    return tab;
+  });
+
   selectTab(tab: 'weapons' | 'armor' | 'loot'): void {
     this.activeTab.set(tab);
     this.confirmingRemoveId.set(null);
@@ -58,14 +64,8 @@ export class InventorySection {
     this.addPanelOpen.update(v => !v);
   }
 
-  activeTabAsItemType(): 'weapon' | 'armor' | 'loot' {
-    const tab = this.activeTab();
-    if (tab === 'weapons') return 'weapon';
-    return tab;
-  }
-
   onItemAdded(item: WeaponResponse | ArmorResponse | LootApiResponse): void {
-    const type = this.activeTabAsItemType();
+    const type = this.activeItemType();
     this.addItem.emit({ type, item });
     this.addPanelOpen.set(false);
   }

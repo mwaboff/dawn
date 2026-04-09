@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
-import { LootService, PaginatedCards } from './loot.service';
+import { LootService } from './loot.service';
+import { PaginatedCards } from '../models/api.model';
 import { LootApiResponse } from '../models/loot-api.model';
 import { PaginatedResponse } from '../models/api.model';
 

@@ -16,7 +16,7 @@
       @if (itemType() === 'armor' && isArmorEquipped()) {
         <span class="equipped-badge">Equipped</span>
       }
-      @if (asLoot(); as lootItem) {
+      @if (loot(); as lootItem) {
         @if (lootItem.isConsumable) {
           <span class="consumable-badge">Consumable</span>
         }
@@ -26,7 +26,7 @@
       }
     </div>
 
-    @if (asWeapon(); as w) {
+    @if (weapon(); as w) {
       <div class="inventory-item__stats">
         @if (w.damage) {
           <span class="inventory-item__stat">{{ w.damage }}</span>
@@ -40,13 +40,13 @@
       </div>
     }
 
-    @if (asArmor(); as a) {
+    @if (armor(); as a) {
       <div class="inventory-item__stats">
         <span class="inventory-item__stat">Score: {{ a.baseScore }}</span>
       </div>
     }
 
-    @if (asLoot(); as lootItem) {
+    @if (loot(); as lootItem) {
       <div class="inventory-item__stats">
         @for (tag of lootItem.costTags; track tag) {
           <span class="inventory-item__stat">{{ tag }}</span>

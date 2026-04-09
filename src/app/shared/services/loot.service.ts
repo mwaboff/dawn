@@ -2,17 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse } from '../models/api.model';
+import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { LootApiResponse, LootFilters } from '../models/loot-api.model';
-import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapLootToCardData } from '../mappers/loot.mapper';
-
-export interface PaginatedCards {
-  cards: CardData[];
-  currentPage: number;
-  totalPages: number;
-  totalElements: number;
-}
 
 export interface PaginatedLoot {
   items: LootApiResponse[];

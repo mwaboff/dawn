@@ -1,10 +1,10 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
+import { WeaponService } from '../../../../shared/services/weapon.service';
+import { ArmorService } from '../../../../shared/services/armor.service';
+import { LootService } from '../../../../shared/services/loot.service';
 import { WeaponResponse } from '../../../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../../../shared/models/loot-api.model';
-import { PaginatedResponse } from '../../../../shared/models/api.model';
 
 @Component({
   selector: 'app-inventory-add-panel',
@@ -13,7 +13,9 @@ import { PaginatedResponse } from '../../../../shared/models/api.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryAddPanel {
-  private readonly http = inject(HttpClient);
+  private readonly weaponService = inject(WeaponService);
+  private readonly armorService = inject(ArmorService);
+  private readonly lootService = inject(LootService);
 
   readonly itemType = input.required<'weapon' | 'armor' | 'loot'>();
   readonly open = input.required<boolean>();
@@ -33,16 +35,9 @@ export class InventoryAddPanel {
     this.loadError.set(false);
 
     if (type === 'weapon') {
-      const params = new HttpParams()
-        .set('page', 0)
-        .set('size', 50)
-        .set('expand', 'features');
-      this.http.get<PaginatedResponse<WeaponResponse>>(
-        `${environment.apiUrl}/dh/weapons`,
-        { params, withCredentials: true },
-      ).subscribe({
+      this.weaponService.getWeaponsRaw({ size: 50 }).subscribe({
         next: (res) => {
-          this.weaponItems.set(res.content);
+          this.weaponItems.set(res.items);
           this.loading.set(false);
         },
         error: () => {
@@ -51,16 +46,9 @@ export class InventoryAddPanel {
         },
       });
     } else if (type === 'armor') {
-      const params = new HttpParams()
-        .set('page', 0)
-        .set('size', 50)
-        .set('expand', 'features');
-      this.http.get<PaginatedResponse<ArmorResponse>>(
-        `${environment.apiUrl}/dh/armors`,
-        { params, withCredentials: true },
-      ).subscribe({
+      this.armorService.getArmorsRaw({ size: 50 }).subscribe({
         next: (res) => {
-          this.armorItems.set(res.content);
+          this.armorItems.set(res.items);
           this.loading.set(false);
         },
         error: () => {
@@ -69,16 +57,9 @@ export class InventoryAddPanel {
         },
       });
     } else {
-      const params = new HttpParams()
-        .set('page', 0)
-        .set('size', 50)
-        .set('expand', 'features,costTags');
-      this.http.get<PaginatedResponse<LootApiResponse>>(
-        `${environment.apiUrl}/dh/loot`,
-        { params, withCredentials: true },
-      ).subscribe({
+      this.lootService.getLootRaw({ }).subscribe({
         next: (res) => {
-          this.lootItems.set(res.content);
+          this.lootItems.set(res.items);
           this.loading.set(false);
         },
         error: () => {
