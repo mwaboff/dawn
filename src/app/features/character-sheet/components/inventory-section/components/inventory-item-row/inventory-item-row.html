@@ -1,0 +1,104 @@
+@if (confirming()) {
+  <div class="inventory-item inventory-item--confirming">
+    <span class="confirm-message">Remove {{ item().name }}?</span>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-btn--yes" (click)="onRemoveConfirm()">Yes</button>
+      <button class="confirm-btn confirm-btn--cancel" (click)="onRemoveCancel()">Cancel</button>
+    </div>
+  </div>
+} @else {
+  <div class="inventory-item">
+    <div class="inventory-item__header">
+      <span class="inventory-item__name">{{ item().name }}</span>
+      @if (itemType() === 'weapon' && weaponSlot()) {
+        <span class="equipped-badge">{{ weaponSlot() === 'primary' ? 'Primary' : 'Secondary' }}</span>
+      }
+      @if (itemType() === 'armor' && isArmorEquipped()) {
+        <span class="equipped-badge">Equipped</span>
+      }
+      @if (asLoot(); as lootItem) {
+        @if (lootItem.isConsumable) {
+          <span class="consumable-badge">Consumable</span>
+        }
+      }
+      @if (isOwner()) {
+        <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
+      }
+    </div>
+
+    @if (asWeapon(); as w) {
+      <div class="inventory-item__stats">
+        @if (w.damage) {
+          <span class="inventory-item__stat">{{ w.damage }}</span>
+        }
+        @if (w.range) {
+          <span class="inventory-item__stat">{{ w.range }}</span>
+        }
+        @if (w.burden) {
+          <span class="inventory-item__stat">{{ w.burden }}</span>
+        }
+      </div>
+    }
+
+    @if (asArmor(); as a) {
+      <div class="inventory-item__stats">
+        <span class="inventory-item__stat">Score: {{ a.baseScore }}</span>
+      </div>
+    }
+
+    @if (asLoot(); as lootItem) {
+      <div class="inventory-item__stats">
+        @for (tag of lootItem.costTags; track tag) {
+          <span class="inventory-item__stat">{{ tag }}</span>
+        }
+      </div>
+    }
+
+    @if (isOwner() && itemType() === 'weapon') {
+      <div class="card-swap-action">
+        @if (weaponSlot()) {
+          <button class="card-swap-btn card-swap-btn--vault"
+                  (click)="onUnequipClick()"
+                  [attr.aria-label]="'Unequip ' + item().name">
+            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
+          </button>
+        } @else {
+          <button class="card-swap-btn card-swap-btn--equip"
+                  [disabled]="!canEquipPrimary()"
+                  (click)="onEquipClick('primary')"
+                  [attr.aria-label]="'Equip ' + item().name + ' as primary'">
+            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Primary
+          </button>
+          <button class="card-swap-btn card-swap-btn--equip"
+                  [disabled]="!canEquipSecondary()"
+                  (click)="onEquipClick('secondary')"
+                  [attr.aria-label]="'Equip ' + item().name + ' as secondary'">
+            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Secondary
+          </button>
+        }
+      </div>
+    }
+
+    @if (isOwner() && itemType() === 'armor') {
+      <div class="card-swap-action">
+        @if (isArmorEquipped()) {
+          <button class="card-swap-btn card-swap-btn--vault"
+                  (click)="onUnequipClick()"
+                  [attr.aria-label]="'Unequip ' + item().name">
+            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
+          </button>
+        } @else {
+          <button class="card-swap-btn card-swap-btn--equip"
+                  [disabled]="!canEquipArmor()"
+                  (click)="onEquipClick('equip')"
+                  [attr.aria-label]="'Equip ' + item().name">
+            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
+          </button>
+          @if (!canEquipArmor()) {
+            <span class="card-swap-hint">Unequip current armor first</span>
+          }
+        }
+      </div>
+    }
+  </div>
+}

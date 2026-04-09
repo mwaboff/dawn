@@ -1,95 +1,68 @@
-<div class="add-panel" [class.add-panel--open]="open()" aria-label="Add item to inventory">
+@if (open()) {
+  <div class="add-panel">
+    <div class="add-panel__header">
+      <span class="add-panel__title">Add {{ itemType() === 'weapon' ? 'Weapon' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</span>
+      <button class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
+    </div>
 
-  <div class="add-panel__header">
-    <span class="add-panel__title">Add {{ itemType() | titlecase }}</span>
-    <button class="add-panel__close" type="button" aria-label="Close panel" (click)="onClose()">✕</button>
-  </div>
-
-  <div class="add-panel__filters">
-    <select class="add-panel__select" aria-label="Filter by tier"
-            [value]="selectedTier() ?? ''"
-            (change)="onTierChange($any($event.target).value)">
-      <option value="">All Tiers</option>
-      @for (tier of tiers; track tier) {
-        <option [value]="tier">Tier {{ tier }}</option>
-      }
-    </select>
-
-    @if (itemType() === 'weapon') {
-      <select class="add-panel__select" aria-label="Filter by trait"
-              [value]="selectedTrait() ?? ''"
-              (change)="onTraitChange($any($event.target).value)">
-        <option value="">All Traits</option>
-        @for (trait of weaponTraits; track trait) {
-          <option [value]="trait">{{ trait | titlecase }}</option>
-        }
-      </select>
+    @if (!loading() && weaponItems().length === 0 && armorItems().length === 0 && lootItems().length === 0 && !loadError()) {
+      <div class="add-panel__prompt">
+        <button class="add-panel__load-btn" (click)="loadItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
+      </div>
     }
 
-    @if (itemType() === 'loot') {
-      <label class="add-panel__toggle">
-        <input type="checkbox" [checked]="consumableOnly()" (change)="onConsumableToggle()" />
-        Consumable only
-      </label>
+    @if (loading()) {
+      <p class="add-panel__loading">Loading...</p>
+    }
+
+    @if (loadError()) {
+      <p class="add-panel__error">Failed to load items. <button class="add-panel__retry" (click)="loadItems()">Retry</button></p>
+    }
+
+    @if (itemType() === 'weapon' && weaponItems().length > 0) {
+      <ul class="add-panel__list" role="listbox" aria-label="Select a weapon">
+        @for (weapon of weaponItems(); track weapon.id) {
+          <li class="add-panel__item" role="option" aria-selected="false">
+            <button class="add-panel__item-btn" (click)="onSelectWeapon(weapon)">
+              <span class="add-panel__item-name">{{ weapon.name }}</span>
+              @if (weapon.damage) {
+                <span class="add-panel__item-stat">{{ weapon.damage.notation }}</span>
+              }
+              @if (weapon.range) {
+                <span class="add-panel__item-stat">{{ weapon.range }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (itemType() === 'armor' && armorItems().length > 0) {
+      <ul class="add-panel__list" role="listbox" aria-label="Select armor">
+        @for (armor of armorItems(); track armor.id) {
+          <li class="add-panel__item" role="option" aria-selected="false">
+            <button class="add-panel__item-btn" (click)="onSelectArmor(armor)">
+              <span class="add-panel__item-name">{{ armor.name }}</span>
+              <span class="add-panel__item-stat">Score: {{ armor.baseScore }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (itemType() === 'loot' && lootItems().length > 0) {
+      <ul class="add-panel__list" role="listbox" aria-label="Select loot">
+        @for (loot of lootItems(); track loot.id) {
+          <li class="add-panel__item" role="option" aria-selected="false">
+            <button class="add-panel__item-btn" (click)="onSelectLoot(loot)">
+              <span class="add-panel__item-name">{{ loot.name }}</span>
+              @if (loot.isConsumable) {
+                <span class="add-panel__item-stat">Consumable</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
     }
   </div>
-
-  <div class="add-panel__list" role="list">
-    @if (isLoading() && displayItems().length === 0) {
-      <p class="add-panel__state">Loading...</p>
-    } @else if (hasError()) {
-      <p class="add-panel__state add-panel__state--error">Failed to load items.</p>
-    } @else if (displayItems().length === 0) {
-      <p class="add-panel__state">No items found.</p>
-    } @else {
-      @if (itemType() === 'weapon') {
-        @for (item of displayItems(); track asWeapon(item).id) {
-          <div class="add-panel__item" role="listitem">
-            <div class="add-panel__item-info">
-              <span class="add-panel__item-name">{{ asWeapon(item).name }}</span>
-              <div class="add-panel__item-stats">
-                <span class="add-panel__item-stat">{{ asWeapon(item).damage.notation }}</span>
-                <span class="add-panel__item-stat">{{ asWeapon(item).range }}</span>
-                <span class="add-panel__item-stat">{{ asWeapon(item).burden }}</span>
-              </div>
-            </div>
-            <button class="add-panel__add-btn" type="button" aria-label="Add {{ asWeapon(item).name }}" (click)="onAddItem(item)">+</button>
-          </div>
-        }
-      } @else if (itemType() === 'armor') {
-        @for (item of displayItems(); track asArmor(item).id) {
-          <div class="add-panel__item" role="listitem">
-            <div class="add-panel__item-info">
-              <span class="add-panel__item-name">{{ asArmor(item).name }}</span>
-              <div class="add-panel__item-stats">
-                <span class="add-panel__item-stat">Base {{ asArmor(item).baseScore }}</span>
-              </div>
-            </div>
-            <button class="add-panel__add-btn" type="button" aria-label="Add {{ asArmor(item).name }}" (click)="onAddItem(item)">+</button>
-          </div>
-        }
-      } @else {
-        @for (item of displayItems(); track asLoot(item).id) {
-          <div class="add-panel__item" role="listitem">
-            <div class="add-panel__item-info">
-              <span class="add-panel__item-name">{{ asLoot(item).name }}</span>
-              <div class="add-panel__item-stats">
-                @if (asLoot(item).isConsumable) {
-                  <span class="add-panel__badge">Consumable</span>
-                }
-              </div>
-            </div>
-            <button class="add-panel__add-btn" type="button" aria-label="Add {{ asLoot(item).name }}" (click)="onAddItem(item)">+</button>
-          </div>
-        }
-      }
-    }
-  </div>
-
-  @if (hasMore()) {
-    <button class="add-panel__load-more" type="button" (click)="onLoadMore()" [disabled]="isLoading()">
-      {{ isLoading() ? 'Loading...' : 'Load More' }}
-    </button>
-  }
-
-</div>
+}
