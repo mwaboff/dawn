@@ -25,6 +25,7 @@ export interface SearchParams {
   q: string;
   types?: SearchableEntityType[];
   tier?: number;
+  level?: number;
   expansionId?: number;
   isOfficial?: boolean;
   cardType?: string;
@@ -59,6 +60,7 @@ export interface SearchResponse {
 
 export interface SearchFilters {
   tier?: number;
+  level?: number;
   expansionId?: number;
   isOfficial?: boolean;
   cardType?: string;

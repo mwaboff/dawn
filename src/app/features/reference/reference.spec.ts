@@ -375,6 +375,12 @@ describe('Reference', () => {
       expect(component.activeType()).toBe('DOMAIN_CARD');
     });
 
+    it('promotes to DOMAIN_CARD when level filter applied in mixed search', () => {
+      component.query.set('ember');
+      component.onFiltersChanged({ level: 5 });
+      expect(component.activeType()).toBe('DOMAIN_CARD');
+    });
+
     it('does NOT promote when universal filter (tier) applied in mixed search', () => {
       component.query.set('flame');
       component.onFiltersChanged({ tier: 2 });

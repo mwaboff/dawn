@@ -40,6 +40,9 @@ export class SearchService {
     if (params.tier != null) {
       httpParams = httpParams.set('tier', String(params.tier));
     }
+    if (params.level != null) {
+      httpParams = httpParams.set('level', String(params.level));
+    }
     if (params.expansionId != null) {
       httpParams = httpParams.set('expansionId', String(params.expansionId));
     }

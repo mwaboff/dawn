@@ -15,6 +15,7 @@ export interface DomainCardBrowseOptions {
   isOfficial?: boolean;
   associatedDomainId?: number;
   tier?: number;
+  level?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -89,7 +90,7 @@ export class DomainService {
   }
 
   getDomainCardsBrowse(options: DomainCardBrowseOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, expansionId, isOfficial, associatedDomainId, tier } = options;
+    const { page = 0, size = 20, expansionId, isOfficial, associatedDomainId, tier, level } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -107,6 +108,9 @@ export class DomainService {
     }
     if (tier !== undefined) {
       params = params.set('tier', tier);
+    }
+    if (level !== undefined) {
+      params = params.set('levels', level);
     }
 
     return this.http

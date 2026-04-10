@@ -36,6 +36,20 @@ const TIER_OPTIONS: FilterOption[] = [
   { value: '4', label: 'Tier 4' },
 ];
 
+const LEVEL_OPTIONS: FilterOption[] = [
+  { value: '', label: 'Any Level' },
+  { value: '1', label: 'Level 1' },
+  { value: '2', label: 'Level 2' },
+  { value: '3', label: 'Level 3' },
+  { value: '4', label: 'Level 4' },
+  { value: '5', label: 'Level 5' },
+  { value: '6', label: 'Level 6' },
+  { value: '7', label: 'Level 7' },
+  { value: '8', label: 'Level 8' },
+  { value: '9', label: 'Level 9' },
+  { value: '10', label: 'Level 10' },
+];
+
 const BURDEN_OPTIONS: FilterOption[] = [
   { value: '', label: 'Any Burden' },
   { value: 'ONE_HANDED', label: 'One-handed' },
@@ -114,6 +128,7 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
   ],
   DOMAIN_CARD: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
+    { kind: 'select', key: 'level', label: 'Level', options: LEVEL_OPTIONS },
     { kind: 'select', key: 'associatedDomainId', label: 'Domain', options: [{ value: '', label: 'Any Domain' }] },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],

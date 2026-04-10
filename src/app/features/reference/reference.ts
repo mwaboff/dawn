@@ -31,6 +31,7 @@ export interface MixedSection {
 const TYPE_FROM_FILTER: Partial<Record<keyof SearchFilters, SearchableEntityType>> = {
   adversaryType: 'ADVERSARY', trait: 'WEAPON', range: 'WEAPON', burden: 'WEAPON',
   isConsumable: 'LOOT', domainCardType: 'DOMAIN_CARD', associatedDomainId: 'DOMAIN_CARD',
+  level: 'DOMAIN_CARD',
 };
 
 const MIXED_VIEW_CAP = 5;

@@ -142,6 +142,14 @@ describe('CodexBrowseService', () => {
     );
   });
 
+  it('should forward the level filter to DomainService.getDomainCardsBrowse', () => {
+    service.browse('DOMAIN_CARD', { level: 5 }, 0).subscribe();
+
+    expect(domainSpy.getDomainCardsBrowse).toHaveBeenCalledWith(
+      expect.objectContaining({ level: 5 }),
+    );
+  });
+
   it('should dispatch DOMAIN to DomainService.getDomainsPaginated', () => {
     service.browse('DOMAIN', {}, 2).subscribe();
 

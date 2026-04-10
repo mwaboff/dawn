@@ -239,5 +239,42 @@ describe('FilterRail', () => {
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('#filter-associatedDomainId')).toBeNull();
     });
+
+    it('renders a Level select for DOMAIN_CARD with options 1-10', () => {
+      host.activeType.set('DOMAIN_CARD');
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-level') as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      const labels = Array.from(select.options).map(o => o.textContent?.trim());
+      expect(labels[0]).toBe('Any Level');
+      expect(labels.length).toBe(11);
+      expect(labels).toContain('Level 1');
+      expect(labels).toContain('Level 10');
+    });
+
+    it('emits numeric level filter when Level is selected', () => {
+      host.activeType.set('DOMAIN_CARD');
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-level') as HTMLSelectElement;
+      select.value = '5';
+      select.dispatchEvent(new Event('change'));
+      expect(host.lastFilters).toEqual({ level: 5 });
+    });
+
+    it('removes level filter when select is cleared', () => {
+      host.activeType.set('DOMAIN_CARD');
+      host.filters.set({ level: 3 });
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-level') as HTMLSelectElement;
+      select.value = '';
+      select.dispatchEvent(new Event('change'));
+      expect(host.lastFilters).toEqual({});
+    });
+
+    it('does not render Level select for non-DOMAIN_CARD types', () => {
+      host.activeType.set('WEAPON');
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('#filter-level')).toBeNull();
+    });
   });
 });

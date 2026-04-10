@@ -123,6 +123,7 @@ export class CodexBrowseService {
           isOfficial: filters['isOfficial'] as boolean | undefined,
           associatedDomainId: filters['associatedDomainId'] as number | undefined,
           tier: filters['tier'] as number | undefined,
+          level: filters['level'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'DOMAIN':

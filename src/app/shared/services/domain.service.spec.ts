@@ -169,6 +169,24 @@ describe('DomainService', () => {
     });
   });
 
+  describe('getDomainCardsBrowse', () => {
+    it('forwards level as the "levels" query param', () => {
+      service.getDomainCardsBrowse({ level: 5 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAIN_CARDS_URL);
+      expect(req.request.params.get('levels')).toBe('5');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('omits the "levels" query param when level is undefined', () => {
+      service.getDomainCardsBrowse({ tier: 2 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAIN_CARDS_URL);
+      expect(req.request.params.has('levels')).toBe(false);
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+  });
+
   describe('clearCache', () => {
     it('should re-fetch after clearCache', () => {
       service.loadDomainLookup().subscribe();
