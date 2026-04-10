@@ -111,3 +111,11 @@
 .view-all-link:hover {
   color: #e0b060;
 }
+
+/* < 768px: shrink the illuminated capital to stay readable on narrow screens */
+@media (max-width: 767px) {
+  .section-illuminated {
+    font-size: 1.75rem;
+    margin-bottom: -0.15rem;
+  }
+}

@@ -23,6 +23,13 @@
     @case ('mixedSearch') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          (click)="onRefineOpen()"
+        >
+          ⚙ Refine
+        </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
@@ -67,6 +74,13 @@
     @case ('focusedSearch') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          (click)="onRefineOpen()"
+        >
+          ⚙ Refine
+        </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
@@ -119,6 +133,13 @@
     @case ('focusedBrowse') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          (click)="onRefineOpen()"
+        >
+          ⚙ Refine
+        </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
@@ -166,5 +187,15 @@
         </main>
       </div>
     }
+  }
+
+  @if (refineSheetOpen()) {
+    <app-refine-sheet
+      [activeType]="activeType()"
+      [filters]="filters()"
+      [viewMode]="viewMode()"
+      (sheetClose)="onRefineClose()"
+      (filtersChange)="onFiltersChanged($event)"
+    />
   }
 </div>

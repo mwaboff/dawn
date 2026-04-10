@@ -682,3 +682,88 @@ describe('Reference — URL hydration with pre-set query params', () => {
     expect(c.filters()).toEqual({});
   });
 });
+
+describe('Reference — refine sheet integration', () => {
+  let fixture: ComponentFixture<Reference>;
+  let component: Reference;
+
+  beforeEach(async () => {
+    const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
+    const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
+    const routeStub = { snapshot: { queryParams: {} } };
+
+    TestBed.configureTestingModule({
+      imports: [Reference],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: SearchService, useValue: searchSpy },
+        { provide: CodexBrowseService, useValue: browseSpy },
+        { provide: ActivatedRoute, useValue: routeStub },
+      ],
+    });
+
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture = TestBed.createComponent(Reference);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.body.classList.remove('body-scroll-lock');
+  });
+
+  it('refineSheetOpen starts as false', () => {
+    expect(component.refineSheetOpen()).toBe(false);
+  });
+
+  it('onRefineOpen sets refineSheetOpen to true', () => {
+    component.onRefineOpen();
+    expect(component.refineSheetOpen()).toBe(true);
+  });
+
+  it('onRefineClose sets refineSheetOpen to false', () => {
+    component.onRefineOpen();
+    component.onRefineClose();
+    expect(component.refineSheetOpen()).toBe(false);
+  });
+
+  it('does not render app-refine-sheet when refineSheetOpen is false', () => {
+    component.refineSheetOpen.set(false);
+    fixture.detectChanges();
+    const sheet = fixture.nativeElement.querySelector('app-refine-sheet');
+    expect(sheet).toBeNull();
+  });
+
+  it('renders app-refine-sheet when refineSheetOpen is true', () => {
+    component.refineSheetOpen.set(true);
+    fixture.detectChanges();
+    const sheet = fixture.nativeElement.querySelector('app-refine-sheet');
+    expect(sheet).toBeTruthy();
+  });
+
+  it('filter changes from refine sheet update the reference filters signal', () => {
+    component.refineSheetOpen.set(true);
+    fixture.detectChanges();
+    component.onFiltersChanged({ tier: 3 });
+    expect(component.filters()).toEqual({ tier: 3 });
+  });
+
+  it('renders refine-toggle-btn in non-landing view modes (CSS hides it on desktop)', () => {
+    component.query.set('sword');
+    fixture.detectChanges();
+    const btn = fixture.nativeElement.querySelector('.refine-toggle-btn');
+    expect(btn).toBeTruthy();
+  });
+
+  it('clicking refine-toggle-btn opens the refine sheet', () => {
+    component.query.set('sword');
+    fixture.detectChanges();
+    const btn = fixture.nativeElement.querySelector('.refine-toggle-btn');
+    btn?.click();
+    fixture.detectChanges();
+    expect(component.refineSheetOpen()).toBe(true);
+  });
+});

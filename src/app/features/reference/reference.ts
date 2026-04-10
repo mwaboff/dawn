@@ -9,6 +9,7 @@ import { MappedSearchResult, mapSearchResult } from './mappers/search-result.map
 import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
 import { TypeFacetTabs } from './components/type-facet-tabs/type-facet-tabs';
 import { FilterRail } from './components/filter-rail/filter-rail';
+import { RefineSheet } from './components/refine-sheet/refine-sheet';
 import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
 import { ResultSection } from './components/result-section/result-section';
 import { PaginationControls } from './components/pagination-controls/pagination-controls';
@@ -38,7 +39,7 @@ const MIXED_VIEW_CAP = 5;
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);
@@ -50,6 +51,7 @@ export class Reference implements OnInit {
   readonly query = signal('');
   readonly activeType = signal<SearchableEntityType | null>(null);
   readonly filters = signal<SearchFilters>({});
+  readonly refineSheetOpen = signal(false);
   readonly currentPage = signal(0);
   readonly results = signal<MappedSearchResult[]>([]);
   readonly browseResult = signal<BrowseResult | null>(null);
@@ -155,6 +157,14 @@ export class Reference implements OnInit {
     this.currentPage.set(0);
     this.activeType.set(type);
     this.syncUrl();
+  }
+
+  onRefineOpen(): void {
+    this.refineSheetOpen.set(true);
+  }
+
+  onRefineClose(): void {
+    this.refineSheetOpen.set(false);
   }
 
   onFiltersChanged(newFilters: SearchFilters): void {

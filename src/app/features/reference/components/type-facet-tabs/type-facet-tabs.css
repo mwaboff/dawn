@@ -71,3 +71,28 @@
   background: linear-gradient(to right, transparent, var(--color-bg-dark));
   pointer-events: none;
 }
+
+/* < 768px: apply a double-sided fade mask via CSS mask-image on the strip wrapper */
+@media (max-width: 767px) {
+  .tab-strip-wrapper {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      var(--color-bg-dark) 32px,
+      var(--color-bg-dark) calc(100% - 32px),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      var(--color-bg-dark) 32px,
+      var(--color-bg-dark) calc(100% - 32px),
+      transparent 100%
+    );
+  }
+
+  /* Hide the right-only fade-mask div since the CSS mask covers both sides */
+  .fade-mask {
+    display: none;
+  }
+}
