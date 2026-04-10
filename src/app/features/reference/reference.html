@@ -113,9 +113,9 @@
               @for (result of focusedResults(); track result.id) {
                 <li class="focused-card-item">
                   @if (result.adversary) {
-                    <app-adversary-card [adversary]="result.adversary" layout="wide" />
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
                   } @else if (result.card) {
-                    <app-daggerheart-card [card]="result.card" layout="wide" />
+                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
                   }
                 </li>
               }
@@ -171,9 +171,9 @@
               @for (result of focusedResults(); track result.id) {
                 <li class="focused-card-item">
                   @if (result.adversary) {
-                    <app-adversary-card [adversary]="result.adversary" layout="wide" />
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
                   } @else if (result.card) {
-                    <app-daggerheart-card [card]="result.card" layout="wide" />
+                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
                   }
                 </li>
               }

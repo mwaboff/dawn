@@ -14,8 +14,19 @@ import { FormatTextPipe } from '../../pipes/format-text.pipe';
 export class AdversaryCard {
   readonly adversary = input.required<AdversaryData>();
   readonly layout = input<'default' | 'wide'>('default');
+  readonly collapsibleFeatures = input<boolean>(false);
 
+  private readonly featuresExpanded = signal(false);
   private readonly descriptionExpanded = signal(false);
+
+  get isFeaturesExpanded(): boolean {
+    return this.featuresExpanded();
+  }
+
+  toggleFeatures(event: Event): void {
+    event.stopPropagation();
+    this.featuresExpanded.set(!this.featuresExpanded());
+  }
 
   get isDescriptionExpanded(): boolean {
     return this.descriptionExpanded();

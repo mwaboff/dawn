@@ -80,8 +80,29 @@
 
     @if (adversary().features?.length) {
       <div class="adversary-card__features">
-        @for (feature of adversary().features; track feature.name) {
-          <app-card-feature-item [feature]="feature" />
+        @if (collapsibleFeatures()) {
+          <button
+            class="adversary-card__features-toggle"
+            [attr.aria-expanded]="isFeaturesExpanded"
+            (click)="toggleFeatures($event)"
+            (keydown.enter)="toggleFeatures($event)"
+            (keydown.space)="toggleFeatures($event)"
+            type="button"
+          >
+            <span class="adversary-card__features-toggle-icon" [class.adversary-card__features-toggle-icon--expanded]="isFeaturesExpanded">&#9656;</span>
+            {{ adversary().features!.length }} {{ adversary().features!.length === 1 ? 'Feature' : 'Features' }}
+          </button>
+          <div class="adversary-card__features-list" [class.adversary-card__features-list--expanded]="isFeaturesExpanded">
+            @for (feature of adversary().features; track feature.name) {
+              <app-card-feature-item [feature]="feature" />
+            }
+          </div>
+        } @else {
+          <div class="adversary-card__features-list adversary-card__features-list--expanded">
+            @for (feature of adversary().features; track feature.name) {
+              <app-card-feature-item [feature]="feature" />
+            }
+          </div>
         }
       </div>
     }

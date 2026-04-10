@@ -39,12 +39,14 @@ const MINIMAL_ADVERSARY: AdversaryData = {
     <app-adversary-card
       [adversary]="adversary()"
       [layout]="layout()"
+      [collapsibleFeatures]="collapsibleFeatures()"
     />
   `,
 })
 class TestHost {
   adversary = signal<AdversaryData>(MOCK_ADVERSARY);
   layout = signal<'default' | 'wide'>('default');
+  collapsibleFeatures = signal(false);
 }
 
 describe('AdversaryCard', () => {
@@ -238,6 +240,54 @@ describe('AdversaryCard', () => {
 
       const featuresSection = fixture.nativeElement.querySelector('.adversary-card__features');
       expect(featuresSection).toBeFalsy();
+    });
+
+    it('should render features expanded by default when collapsibleFeatures is false', () => {
+      const list = fixture.nativeElement.querySelector('.adversary-card__features-list');
+      expect(list.classList.contains('adversary-card__features-list--expanded')).toBe(true);
+    });
+
+    it('should not render toggle button when collapsibleFeatures is false', () => {
+      const toggle = fixture.nativeElement.querySelector('.adversary-card__features-toggle');
+      expect(toggle).toBeFalsy();
+    });
+  });
+
+  describe('Collapsible Features', () => {
+    beforeEach(() => {
+      host.collapsibleFeatures.set(true);
+      fixture.detectChanges();
+    });
+
+    it('should render toggle button with correct count', () => {
+      const toggle = fixture.nativeElement.querySelector('.adversary-card__features-toggle');
+      expect(toggle).toBeTruthy();
+      expect(toggle.textContent).toContain('1 Feature');
+    });
+
+    it('should start with features collapsed', () => {
+      const list = fixture.nativeElement.querySelector('.adversary-card__features-list');
+      expect(list.classList.contains('adversary-card__features-list--expanded')).toBe(false);
+    });
+
+    it('should expand features on toggle click', () => {
+      const toggle = fixture.nativeElement.querySelector('.adversary-card__features-toggle');
+      toggle.click();
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.adversary-card__features-list');
+      expect(list.classList.contains('adversary-card__features-list--expanded')).toBe(true);
+    });
+
+    it('should collapse features on second toggle click', () => {
+      const toggle = fixture.nativeElement.querySelector('.adversary-card__features-toggle');
+      toggle.click();
+      fixture.detectChanges();
+      toggle.click();
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.adversary-card__features-list');
+      expect(list.classList.contains('adversary-card__features-list--expanded')).toBe(false);
     });
   });
 
