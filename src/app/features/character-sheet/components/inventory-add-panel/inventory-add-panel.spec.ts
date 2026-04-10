@@ -196,7 +196,7 @@ describe('InventoryAddPanel', () => {
     expect(el.querySelector('.add-panel__item-tier')?.textContent?.trim()).toBe('T3');
   });
 
-  it('renders loot with empty tier cell for grid alignment', () => {
+  it('does not render a tier cell for loot rows', () => {
     const loots = [{ id: 1, name: 'Potion', isConsumable: true, costTags: [] }];
     mockLootService.getLootRaw.mockReturnValue(of({ items: loots, currentPage: 0, totalPages: 1, totalElements: 1 }));
     host.itemType.set('loot');
@@ -206,9 +206,7 @@ describe('InventoryAddPanel', () => {
     el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
     fixture.detectChanges();
 
-    const tierCell = el.querySelector('.add-panel__item-tier');
-    expect(tierCell).toBeTruthy();
-    expect(tierCell?.textContent?.trim()).toBe('');
+    expect(el.querySelector('.add-panel__item-tier')).toBeNull();
   });
 
   it('uses grid layout classes on item buttons', () => {

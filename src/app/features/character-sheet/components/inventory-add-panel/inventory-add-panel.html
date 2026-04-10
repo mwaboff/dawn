@@ -49,7 +49,6 @@
               <span class="add-panel__item-name">{{ armor.name }}</span>
               <span class="add-panel__item-tier">@if (armor.tier) { T{{ armor.tier }} }</span>
               <span class="add-panel__item-stat--center">Score: {{ armor.baseScore }}</span>
-              <span class="add-panel__item-stat--end"></span>
             </button>
           </li>
         }
@@ -62,8 +61,6 @@
           <li class="add-panel__item" role="option" aria-selected="false">
             <button class="add-panel__item-btn" (click)="onSelectLoot(loot)">
               <span class="add-panel__item-name">{{ loot.name }}</span>
-              <span class="add-panel__item-tier"></span>
-              <span class="add-panel__item-stat--center"></span>
               <span class="add-panel__item-stat--end">@if (loot.isConsumable) { Consumable }</span>
             </button>
           </li>
