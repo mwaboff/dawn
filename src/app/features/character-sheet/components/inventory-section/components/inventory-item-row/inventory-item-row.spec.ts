@@ -347,27 +347,25 @@ describe('InventoryItemRow', () => {
   });
 
   describe('remove guard when equipped', () => {
-    it('shows active remove button for an unequipped weapon', () => {
+    it('shows the remove button for an unequipped weapon', () => {
       host.itemType.set('weapon');
       host.equipState.set(null);
       host.isOwner.set(true);
       fixture.detectChanges();
 
       expect(el.querySelector('button.remove-btn')).toBeTruthy();
-      expect(el.querySelector('.remove-btn--locked')).toBeNull();
     });
 
-    it('replaces remove button with locked indicator for an equipped weapon', () => {
+    it('hides the remove button entirely for an equipped primary weapon', () => {
       host.itemType.set('weapon');
       host.equipState.set('primary');
       host.isOwner.set(true);
       fixture.detectChanges();
 
       expect(el.querySelector('button.remove-btn')).toBeNull();
-      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
     });
 
-    it('locks remove button for equipped armor', () => {
+    it('hides the remove button for equipped armor', () => {
       host.item.set(armor);
       host.itemType.set('armor');
       host.equipState.set(true);
@@ -375,10 +373,9 @@ describe('InventoryItemRow', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('button.remove-btn')).toBeNull();
-      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
     });
 
-    it('allows remove for unequipped armor', () => {
+    it('shows the remove button for unequipped armor', () => {
       host.item.set(armor);
       host.itemType.set('armor');
       host.equipState.set(false);
@@ -388,7 +385,7 @@ describe('InventoryItemRow', () => {
       expect(el.querySelector('button.remove-btn')).toBeTruthy();
     });
 
-    it('allows remove for loot regardless of equip state', () => {
+    it('shows the remove button for loot regardless of equip state', () => {
       host.item.set(loot);
       host.itemType.set('loot');
       host.isOwner.set(true);

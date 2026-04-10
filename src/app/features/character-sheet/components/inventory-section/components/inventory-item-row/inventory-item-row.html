@@ -21,12 +21,8 @@
           <span class="consumable-badge">Consumable</span>
         }
       }
-      @if (isOwner()) {
-        @if (canRemove()) {
-          <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
-        } @else {
-          <span class="remove-btn remove-btn--locked" title="Unequip before removing" aria-label="Unequip before removing" aria-hidden="true">&#x2715;</span>
-        }
+      @if (isOwner() && canRemove()) {
+        <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
       }
     </div>
 

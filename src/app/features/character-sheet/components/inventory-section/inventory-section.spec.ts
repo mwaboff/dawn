@@ -311,7 +311,6 @@ describe('InventorySection', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('button.remove-btn')).toBeNull();
-      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
     });
 
     it('shows the remove button for an unequipped weapon', () => {
@@ -319,7 +318,6 @@ describe('InventorySection', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('button.remove-btn')).toBeTruthy();
-      expect(el.querySelector('.remove-btn--locked')).toBeNull();
     });
   });
 });
