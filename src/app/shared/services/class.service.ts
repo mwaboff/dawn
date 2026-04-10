@@ -3,9 +3,16 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ClassResponse } from '../models/class-api.model';
-import { PaginatedResponse } from '../models/api.model';
+import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapClassResponseToCardData } from '../mappers/class.mapper';
+
+export interface ClassOptions {
+  page?: number;
+  size?: number;
+  expansionId?: number;
+  isOfficial?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ClassService {
@@ -21,5 +28,30 @@ export class ClassService {
     return this.http
       .get<PaginatedResponse<ClassResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => response.content.map(mapClassResponseToCardData)));
+  }
+
+  getClassesPaginated(options: ClassOptions = {}): Observable<PaginatedCards> {
+    const { page = 0, size = 20, expansionId, isOfficial } = options;
+
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'associatedDomains,classFeatures,hopeFeatures,costTags');
+
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
+    }
+
+    return this.http
+      .get<PaginatedResponse<ClassResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        cards: response.content.map(mapClassResponseToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
   }
 }

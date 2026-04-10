@@ -12,6 +12,11 @@ export interface WeaponOptions {
   isPrimary?: boolean;
   tier?: number;
   damageType?: 'PHYSICAL' | 'MAGIC';
+  trait?: string;
+  range?: string;
+  burden?: string;
+  isOfficial?: boolean;
+  expansionId?: number;
 }
 
 export interface PaginatedWeapons {
@@ -27,7 +32,7 @@ export class WeaponService {
   private readonly baseUrl = `${environment.apiUrl}/dh/weapons`;
 
   getWeapons(options: WeaponOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, isPrimary, tier, damageType } = options;
+    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -42,6 +47,21 @@ export class WeaponService {
     }
     if (damageType !== undefined) {
       params = params.set('damageType', damageType);
+    }
+    if (trait !== undefined) {
+      params = params.set('trait', trait);
+    }
+    if (range !== undefined) {
+      params = params.set('range', range);
+    }
+    if (burden !== undefined) {
+      params = params.set('burden', burden);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
+    }
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
     }
 
     return this.http
@@ -55,7 +75,7 @@ export class WeaponService {
   }
 
   getWeaponsRaw(options: WeaponOptions = {}): Observable<PaginatedWeapons> {
-    const { page = 0, size = 20, isPrimary, tier, damageType } = options;
+    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -70,6 +90,21 @@ export class WeaponService {
     }
     if (damageType !== undefined) {
       params = params.set('damageType', damageType);
+    }
+    if (trait !== undefined) {
+      params = params.set('trait', trait);
+    }
+    if (range !== undefined) {
+      params = params.set('range', range);
+    }
+    if (burden !== undefined) {
+      params = params.set('burden', burden);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
+    }
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
     }
 
     return this.http

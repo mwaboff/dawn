@@ -2,11 +2,20 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse } from '../models/api.model';
+import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { DomainCardResponse, DomainResponse } from '../models/domain-card-api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapDomainCardResponseToCardData } from '../mappers/domain-card.mapper';
 import { mapDomainToCardData } from '../mappers/domain.mapper';
+
+export interface DomainCardBrowseOptions {
+  page?: number;
+  size?: number;
+  expansionId?: number;
+  isOfficial?: boolean;
+  associatedDomainId?: number;
+  tier?: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DomainService {
@@ -77,6 +86,53 @@ export class DomainService {
         return this.getDomainCards(domainIds, 0, 100, levels);
       }),
     );
+  }
+
+  getDomainCardsBrowse(options: DomainCardBrowseOptions = {}): Observable<PaginatedCards> {
+    const { page = 0, size = 20, expansionId, isOfficial, associatedDomainId, tier } = options;
+
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'features,costTags,associatedDomain');
+
+    if (associatedDomainId !== undefined) {
+      params = params.set('associatedDomainIds', associatedDomainId);
+    }
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
+    }
+    if (tier !== undefined) {
+      params = params.set('tier', tier);
+    }
+
+    return this.http
+      .get<PaginatedResponse<DomainCardResponse>>(this.domainCardsUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        cards: response.content.map(mapDomainCardResponseToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
+  }
+
+  getDomainsPaginated(page = 0, size = 20): Observable<PaginatedCards> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'expansion');
+
+    return this.http
+      .get<PaginatedResponse<DomainResponse>>(this.domainsUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        cards: response.content.map(mapDomainToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
   }
 
   clearCache(): void {
