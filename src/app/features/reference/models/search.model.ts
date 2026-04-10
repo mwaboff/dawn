@@ -13,6 +13,7 @@ export type SearchableEntityType =
   | 'ARMOR'
   | 'LOOT'
   | 'ADVERSARY'
+  | 'COMPANION'
   | 'BEASTFORM'
   | 'ENCOUNTER'
   | 'EXPANSION'
@@ -86,11 +87,12 @@ export const typeLabels: Partial<Record<SearchableEntityType, string>> = {
   ADVERSARY: 'Adversaries',
   FEATURE: 'Features',
   CLASS: 'Classes',
-  SUBCLASS_CARD: 'Subclass Cards',
-  ANCESTRY_CARD: 'Ancestry Cards',
-  COMMUNITY_CARD: 'Community Cards',
+  SUBCLASS_CARD: 'Subclasses',
+  ANCESTRY_CARD: 'Ancestries',
+  COMMUNITY_CARD: 'Communities',
   DOMAIN_CARD: 'Domain Cards',
   DOMAIN: 'Domains',
+  COMPANION: 'Companions',
   SUBCLASS_PATH: 'Subclass Paths',
   EXPANSION: 'Expansions',
   BEASTFORM: 'Beastforms',
@@ -111,4 +113,25 @@ export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
   COMMUNITY_CARD: '⧫',
   DOMAIN_CARD: '✧',
   DOMAIN: '⬢',
+  COMPANION: '♞',
 };
+
+/**
+ * The ordered list of types users can browse or filter by in the UI.
+ * FEATURE is intentionally excluded — the backend may return feature results
+ * in search responses, but features have no standalone browse endpoint and
+ * no card design, so they are not surfaced as a browsable category.
+ */
+export const BROWSABLE_TYPES: SearchableEntityType[] = [
+  'DOMAIN',
+  'CLASS',
+  'SUBCLASS_CARD',
+  'ANCESTRY_CARD',
+  'COMMUNITY_CARD',
+  'DOMAIN_CARD',
+  'WEAPON',
+  'ARMOR',
+  'LOOT',
+  'ADVERSARY',
+  'COMPANION',
+];

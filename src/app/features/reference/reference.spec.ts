@@ -591,6 +591,26 @@ describe('Reference', () => {
     });
   });
 
+  describe('mixedSections — feature exclusion', () => {
+    it('excludes FEATURE results from mixedSections', () => {
+      component.results.set([
+        { type: 'FEATURE', id: 1, name: 'Blade Dance', relevanceScore: 10, card: { id: 1, name: 'Blade Dance', description: '', cardType: 'class' } },
+        { type: 'WEAPON', id: 2, name: 'Longsword', relevanceScore: 8, card: { id: 2, name: 'Longsword', description: '', cardType: 'class' } },
+      ]);
+      const sections = component.mixedSections();
+      expect(sections.every(s => s.type !== 'FEATURE')).toBe(true);
+      expect(sections.length).toBe(1);
+      expect(sections[0].type).toBe('WEAPON');
+    });
+
+    it('produces no sections when all results are FEATURE type', () => {
+      component.results.set([
+        { type: 'FEATURE', id: 1, name: 'Power Strike', relevanceScore: 9, card: { id: 1, name: 'Power Strike', description: '', cardType: 'class' } },
+      ]);
+      expect(component.mixedSections()).toEqual([]);
+    });
+  });
+
   describe('state — rail dimming', () => {
     it('adds loading class to reference-rail when loading in mixedSearch', () => {
       component.query.set('sword');

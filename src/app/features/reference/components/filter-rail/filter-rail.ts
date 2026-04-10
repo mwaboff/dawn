@@ -119,7 +119,7 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
   SUBCLASS_CARD: [
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
-  FEATURE: [
+  COMPANION: [
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
 };

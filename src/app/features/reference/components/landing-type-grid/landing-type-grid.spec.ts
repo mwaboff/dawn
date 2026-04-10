@@ -94,4 +94,21 @@ describe('LandingTypeGrid', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Creatures and foes the GM can unleash');
   });
+
+  it('does not render a Features card', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLElement>;
+    const featureCard = Array.from(cards).find(c => c.textContent?.includes('Features'));
+    expect(featureCard).toBeUndefined();
+  });
+
+  it('renders a Companions card', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
+    const companionCard = Array.from(cards).find(c => c.textContent?.includes('Companions'));
+    expect(companionCard).toBeTruthy();
+  });
+
+  it('renders Domains as the first card', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLElement>;
+    expect(cards[0].textContent).toContain('Domains');
+  });
 });

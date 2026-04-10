@@ -13,21 +13,20 @@ import { CompanionService } from '../../../shared/services/companion.service';
 import { BrowseResult, SearchableEntityType } from '../models/search.model';
 
 /** Entity types that have a per-type list endpoint available for browse mode. */
-export type BrowsableType =
-  | Extract<
-      SearchableEntityType,
-      | 'WEAPON'
-      | 'ARMOR'
-      | 'LOOT'
-      | 'ADVERSARY'
-      | 'CLASS'
-      | 'ANCESTRY_CARD'
-      | 'COMMUNITY_CARD'
-      | 'DOMAIN_CARD'
-      | 'DOMAIN'
-      | 'SUBCLASS_CARD'
-    >
-  | 'COMPANION';
+export type BrowsableType = Extract<
+  SearchableEntityType,
+  | 'WEAPON'
+  | 'ARMOR'
+  | 'LOOT'
+  | 'ADVERSARY'
+  | 'CLASS'
+  | 'ANCESTRY_CARD'
+  | 'COMMUNITY_CARD'
+  | 'DOMAIN_CARD'
+  | 'DOMAIN'
+  | 'SUBCLASS_CARD'
+  | 'COMPANION'
+>;
 
 export type BrowseFilters = Record<string, unknown>;
 

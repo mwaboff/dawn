@@ -130,4 +130,21 @@ describe('TypeFacetTabs', () => {
     tabs[armorIndex].dispatchEvent(event);
     expect(host.lastType).toBe('ARMOR');
   });
+
+  it('does not render a Features tab', () => {
+    const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLElement>;
+    const featureTab = Array.from(tabs).find(t => t.textContent?.includes('Features'));
+    expect(featureTab).toBeUndefined();
+  });
+
+  it('renders a Companions tab', () => {
+    const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLElement>;
+    const companionTab = Array.from(tabs).find(t => t.textContent?.includes('Companions'));
+    expect(companionTab).toBeTruthy();
+  });
+
+  it('renders Domains as the first type tab (index 1, after All)', () => {
+    const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLElement>;
+    expect(tabs[1].textContent).toContain('Domains');
+  });
 });

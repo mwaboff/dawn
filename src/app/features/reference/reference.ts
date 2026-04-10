@@ -69,6 +69,9 @@ export class Reference implements OnInit {
     const results = this.results();
     const grouped = new Map<SearchableEntityType, MappedSearchResult[]>();
     for (const r of results) {
+      // FEATURE results are silently dropped in mixed search — features have no
+      // standalone card design and are not a browsable type in the UI.
+      if (r.type === 'FEATURE') continue;
       const existing = grouped.get(r.type) ?? [];
       grouped.set(r.type, [...existing, r]);
     }

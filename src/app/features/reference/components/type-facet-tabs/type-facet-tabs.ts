@@ -8,18 +8,13 @@ import {
   ElementRef,
   ViewChild,
 } from '@angular/core';
-import { SearchableEntityType, typeLabels, typeGlyphs } from '../../models/search.model';
+import { SearchableEntityType, typeLabels, typeGlyphs, BROWSABLE_TYPES } from '../../models/search.model';
 
 export interface FacetTab {
   type: SearchableEntityType | null;
   label: string;
   glyph: string;
 }
-
-const BROWSABLE_TYPES: SearchableEntityType[] = [
-  'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'FEATURE',
-  'CLASS', 'SUBCLASS_CARD', 'ANCESTRY_CARD', 'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN',
-];
 
 @Component({
   selector: 'app-type-facet-tabs',

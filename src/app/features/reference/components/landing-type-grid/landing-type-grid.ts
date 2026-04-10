@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, output } from '@angular/core';
-import { SearchableEntityType, typeLabels, typeGlyphs } from '../../models/search.model';
+import { SearchableEntityType, typeLabels, typeGlyphs, BROWSABLE_TYPES } from '../../models/search.model';
 
 interface TypeCard {
   type: SearchableEntityType;
@@ -9,23 +9,18 @@ interface TypeCard {
 }
 
 const TYPE_TAGLINES: Partial<Record<SearchableEntityType, string>> = {
-  WEAPON: 'Swords, bows, and the weight they leave behind.',
-  ARMOR: 'Shields and plate that stand between you and ruin.',
-  LOOT: 'Treasures, relics, and curiosities found along the way.',
-  ADVERSARY: 'Creatures and foes the GM can unleash.',
-  FEATURE: 'Abilities, talents, and the marks of a hero.',
+  DOMAIN: 'The twelve domains of knowledge and power.',
   CLASS: 'The calling that defines your path.',
   SUBCLASS_CARD: 'Specializations that sharpen your calling.',
   ANCESTRY_CARD: 'The blood and bone that shaped who you are.',
   COMMUNITY_CARD: 'The people and places that forged your bonds.',
   DOMAIN_CARD: 'Abilities and spells drawn from the twelve domains.',
-  DOMAIN: 'The twelve domains of knowledge and power.',
+  WEAPON: 'Swords, bows, and the weight they leave behind.',
+  ARMOR: 'Shields and plate that stand between you and ruin.',
+  LOOT: 'Treasures, relics, and curiosities found along the way.',
+  ADVERSARY: 'Creatures and foes the GM can unleash.',
+  COMPANION: 'Loyal beasts and bonded allies at your side.',
 };
-
-const BROWSABLE_TYPES: SearchableEntityType[] = [
-  'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'FEATURE',
-  'CLASS', 'SUBCLASS_CARD', 'ANCESTRY_CARD', 'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN',
-];
 
 @Component({
   selector: 'app-landing-type-grid',
