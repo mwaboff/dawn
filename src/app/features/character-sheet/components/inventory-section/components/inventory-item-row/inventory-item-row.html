@@ -21,6 +21,16 @@
           <span class="consumable-badge">Consumable</span>
         }
       }
+      @if (weapon(); as w) {
+        @if (w.tier) {
+          <span class="tier-badge">T{{ w.tier }}</span>
+        }
+      }
+      @if (armor(); as a) {
+        @if (a.tier) {
+          <span class="tier-badge">T{{ a.tier }}</span>
+        }
+      }
       @if (isOwner() && canRemove()) {
         <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
       }
@@ -28,9 +38,6 @@
 
     @if (weapon(); as w) {
       <div class="inventory-item__stats">
-        @if (w.tier) {
-          <span class="inventory-item__stat">T{{ w.tier }}</span>
-        }
         @if (w.damage) {
           <span class="inventory-item__stat">{{ w.damage }}</span>
         }
@@ -45,9 +52,6 @@
 
     @if (armor(); as a) {
       <div class="inventory-item__stats">
-        @if (a.tier) {
-          <span class="inventory-item__stat">T{{ a.tier }}</span>
-        }
         <span class="inventory-item__stat">Score: {{ a.baseScore }}</span>
       </div>
     }

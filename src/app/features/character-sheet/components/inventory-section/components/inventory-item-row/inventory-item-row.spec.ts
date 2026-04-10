@@ -315,34 +315,39 @@ describe('InventoryItemRow', () => {
   });
 
   describe('tier display', () => {
-    it('renders weapon tier when present', () => {
+    it('renders weapon tier as a header badge when present', () => {
       host.item.set({ ...weapon, tier: 2 });
       host.itemType.set('weapon');
       fixture.detectChanges();
 
-      const stats = el.querySelectorAll('.inventory-item__stat');
-      const texts = Array.from(stats).map(s => s.textContent?.trim());
-      expect(texts).toContain('T2');
+      const badge = el.querySelector('.tier-badge');
+      expect(badge?.textContent?.trim()).toBe('T2');
     });
 
-    it('does not render weapon tier badge when tier is missing', () => {
+    it('does not render a tier badge when tier is missing', () => {
       host.item.set({ ...weapon });
       host.itemType.set('weapon');
       fixture.detectChanges();
 
-      const stats = el.querySelectorAll('.inventory-item__stat');
-      const texts = Array.from(stats).map(s => s.textContent?.trim());
-      expect(texts.some(t => t?.startsWith('T'))).toBe(false);
+      expect(el.querySelector('.tier-badge')).toBeNull();
     });
 
-    it('renders armor tier when present', () => {
+    it('does not render tier inside the stats row for weapons', () => {
+      host.item.set({ ...weapon, tier: 2 });
+      host.itemType.set('weapon');
+      fixture.detectChanges();
+
+      const stats = Array.from(el.querySelectorAll('.inventory-item__stat')).map(s => s.textContent?.trim());
+      expect(stats.some(t => t?.startsWith('T'))).toBe(false);
+    });
+
+    it('renders armor tier as a header badge when present', () => {
       host.item.set({ ...armor, tier: 3 });
       host.itemType.set('armor');
       fixture.detectChanges();
 
-      const stats = el.querySelectorAll('.inventory-item__stat');
-      const texts = Array.from(stats).map(s => s.textContent?.trim());
-      expect(texts).toContain('T3');
+      const badge = el.querySelector('.tier-badge');
+      expect(badge?.textContent?.trim()).toBe('T3');
     });
   });
 
