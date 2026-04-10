@@ -12,6 +12,8 @@ import { FilterRail } from './components/filter-rail/filter-rail';
 import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
 import { ResultSection } from './components/result-section/result-section';
 import { PaginationControls } from './components/pagination-controls/pagination-controls';
+import { CodexSkeleton } from './components/codex-skeleton/codex-skeleton';
+import { CodexEmptyState } from './components/codex-empty-state/codex-empty-state';
 import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
 import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
 
@@ -36,7 +38,7 @@ const MIXED_VIEW_CAP = 5;
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, LandingTypeGrid, ResultSection, PaginationControls, DaggerheartCard, AdversaryCard],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);
@@ -98,6 +100,13 @@ export class Reference implements OnInit {
     return this.totalPages();
   });
 
+  readonly isShortQuery = computed<boolean>(() => {
+    const q = this.query().trim();
+    return q.length > 0 && q.length < 3;
+  });
+
+  readonly hasActiveFilters = computed<boolean>(() => Object.keys(this.filters()).length > 0);
+
   readonly searchPlaceholder = computed<string>(() => {
     const type = this.activeType();
     if (type) {
@@ -157,6 +166,12 @@ export class Reference implements OnInit {
   }
 
   onPageChanged(page: number): void { this.currentPage.set(page); this.syncUrl(); }
+
+  onClearFilters(): void {
+    this.filters.set({});
+    this.currentPage.set(0);
+    this.syncUrl();
+  }
 
   onViewAll(type: SearchableEntityType): void {
     this.activeType.set(type);

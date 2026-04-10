@@ -10,6 +10,9 @@
       [placeholder]="searchPlaceholder()"
       (queryChange)="onQueryChanged($event)"
     />
+    @if (isShortQuery()) {
+      <p class="reference-hint" aria-live="polite">Keep typing… (3 characters minimum)</p>
+    }
   </div>
 
   @switch (viewMode()) {
@@ -20,7 +23,7 @@
     @case ('mixedSearch') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
-        <aside class="reference-rail">
+        <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
             [filters]="filters()"
@@ -30,11 +33,21 @@
         </aside>
         <main class="reference-results">
           @if (loading()) {
-            <p class="reference-status">Loading…</p>
+            <app-codex-skeleton variant="mixed" />
           } @else if (error()) {
-            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to search the archives. Please try again.</p>
+              </div>
+            </div>
           } @else if (mixedSections().length === 0) {
-            <p class="reference-empty-text">The archives fall silent. No matches found.</p>
+            <app-codex-empty-state
+              variant="search"
+              [query]="query()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
           } @else {
             @for (section of mixedSections(); track section.type) {
               <app-result-section
@@ -54,7 +67,7 @@
     @case ('focusedSearch') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
-        <aside class="reference-rail">
+        <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
             [filters]="filters()"
@@ -65,11 +78,22 @@
         <main class="reference-results">
           <button class="back-to-all" (click)="onAllTypes()">← All types</button>
           @if (loading()) {
-            <p class="reference-status">Loading…</p>
+            <app-codex-skeleton variant="focused" />
           } @else if (error()) {
-            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to search the archives. Please try again.</p>
+              </div>
+            </div>
           } @else if (focusedResults().length === 0) {
-            <p class="reference-empty-text">The archives fall silent. No matches found.</p>
+            <app-codex-empty-state
+              variant="search"
+              [query]="query()"
+              [type]="activeType()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
           } @else {
             <ul class="focused-cards" role="list">
               @for (result of focusedResults(); track result.id) {
@@ -95,7 +119,7 @@
     @case ('focusedBrowse') {
       <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
       <div class="reference-layout">
-        <aside class="reference-rail">
+        <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
             [activeType]="activeType()"
             [filters]="filters()"
@@ -106,11 +130,21 @@
         <main class="reference-results">
           <button class="back-to-all" (click)="onAllTypes()">← All types</button>
           @if (loading()) {
-            <p class="reference-status">Loading…</p>
+            <app-codex-skeleton variant="focused" />
           } @else if (error()) {
-            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to load results. Please try again.</p>
+              </div>
+            </div>
           } @else if (focusedResults().length === 0) {
-            <p class="reference-empty-text">No results match these filters.</p>
+            <app-codex-empty-state
+              variant="browse"
+              [type]="activeType()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
           } @else {
             <ul class="focused-cards" role="list">
               @for (result of focusedResults(); track result.id) {

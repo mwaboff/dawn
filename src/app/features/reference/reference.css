@@ -98,6 +98,52 @@
   text-align: center;
 }
 
+.reference-hint {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 0.85rem;
+  color: rgba(212, 160, 86, 0.55);
+  margin: 0.4rem 0 0;
+  padding-left: 0.25rem;
+}
+
+.reference-rail.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.codex-error-surface {
+  padding: 1.5rem;
+  background: color-mix(in srgb, var(--color-parchment, #f5ede0) 8%, transparent);
+  border: 1px solid rgba(212, 160, 86, 0.15);
+  border-radius: 8px;
+}
+
+.codex-error-banner {
+  background: color-mix(in srgb, #8b3a2a 12%, rgba(30, 20, 12, 0.6));
+  border: 1px solid color-mix(in srgb, #8b3a2a 40%, rgba(212, 160, 86, 0.3));
+  border-left: 3px solid #8b3a2a;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+}
+
+.codex-error-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e07070;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.25rem;
+}
+
+.codex-error-body {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: rgba(245, 230, 211, 0.7);
+  margin: 0;
+}
+
 @media (max-width: 1099px) {
   .reference-layout {
     grid-template-columns: 1fr;

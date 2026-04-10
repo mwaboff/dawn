@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, ActivatedRoute, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { Reference } from './reference';
 import { SearchService } from '../../shared/services/search.service';
 import { CodexBrowseService } from './services/codex-browse.service';
@@ -431,6 +431,181 @@ describe('Reference', () => {
       component.currentPage.set(5);
       component.onFiltersChanged({ tier: 1 });
       expect(component.currentPage()).toBe(0);
+    });
+  });
+
+  describe('isShortQuery computed', () => {
+    it('is false when query is empty', () => {
+      component.query.set('');
+      expect(component.isShortQuery()).toBe(false);
+    });
+
+    it('is true when query is 1 character', () => {
+      component.query.set('a');
+      expect(component.isShortQuery()).toBe(true);
+    });
+
+    it('is true when query is 2 characters', () => {
+      component.query.set('ab');
+      expect(component.isShortQuery()).toBe(true);
+    });
+
+    it('is false when query is exactly 3 characters', () => {
+      component.query.set('abc');
+      expect(component.isShortQuery()).toBe(false);
+    });
+
+    it('is false when query is longer than 3 characters', () => {
+      component.query.set('sword');
+      expect(component.isShortQuery()).toBe(false);
+    });
+
+    it('is false when query is whitespace only', () => {
+      component.query.set('  ');
+      expect(component.isShortQuery()).toBe(false);
+    });
+  });
+
+  describe('hasActiveFilters computed', () => {
+    it('is false when filters are empty', () => {
+      component.filters.set({});
+      expect(component.hasActiveFilters()).toBe(false);
+    });
+
+    it('is true when at least one filter is set', () => {
+      component.filters.set({ tier: 2 });
+      expect(component.hasActiveFilters()).toBe(true);
+    });
+  });
+
+  describe('onClearFilters', () => {
+    it('resets filters signal to empty object', () => {
+      component.filters.set({ tier: 2, isOfficial: true });
+      component.query.set('flame');
+      component.onClearFilters();
+      expect(component.filters()).toEqual({});
+    });
+
+    it('preserves the query when clearing filters', () => {
+      component.filters.set({ tier: 2 });
+      component.query.set('flame');
+      component.onClearFilters();
+      expect(component.query()).toBe('flame');
+    });
+
+    it('resets currentPage to 0', () => {
+      component.currentPage.set(3);
+      component.onClearFilters();
+      expect(component.currentPage()).toBe(0);
+    });
+
+    it('syncs URL after clearing filters', () => {
+      component.filters.set({ tier: 2 });
+      component.onClearFilters();
+      expect(router.navigate).toHaveBeenCalledWith(
+        [],
+        expect.objectContaining({ queryParams: expect.objectContaining({ filters: null }) })
+      );
+    });
+  });
+
+  describe('state — Keep typing hint', () => {
+    it('shows hint element when query is 1 char', () => {
+      component.query.set('a');
+      fixture.detectChanges();
+      const hint = fixture.nativeElement.querySelector('.reference-hint');
+      expect(hint).toBeTruthy();
+    });
+
+    it('shows hint element when query is 2 chars', () => {
+      component.query.set('ab');
+      fixture.detectChanges();
+      const hint = fixture.nativeElement.querySelector('.reference-hint');
+      expect(hint).toBeTruthy();
+    });
+
+    it('does not show hint when query is empty', () => {
+      component.query.set('');
+      fixture.detectChanges();
+      const hint = fixture.nativeElement.querySelector('.reference-hint');
+      expect(hint).toBeNull();
+    });
+
+    it('does not show hint when query is 3+ chars', () => {
+      component.query.set('abc');
+      fixture.detectChanges();
+      const hint = fixture.nativeElement.querySelector('.reference-hint');
+      expect(hint).toBeNull();
+    });
+  });
+
+  describe('state — loading skeleton (mixedSearch)', () => {
+    it('renders codex-skeleton when loading in mixedSearch mode', () => {
+      component.query.set('sword');
+      component.loading.set(true);
+      fixture.detectChanges();
+      const skeleton = fixture.nativeElement.querySelector('app-codex-skeleton');
+      expect(skeleton).toBeTruthy();
+    });
+  });
+
+  describe('state — loading skeleton (focusedBrowse)', () => {
+    it('renders codex-skeleton when loading in focusedBrowse mode', () => {
+      const pending$ = new Subject<typeof MOCK_BROWSE_RESULT>();
+      browseSpy.browse.mockReturnValue(pending$.asObservable());
+      component.activeType.set('WEAPON');
+      fixture.detectChanges();
+      const skeleton = fixture.nativeElement.querySelector('app-codex-skeleton');
+      expect(skeleton).toBeTruthy();
+    });
+  });
+
+  describe('state — error (mixedSearch)', () => {
+    it('renders error surface when error is true in mixedSearch mode', () => {
+      component.query.set('sword');
+      component.error.set(true);
+      fixture.detectChanges();
+      const errorSurface = fixture.nativeElement.querySelector('.codex-error-surface');
+      expect(errorSurface).toBeTruthy();
+    });
+  });
+
+  describe('state — error (focusedBrowse)', () => {
+    it('renders error surface when error is true in focusedBrowse mode', () => {
+      browseSpy.browse.mockReturnValue(throwError(() => new Error('fail')));
+      component.activeType.set('WEAPON');
+      fixture.detectChanges();
+      const errorSurface = fixture.nativeElement.querySelector('.codex-error-surface');
+      expect(errorSurface).toBeTruthy();
+    });
+  });
+
+  describe('state — empty search results', () => {
+    it('renders codex-empty-state when mixedSections is empty and not loading', () => {
+      component.query.set('xyzzy');
+      component.results.set([]);
+      component.loading.set(false);
+      fixture.detectChanges();
+      const empty = fixture.nativeElement.querySelector('app-codex-empty-state');
+      expect(empty).toBeTruthy();
+    });
+  });
+
+  describe('state — rail dimming', () => {
+    it('adds loading class to reference-rail when loading in mixedSearch', () => {
+      component.query.set('sword');
+      component.loading.set(true);
+      fixture.detectChanges();
+      const rail = fixture.nativeElement.querySelector('.reference-rail');
+      expect(rail?.classList.contains('loading')).toBe(true);
+    });
+
+    it('removes loading class from reference-rail when not loading', () => {
+      component.query.set('sword');
+      component.loading.set(false);
+      fixture.detectChanges();
+      const rail = fixture.nativeElement.querySelector('.reference-rail');
+      expect(rail?.classList.contains('loading')).toBe(false);
     });
   });
 });
