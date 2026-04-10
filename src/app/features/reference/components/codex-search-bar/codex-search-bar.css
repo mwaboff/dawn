@@ -112,6 +112,12 @@
   opacity: 0.7;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip {
+    transition: none;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

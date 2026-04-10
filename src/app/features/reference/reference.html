@@ -26,9 +26,10 @@
         <button
           type="button"
           class="refine-toggle-btn"
+          aria-label="Open refine filters"
           (click)="onRefineOpen()"
         >
-          ⚙ Refine
+          <span aria-hidden="true">⚙</span> Refine
         </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
@@ -77,9 +78,10 @@
         <button
           type="button"
           class="refine-toggle-btn"
+          aria-label="Open refine filters"
           (click)="onRefineOpen()"
         >
-          ⚙ Refine
+          <span aria-hidden="true">⚙</span> Refine
         </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
@@ -90,7 +92,7 @@
           />
         </aside>
         <main class="reference-results">
-          <button class="back-to-all" (click)="onAllTypes()">← All types</button>
+          <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
           @if (loading()) {
             <app-codex-skeleton variant="focused" />
           } @else if (error()) {
@@ -136,9 +138,10 @@
         <button
           type="button"
           class="refine-toggle-btn"
+          aria-label="Open refine filters"
           (click)="onRefineOpen()"
         >
-          ⚙ Refine
+          <span aria-hidden="true">⚙</span> Refine
         </button>
         <aside class="reference-rail" [class.loading]="loading()">
           <app-filter-rail
@@ -149,7 +152,7 @@
           />
         </aside>
         <main class="reference-results">
-          <button class="back-to-all" (click)="onAllTypes()">← All types</button>
+          <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
           @if (loading()) {
             <app-codex-skeleton variant="focused" />
           } @else if (error()) {

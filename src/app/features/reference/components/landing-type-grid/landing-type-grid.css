@@ -53,3 +53,14 @@
   color: rgba(245, 230, 211, 0.6);
   line-height: 1.4;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .type-card {
+    transition: none;
+    transform: none;
+  }
+
+  .type-card:hover {
+    transform: none;
+  }
+}

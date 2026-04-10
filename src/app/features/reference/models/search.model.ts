@@ -113,7 +113,7 @@ export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
   COMMUNITY_CARD: '⧫',
   DOMAIN_CARD: '✧',
   DOMAIN: '⬢',
-  COMPANION: '♞',
+  COMPANION: '❦',
 };
 
 /**

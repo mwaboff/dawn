@@ -26,8 +26,12 @@
 
   @if (showViewAll() && totalCount() > results().length) {
     <div class="section-footer">
-      <button class="view-all-link" (click)="onViewAll()">
-        View all {{ totalCount() }} {{ typeLabel() }} ▸
+      <button
+        class="view-all-link"
+        [attr.aria-label]="'View all ' + totalCount() + ' ' + typeLabel()"
+        (click)="onViewAll()"
+      >
+        View all {{ totalCount() }} {{ typeLabel() }} <span aria-hidden="true">▸</span>
       </button>
     </div>
   }
