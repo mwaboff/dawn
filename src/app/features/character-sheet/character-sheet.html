@@ -537,12 +537,14 @@
         [canEquipPrimary]="canEquipPrimaryWeapon()"
         [canEquipSecondary]="canEquipSecondaryWeapon()"
         [canEquipArmorSlot]="canEquipArmor()"
+        [errorMessage]="inventoryError()"
         (addItem)="onAddInventoryItem($event)"
         (removeItem)="onRemoveInventoryItem($event)"
-        (equipWeapon)="onEquipWeapon($event.weaponId, $event.slot)"
+        (equipWeapon)="onEquipWeapon($event)"
         (unequipWeapon)="onUnequipWeapon($event.slot)"
         (equipArmor)="onEquipArmor($event)"
-        (unequipArmor)="onUnequipArmor()" />
+        (unequipArmor)="onUnequipArmor()"
+        (dismissError)="onDismissInventoryError()" />
     </section>
 
     @if (sheet.vaultDomainCards.length > 0) {

@@ -7,6 +7,13 @@
   }
 </div>
 
+@if (errorMessage(); as msg) {
+  <div class="inventory-error" role="alert">
+    <span class="inventory-error__text">{{ msg }}</span>
+    <button class="inventory-error__dismiss" (click)="onDismissError()" aria-label="Dismiss error">&#x2715;</button>
+  </div>
+}
+
 <div class="inventory-tabs" role="tablist" aria-label="Inventory categories">
   <button class="inventory-tab" role="tab"
           [class.inventory-tab--active]="activeTab() === 'weapons'"
@@ -51,20 +58,20 @@
     <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel">
       @if (weapons().length > 0) {
         <div class="inventory-group__list">
-          @for (weapon of weapons(); track weapon.id) {
+          @for (weapon of weapons(); track weapon.inventoryEntryId) {
             <app-inventory-item-row
               [item]="weapon"
               itemType="weapon"
               [isOwner]="isOwner()"
-              [equipState]="getWeaponEquipState(weapon.id)"
-              [confirming]="confirmingRemoveId() === weapon.id"
+              [equipState]="getWeaponEquipState(weapon)"
+              [confirming]="confirmingRemoveEntryId() === weapon.inventoryEntryId"
               [canEquipPrimary]="canEquipPrimary()"
               [canEquipSecondary]="canEquipSecondary()"
-              (removeClicked)="onRemoveClicked(weapon.id)"
-              (removeConfirmed)="onRemoveConfirmed('weapon', weapon.id)"
+              (removeClicked)="onRemoveClicked(weapon.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('weapon', weapon.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()"
-              (equipClicked)="onEquipWeaponClicked(weapon.id, $event)"
-              (unequipClicked)="onUnequipWeaponClicked(getWeaponEquipState(weapon.id) === 'primary' ? 'primary' : 'secondary')" />
+              (equipClicked)="onEquipWeaponClicked(weapon, $event)"
+              (unequipClicked)="onUnequipWeaponClicked(getWeaponEquipState(weapon) === 'primary' ? 'primary' : 'secondary')" />
           }
         </div>
       } @else {
@@ -76,18 +83,18 @@
     <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel">
       @if (armors().length > 0) {
         <div class="inventory-group__list">
-          @for (armor of armors(); track armor.id) {
+          @for (armor of armors(); track armor.inventoryEntryId) {
             <app-inventory-item-row
               [item]="armor"
               itemType="armor"
               [isOwner]="isOwner()"
-              [equipState]="isArmorEquipped(armor.id)"
-              [confirming]="confirmingRemoveId() === armor.id"
+              [equipState]="isArmorEntryEquipped(armor)"
+              [confirming]="confirmingRemoveEntryId() === armor.inventoryEntryId"
               [canEquipArmor]="canEquipArmorSlot()"
-              (removeClicked)="onRemoveClicked(armor.id)"
-              (removeConfirmed)="onRemoveConfirmed('armor', armor.id)"
+              (removeClicked)="onRemoveClicked(armor.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('armor', armor.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()"
-              (equipClicked)="onEquipArmorClicked(armor.id)"
+              (equipClicked)="onEquipArmorClicked(armor)"
               (unequipClicked)="onUnequipArmorClicked()" />
           }
         </div>
@@ -100,15 +107,15 @@
     <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel">
       @if (items().length > 0) {
         <div class="inventory-group__list">
-          @for (item of items(); track item.id) {
+          @for (item of items(); track item.inventoryEntryId) {
             <app-inventory-item-row
               [item]="item"
               itemType="loot"
               [isOwner]="isOwner()"
               [equipState]="null"
-              [confirming]="confirmingRemoveId() === item.id"
-              (removeClicked)="onRemoveClicked(item.id)"
-              (removeConfirmed)="onRemoveConfirmed('loot', item.id)"
+              [confirming]="confirmingRemoveEntryId() === item.inventoryEntryId"
+              (removeClicked)="onRemoveClicked(item.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('loot', item.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()" />
           }
         </div>

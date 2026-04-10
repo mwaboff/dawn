@@ -18,13 +18,16 @@ import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character
       [activeArmor]="activeArmor()"
       [canEquipPrimary]="canEquipPrimary()"
       [canEquipSecondary]="canEquipSecondary()"
-      [canEquipArmorSlot]="canEquipArmorSlot()" />
+      [canEquipArmorSlot]="canEquipArmorSlot()"
+      [errorMessage]="errorMessage()"
+      (removeItem)="onRemoveItem($event)"
+      (dismissError)="onDismissError()" />
   `,
   imports: [InventorySection],
 })
 class TestHost {
   weapons = signal<WeaponDisplay[]>([
-    { id: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
+    { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
   ]);
   armors = signal<ArmorDisplay[]>([]);
   items = signal<LootDisplay[]>([]);
@@ -35,6 +38,17 @@ class TestHost {
   canEquipPrimary = signal(true);
   canEquipSecondary = signal(true);
   canEquipArmorSlot = signal(true);
+  errorMessage = signal<string | null>(null);
+  removeEvents: { type: string; inventoryEntryId: number }[] = [];
+  dismissCount = 0;
+
+  onRemoveItem(ev: { type: string; inventoryEntryId: number }): void {
+    this.removeEvents.push(ev);
+  }
+
+  onDismissError(): void {
+    this.dismissCount++;
+  }
 }
 
 describe('InventorySection', () => {
@@ -98,7 +112,7 @@ describe('InventorySection', () => {
   });
 
   it('displays armor items when present', () => {
-    host.armors.set([{ id: 1, name: 'Chain Mail', baseScore: 4, features: [] }]);
+    host.armors.set([{ id: 1, inventoryEntryId: 1, name: 'Chain Mail', baseScore: 4, features: [] }]);
     fixture.detectChanges();
     const armorTab = el.querySelectorAll<HTMLButtonElement>('.inventory-tab')[1];
     armorTab.click();
@@ -179,8 +193,8 @@ describe('InventorySection', () => {
 
     it('shows only one confirming state at a time', () => {
       host.weapons.set([
-        { id: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
-        { id: 2, name: 'Sword', damage: '1d6', trait: 'Strength', range: 'Melee', burden: 'Heavy', features: [] },
+        { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
+        { id: 2, inventoryEntryId: 2, name: 'Sword', damage: '1d6', trait: 'Strength', range: 'Melee', burden: 'Heavy', features: [] },
       ]);
       host.isOwner.set(true);
       fixture.detectChanges();
@@ -225,6 +239,87 @@ describe('InventorySection', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('.confirm-message')).toBeNull();
+    });
+
+    it('emits removeItem with inventoryEntryId when confirmed', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.remove-btn')!.click();
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.confirm-btn--yes')!.click();
+
+      expect(host.removeEvents).toEqual([{ type: 'weapon', inventoryEntryId: 1 }]);
+    });
+  });
+
+  describe('duplicate entries with shared weaponId', () => {
+    it('renders two rows when weapons share the same id but have different inventoryEntryIds', () => {
+      host.weapons.set([
+        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+      ]);
+      fixture.detectChanges();
+
+      expect(el.querySelectorAll('app-inventory-item-row').length).toBe(2);
+    });
+
+    it('tracks confirming state per inventory entry id so only one confirms', () => {
+      host.weapons.set([
+        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+      ]);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      el.querySelectorAll<HTMLButtonElement>('.remove-btn')[0].click();
+      fixture.detectChanges();
+
+      expect(el.querySelectorAll('.confirm-message').length).toBe(1);
+    });
+  });
+
+  describe('error banner', () => {
+    it('does not render banner when errorMessage is null', () => {
+      host.errorMessage.set(null);
+      fixture.detectChanges();
+      expect(el.querySelector('.inventory-error')).toBeNull();
+    });
+
+    it('renders banner when errorMessage is set', () => {
+      host.errorMessage.set('Could not add weapon. Please try again.');
+      fixture.detectChanges();
+      expect(el.querySelector('.inventory-error__text')?.textContent?.trim()).toBe('Could not add weapon. Please try again.');
+    });
+
+    it('emits dismissError when dismiss button clicked', () => {
+      host.errorMessage.set('fail');
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.inventory-error__dismiss')!.click();
+
+      expect(host.dismissCount).toBe(1);
+    });
+  });
+
+  describe('equipped-item remove guard', () => {
+    it('hides the remove button when a weapon is equipped', () => {
+      const equipped = { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] };
+      host.weapons.set([equipped]);
+      host.activePrimaryWeapon.set(equipped);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeNull();
+      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
+    });
+
+    it('shows the remove button for an unequipped weapon', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeTruthy();
+      expect(el.querySelector('.remove-btn--locked')).toBeNull();
     });
   });
 });

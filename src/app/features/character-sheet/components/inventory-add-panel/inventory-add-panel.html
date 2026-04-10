@@ -5,7 +5,7 @@
       <button class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
     </div>
 
-    @if (!loading() && weaponItems().length === 0 && armorItems().length === 0 && lootItems().length === 0 && !loadError()) {
+    @if (!loading() && !loadError() && isCurrentListEmpty()) {
       <div class="add-panel__prompt">
         <button class="add-panel__load-btn" (click)="loadItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
       </div>
@@ -24,13 +24,17 @@
         @for (weapon of weaponItems(); track weapon.id) {
           <li class="add-panel__item" role="option" aria-selected="false">
             <button class="add-panel__item-btn" (click)="onSelectWeapon(weapon)">
-              <span class="add-panel__item-name">{{ weapon.name }}</span>
-              @if (weapon.damage) {
-                <span class="add-panel__item-stat">{{ weapon.damage.notation }}</span>
-              }
-              @if (weapon.range) {
-                <span class="add-panel__item-stat">{{ weapon.range }}</span>
-              }
+              <span class="add-panel__item-name">
+                {{ weapon.name }}
+                @if (weapon.isPrimary === true) {
+                  <span class="add-panel__slot-badge" aria-label="Primary weapon">P</span>
+                } @else if (weapon.isPrimary === false) {
+                  <span class="add-panel__slot-badge" aria-label="Secondary weapon">S</span>
+                }
+              </span>
+              <span class="add-panel__item-tier">@if (weapon.tier) { T{{ weapon.tier }} }</span>
+              <span class="add-panel__item-stat--center">@if (weapon.damage) { {{ weapon.damage.notation }} }</span>
+              <span class="add-panel__item-stat--end">@if (weapon.range) { {{ weapon.range }} }</span>
             </button>
           </li>
         }
@@ -43,7 +47,9 @@
           <li class="add-panel__item" role="option" aria-selected="false">
             <button class="add-panel__item-btn" (click)="onSelectArmor(armor)">
               <span class="add-panel__item-name">{{ armor.name }}</span>
-              <span class="add-panel__item-stat">Score: {{ armor.baseScore }}</span>
+              <span class="add-panel__item-tier">@if (armor.tier) { T{{ armor.tier }} }</span>
+              <span class="add-panel__item-stat--center">Score: {{ armor.baseScore }}</span>
+              <span class="add-panel__item-stat--end"></span>
             </button>
           </li>
         }
@@ -56,9 +62,9 @@
           <li class="add-panel__item" role="option" aria-selected="false">
             <button class="add-panel__item-btn" (click)="onSelectLoot(loot)">
               <span class="add-panel__item-name">{{ loot.name }}</span>
-              @if (loot.isConsumable) {
-                <span class="add-panel__item-stat">Consumable</span>
-              }
+              <span class="add-panel__item-tier"></span>
+              <span class="add-panel__item-stat--center"></span>
+              <span class="add-panel__item-stat--end">@if (loot.isConsumable) { Consumable }</span>
             </button>
           </li>
         }

@@ -79,7 +79,9 @@ export interface TraitDisplay {
 
 export interface WeaponDisplay {
   id: number;
+  inventoryEntryId: number;
   name: string;
+  tier?: number;
   damage: string;
   trait: string;
   range: string;
@@ -89,13 +91,16 @@ export interface WeaponDisplay {
 
 export interface ArmorDisplay {
   id: number;
+  inventoryEntryId: number;
   name: string;
+  tier?: number;
   baseScore: number;
   features: FeatureDisplay[];
 }
 
 export interface LootDisplay {
   id: number;
+  inventoryEntryId: number;
   name: string;
   description?: string;
   isConsumable: boolean;

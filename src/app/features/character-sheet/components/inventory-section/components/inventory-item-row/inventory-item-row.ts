@@ -44,6 +44,13 @@ export class InventoryItemRow {
 
   readonly isArmorEquipped = computed<boolean>(() => this.equipState() === true);
 
+  readonly canRemove = computed<boolean>(() => {
+    const type = this.itemType();
+    if (type === 'loot') return true;
+    if (type === 'weapon') return this.weaponSlot() === null;
+    return !this.isArmorEquipped();
+  });
+
   onRemoveClick(): void {
     this.removeClicked.emit();
   }

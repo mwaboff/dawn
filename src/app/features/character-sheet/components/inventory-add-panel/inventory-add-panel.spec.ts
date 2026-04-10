@@ -169,4 +169,122 @@ describe('InventoryAddPanel', () => {
 
     expect(closedSpy).toHaveBeenCalled();
   });
+
+  it('renders weapon tier badge in a dedicated tier column', () => {
+    const weapons = [{ id: 1, name: 'Sword', tier: 2, damage: { notation: '1d8' }, range: 'Melee', features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__item-tier')?.textContent?.trim()).toBe('T2');
+  });
+
+  it('renders armor tier badge', () => {
+    const armors = [{ id: 1, name: 'Plate', tier: 3, baseScore: 5, features: [] }];
+    mockArmorService.getArmorsRaw.mockReturnValue(of({ items: armors, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('armor');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__item-tier')?.textContent?.trim()).toBe('T3');
+  });
+
+  it('renders loot with empty tier cell for grid alignment', () => {
+    const loots = [{ id: 1, name: 'Potion', isConsumable: true, costTags: [] }];
+    mockLootService.getLootRaw.mockReturnValue(of({ items: loots, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('loot');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const tierCell = el.querySelector('.add-panel__item-tier');
+    expect(tierCell).toBeTruthy();
+    expect(tierCell?.textContent?.trim()).toBe('');
+  });
+
+  it('uses grid layout classes on item buttons', () => {
+    const weapons = [{ id: 1, name: 'Dagger', features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const btn = el.querySelector('.add-panel__item-btn');
+    expect(btn).toBeTruthy();
+    expect(btn?.querySelector('.add-panel__item-name')).toBeTruthy();
+    expect(btn?.querySelector('.add-panel__item-tier')).toBeTruthy();
+    expect(btn?.querySelector('.add-panel__item-stat--center')).toBeTruthy();
+    expect(btn?.querySelector('.add-panel__item-stat--end')).toBeTruthy();
+  });
+
+  it('renders P badge for primary weapon', () => {
+    const weapons = [{ id: 1, name: 'Sword', isPrimary: true, features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const badge = el.querySelector('.add-panel__slot-badge');
+    expect(badge?.textContent?.trim()).toBe('P');
+  });
+
+  it('renders S badge for secondary weapon', () => {
+    const weapons = [{ id: 1, name: 'Dagger', isPrimary: false, features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const badge = el.querySelector('.add-panel__slot-badge');
+    expect(badge?.textContent?.trim()).toBe('S');
+  });
+
+  it('does not render a slot badge when isPrimary is undefined', () => {
+    const weapons = [{ id: 1, name: 'Staff', features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__slot-badge')).toBeNull();
+  });
+
+  it('clears loaded weapons and shows browse button when itemType switches', () => {
+    const weapons = [{ id: 1, name: 'Dagger', features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('.add-panel__item-name')?.textContent?.trim()).toBe('Dagger');
+
+    host.itemType.set('armor');
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__item-name')).toBeNull();
+    expect(el.querySelector('.add-panel__load-btn')?.textContent?.trim()).toBe('Browse Armor');
+  });
 });

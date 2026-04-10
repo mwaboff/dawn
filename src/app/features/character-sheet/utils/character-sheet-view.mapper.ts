@@ -88,10 +88,12 @@ function mapTraits(sheet: CharacterSheetResponse): TraitDisplay[] {
   ];
 }
 
-function mapWeapon(weapon: WeaponResponse): WeaponDisplay {
+function buildWeaponDisplay(entryId: number, weapon: WeaponResponse): WeaponDisplay {
   return {
     id: weapon.id,
+    inventoryEntryId: entryId,
     name: weapon.name,
+    tier: weapon.tier,
     damage: weapon.damage?.notation ?? '',
     trait: weapon.trait ?? '',
     range: weapon.range ?? '',
@@ -100,10 +102,12 @@ function mapWeapon(weapon: WeaponResponse): WeaponDisplay {
   };
 }
 
-function mapArmor(armor: ArmorResponse): ArmorDisplay {
+function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay {
   return {
     id: armor.id,
+    inventoryEntryId: entryId,
     name: armor.name,
+    tier: armor.tier,
     baseScore: armor.baseScore ?? 0,
     features: (armor.features ?? []).map(mapFeature),
   };
@@ -153,9 +157,10 @@ function mapDomainCardSummary(card: DomainCardResponse): DomainCardSummary {
   };
 }
 
-function mapLoot(loot: LootApiResponse): LootDisplay {
+function buildLootDisplay(entryId: number, loot: LootApiResponse): LootDisplay {
   return {
     id: loot.id,
+    inventoryEntryId: entryId,
     name: loot.name,
     description: loot.description,
     isConsumable: loot.isConsumable ?? false,
@@ -195,31 +200,52 @@ function extractClassEntries(subclassCards: SubclassCardResponse[]): ClassEntry[
 
 function mapEquippedWeapon(weapons: InventoryWeaponResponse[] | undefined, slot: 'PRIMARY' | 'SECONDARY'): WeaponDisplay | null {
   const entry = (weapons ?? []).find(w => w.slot === slot);
-  return entry?.weapon ? mapWeapon(entry.weapon) : null;
+  return entry?.weapon ? buildWeaponDisplay(entry.id, entry.weapon) : null;
 }
 
 function mapFirstEquippedArmor(armors: InventoryArmorResponse[] | undefined): ArmorDisplay | null {
   const entry = (armors ?? []).find(a => a.equipped);
-  return entry?.armor ? mapArmor(entry.armor) : null;
+  return entry?.armor ? buildArmorDisplay(entry.id, entry.armor) : null;
 }
 
 function mapInventoryWeapon(entry: InventoryWeaponResponse): WeaponDisplay {
   if (entry.weapon) {
-    return mapWeapon(entry.weapon);
+    return buildWeaponDisplay(entry.id, entry.weapon);
   }
-  return { id: entry.weaponId, name: '', damage: '', trait: '', range: '', burden: '', features: [] };
+  return {
+    id: entry.weaponId,
+    inventoryEntryId: entry.id,
+    name: '',
+    damage: '',
+    trait: '',
+    range: '',
+    burden: '',
+    features: [],
+  };
 }
 
 function mapInventoryArmor(entry: InventoryArmorResponse): ArmorDisplay {
   if (entry.armor) {
-    return mapArmor(entry.armor);
+    return buildArmorDisplay(entry.id, entry.armor);
   }
-  return { id: entry.armorId, name: '', baseScore: 0, features: [] };
+  return {
+    id: entry.armorId,
+    inventoryEntryId: entry.id,
+    name: '',
+    baseScore: 0,
+    features: [],
+  };
 }
 
 function mapInventoryLoot(entry: InventoryLootResponse): LootDisplay {
   if (entry.loot) {
-    return mapLoot(entry.loot);
+    return buildLootDisplay(entry.id, entry.loot);
   }
-  return { id: entry.lootId, name: '', isConsumable: false, costTags: [] };
+  return {
+    id: entry.lootId,
+    inventoryEntryId: entry.id,
+    name: '',
+    isConsumable: false,
+    costTags: [],
+  };
 }

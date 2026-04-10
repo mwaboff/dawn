@@ -754,7 +754,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(unequippedResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'primary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'primary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activePrimaryWeapon?.id).toBe(100);
@@ -770,7 +770,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(weaponResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(101, 'secondary');
+      component.onEquipWeapon({ weaponId: 101, inventoryEntryId: 101, slot: 'secondary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeSecondaryWeapon?.id).toBe(101);
@@ -806,7 +806,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(unequippedArmorResponse));
       fixture.detectChanges();
 
-      component.onEquipArmor(200);
+      component.onEquipArmor({ armorId: 200, inventoryEntryId: 200 });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeArmor?.id).toBe(200);
@@ -843,7 +843,7 @@ describe('CharacterSheet', () => {
       mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'primary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'primary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activePrimaryWeapon).toBeNull();
@@ -860,11 +860,11 @@ describe('CharacterSheet', () => {
       expect(sheet.activeArmor?.id).toBe(200);
     });
 
-    it('onEquipWeapon prevents equipping same weapon to both slots', () => {
+    it('onEquipWeapon prevents re-equipping an already-equipped entry', () => {
       createComponent('1', of(weaponResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'secondary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'secondary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeSecondaryWeapon).toBeNull();
@@ -898,6 +898,76 @@ describe('CharacterSheet', () => {
       const unequipBtn = el.querySelector('.card-swap-btn--vault');
       expect(unequipBtn).toBeTruthy();
       expect(unequipBtn?.textContent).toContain('Unequip');
+    });
+  });
+
+  describe('inventory add/remove', () => {
+    it('allows adding the same weapon twice and calls the service each time', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+
+      const weapon = { id: 42, name: 'Shortbow' } as unknown;
+      component.onAddInventoryItem({ type: 'weapon', item: weapon });
+      component.onAddInventoryItem({ type: 'weapon', item: weapon });
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(2);
+    });
+
+    it('clears inventoryError and refetches the sheet on successful add', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+      mockService.getCharacterSheet.mockClear();
+
+      component.onAddInventoryItem({ type: 'weapon', item: { id: 42, name: 'Shortbow' } as unknown });
+
+      expect(component.inventoryError()).toBeNull();
+      expect(mockService.getCharacterSheet).toHaveBeenCalled();
+    });
+
+    it('sets inventoryError and rolls back optimistic state on add failure', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+      component.onAddInventoryItem({ type: 'armor', item: { id: 42, name: 'Plate' } as unknown });
+
+      expect(component.inventoryError()).toContain('Could not add armor');
+      expect(component.characterSheet()!.inventoryArmors.length).toBe(0);
+    });
+
+    it('removes a weapon entry by inventoryEntryId and filters out only that row', () => {
+      const responseWithTwoBows: CharacterSheetResponse = {
+        ...mockResponse,
+        inventoryWeapons: [
+          { id: 101, weaponId: 7, equipped: false, weapon: { id: 7, name: 'Shortbow' } as never },
+          { id: 102, weaponId: 7, equipped: false, weapon: { id: 7, name: 'Shortbow' } as never },
+        ],
+      };
+      createComponent('1', of(responseWithTwoBows));
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(responseWithTwoBows));
+
+      component.onRemoveInventoryItem({ type: 'weapon', inventoryEntryId: 101 });
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        inventoryWeapons: [
+          { weaponId: 7, equipped: false },
+        ],
+      });
+    });
+
+    it('onDismissInventoryError clears the error signal', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+      component.onAddInventoryItem({ type: 'loot', item: { id: 1, name: 'Potion' } as unknown });
+      expect(component.inventoryError()).not.toBeNull();
+
+      component.onDismissInventoryError();
+
+      expect(component.inventoryError()).toBeNull();
     });
   });
 

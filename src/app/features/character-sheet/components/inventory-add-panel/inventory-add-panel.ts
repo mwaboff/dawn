@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal, computed, effect, untracked, inject } from '@angular/core';
 import { WeaponService } from '../../../../shared/services/weapon.service';
 import { ArmorService } from '../../../../shared/services/armor.service';
 import { LootService } from '../../../../shared/services/loot.service';
@@ -28,6 +28,26 @@ export class InventoryAddPanel {
   readonly weaponItems = signal<WeaponResponse[]>([]);
   readonly armorItems = signal<ArmorResponse[]>([]);
   readonly lootItems = signal<LootApiResponse[]>([]);
+
+  readonly isCurrentListEmpty = computed(() => {
+    const type = this.itemType();
+    if (type === 'weapon') return this.weaponItems().length === 0;
+    if (type === 'armor') return this.armorItems().length === 0;
+    return this.lootItems().length === 0;
+  });
+
+  constructor() {
+    effect(() => {
+      this.itemType();
+      untracked(() => {
+        this.loading.set(false);
+        this.loadError.set(false);
+        this.weaponItems.set([]);
+        this.armorItems.set([]);
+        this.lootItems.set([]);
+      });
+    });
+  }
 
   loadItems(): void {
     const type = this.itemType();

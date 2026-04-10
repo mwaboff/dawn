@@ -6,6 +6,7 @@ import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../../../models/cha
 
 const weapon: WeaponDisplay = {
   id: 1,
+  inventoryEntryId: 1,
   name: 'Dagger',
   damage: '1d4+2',
   trait: 'Finesse',
@@ -16,6 +17,7 @@ const weapon: WeaponDisplay = {
 
 const armor: ArmorDisplay = {
   id: 2,
+  inventoryEntryId: 2,
   name: 'Chainmail',
   baseScore: 5,
   features: [],
@@ -23,6 +25,7 @@ const armor: ArmorDisplay = {
 
 const loot: LootDisplay = {
   id: 3,
+  inventoryEntryId: 3,
   name: 'Health Potion',
   isConsumable: true,
   costTags: ['2g'],
@@ -308,6 +311,90 @@ describe('InventoryItemRow', () => {
 
     it('does not show equip/unequip buttons for loot', () => {
       expect(el.querySelector('.card-swap-btn')).toBeNull();
+    });
+  });
+
+  describe('tier display', () => {
+    it('renders weapon tier when present', () => {
+      host.item.set({ ...weapon, tier: 2 });
+      host.itemType.set('weapon');
+      fixture.detectChanges();
+
+      const stats = el.querySelectorAll('.inventory-item__stat');
+      const texts = Array.from(stats).map(s => s.textContent?.trim());
+      expect(texts).toContain('T2');
+    });
+
+    it('does not render weapon tier badge when tier is missing', () => {
+      host.item.set({ ...weapon });
+      host.itemType.set('weapon');
+      fixture.detectChanges();
+
+      const stats = el.querySelectorAll('.inventory-item__stat');
+      const texts = Array.from(stats).map(s => s.textContent?.trim());
+      expect(texts.some(t => t?.startsWith('T'))).toBe(false);
+    });
+
+    it('renders armor tier when present', () => {
+      host.item.set({ ...armor, tier: 3 });
+      host.itemType.set('armor');
+      fixture.detectChanges();
+
+      const stats = el.querySelectorAll('.inventory-item__stat');
+      const texts = Array.from(stats).map(s => s.textContent?.trim());
+      expect(texts).toContain('T3');
+    });
+  });
+
+  describe('remove guard when equipped', () => {
+    it('shows active remove button for an unequipped weapon', () => {
+      host.itemType.set('weapon');
+      host.equipState.set(null);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeTruthy();
+      expect(el.querySelector('.remove-btn--locked')).toBeNull();
+    });
+
+    it('replaces remove button with locked indicator for an equipped weapon', () => {
+      host.itemType.set('weapon');
+      host.equipState.set('primary');
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeNull();
+      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
+    });
+
+    it('locks remove button for equipped armor', () => {
+      host.item.set(armor);
+      host.itemType.set('armor');
+      host.equipState.set(true);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeNull();
+      expect(el.querySelector('.remove-btn--locked')).toBeTruthy();
+    });
+
+    it('allows remove for unequipped armor', () => {
+      host.item.set(armor);
+      host.itemType.set('armor');
+      host.equipState.set(false);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeTruthy();
+    });
+
+    it('allows remove for loot regardless of equip state', () => {
+      host.item.set(loot);
+      host.itemType.set('loot');
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeTruthy();
     });
   });
 });
