@@ -82,7 +82,7 @@ describe('ResultSection', () => {
 
     const header = fixture.nativeElement.querySelector('.section-title');
     expect(header).toBeTruthy();
-    expect(fixture.nativeElement.textContent).toContain('EAPONS');
+    expect(header.textContent).toContain('WEAPONS');
   });
 
   it('renders the correct number of cards', () => {

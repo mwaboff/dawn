@@ -23,8 +23,6 @@ export class ResultSection {
 
   readonly typeLabel = computed(() => typeLabels[this.type()] ?? this.type());
   readonly typeGlyph = computed(() => typeGlyphs[this.type()] ?? '◆');
-  readonly firstLetter = computed(() => (typeLabels[this.type()] ?? this.type()).charAt(0));
-  readonly restOfLabel = computed(() => (typeLabels[this.type()] ?? this.type()).slice(1));
 
   onViewAll(): void {
     this.viewAll.emit(this.type());

@@ -1,9 +1,7 @@
 <section class="result-section">
   <header class="section-header">
     <div class="section-title-row">
-      <h2 class="section-title">
-        <span class="section-illuminated" aria-hidden="true">{{ firstLetter() }}</span><span class="section-title-rest">{{ restOfLabel() | uppercase }}</span>
-      </h2>
+      <h2 class="section-title">{{ typeLabel() | uppercase }}</h2>
       <span class="section-count">· {{ totalCount() }} {{ totalCount() === 1 ? 'match' : 'matches' }}</span>
     </div>
     <div class="section-rule" aria-hidden="true"></div>
