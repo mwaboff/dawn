@@ -37,8 +37,7 @@ export class InventorySection {
   readonly activePrimaryWeapon = input<WeaponDisplay | null>(null);
   readonly activeSecondaryWeapon = input<WeaponDisplay | null>(null);
   readonly activeArmor = input<ArmorDisplay | null>(null);
-  readonly canEquipPrimary = input<boolean>(false);
-  readonly canEquipSecondary = input<boolean>(false);
+  readonly weaponConstraints = input<{ primarySlotOccupied: boolean; secondarySlotOccupied: boolean; twoHandedEquipped: boolean } | null>(null);
   readonly canEquipArmorSlot = input<boolean>(false);
   readonly errorMessage = input<string | null>(null);
 
@@ -76,6 +75,24 @@ export class InventorySection {
 
   isArmorEntryEquipped(armor: ArmorDisplay): boolean {
     return this.activeArmor()?.inventoryEntryId === armor.inventoryEntryId;
+  }
+
+  canEquipWeaponAsPrimary(weapon: WeaponDisplay): boolean {
+    const c = this.weaponConstraints();
+    if (!c) return false;
+    const isTwoHanded = weapon.burden === 'TWO_HANDED';
+    if (isTwoHanded) {
+      return !c.primarySlotOccupied && !c.secondarySlotOccupied && !c.twoHandedEquipped;
+    }
+    return !c.primarySlotOccupied && !c.twoHandedEquipped;
+  }
+
+  canEquipWeaponAsSecondary(weapon: WeaponDisplay): boolean {
+    const c = this.weaponConstraints();
+    if (!c) return false;
+    const isTwoHanded = weapon.burden === 'TWO_HANDED';
+    if (isTwoHanded) return false;
+    return !c.secondarySlotOccupied && !c.twoHandedEquipped;
   }
 
   toggleAddPanel(): void {

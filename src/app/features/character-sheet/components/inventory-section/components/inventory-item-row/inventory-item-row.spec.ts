@@ -39,8 +39,8 @@ const loot: LootDisplay = {
       [isOwner]="isOwner()"
       [equipState]="equipState()"
       [confirming]="confirming()"
-      [canEquipPrimary]="canEquipPrimary()"
-      [canEquipSecondary]="canEquipSecondary()"
+      [canEquipAsPrimary]="canEquipAsPrimary()"
+      [canEquipAsSecondary]="canEquipAsSecondary()"
       [canEquipArmor]="canEquipArmor()"
       (removeClicked)="onRemoveClicked()"
       (removeConfirmed)="onRemoveConfirmed()"
@@ -56,8 +56,8 @@ class TestHost {
   isOwner = signal(true);
   equipState = signal<string | boolean | null>(null);
   confirming = signal(false);
-  canEquipPrimary = signal(true);
-  canEquipSecondary = signal(true);
+  canEquipAsPrimary = signal(true);
+  canEquipAsSecondary = signal(true);
   canEquipArmor = signal(true);
 
   onRemoveClicked = vi.fn();
@@ -82,23 +82,23 @@ describe('InventoryItemRow', () => {
 
   describe('weapon rendering', () => {
     it('renders weapon name', () => {
-      expect(el.querySelector('.inventory-item__name')?.textContent?.trim()).toBe('Dagger');
+      expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Dagger');
     });
 
     it('renders weapon damage stat', () => {
-      const stats = el.querySelectorAll('.inventory-item__stat');
+      const stats = el.querySelectorAll('.equip-stat');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
       expect(texts).toContain('1d4+2');
     });
 
     it('renders weapon range stat', () => {
-      const stats = el.querySelectorAll('.inventory-item__stat');
+      const stats = el.querySelectorAll('.equip-stat');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
       expect(texts).toContain('Melee');
     });
 
     it('renders weapon burden stat', () => {
-      const stats = el.querySelectorAll('.inventory-item__stat');
+      const stats = el.querySelectorAll('.equip-stat');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
       expect(texts).toContain('Light');
     });
@@ -112,11 +112,11 @@ describe('InventoryItemRow', () => {
     });
 
     it('renders armor name', () => {
-      expect(el.querySelector('.inventory-item__name')?.textContent?.trim()).toBe('Chainmail');
+      expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Chainmail');
     });
 
     it('renders armor base score stat', () => {
-      const stats = el.querySelectorAll('.inventory-item__stat');
+      const stats = el.querySelectorAll('.equip-stat');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
       expect(texts.some(t => t?.includes('5'))).toBe(true);
     });
@@ -130,15 +130,15 @@ describe('InventoryItemRow', () => {
     });
 
     it('renders loot name', () => {
-      expect(el.querySelector('.inventory-item__name')?.textContent?.trim()).toBe('Health Potion');
+      expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Health Potion');
     });
 
     it('renders consumable badge for consumable loot', () => {
-      expect(el.querySelector('.consumable-badge')).toBeTruthy();
+      expect(el.querySelector('.equipment-card__badge')).toBeTruthy();
     });
 
     it('renders cost tags', () => {
-      const stats = el.querySelectorAll('.inventory-item__stat');
+      const stats = el.querySelectorAll('.equip-stat');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
       expect(texts).toContain('2g');
     });
@@ -217,7 +217,7 @@ describe('InventoryItemRow', () => {
       host.equipState.set('primary');
       fixture.detectChanges();
 
-      const badge = el.querySelector('.equipped-badge');
+      const badge = el.querySelector('.equipment-card__badge');
       expect(badge?.textContent?.trim()).toBe('Primary');
     });
 
@@ -225,7 +225,7 @@ describe('InventoryItemRow', () => {
       host.equipState.set('secondary');
       fixture.detectChanges();
 
-      const badge = el.querySelector('.equipped-badge');
+      const badge = el.querySelector('.equipment-card__badge');
       expect(badge?.textContent?.trim()).toBe('Secondary');
     });
 
@@ -284,7 +284,7 @@ describe('InventoryItemRow', () => {
       host.equipState.set(true);
       fixture.detectChanges();
 
-      expect(el.querySelector('.equipped-badge')?.textContent?.trim()).toBe('Equipped');
+      expect(el.querySelector('.equipment-card__badge')?.textContent?.trim()).toBe('Equipped');
     });
 
     it('emits equipClicked when equip clicked', () => {
@@ -320,7 +320,7 @@ describe('InventoryItemRow', () => {
       host.itemType.set('weapon');
       fixture.detectChanges();
 
-      const badge = el.querySelector('.tier-badge');
+      const badge = el.querySelector('.equipment-card__sub-badge');
       expect(badge?.textContent?.trim()).toBe('T2');
     });
 
@@ -329,7 +329,7 @@ describe('InventoryItemRow', () => {
       host.itemType.set('weapon');
       fixture.detectChanges();
 
-      expect(el.querySelector('.tier-badge')).toBeNull();
+      expect(el.querySelector('.equipment-card__sub-badge')).toBeNull();
     });
 
     it('does not render tier inside the stats row for weapons', () => {
@@ -337,7 +337,7 @@ describe('InventoryItemRow', () => {
       host.itemType.set('weapon');
       fixture.detectChanges();
 
-      const stats = Array.from(el.querySelectorAll('.inventory-item__stat')).map(s => s.textContent?.trim());
+      const stats = Array.from(el.querySelectorAll('.equip-stat')).map(s => s.textContent?.trim());
       expect(stats.some(t => t?.startsWith('T'))).toBe(false);
     });
 
@@ -346,7 +346,7 @@ describe('InventoryItemRow', () => {
       host.itemType.set('armor');
       fixture.detectChanges();
 
-      const badge = el.querySelector('.tier-badge');
+      const badge = el.querySelector('.equipment-card__sub-badge');
       expect(badge?.textContent?.trim()).toBe('T3');
     });
   });

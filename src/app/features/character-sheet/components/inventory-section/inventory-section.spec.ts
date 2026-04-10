@@ -16,8 +16,7 @@ import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character
       [activePrimaryWeapon]="activePrimaryWeapon()"
       [activeSecondaryWeapon]="activeSecondaryWeapon()"
       [activeArmor]="activeArmor()"
-      [canEquipPrimary]="canEquipPrimary()"
-      [canEquipSecondary]="canEquipSecondary()"
+      [weaponConstraints]="weaponConstraints()"
       [canEquipArmorSlot]="canEquipArmorSlot()"
       [errorMessage]="errorMessage()"
       (removeItem)="onRemoveItem($event)"
@@ -35,8 +34,11 @@ class TestHost {
   activePrimaryWeapon = signal<WeaponDisplay | null>(null);
   activeSecondaryWeapon = signal<WeaponDisplay | null>(null);
   activeArmor = signal<ArmorDisplay | null>(null);
-  canEquipPrimary = signal(true);
-  canEquipSecondary = signal(true);
+  weaponConstraints = signal<{ primarySlotOccupied: boolean; secondarySlotOccupied: boolean; twoHandedEquipped: boolean } | null>({
+    primarySlotOccupied: false,
+    secondarySlotOccupied: false,
+    twoHandedEquipped: false,
+  });
   canEquipArmorSlot = signal(true);
   errorMessage = signal<string | null>(null);
   removeEvents: { type: string; inventoryEntryId: number }[] = [];
@@ -92,7 +94,7 @@ describe('InventorySection', () => {
   });
 
   it('renders weapon items in the weapons panel', () => {
-    expect(el.querySelector('.inventory-item__name')?.textContent?.trim()).toBe('Dagger');
+    expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Dagger');
   });
 
   it('switches to armor tab on click', () => {
@@ -118,7 +120,7 @@ describe('InventorySection', () => {
     armorTab.click();
     fixture.detectChanges();
 
-    expect(el.querySelector('.inventory-item__name')?.textContent?.trim()).toBe('Chain Mail');
+    expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Chain Mail');
   });
 
   it('switches to loot tab on click', () => {

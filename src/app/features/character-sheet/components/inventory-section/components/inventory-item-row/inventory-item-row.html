@@ -7,65 +7,15 @@
     </div>
   </div>
 } @else {
-  <div class="inventory-item">
-    <div class="inventory-item__header">
-      <span class="inventory-item__name">{{ item().name }}</span>
-      @if (itemType() === 'weapon' && weaponSlot()) {
-        <span class="equipped-badge">{{ weaponSlot() === 'primary' ? 'Primary' : 'Secondary' }}</span>
-      }
-      @if (itemType() === 'armor' && isArmorEquipped()) {
-        <span class="equipped-badge">Equipped</span>
-      }
-      @if (loot(); as lootItem) {
-        @if (lootItem.isConsumable) {
-          <span class="consumable-badge">Consumable</span>
-        }
-      }
-      @if (weapon(); as w) {
-        @if (w.tier) {
-          <span class="tier-badge">T{{ w.tier }}</span>
-        }
-      }
-      @if (armor(); as a) {
-        @if (a.tier) {
-          <span class="tier-badge">T{{ a.tier }}</span>
-        }
-      }
-      @if (isOwner() && canRemove()) {
-        <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
-      }
-    </div>
-
-    @if (weapon(); as w) {
-      <div class="inventory-item__stats">
-        @if (w.damage) {
-          <span class="inventory-item__stat">{{ w.damage }}</span>
-        }
-        @if (w.range) {
-          <span class="inventory-item__stat">{{ w.range }}</span>
-        }
-        @if (w.burden) {
-          <span class="inventory-item__stat">{{ w.burden }}</span>
-        }
-      </div>
-    }
-
-    @if (armor(); as a) {
-      <div class="inventory-item__stats">
-        <span class="inventory-item__stat">Score: {{ a.baseScore }}</span>
-      </div>
-    }
-
-    @if (loot(); as lootItem) {
-      <div class="inventory-item__stats">
-        @for (tag of lootItem.costTags; track tag) {
-          <span class="inventory-item__stat">{{ tag }}</span>
-        }
-      </div>
-    }
-
-    @if (isOwner() && itemType() === 'weapon') {
-      <div class="card-swap-action">
+  <div class="inventory-row">
+    <app-equipment-card
+      [name]="cardName()"
+      [badge]="cardBadge() ?? ''"
+      [subBadge]="cardSubBadge() ?? ''"
+      [stats]="cardStats()"
+      [features]="cardFeatures()" />
+    <div class="inventory-row__actions">
+      @if (isOwner() && itemType() === 'weapon') {
         @if (weaponSlot()) {
           <button class="card-swap-btn card-swap-btn--vault"
                   (click)="onUnequipClick()"
@@ -74,23 +24,20 @@
           </button>
         } @else {
           <button class="card-swap-btn card-swap-btn--equip"
-                  [disabled]="!canEquipPrimary()"
+                  [disabled]="!canEquipAsPrimary()"
                   (click)="onEquipClick('primary')"
                   [attr.aria-label]="'Equip ' + item().name + ' as primary'">
             <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Primary
           </button>
           <button class="card-swap-btn card-swap-btn--equip"
-                  [disabled]="!canEquipSecondary()"
+                  [disabled]="!canEquipAsSecondary()"
                   (click)="onEquipClick('secondary')"
                   [attr.aria-label]="'Equip ' + item().name + ' as secondary'">
             <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Secondary
           </button>
         }
-      </div>
-    }
-
-    @if (isOwner() && itemType() === 'armor') {
-      <div class="card-swap-action">
+      }
+      @if (isOwner() && itemType() === 'armor') {
         @if (isArmorEquipped()) {
           <button class="card-swap-btn card-swap-btn--vault"
                   (click)="onUnequipClick()"
@@ -108,7 +55,10 @@
             <span class="card-swap-hint">Unequip current armor first</span>
           }
         }
-      </div>
-    }
+      }
+      @if (isOwner() && canRemove()) {
+        <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
+      }
+    </div>
   </div>
 }

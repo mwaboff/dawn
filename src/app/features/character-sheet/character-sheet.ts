@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
-import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-view.model';
+import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
@@ -87,17 +87,38 @@ export class CharacterSheet implements OnInit {
     return this.isOwner() && sheet !== null && sheet.level >= 10;
   });
 
-  readonly canEquipPrimaryWeapon = computed(() => {
+  private readonly weaponEquipConstraints = computed(() => {
     const raw = this.rawSheet();
-    if (!raw) return false;
-    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'PRIMARY');
+    const weapons = raw?.inventoryWeapons ?? [];
+    const primarySlotOccupied = weapons.some(w => w.slot === 'PRIMARY');
+    const secondarySlotOccupied = weapons.some(w => w.slot === 'SECONDARY');
+    const twoHandedEquipped = weapons.some(
+      w => (w.slot === 'PRIMARY' || w.slot === 'SECONDARY') && w.weapon?.burden === 'TWO_HANDED'
+    );
+    return { primarySlotOccupied, secondarySlotOccupied, twoHandedEquipped };
+  });
+
+  readonly weaponConstraints = computed(() => this.weaponEquipConstraints());
+
+  readonly canEquipPrimaryWeapon = computed(() => {
+    const c = this.weaponEquipConstraints();
+    return !c.primarySlotOccupied && !c.twoHandedEquipped;
   });
 
   readonly canEquipSecondaryWeapon = computed(() => {
-    const raw = this.rawSheet();
-    if (!raw) return false;
-    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'SECONDARY');
+    const c = this.weaponEquipConstraints();
+    return !c.secondarySlotOccupied && !c.twoHandedEquipped;
   });
+
+  canEquipWeaponInSlot(weapon: WeaponDisplay, slot: 'primary' | 'secondary'): boolean {
+    const c = this.weaponEquipConstraints();
+    if (weapon.burden === 'TWO_HANDED') {
+      return slot === 'primary' && !c.primarySlotOccupied && !c.secondarySlotOccupied && !c.twoHandedEquipped;
+    }
+    if (c.twoHandedEquipped) return false;
+    if (slot === 'primary') return !c.primarySlotOccupied;
+    return !c.secondarySlotOccupied;
+  }
 
   readonly canEquipArmor = computed(() => {
     const raw = this.rawSheet();
@@ -228,6 +249,25 @@ export class CharacterSheet implements OnInit {
 
     const targetEntry = (raw.inventoryWeapons ?? []).find(w => w.id === event.inventoryEntryId);
     if (!targetEntry || targetEntry.equipped) return;
+
+    const { primarySlotOccupied, secondarySlotOccupied, twoHandedEquipped } = this.weaponEquipConstraints();
+    const isTwoHanded = targetEntry.weapon?.burden === 'TWO_HANDED';
+
+    let ruleError: string | null = null;
+    if (isTwoHanded && (event.slot === 'secondary' || primarySlotOccupied || secondarySlotOccupied || twoHandedEquipped)) {
+      ruleError = 'Two-handed weapons need both slots free. Unequip your other weapon first.';
+    } else if (twoHandedEquipped) {
+      ruleError = 'A two-handed weapon is already equipped. Unequip it before equipping another weapon.';
+    } else if (event.slot === 'primary' && primarySlotOccupied) {
+      ruleError = 'Unequip your current primary weapon before equipping a new one.';
+    } else if (event.slot === 'secondary' && secondarySlotOccupied) {
+      ruleError = 'Unequip your current secondary weapon before equipping a new one.';
+    }
+
+    if (ruleError) {
+      this.inventoryError.set(ruleError);
+      return;
+    }
 
     const apiSlot = event.slot === 'primary' ? 'PRIMARY' as const : 'SECONDARY' as const;
     const updatedWeapons = (raw.inventoryWeapons ?? []).map(w => {
