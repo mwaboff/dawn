@@ -5,12 +5,13 @@ import { EquipmentCard, EquipmentStat } from './equipment-card';
 import { FeatureDisplay } from '../../models/character-sheet-view.model';
 
 @Component({
-  template: `<app-equipment-card [name]="name()" [badge]="badge()" [stats]="stats()" [features]="features()" />`,
+  template: `<app-equipment-card [name]="name()" [badge]="badge()" [subBadge]="subBadge()" [stats]="stats()" [features]="features()" />`,
   imports: [EquipmentCard],
 })
 class TestHost {
   name = signal('Longsword');
   badge = signal<string | undefined>('Primary');
+  subBadge = signal<string | undefined>(undefined);
   stats = signal<EquipmentStat[]>([
     { label: 'damage', value: '1d8+2' },
     { label: 'range', value: 'Melee' },
@@ -50,6 +51,17 @@ describe('EquipmentCard', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.equipment-card__badge')).toBeFalsy();
+  });
+
+  it('displays the sub-badge when provided', () => {
+    host.subBadge.set('T2');
+    fixture.detectChanges();
+
+    expect(el.querySelector('.equipment-card__sub-badge')?.textContent?.trim()).toBe('T2');
+  });
+
+  it('hides the sub-badge when not provided', () => {
+    expect(el.querySelector('.equipment-card__sub-badge')).toBeFalsy();
   });
 
   it('renders stats', () => {

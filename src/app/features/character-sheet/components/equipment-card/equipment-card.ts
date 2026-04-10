@@ -17,6 +17,7 @@ export interface EquipmentStat {
 export class EquipmentCard {
   readonly name = input.required<string>();
   readonly badge = input<string>();
+  readonly subBadge = input<string>();
   readonly stats = input<EquipmentStat[]>([]);
   readonly features = input<FeatureDisplay[]>([]);
 }

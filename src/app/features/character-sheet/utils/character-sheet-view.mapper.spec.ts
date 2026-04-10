@@ -505,4 +505,149 @@ describe('mapToCharacterSheetView', () => {
       expect(result.proficiency.hasModifier).toBe(false);
     });
   });
+
+  describe('inventory entry mapping', () => {
+    it('propagates tier for inventory weapon', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 10, weaponId: 1, equipped: false,
+          weapon: { id: 1, name: 'Sword', tier: 2, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryWeapons[0].tier).toBe(2);
+    });
+
+    it('propagates tier for inventory armor', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{
+          id: 11, armorId: 2, equipped: false,
+          armor: { id: 2, name: 'Plate', tier: 4, baseScore: 5, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryArmors[0].tier).toBe(4);
+    });
+
+    it('propagates tier for active primary weapon', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 20, weaponId: 3, equipped: true, slot: 'PRIMARY',
+          weapon: { id: 3, name: 'Axe', tier: 3, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.tier).toBe(3);
+    });
+
+    it('propagates tier for active armor', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{
+          id: 21, armorId: 4, equipped: true,
+          armor: { id: 4, name: 'Brigandine', tier: 2, baseScore: 3, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activeArmor?.tier).toBe(2);
+    });
+
+    it('propagates inventoryEntryId for inventory weapon and preserves catalog id', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 99, weaponId: 5, equipped: false,
+          weapon: { id: 5, name: 'Dagger', features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryWeapons[0].inventoryEntryId).toBe(99);
+      expect(result.inventoryWeapons[0].id).toBe(5);
+    });
+
+    it('preserves distinct inventoryEntryIds when weapons share a weaponId', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [
+          {
+            id: 101, weaponId: 7, equipped: false,
+            weapon: { id: 7, name: 'Shortbow', features: [] },
+          },
+          {
+            id: 102, weaponId: 7, equipped: false,
+            weapon: { id: 7, name: 'Shortbow', features: [] },
+          },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryWeapons).toHaveLength(2);
+      expect(result.inventoryWeapons.map(w => w.inventoryEntryId)).toEqual([101, 102]);
+      expect(result.inventoryWeapons.map(w => w.id)).toEqual([7, 7]);
+    });
+
+    it('preserves distinct inventoryEntryIds when armors share an armorId', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [
+          {
+            id: 201, armorId: 9, equipped: false,
+            armor: { id: 9, name: 'Leather', baseScore: 3, features: [] },
+          },
+          {
+            id: 202, armorId: 9, equipped: false,
+            armor: { id: 9, name: 'Leather', baseScore: 3, features: [] },
+          },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryArmors).toHaveLength(2);
+      expect(result.inventoryArmors.map(a => a.inventoryEntryId)).toEqual([201, 202]);
+      expect(result.inventoryArmors.map(a => a.id)).toEqual([9, 9]);
+    });
+
+    it('preserves distinct inventoryEntryIds when loot items share a lootId', () => {
+      const sheet = makeSheet({
+        inventoryItems: [
+          {
+            id: 301, lootId: 15,
+            loot: { id: 15, name: 'Potion', isConsumable: true },
+          },
+          {
+            id: 302, lootId: 15,
+            loot: { id: 15, name: 'Potion', isConsumable: true },
+          },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryItems).toHaveLength(2);
+      expect(result.inventoryItems.map(i => i.inventoryEntryId)).toEqual([301, 302]);
+      expect(result.inventoryItems.map(i => i.id)).toEqual([15, 15]);
+    });
+
+    it('propagates inventoryEntryId for loot and preserves catalog id', () => {
+      const sheet = makeSheet({
+        inventoryItems: [{
+          id: 50, lootId: 8,
+          loot: { id: 8, name: 'Potion', isConsumable: true },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryItems[0].inventoryEntryId).toBe(50);
+      expect(result.inventoryItems[0].id).toBe(8);
+    });
+  });
 });

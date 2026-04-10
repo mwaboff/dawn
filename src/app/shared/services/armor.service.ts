@@ -12,6 +12,13 @@ export interface ArmorOptions {
   tier?: number;
 }
 
+export interface PaginatedArmors {
+  items: ArmorResponse[];
+  currentPage: number;
+  totalPages: number;
+  totalElements: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ArmorService {
   private readonly http = inject(HttpClient);
@@ -33,6 +40,28 @@ export class ArmorService {
       .get<PaginatedResponse<ArmorResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => ({
         cards: response.content.map(mapArmorResponseToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
+  }
+
+  getArmorsRaw(options: ArmorOptions = {}): Observable<PaginatedArmors> {
+    const { page = 0, size = 20, tier } = options;
+
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'expansion,features,costTags,modifiers');
+
+    if (tier !== undefined) {
+      params = params.set('tier', tier);
+    }
+
+    return this.http
+      .get<PaginatedResponse<ArmorResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        items: response.content,
         currentPage: response.currentPage,
         totalPages: response.totalPages,
         totalElements: response.totalElements,

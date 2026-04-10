@@ -1,4 +1,18 @@
-<h2 class="inventory-section__title">Inventory</h2>
+<div class="inventory-section__header">
+  <h2 class="inventory-section__title">Inventory</h2>
+  @if (isOwner()) {
+    <button class="add-btn" (click)="toggleAddPanel()" [attr.aria-expanded]="addPanelOpen()" [attr.aria-label]="'Add ' + (activeItemType() === 'weapon' ? 'weapon' : activeItemType() === 'armor' ? 'armor' : 'loot') + ' to inventory'">
+      + Add
+    </button>
+  }
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="inventory-error" role="alert">
+    <span class="inventory-error__text">{{ msg }}</span>
+    <button class="inventory-error__dismiss" (click)="onDismissError()" aria-label="Dismiss error">&#x2715;</button>
+  </div>
+}
 
 <div class="inventory-tabs" role="tablist" aria-label="Inventory categories">
   <button class="inventory-tab" role="tab"
@@ -33,26 +47,31 @@
   </button>
 </div>
 
+<app-inventory-add-panel
+  [itemType]="activeItemType()"
+  [open]="addPanelOpen()"
+  (itemAdded)="onItemAdded($event)"
+  (closed)="onAddPanelClosed()" />
+
 @switch (activeTab()) {
   @case ('weapons') {
     <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel">
       @if (weapons().length > 0) {
         <div class="inventory-group__list">
-          @for (weapon of weapons(); track weapon.id) {
-            <div class="inventory-item">
-              <span class="inventory-item__name">{{ weapon.name }}</span>
-              <div class="inventory-item__stats">
-                @if (weapon.damage) {
-                  <span class="inventory-item__stat">{{ weapon.damage }}</span>
-                }
-                @if (weapon.range) {
-                  <span class="inventory-item__stat">{{ weapon.range }}</span>
-                }
-                @if (weapon.burden) {
-                  <span class="inventory-item__stat">{{ weapon.burden }}</span>
-                }
-              </div>
-            </div>
+          @for (weapon of weapons(); track weapon.inventoryEntryId) {
+            <app-inventory-item-row
+              [item]="weapon"
+              itemType="weapon"
+              [isOwner]="isOwner()"
+              [equipState]="getWeaponEquipState(weapon)"
+              [confirming]="confirmingRemoveEntryId() === weapon.inventoryEntryId"
+              [canEquipAsPrimary]="canEquipWeaponAsPrimary(weapon)"
+              [canEquipAsSecondary]="canEquipWeaponAsSecondary(weapon)"
+              (removeClicked)="onRemoveClicked(weapon.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('weapon', weapon.inventoryEntryId)"
+              (removeCancelled)="onRemoveCancelled()"
+              (equipClicked)="onEquipWeaponClicked(weapon, $event)"
+              (unequipClicked)="onUnequipWeaponClicked(getWeaponEquipState(weapon) === 'primary' ? 'primary' : 'secondary')" />
           }
         </div>
       } @else {
@@ -64,13 +83,19 @@
     <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel">
       @if (armors().length > 0) {
         <div class="inventory-group__list">
-          @for (armor of armors(); track armor.id) {
-            <div class="inventory-item">
-              <span class="inventory-item__name">{{ armor.name }}</span>
-              <div class="inventory-item__stats">
-                <span class="inventory-item__stat">Score: {{ armor.baseScore }}</span>
-              </div>
-            </div>
+          @for (armor of armors(); track armor.inventoryEntryId) {
+            <app-inventory-item-row
+              [item]="armor"
+              itemType="armor"
+              [isOwner]="isOwner()"
+              [equipState]="isArmorEntryEquipped(armor)"
+              [confirming]="confirmingRemoveEntryId() === armor.inventoryEntryId"
+              [canEquipArmor]="canEquipArmorSlot()"
+              (removeClicked)="onRemoveClicked(armor.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('armor', armor.inventoryEntryId)"
+              (removeCancelled)="onRemoveCancelled()"
+              (equipClicked)="onEquipArmorClicked(armor)"
+              (unequipClicked)="onUnequipArmorClicked()" />
           }
         </div>
       } @else {
@@ -82,18 +107,16 @@
     <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel">
       @if (items().length > 0) {
         <div class="inventory-group__list">
-          @for (item of items(); track item.id) {
-            <div class="inventory-item">
-              <span class="inventory-item__name">{{ item.name }}</span>
-              <div class="inventory-item__stats">
-                @if (item.isConsumable) {
-                  <span class="inventory-item__stat">Consumable</span>
-                }
-                @for (tag of item.costTags; track tag) {
-                  <span class="inventory-item__stat">{{ tag }}</span>
-                }
-              </div>
-            </div>
+          @for (item of items(); track item.inventoryEntryId) {
+            <app-inventory-item-row
+              [item]="item"
+              itemType="loot"
+              [isOwner]="isOwner()"
+              [equipState]="null"
+              [confirming]="confirmingRemoveEntryId() === item.inventoryEntryId"
+              (removeClicked)="onRemoveClicked(item.inventoryEntryId)"
+              (removeConfirmed)="onRemoveConfirmed('loot', item.inventoryEntryId)"
+              (removeCancelled)="onRemoveCancelled()" />
           }
         </div>
       } @else {

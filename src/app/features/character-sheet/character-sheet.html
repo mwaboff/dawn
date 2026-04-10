@@ -526,165 +526,24 @@
     </section>
 
     <section class="inventory-section" aria-label="Inventory">
-      <h2 class="inventory-section__title">Inventory</h2>
-
-      <div class="inventory-tabs" role="tablist" aria-label="Inventory categories">
-        <button class="inventory-tab" role="tab"
-                [class.inventory-tab--active]="activeInventoryTab() === 'weapons'"
-                [attr.aria-selected]="activeInventoryTab() === 'weapons'"
-                aria-controls="inventory-panel-weapons"
-                (click)="selectInventoryTab('weapons')">
-          Weapons
-          @if (sheet.inventoryWeapons.length > 0) {
-            <span class="inventory-tab__count">{{ sheet.inventoryWeapons.length }}</span>
-          }
-        </button>
-        <button class="inventory-tab" role="tab"
-                [class.inventory-tab--active]="activeInventoryTab() === 'armor'"
-                [attr.aria-selected]="activeInventoryTab() === 'armor'"
-                aria-controls="inventory-panel-armor"
-                (click)="selectInventoryTab('armor')">
-          Armor
-          @if (sheet.inventoryArmors.length > 0) {
-            <span class="inventory-tab__count">{{ sheet.inventoryArmors.length }}</span>
-          }
-        </button>
-        <button class="inventory-tab" role="tab"
-                [class.inventory-tab--active]="activeInventoryTab() === 'loot'"
-                [attr.aria-selected]="activeInventoryTab() === 'loot'"
-                aria-controls="inventory-panel-loot"
-                (click)="selectInventoryTab('loot')">
-          Loot
-          @if (sheet.inventoryItems.length > 0) {
-            <span class="inventory-tab__count">{{ sheet.inventoryItems.length }}</span>
-          }
-        </button>
-      </div>
-
-      @switch (activeInventoryTab()) {
-        @case ('weapons') {
-          <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel">
-            @if (sheet.inventoryWeapons.length > 0) {
-              <div class="inventory-group__list">
-                @for (weapon of sheet.inventoryWeapons; track weapon.id) {
-                  <div class="inventory-item">
-                    <div class="inventory-item__header">
-                      <span class="inventory-item__name">{{ weapon.name }}</span>
-                      @if (isWeaponEquipped(weapon.id); as slot) {
-                        <span class="equipped-badge">{{ slot === 'primary' ? 'Primary' : 'Secondary' }}</span>
-                      }
-                    </div>
-                    <div class="inventory-item__stats">
-                      @if (weapon.damage) {
-                        <span class="inventory-item__stat">{{ weapon.damage }}</span>
-                      }
-                      @if (weapon.range) {
-                        <span class="inventory-item__stat">{{ weapon.range }}</span>
-                      }
-                      @if (weapon.burden) {
-                        <span class="inventory-item__stat">{{ weapon.burden }}</span>
-                      }
-                    </div>
-                    @if (isOwner()) {
-                      <div class="card-swap-action">
-                        @if (isWeaponEquipped(weapon.id); as slot) {
-                          <button class="card-swap-btn card-swap-btn--vault"
-                                  (click)="onUnequipWeapon(slot === 'primary' ? 'primary' : 'secondary')"
-                                  aria-label="Unequip {{ weapon.name }}">
-                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
-                          </button>
-                        } @else {
-                          <button class="card-swap-btn card-swap-btn--equip"
-                                  [disabled]="!canEquipPrimaryWeapon()"
-                                  (click)="onEquipWeapon(weapon.id, 'primary')"
-                                  aria-label="Equip {{ weapon.name }} as primary">
-                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Primary
-                          </button>
-                          <button class="card-swap-btn card-swap-btn--equip"
-                                  [disabled]="!canEquipSecondaryWeapon()"
-                                  (click)="onEquipWeapon(weapon.id, 'secondary')"
-                                  aria-label="Equip {{ weapon.name }} as secondary">
-                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip Secondary
-                          </button>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="empty-state">No weapons in inventory.</p>
-            }
-          </div>
-        }
-        @case ('armor') {
-          <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel">
-            @if (sheet.inventoryArmors.length > 0) {
-              <div class="inventory-group__list">
-                @for (armor of sheet.inventoryArmors; track armor.id) {
-                  <div class="inventory-item">
-                    <div class="inventory-item__header">
-                      <span class="inventory-item__name">{{ armor.name }}</span>
-                      @if (isArmorEquipped(armor.id)) {
-                        <span class="equipped-badge">Equipped</span>
-                      }
-                    </div>
-                    <div class="inventory-item__stats">
-                      <span class="inventory-item__stat">Score: {{ armor.baseScore }}</span>
-                    </div>
-                    @if (isOwner()) {
-                      <div class="card-swap-action">
-                        @if (isArmorEquipped(armor.id)) {
-                          <button class="card-swap-btn card-swap-btn--vault"
-                                  (click)="onUnequipArmor()"
-                                  aria-label="Unequip {{ armor.name }}">
-                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
-                          </button>
-                        } @else {
-                          <button class="card-swap-btn card-swap-btn--equip"
-                                  [disabled]="!canEquipArmor()"
-                                  (click)="onEquipArmor(armor.id)"
-                                  aria-label="Equip {{ armor.name }}">
-                            <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
-                          </button>
-                          @if (!canEquipArmor()) {
-                            <span class="card-swap-hint">Unequip current armor first</span>
-                          }
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="empty-state">No armor in inventory.</p>
-            }
-          </div>
-        }
-        @case ('loot') {
-          <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel">
-            @if (sheet.inventoryItems.length > 0) {
-              <div class="inventory-group__list">
-                @for (item of sheet.inventoryItems; track item.id) {
-                  <div class="inventory-item">
-                    <span class="inventory-item__name">{{ item.name }}</span>
-                    <div class="inventory-item__stats">
-                      @if (item.isConsumable) {
-                        <span class="inventory-item__stat">Consumable</span>
-                      }
-                      @for (tag of item.costTags; track tag) {
-                        <span class="inventory-item__stat">{{ tag }}</span>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="empty-state">No loot in inventory.</p>
-            }
-          </div>
-        }
-      }
+      <app-inventory-section
+        [weapons]="sheet.inventoryWeapons"
+        [armors]="sheet.inventoryArmors"
+        [items]="sheet.inventoryItems"
+        [isOwner]="isOwner()"
+        [activePrimaryWeapon]="sheet.activePrimaryWeapon"
+        [activeSecondaryWeapon]="sheet.activeSecondaryWeapon"
+        [activeArmor]="sheet.activeArmor"
+        [weaponConstraints]="weaponConstraints()"
+        [canEquipArmorSlot]="canEquipArmor()"
+        [errorMessage]="inventoryError()"
+        (addItem)="onAddInventoryItem($event)"
+        (removeItem)="onRemoveInventoryItem($event)"
+        (equipWeapon)="onEquipWeapon($event)"
+        (unequipWeapon)="onUnequipWeapon($event.slot)"
+        (equipArmor)="onEquipArmor($event)"
+        (unequipArmor)="onUnequipArmor()"
+        (dismissError)="onDismissInventoryError()" />
     </section>
 
     @if (sheet.vaultDomainCards.length > 0) {

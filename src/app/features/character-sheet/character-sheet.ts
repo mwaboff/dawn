@@ -7,15 +7,32 @@ import { AuthService } from '../../core/services/auth.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
-import { CharacterSheetView, TRAIT_SUBSKILLS } from './models/character-sheet-view.model';
+import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
+import { InventorySection } from './components/inventory-section/inventory-section';
+import { WeaponResponse } from '../../shared/models/weapon-api.model';
+import { ArmorResponse } from '../../shared/models/armor-api.model';
+import { LootApiResponse } from '../../shared/models/loot-api.model';
+import {
+  WeaponResponse as CsWeaponResponse,
+  ArmorResponse as CsArmorResponse,
+  InventoryWeaponResponse,
+  InventoryArmorResponse,
+  InventoryLootResponse,
+  UpdateCharacterSheetRequest,
+} from '../create-character/models/character-sheet-api.model';
+import {
+  InventoryRemoveEvent,
+  InventoryEquipWeaponEvent,
+  InventoryEquipArmorEvent,
+} from './components/inventory-section/inventory-section';
 
 @Component({
   selector: 'app-character-sheet',
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -25,15 +42,16 @@ export class CharacterSheet implements OnInit {
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly characterSheet = signal<CharacterSheetView | null>(null);
+  readonly inventoryError = signal<string | null>(null);
   private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   private readonly expandedCardIds = signal<Set<number>>(new Set());
+  private nextTempInventoryId = -1;
 
   private readonly localHpMarked = signal<number | null>(null);
   private readonly localStressMarked = signal<number | null>(null);
   private readonly localHopeMarked = signal<number | null>(null);
   private readonly localArmorMarked = signal<number | null>(null);
   private readonly localGoldAdjustment = signal(0);
-  readonly activeInventoryTab = signal<'weapons' | 'armor' | 'loot'>('weapons');
   private readonly swapInFlight = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
@@ -67,6 +85,45 @@ export class CharacterSheet implements OnInit {
   readonly canLevelDown = computed(() => {
     const sheet = this.characterSheet();
     return this.isOwner() && sheet !== null && sheet.level >= 10;
+  });
+
+  private readonly weaponEquipConstraints = computed(() => {
+    const raw = this.rawSheet();
+    const weapons = raw?.inventoryWeapons ?? [];
+    const primarySlotOccupied = weapons.some(w => w.slot === 'PRIMARY');
+    const secondarySlotOccupied = weapons.some(w => w.slot === 'SECONDARY');
+    const twoHandedEquipped = weapons.some(
+      w => (w.slot === 'PRIMARY' || w.slot === 'SECONDARY') && w.weapon?.burden === 'TWO_HANDED'
+    );
+    return { primarySlotOccupied, secondarySlotOccupied, twoHandedEquipped };
+  });
+
+  readonly weaponConstraints = computed(() => this.weaponEquipConstraints());
+
+  readonly canEquipPrimaryWeapon = computed(() => {
+    const c = this.weaponEquipConstraints();
+    return !c.primarySlotOccupied && !c.twoHandedEquipped;
+  });
+
+  readonly canEquipSecondaryWeapon = computed(() => {
+    const c = this.weaponEquipConstraints();
+    return !c.secondarySlotOccupied && !c.twoHandedEquipped;
+  });
+
+  canEquipWeaponInSlot(weapon: WeaponDisplay, slot: 'primary' | 'secondary'): boolean {
+    const c = this.weaponEquipConstraints();
+    if (weapon.burden === 'TWO_HANDED') {
+      return slot === 'primary' && !c.primarySlotOccupied && !c.secondarySlotOccupied && !c.twoHandedEquipped;
+    }
+    if (c.twoHandedEquipped) return false;
+    if (slot === 'primary') return !c.primarySlotOccupied;
+    return !c.secondarySlotOccupied;
+  }
+
+  readonly canEquipArmor = computed(() => {
+    const raw = this.rawSheet();
+    if (!raw) return false;
+    return !(raw.inventoryArmors ?? []).some(a => a.equipped);
   });
 
   ngOnInit(): void {
@@ -159,10 +216,6 @@ export class CharacterSheet implements OnInit {
     this.goldSave$.next();
   }
 
-  selectInventoryTab(tab: 'weapons' | 'armor' | 'loot'): void {
-    this.activeInventoryTab.set(tab);
-  }
-
   canEquipCard(): boolean {
     const sheet = this.characterSheet();
     return sheet !== null && sheet.equippedDomainCards.length < sheet.maxEquippedDomainCards;
@@ -190,33 +243,35 @@ export class CharacterSheet implements OnInit {
     return (raw.inventoryArmors ?? []).some(a => a.armorId === armorId && a.equipped);
   }
 
-  canEquipPrimaryWeapon(): boolean {
-    const raw = this.rawSheet();
-    if (!raw) return false;
-    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'PRIMARY');
-  }
-
-  canEquipSecondaryWeapon(): boolean {
-    const raw = this.rawSheet();
-    if (!raw) return false;
-    return !(raw.inventoryWeapons ?? []).some(w => w.slot === 'SECONDARY');
-  }
-
-  canEquipArmor(): boolean {
-    const raw = this.rawSheet();
-    if (!raw) return false;
-    return !(raw.inventoryArmors ?? []).some(a => a.equipped);
-  }
-
-  onEquipWeapon(weaponId: number, slot: 'primary' | 'secondary'): void {
+  onEquipWeapon(event: InventoryEquipWeaponEvent): void {
     const raw = this.rawSheet();
     if (!raw || this.swapInFlight()) return;
 
-    if (this.isWeaponEquipped(weaponId)) return;
+    const targetEntry = (raw.inventoryWeapons ?? []).find(w => w.id === event.inventoryEntryId);
+    if (!targetEntry || targetEntry.equipped) return;
 
-    const apiSlot = slot === 'primary' ? 'PRIMARY' as const : 'SECONDARY' as const;
+    const { primarySlotOccupied, secondarySlotOccupied, twoHandedEquipped } = this.weaponEquipConstraints();
+    const isTwoHanded = targetEntry.weapon?.burden === 'TWO_HANDED';
+
+    let ruleError: string | null = null;
+    if (isTwoHanded && (event.slot === 'secondary' || primarySlotOccupied || secondarySlotOccupied || twoHandedEquipped)) {
+      ruleError = 'Two-handed weapons need both slots free. Unequip your other weapon first.';
+    } else if (twoHandedEquipped) {
+      ruleError = 'A two-handed weapon is already equipped. Unequip it before equipping another weapon.';
+    } else if (event.slot === 'primary' && primarySlotOccupied) {
+      ruleError = 'Unequip your current primary weapon before equipping a new one.';
+    } else if (event.slot === 'secondary' && secondarySlotOccupied) {
+      ruleError = 'Unequip your current secondary weapon before equipping a new one.';
+    }
+
+    if (ruleError) {
+      this.inventoryError.set(ruleError);
+      return;
+    }
+
+    const apiSlot = event.slot === 'primary' ? 'PRIMARY' as const : 'SECONDARY' as const;
     const updatedWeapons = (raw.inventoryWeapons ?? []).map(w => {
-      if (w.weaponId === weaponId) {
+      if (w.id === event.inventoryEntryId) {
         return { ...w, equipped: true, slot: apiSlot };
       }
       return w;
@@ -228,18 +283,14 @@ export class CharacterSheet implements OnInit {
     this.swapInFlight.set(true);
 
     this.characterSheetService
-      .updateCharacterSheet(raw.id, {
-        inventoryWeapons: updatedWeapons.map(w => ({
-          weaponId: w.weaponId,
-          equipped: w.equipped,
-          ...(w.slot ? { slot: w.slot } : {}),
-        })),
-      })
+      .updateCharacterSheet(raw.id, { inventoryWeapons: this.serializeInventory(updatedRaw).inventoryWeapons })
       .subscribe({
-        next: () => this.swapInFlight.set(false),
+        next: () => {
+          this.inventoryError.set(null);
+          this.swapInFlight.set(false);
+        },
         error: () => {
-          this.rawSheet.set(raw);
-          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.handleInventoryError('Could not equip weapon. Please try again.', raw);
           this.swapInFlight.set(false);
         },
       });
@@ -263,29 +314,25 @@ export class CharacterSheet implements OnInit {
     this.swapInFlight.set(true);
 
     this.characterSheetService
-      .updateCharacterSheet(raw.id, {
-        inventoryWeapons: updatedWeapons.map(w => ({
-          weaponId: w.weaponId,
-          equipped: w.equipped,
-          ...(w.slot ? { slot: w.slot } : {}),
-        })),
-      })
+      .updateCharacterSheet(raw.id, { inventoryWeapons: this.serializeInventory(updatedRaw).inventoryWeapons })
       .subscribe({
-        next: () => this.swapInFlight.set(false),
+        next: () => {
+          this.inventoryError.set(null);
+          this.swapInFlight.set(false);
+        },
         error: () => {
-          this.rawSheet.set(raw);
-          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.handleInventoryError('Could not unequip weapon. Please try again.', raw);
           this.swapInFlight.set(false);
         },
       });
   }
 
-  onEquipArmor(armorId: number): void {
+  onEquipArmor(event: InventoryEquipArmorEvent): void {
     const raw = this.rawSheet();
     if (!raw || this.swapInFlight()) return;
 
     const updatedArmors = (raw.inventoryArmors ?? []).map(a => {
-      if (a.armorId === armorId) {
+      if (a.id === event.inventoryEntryId) {
         return { ...a, equipped: true };
       }
       return a;
@@ -297,17 +344,14 @@ export class CharacterSheet implements OnInit {
     this.swapInFlight.set(true);
 
     this.characterSheetService
-      .updateCharacterSheet(raw.id, {
-        inventoryArmors: updatedArmors.map(a => ({
-          armorId: a.armorId,
-          equipped: a.equipped,
-        })),
-      })
+      .updateCharacterSheet(raw.id, { inventoryArmors: this.serializeInventory(updatedRaw).inventoryArmors })
       .subscribe({
-        next: () => this.swapInFlight.set(false),
+        next: () => {
+          this.inventoryError.set(null);
+          this.swapInFlight.set(false);
+        },
         error: () => {
-          this.rawSheet.set(raw);
-          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.handleInventoryError('Could not equip armor. Please try again.', raw);
           this.swapInFlight.set(false);
         },
       });
@@ -328,20 +372,129 @@ export class CharacterSheet implements OnInit {
     this.swapInFlight.set(true);
 
     this.characterSheetService
-      .updateCharacterSheet(raw.id, {
-        inventoryArmors: updatedArmors.map(a => ({
-          armorId: a.armorId,
-          equipped: a.equipped,
-        })),
-      })
+      .updateCharacterSheet(raw.id, { inventoryArmors: this.serializeInventory(updatedRaw).inventoryArmors })
       .subscribe({
-        next: () => this.swapInFlight.set(false),
+        next: () => {
+          this.inventoryError.set(null);
+          this.swapInFlight.set(false);
+        },
         error: () => {
-          this.rawSheet.set(raw);
-          this.characterSheet.set(mapToCharacterSheetView(raw));
+          this.handleInventoryError('Could not unequip armor. Please try again.', raw);
           this.swapInFlight.set(false);
         },
       });
+  }
+
+  onAddInventoryItem(event: { type: 'weapon' | 'armor' | 'loot'; item: unknown }): void {
+    const raw = this.rawSheet();
+    if (!raw) return;
+
+    const tempEntryId = this.nextTempInventoryId--;
+    let updatedRaw: CharacterSheetResponse;
+    let payload: UpdateCharacterSheetRequest;
+
+    if (event.type === 'weapon') {
+      const weapon = event.item as WeaponResponse;
+      const newEntry: InventoryWeaponResponse = {
+        id: tempEntryId,
+        weaponId: weapon.id,
+        equipped: false,
+        weapon: weapon as unknown as CsWeaponResponse,
+      };
+      const updatedWeapons = [...(raw.inventoryWeapons ?? []), newEntry];
+      updatedRaw = { ...raw, inventoryWeapons: updatedWeapons };
+      payload = { inventoryWeapons: this.serializeInventory(updatedRaw).inventoryWeapons };
+    } else if (event.type === 'armor') {
+      const armor = event.item as ArmorResponse;
+      const newEntry: InventoryArmorResponse = {
+        id: tempEntryId,
+        armorId: armor.id,
+        equipped: false,
+        armor: armor as unknown as CsArmorResponse,
+      };
+      const updatedArmors = [...(raw.inventoryArmors ?? []), newEntry];
+      updatedRaw = { ...raw, inventoryArmors: updatedArmors };
+      payload = { inventoryArmors: this.serializeInventory(updatedRaw).inventoryArmors };
+    } else {
+      const loot = event.item as LootApiResponse;
+      const newEntry: InventoryLootResponse = { id: tempEntryId, lootId: loot.id, loot };
+      const updatedItems = [...(raw.inventoryItems ?? []), newEntry];
+      updatedRaw = { ...raw, inventoryItems: updatedItems };
+      payload = { inventoryItems: this.serializeInventory(updatedRaw).inventoryItems };
+    }
+
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+
+    this.characterSheetService.updateCharacterSheet(raw.id, payload).subscribe({
+      next: () => {
+        this.inventoryError.set(null);
+        this.loadCharacterSheet(raw.id);
+      },
+      error: () => {
+        this.handleInventoryError(`Could not add ${event.type}. Please try again.`, raw);
+      },
+    });
+  }
+
+  onRemoveInventoryItem(event: InventoryRemoveEvent): void {
+    const raw = this.rawSheet();
+    if (!raw) return;
+
+    let updatedRaw: CharacterSheetResponse;
+    let payload: UpdateCharacterSheetRequest;
+
+    if (event.type === 'weapon') {
+      const updatedWeapons = (raw.inventoryWeapons ?? []).filter(w => w.id !== event.inventoryEntryId);
+      updatedRaw = { ...raw, inventoryWeapons: updatedWeapons };
+      payload = { inventoryWeapons: this.serializeInventory(updatedRaw).inventoryWeapons };
+    } else if (event.type === 'armor') {
+      const updatedArmors = (raw.inventoryArmors ?? []).filter(a => a.id !== event.inventoryEntryId);
+      updatedRaw = { ...raw, inventoryArmors: updatedArmors };
+      payload = { inventoryArmors: this.serializeInventory(updatedRaw).inventoryArmors };
+    } else {
+      const updatedItems = (raw.inventoryItems ?? []).filter(i => i.id !== event.inventoryEntryId);
+      updatedRaw = { ...raw, inventoryItems: updatedItems };
+      payload = { inventoryItems: this.serializeInventory(updatedRaw).inventoryItems };
+    }
+
+    this.rawSheet.set(updatedRaw);
+    this.characterSheet.set(mapToCharacterSheetView(updatedRaw));
+
+    this.characterSheetService.updateCharacterSheet(raw.id, payload).subscribe({
+      next: () => {
+        this.inventoryError.set(null);
+        this.loadCharacterSheet(raw.id);
+      },
+      error: () => {
+        this.handleInventoryError(`Could not remove ${event.type}. Please try again.`, raw);
+      },
+    });
+  }
+
+  private serializeInventory(raw: CharacterSheetResponse): Pick<UpdateCharacterSheetRequest, 'inventoryWeapons' | 'inventoryArmors' | 'inventoryItems'> {
+    return {
+      inventoryWeapons: (raw.inventoryWeapons ?? []).map(w => ({
+        weaponId: w.weaponId,
+        equipped: w.equipped,
+        ...(w.slot ? { slot: w.slot } : {}),
+      })),
+      inventoryArmors: (raw.inventoryArmors ?? []).map(a => ({
+        armorId: a.armorId,
+        equipped: a.equipped,
+      })),
+      inventoryItems: (raw.inventoryItems ?? []).map(i => ({ lootId: i.lootId })),
+    };
+  }
+
+  private handleInventoryError(message: string, previousRaw: CharacterSheetResponse): void {
+    this.rawSheet.set(previousRaw);
+    this.characterSheet.set(mapToCharacterSheetView(previousRaw));
+    this.inventoryError.set(message);
+  }
+
+  onDismissInventoryError(): void {
+    this.inventoryError.set(null);
   }
 
   private swapDomainCard(cardId: number, direction: 'to-vault' | 'to-equipped'): void {

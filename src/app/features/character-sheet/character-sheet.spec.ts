@@ -754,7 +754,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(unequippedResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'primary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'primary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activePrimaryWeapon?.id).toBe(100);
@@ -770,7 +770,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(weaponResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(101, 'secondary');
+      component.onEquipWeapon({ weaponId: 101, inventoryEntryId: 101, slot: 'secondary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeSecondaryWeapon?.id).toBe(101);
@@ -806,7 +806,7 @@ describe('CharacterSheet', () => {
       createComponent('1', of(unequippedArmorResponse));
       fixture.detectChanges();
 
-      component.onEquipArmor(200);
+      component.onEquipArmor({ armorId: 200, inventoryEntryId: 200 });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeArmor?.id).toBe(200);
@@ -843,7 +843,7 @@ describe('CharacterSheet', () => {
       mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'primary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'primary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activePrimaryWeapon).toBeNull();
@@ -860,11 +860,11 @@ describe('CharacterSheet', () => {
       expect(sheet.activeArmor?.id).toBe(200);
     });
 
-    it('onEquipWeapon prevents equipping same weapon to both slots', () => {
+    it('onEquipWeapon prevents re-equipping an already-equipped entry', () => {
       createComponent('1', of(weaponResponse));
       fixture.detectChanges();
 
-      component.onEquipWeapon(100, 'secondary');
+      component.onEquipWeapon({ weaponId: 100, inventoryEntryId: 100, slot: 'secondary' });
 
       const sheet = component.characterSheet()!;
       expect(sheet.activeSecondaryWeapon).toBeNull();
@@ -876,9 +876,9 @@ describe('CharacterSheet', () => {
       fixture.detectChanges();
 
       const el: HTMLElement = fixture.nativeElement;
-      const badge = el.querySelector('.equipped-badge');
-      expect(badge).toBeTruthy();
-      expect(badge?.textContent?.trim()).toBe('Primary');
+      const badges = Array.from(el.querySelectorAll('app-inventory-item-row .equipment-card__badge'));
+      const primary = badges.find(b => b.textContent?.trim() === 'Primary');
+      expect(primary).toBeTruthy();
     });
 
     it('renders equip buttons for unequipped weapon', () => {
@@ -898,6 +898,76 @@ describe('CharacterSheet', () => {
       const unequipBtn = el.querySelector('.card-swap-btn--vault');
       expect(unequipBtn).toBeTruthy();
       expect(unequipBtn?.textContent).toContain('Unequip');
+    });
+  });
+
+  describe('inventory add/remove', () => {
+    it('allows adding the same weapon twice and calls the service each time', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+
+      const weapon = { id: 42, name: 'Shortbow' } as unknown;
+      component.onAddInventoryItem({ type: 'weapon', item: weapon });
+      component.onAddInventoryItem({ type: 'weapon', item: weapon });
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(2);
+    });
+
+    it('clears inventoryError and refetches the sheet on successful add', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+      mockService.getCharacterSheet.mockClear();
+
+      component.onAddInventoryItem({ type: 'weapon', item: { id: 42, name: 'Shortbow' } as unknown });
+
+      expect(component.inventoryError()).toBeNull();
+      expect(mockService.getCharacterSheet).toHaveBeenCalled();
+    });
+
+    it('sets inventoryError and rolls back optimistic state on add failure', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+      component.onAddInventoryItem({ type: 'armor', item: { id: 42, name: 'Plate' } as unknown });
+
+      expect(component.inventoryError()).toContain('Could not add armor');
+      expect(component.characterSheet()!.inventoryArmors.length).toBe(0);
+    });
+
+    it('removes a weapon entry by inventoryEntryId and filters out only that row', () => {
+      const responseWithTwoBows: CharacterSheetResponse = {
+        ...mockResponse,
+        inventoryWeapons: [
+          { id: 101, weaponId: 7, equipped: false, weapon: { id: 7, name: 'Shortbow' } as never },
+          { id: 102, weaponId: 7, equipped: false, weapon: { id: 7, name: 'Shortbow' } as never },
+        ],
+      };
+      createComponent('1', of(responseWithTwoBows));
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(responseWithTwoBows));
+
+      component.onRemoveInventoryItem({ type: 'weapon', inventoryEntryId: 101 });
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        inventoryWeapons: [
+          { weaponId: 7, equipped: false },
+        ],
+      });
+    });
+
+    it('onDismissInventoryError clears the error signal', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+      component.onAddInventoryItem({ type: 'loot', item: { id: 1, name: 'Potion' } as unknown });
+      expect(component.inventoryError()).not.toBeNull();
+
+      component.onDismissInventoryError();
+
+      expect(component.inventoryError()).toBeNull();
     });
   });
 
@@ -999,6 +1069,388 @@ describe('CharacterSheet', () => {
         hopeMarked: 2,
         stressMarked: 0,
       });
+    });
+  });
+
+  describe('weapon equip validation', () => {
+    const oneHandedWeapon = (id: number, name: string) => ({
+      id,
+      name,
+      trait: 'Strength',
+      range: 'Melee',
+      burden: 'ONE_HANDED',
+      features: [],
+    });
+
+    const twoHandedWeapon = (id: number, name: string) => ({
+      id,
+      name,
+      trait: 'Strength',
+      range: 'Melee',
+      burden: 'TWO_HANDED',
+      features: [],
+    });
+
+    const sheetWithWeapons = (
+      inventoryWeapons: NonNullable<CharacterSheetResponse['inventoryWeapons']>,
+    ): CharacterSheetResponse => ({ ...mockResponse, inventoryWeapons });
+
+    it('weaponConstraints reports empty when no weapons equipped', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            { id: 500, weaponId: 500, equipped: false, weapon: oneHandedWeapon(500, 'Dagger') },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+
+      expect(component.weaponConstraints()).toEqual({
+        primarySlotOccupied: false,
+        secondarySlotOccupied: false,
+        twoHandedEquipped: false,
+      });
+    });
+
+    it('weaponConstraints reports primarySlotOccupied when a weapon is in PRIMARY', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 500,
+              weaponId: 500,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: oneHandedWeapon(500, 'Longsword'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+
+      const c = component.weaponConstraints();
+      expect(c.primarySlotOccupied).toBe(true);
+      expect(c.secondarySlotOccupied).toBe(false);
+      expect(c.twoHandedEquipped).toBe(false);
+    });
+
+    it('weaponConstraints reports secondarySlotOccupied when a weapon is in SECONDARY', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 501,
+              weaponId: 501,
+              equipped: true,
+              slot: 'SECONDARY',
+              weapon: oneHandedWeapon(501, 'Dagger'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+
+      const c = component.weaponConstraints();
+      expect(c.primarySlotOccupied).toBe(false);
+      expect(c.secondarySlotOccupied).toBe(true);
+      expect(c.twoHandedEquipped).toBe(false);
+    });
+
+    it('weaponConstraints reports twoHandedEquipped when a TWO_HANDED weapon is equipped', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 502,
+              weaponId: 502,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: twoHandedWeapon(502, 'Greataxe'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+
+      const c = component.weaponConstraints();
+      expect(c.primarySlotOccupied).toBe(true);
+      expect(c.secondarySlotOccupied).toBe(false);
+      expect(c.twoHandedEquipped).toBe(true);
+    });
+
+    it('weaponConstraints reports both slots and two-handed flags correctly when both slots full', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 503,
+              weaponId: 503,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: oneHandedWeapon(503, 'Longsword'),
+            },
+            {
+              id: 504,
+              weaponId: 504,
+              equipped: true,
+              slot: 'SECONDARY',
+              weapon: twoHandedWeapon(504, 'Greatbow'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+
+      const c = component.weaponConstraints();
+      expect(c.primarySlotOccupied).toBe(true);
+      expect(c.secondarySlotOccupied).toBe(true);
+      expect(c.twoHandedEquipped).toBe(true);
+    });
+
+    it('rejects equipping a second primary weapon with rule 1 message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 600,
+              weaponId: 600,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: oneHandedWeapon(600, 'Longsword'),
+            },
+            {
+              id: 601,
+              weaponId: 601,
+              equipped: false,
+              weapon: oneHandedWeapon(601, 'Mace'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 601, inventoryEntryId: 601, slot: 'primary' });
+
+      expect(component.inventoryError()).toBe(
+        'Unequip your current primary weapon before equipping a new one.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a second secondary weapon with rule 2 message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 610,
+              weaponId: 610,
+              equipped: true,
+              slot: 'SECONDARY',
+              weapon: oneHandedWeapon(610, 'Dagger'),
+            },
+            {
+              id: 611,
+              weaponId: 611,
+              equipped: false,
+              weapon: oneHandedWeapon(611, 'Shortsword'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 611, inventoryEntryId: 611, slot: 'secondary' });
+
+      expect(component.inventoryError()).toBe(
+        'Unequip your current secondary weapon before equipping a new one.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a two-handed weapon when primary is occupied with rule 3a message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 620,
+              weaponId: 620,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: oneHandedWeapon(620, 'Longsword'),
+            },
+            {
+              id: 621,
+              weaponId: 621,
+              equipped: false,
+              weapon: twoHandedWeapon(621, 'Greataxe'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 621, inventoryEntryId: 621, slot: 'primary' });
+
+      expect(component.inventoryError()).toBe(
+        'Two-handed weapons need both slots free. Unequip your other weapon first.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a two-handed weapon when secondary is occupied with rule 3a message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 630,
+              weaponId: 630,
+              equipped: true,
+              slot: 'SECONDARY',
+              weapon: oneHandedWeapon(630, 'Dagger'),
+            },
+            {
+              id: 631,
+              weaponId: 631,
+              equipped: false,
+              weapon: twoHandedWeapon(631, 'Greataxe'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 631, inventoryEntryId: 631, slot: 'primary' });
+
+      expect(component.inventoryError()).toBe(
+        'Two-handed weapons need both slots free. Unequip your other weapon first.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a two-handed weapon to secondary slot with rule 3a message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 640,
+              weaponId: 640,
+              equipped: false,
+              weapon: twoHandedWeapon(640, 'Greatbow'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 640, inventoryEntryId: 640, slot: 'secondary' });
+
+      expect(component.inventoryError()).toBe(
+        'Two-handed weapons need both slots free. Unequip your other weapon first.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a one-handed weapon when a two-handed is already equipped with rule 3b message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 650,
+              weaponId: 650,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: twoHandedWeapon(650, 'Greataxe'),
+            },
+            {
+              id: 651,
+              weaponId: 651,
+              equipped: false,
+              weapon: oneHandedWeapon(651, 'Dagger'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 651, inventoryEntryId: 651, slot: 'primary' });
+
+      expect(component.inventoryError()).toBe(
+        'A two-handed weapon is already equipped. Unequip it before equipping another weapon.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('rejects equipping a one-handed weapon to secondary when a two-handed is already equipped with rule 3b message', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 660,
+              weaponId: 660,
+              equipped: true,
+              slot: 'PRIMARY',
+              weapon: twoHandedWeapon(660, 'Greataxe'),
+            },
+            {
+              id: 661,
+              weaponId: 661,
+              equipped: false,
+              weapon: oneHandedWeapon(661, 'Dagger'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+
+      component.onEquipWeapon({ weaponId: 661, inventoryEntryId: 661, slot: 'secondary' });
+
+      expect(component.inventoryError()).toBe(
+        'A two-handed weapon is already equipped. Unequip it before equipping another weapon.',
+      );
+      expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('allows equipping a one-handed primary weapon to an empty slot', () => {
+      createComponent(
+        '1',
+        of(
+          sheetWithWeapons([
+            {
+              id: 700,
+              weaponId: 700,
+              equipped: false,
+              weapon: oneHandedWeapon(700, 'Longsword'),
+            },
+          ]),
+        ),
+      );
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockClear();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+
+      component.onEquipWeapon({ weaponId: 700, inventoryEntryId: 700, slot: 'primary' });
+
+      expect(component.inventoryError()).toBeNull();
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -4,6 +4,9 @@
     @if (badge()) {
       <span class="equipment-card__badge">{{ badge() }}</span>
     }
+    @if (subBadge()) {
+      <span class="equipment-card__sub-badge">{{ subBadge() }}</span>
+    }
   </div>
   @if (stats().length > 0) {
     <div class="equipment-card__stats">
