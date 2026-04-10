@@ -8,7 +8,7 @@ import {
 import { SearchableEntityType, SearchFilters } from '../../models/search.model';
 import { ViewMode } from '../../reference';
 
-interface FilterOption {
+export interface FilterOption {
   value: string;
   label: string;
 }
@@ -114,6 +114,7 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
   ],
   DOMAIN_CARD: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
+    { kind: 'select', key: 'associatedDomainId', label: 'Domain', options: [{ value: '', label: 'Any Domain' }] },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
   SUBCLASS_CARD: [
@@ -134,13 +135,24 @@ export class FilterRail {
   readonly activeType = input<SearchableEntityType | null>(null);
   readonly filters = input<SearchFilters>({});
   readonly viewMode = input<ViewMode>('landing');
+  readonly domainOptions = input<FilterOption[]>([]);
 
   readonly filtersChange = output<SearchFilters>();
 
   readonly activeControls = computed<FilterControl[]>(() => {
     const type = this.activeType();
     if (!type) return UNIVERSAL_FILTERS;
-    return TYPE_FILTERS[type] ?? UNIVERSAL_FILTERS;
+    const controls = TYPE_FILTERS[type] ?? UNIVERSAL_FILTERS;
+    if (type === 'DOMAIN_CARD') {
+      const opts = this.domainOptions();
+      return controls.map(c => {
+        if (c.kind === 'select' && c.key === 'associatedDomainId') {
+          return { ...c, options: [{ value: '', label: 'Any Domain' }, ...opts] };
+        }
+        return c;
+      });
+    }
+    return controls;
   });
 
   getSelectValue(key: keyof SearchFilters): string {

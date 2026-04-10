@@ -14,7 +14,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { SearchableEntityType, SearchFilters } from '../../models/search.model';
 import { ViewMode } from '../../reference';
-import { FilterRail } from '../filter-rail/filter-rail';
+import { FilterRail, FilterOption } from '../filter-rail/filter-rail';
 
 const FOCUSABLE_SELECTORS =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -36,6 +36,7 @@ export class RefineSheet implements OnInit, AfterViewInit, OnDestroy {
   readonly activeType = input<SearchableEntityType | null>(null);
   readonly filters = input<SearchFilters>({});
   readonly viewMode = input<ViewMode>('landing');
+  readonly domainOptions = input<FilterOption[]>([]);
 
   readonly sheetClose = output<void>();
   readonly filtersChange = output<SearchFilters>();

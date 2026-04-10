@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
-import { FilterRail } from './filter-rail';
+import { FilterRail, FilterOption } from './filter-rail';
 import { SearchableEntityType, SearchFilters } from '../../models/search.model';
 import { ViewMode } from '../../reference';
 
@@ -10,6 +10,7 @@ import { ViewMode } from '../../reference';
       [activeType]="activeType()"
       [filters]="filters()"
       [viewMode]="viewMode()"
+      [domainOptions]="domainOptions()"
       (filtersChange)="onFiltersChange($event)"
     />
   `,
@@ -19,6 +20,7 @@ class TestHost {
   activeType = signal<SearchableEntityType | null>(null);
   filters = signal<SearchFilters>({});
   viewMode = signal<ViewMode>('landing');
+  domainOptions = signal<FilterOption[]>([]);
   lastFilters: SearchFilters | null = null;
   onFiltersChange(f: SearchFilters): void { this.lastFilters = f; }
 }
@@ -162,5 +164,80 @@ describe('FilterRail', () => {
     clearBtn.click();
 
     expect(host.lastFilters).toEqual({});
+  });
+
+  describe('DOMAIN_CARD type — domain filter', () => {
+    it('renders a Domain select when activeType is DOMAIN_CARD', () => {
+      host.activeType.set('DOMAIN_CARD');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Domain');
+      expect(el.querySelector('#filter-associatedDomainId')).toBeTruthy();
+    });
+
+    it('still renders tier and isOfficial filters for DOMAIN_CARD', () => {
+      host.activeType.set('DOMAIN_CARD');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Tier');
+      expect(el.textContent).toContain('Official content only');
+    });
+
+    it('shows only "Any Domain" option when domainOptions input is empty', () => {
+      host.activeType.set('DOMAIN_CARD');
+      host.domainOptions.set([]);
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-associatedDomainId') as HTMLSelectElement;
+      expect(select.options.length).toBe(1);
+      expect(select.options[0].textContent).toContain('Any Domain');
+    });
+
+    it('populates Domain select options from domainOptions input', () => {
+      host.activeType.set('DOMAIN_CARD');
+      host.domainOptions.set([
+        { value: '11', label: 'Arcana' },
+        { value: '12', label: 'Blade' },
+        { value: '13', label: 'Midnight' },
+      ]);
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-associatedDomainId') as HTMLSelectElement;
+      const labels = Array.from(select.options).map(o => o.textContent?.trim());
+      expect(labels).toEqual(['Any Domain', 'Arcana', 'Blade', 'Midnight']);
+    });
+
+    it('emits numeric associatedDomainId filter when Domain is selected', () => {
+      host.activeType.set('DOMAIN_CARD');
+      host.domainOptions.set([
+        { value: '11', label: 'Arcana' },
+        { value: '12', label: 'Blade' },
+      ]);
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector('#filter-associatedDomainId') as HTMLSelectElement;
+      select.value = '12';
+      select.dispatchEvent(new Event('change'));
+
+      expect(host.lastFilters).toEqual({ associatedDomainId: 12 });
+    });
+
+    it('removes associatedDomainId filter when select is cleared', () => {
+      host.activeType.set('DOMAIN_CARD');
+      host.domainOptions.set([{ value: '11', label: 'Arcana' }]);
+      host.filters.set({ associatedDomainId: 11 });
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector('#filter-associatedDomainId') as HTMLSelectElement;
+      select.value = '';
+      select.dispatchEvent(new Event('change'));
+
+      expect(host.lastFilters).toEqual({});
+    });
+
+    it('does not render Domain select for non-DOMAIN_CARD types', () => {
+      host.activeType.set('WEAPON');
+      host.domainOptions.set([{ value: '11', label: 'Arcana' }]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('#filter-associatedDomainId')).toBeNull();
+    });
   });
 });

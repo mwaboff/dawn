@@ -1,14 +1,15 @@
 import { Component, ChangeDetectionStrategy, signal, computed, effect, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime } from 'rxjs';
 import { SearchService } from '../../shared/services/search.service';
+import { DomainService } from '../../shared/services/domain.service';
 import { CodexBrowseService, BrowsableType } from './services/codex-browse.service';
 import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from './models/search.model';
 import { MappedSearchResult, mapSearchResult } from './mappers/search-result.mapper';
 import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
 import { TypeFacetTabs } from './components/type-facet-tabs/type-facet-tabs';
-import { FilterRail } from './components/filter-rail/filter-rail';
+import { FilterRail, FilterOption } from './components/filter-rail/filter-rail';
 import { RefineSheet } from './components/refine-sheet/refine-sheet';
 import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
 import { ResultSection } from './components/result-section/result-section';
@@ -46,6 +47,7 @@ export class Reference implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
   private readonly browseService = inject(CodexBrowseService);
+  private readonly domainService = inject(DomainService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly query = signal('');
@@ -58,6 +60,7 @@ export class Reference implements OnInit {
   readonly totalPages = signal(0);
   readonly loading = signal(false);
   readonly error = signal(false);
+  readonly domainOptions = signal<FilterOption[]>([]);
 
   readonly viewMode = computed<ViewMode>(() => {
     const q = this.query().trim();
@@ -125,7 +128,7 @@ export class Reference implements OnInit {
 
   constructor() {
     this.searchInput$
-      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .pipe(debounceTime(250), takeUntilDestroyed(this.destroyRef))
       .subscribe(q => this.runSearch(q));
     effect(() => {
       const mode = this.viewMode();
@@ -145,6 +148,18 @@ export class Reference implements OnInit {
     if (p['type']) this.activeType.set(p['type'] as SearchableEntityType);
     if (p['page']) this.currentPage.set(Number(p['page']));
     if (p['filters']) { try { this.filters.set(JSON.parse(p['filters'] as string) as SearchFilters); } catch { /* ignore */ } }
+    this.loadDomainOptions();
+  }
+
+  private loadDomainOptions(): void {
+    this.domainService.getDomainsPaginated(0, 100)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => this.domainOptions.set(
+          res.cards.map(c => ({ value: String(c.id), label: c.name })),
+        ),
+        error: () => { /* silent — filter select simply won't appear */ },
+      });
   }
 
   onQueryChanged(q: string): void {

@@ -6,6 +6,7 @@ import { provideRouter, ActivatedRoute, Router } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { Reference } from './reference';
 import { SearchService } from '../../shared/services/search.service';
+import { DomainService } from '../../shared/services/domain.service';
 import { CodexBrowseService } from './services/codex-browse.service';
 import { SearchResponse } from './models/search.model';
 
@@ -17,9 +18,19 @@ const MOCK_BROWSE_RESULT = {
   cards: [], adversaries: [], currentPage: 0, totalPages: 1, totalElements: 0,
 };
 
+const MOCK_DOMAIN_LIST = {
+  cards: [
+    { id: 11, name: 'Arcana', description: '', cardType: 'domain' as const },
+    { id: 12, name: 'Blade', description: '', cardType: 'domain' as const },
+    { id: 13, name: 'Midnight', description: '', cardType: 'domain' as const },
+  ],
+  currentPage: 0, totalPages: 1, totalElements: 3,
+};
+
 function buildTestBed(queryParams: Record<string, string> = {}) {
   const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
   const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
+  const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
   const routeStub = { snapshot: { queryParams } };
 
   TestBed.configureTestingModule({
@@ -30,6 +41,7 @@ function buildTestBed(queryParams: Record<string, string> = {}) {
       provideRouter([]),
       { provide: SearchService, useValue: searchSpy },
       { provide: CodexBrowseService, useValue: browseSpy },
+      { provide: DomainService, useValue: domainSpy },
       { provide: ActivatedRoute, useValue: routeStub },
     ],
   });
@@ -37,7 +49,7 @@ function buildTestBed(queryParams: Record<string, string> = {}) {
   const router = TestBed.inject(Router);
   vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-  return { searchSpy, browseSpy, router };
+  return { searchSpy, browseSpy, domainSpy, router };
 }
 
 describe('Reference', () => {
@@ -45,12 +57,14 @@ describe('Reference', () => {
   let component: Reference;
   let searchSpy: { search: ReturnType<typeof vi.fn> };
   let browseSpy: { browse: ReturnType<typeof vi.fn> };
+  let domainSpy: { getDomainsPaginated: ReturnType<typeof vi.fn> };
   let router: Router;
 
   beforeEach(async () => {
     const spies = buildTestBed();
     searchSpy = spies.searchSpy;
     browseSpy = spies.browseSpy;
+    domainSpy = spies.domainSpy;
     router = spies.router;
 
     fixture = TestBed.createComponent(Reference);
@@ -611,6 +625,81 @@ describe('Reference', () => {
     });
   });
 
+  describe('re-search on type/filter change (no distinctUntilChanged)', () => {
+    it('re-runs search with type filter when user clicks a type facet after searching', () => {
+      vi.useFakeTimers();
+      component.query.set('dragon');
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      expect(searchSpy.search).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'dragon' }),
+      );
+      searchSpy.search.mockClear();
+
+      component.onTypeSelected('SUBCLASS_CARD');
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+
+      expect(searchSpy.search).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'dragon', types: ['SUBCLASS_CARD'] }),
+      );
+    });
+
+    it('re-runs search when a filter changes in focusedSearch (query unchanged)', () => {
+      vi.useFakeTimers();
+      component.query.set('dragon');
+      component.activeType.set('ADVERSARY');
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      searchSpy.search.mockClear();
+
+      component.onFiltersChanged({ adversaryType: 'BOSS' });
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+
+      expect(searchSpy.search).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'dragon', adversaryType: 'BOSS' }),
+      );
+    });
+
+    it('re-runs search when page changes (query unchanged)', () => {
+      vi.useFakeTimers();
+      component.query.set('dragon');
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      searchSpy.search.mockClear();
+
+      component.onPageChanged(2);
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+
+      expect(searchSpy.search).toHaveBeenCalledWith(
+        expect.objectContaining({ q: 'dragon', page: 2 }),
+      );
+    });
+  });
+
+  describe('domain options loading', () => {
+    it('calls DomainService.getDomainsPaginated on init', () => {
+      expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(0, 100);
+    });
+
+    it('populates domainOptions signal with loaded domains', () => {
+      expect(component.domainOptions()).toEqual([
+        { value: '11', label: 'Arcana' },
+        { value: '12', label: 'Blade' },
+        { value: '13', label: 'Midnight' },
+      ]);
+    });
+
+    it('leaves domainOptions empty when the domain request fails', () => {
+      domainSpy.getDomainsPaginated.mockReturnValue(throwError(() => new Error('boom')));
+      const f = TestBed.createComponent(Reference);
+      f.detectChanges();
+      expect(f.componentInstance.domainOptions()).toEqual([]);
+    });
+  });
+
   describe('state — rail dimming', () => {
     it('adds loading class to reference-rail when loading in mixedSearch', () => {
       component.query.set('sword');
@@ -634,6 +723,7 @@ describe('Reference — URL hydration with pre-set query params', () => {
   function buildHydrationTestBed(queryParams: Record<string, string>) {
     const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
     const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
+    const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
 
     TestBed.configureTestingModule({
       imports: [Reference],
@@ -643,6 +733,7 @@ describe('Reference — URL hydration with pre-set query params', () => {
         provideRouter([]),
         { provide: SearchService, useValue: searchSpy },
         { provide: CodexBrowseService, useValue: browseSpy },
+        { provide: DomainService, useValue: domainSpy },
         { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
       ],
     });
@@ -690,6 +781,7 @@ describe('Reference — refine sheet integration', () => {
   beforeEach(async () => {
     const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
     const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
+    const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
     const routeStub = { snapshot: { queryParams: {} } };
 
     TestBed.configureTestingModule({
@@ -700,6 +792,7 @@ describe('Reference — refine sheet integration', () => {
         provideRouter([]),
         { provide: SearchService, useValue: searchSpy },
         { provide: CodexBrowseService, useValue: browseSpy },
+        { provide: DomainService, useValue: domainSpy },
         { provide: ActivatedRoute, useValue: routeStub },
       ],
     });
