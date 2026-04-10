@@ -1,0 +1,16 @@
+<div class="landing-grid" role="list" aria-label="Browse by type">
+  @for (card of typeCards; track card.type) {
+    <button
+      class="type-card"
+      type="button"
+      role="listitem"
+      [attr.aria-label]="'Browse ' + card.label + ': ' + card.tagline"
+      (click)="onTypeClick(card.type)"
+    >
+      <div class="grain-overlay" aria-hidden="true"></div>
+      <span class="type-glyph" aria-hidden="true">{{ card.glyph }}</span>
+      <span class="type-label">{{ card.label }}</span>
+      <span class="type-tagline">{{ card.tagline }}</span>
+    </button>
+  }
+</div>

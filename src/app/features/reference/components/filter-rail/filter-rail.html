@@ -1,0 +1,43 @@
+<aside class="filter-rail" aria-label="Refine results">
+  <header class="rail-header">
+    <span class="rail-title">Refine</span>
+    @if (hasActiveFilters()) {
+      <button class="clear-btn" type="button" (click)="onClearAll()">Clear all</button>
+    }
+  </header>
+
+  <div class="controls">
+    @for (control of activeControls(); track control.key) {
+      @if (isSelectFilter(control)) {
+        <div class="control-group">
+          <label class="control-label" [attr.for]="'filter-' + control.key">
+            {{ control.label }}
+          </label>
+          <select
+            class="control-select"
+            [id]="'filter-' + control.key"
+            [value]="getSelectValue(control.key)"
+            (change)="onSelectChange(control.key, $event)"
+          >
+            @for (opt of control.options; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      } @else if (isCheckboxFilter(control)) {
+        <div class="control-group control-group--checkbox">
+          <label class="control-label control-label--checkbox" [attr.for]="'filter-' + control.key">
+            <input
+              type="checkbox"
+              class="control-checkbox"
+              [id]="'filter-' + control.key"
+              [checked]="isChecked(control.key)"
+              (change)="onCheckboxChange(control.key, $event)"
+            />
+            {{ control.label }}
+          </label>
+        </div>
+      }
+    }
+  </div>
+</aside>
