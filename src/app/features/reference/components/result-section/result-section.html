@@ -1,0 +1,34 @@
+<section class="result-section">
+  <header class="section-header">
+    <div class="section-title-row">
+      <h2 class="section-title">
+        <span class="section-illuminated" aria-hidden="true">{{ firstLetter() }}</span><span class="section-title-rest">{{ restOfLabel() | uppercase }}</span>
+      </h2>
+      <span class="section-count">· {{ totalCount() }} {{ totalCount() === 1 ? 'match' : 'matches' }}</span>
+    </div>
+    <div class="section-rule" aria-hidden="true"></div>
+  </header>
+
+  <ul class="section-cards" role="list">
+    @for (result of results(); track result.id) {
+      <li class="section-card-item">
+        @if (showBadges()) {
+          <span class="wax-seal" aria-hidden="true">{{ typeGlyph() }}</span>
+        }
+        @if (result.adversary) {
+          <app-adversary-card [adversary]="result.adversary" layout="wide" />
+        } @else if (result.card) {
+          <app-daggerheart-card [card]="result.card" layout="wide" />
+        }
+      </li>
+    }
+  </ul>
+
+  @if (showViewAll() && totalCount() > results().length) {
+    <div class="section-footer">
+      <button class="view-all-link" (click)="onViewAll()">
+        View all {{ totalCount() }} {{ typeLabel() }} ▸
+      </button>
+    </div>
+  }
+</section>

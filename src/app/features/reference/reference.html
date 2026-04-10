@@ -4,28 +4,133 @@
     <p class="reference-subtitle">Search the archives of adversaries, artifacts, &amp; ancient lore.</p>
   </header>
 
-  <div class="reference-search">
-    <input
-      class="reference-search-input"
-      type="text"
-      [value]="query()"
-      (input)="onQueryChanged($any($event.target).value)"
-      placeholder="Search the archives…"
-      aria-label="Search the archives"
+  <div class="reference-search-wrap">
+    <app-codex-search-bar
+      [query]="query()"
+      [placeholder]="searchPlaceholder()"
+      (queryChange)="onQueryChanged($event)"
     />
   </div>
 
-  <pre class="reference-debug">viewMode: {{ viewMode() }}</pre>
+  @switch (viewMode()) {
+    @case ('landing') {
+      <app-landing-type-grid (typeSelect)="onTypeSelected($event)" />
+    }
 
-  @if (loading()) {
-    <p class="reference-status">Loading…</p>
-  }
+    @case ('mixedSearch') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <aside class="reference-rail">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          @if (loading()) {
+            <p class="reference-status">Loading…</p>
+          } @else if (error()) {
+            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+          } @else if (mixedSections().length === 0) {
+            <p class="reference-empty-text">The archives fall silent. No matches found.</p>
+          } @else {
+            @for (section of mixedSections(); track section.type) {
+              <app-result-section
+                [type]="section.type"
+                [results]="section.results"
+                [totalCount]="section.totalCount"
+                [showViewAll]="true"
+                [showBadges]="true"
+                (viewAll)="onViewAll($event)"
+              />
+            }
+          }
+        </main>
+      </div>
+    }
 
-  @if (error()) {
-    <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
-  }
+    @case ('focusedSearch') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <aside class="reference-rail">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          <button class="back-to-all" (click)="onAllTypes()">← All types</button>
+          @if (loading()) {
+            <p class="reference-status">Loading…</p>
+          } @else if (error()) {
+            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+          } @else if (focusedResults().length === 0) {
+            <p class="reference-empty-text">The archives fall silent. No matches found.</p>
+          } @else {
+            <ul class="focused-cards" role="list">
+              @for (result of focusedResults(); track result.id) {
+                <li class="focused-card-item">
+                  @if (result.adversary) {
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" />
+                  } @else if (result.card) {
+                    <app-daggerheart-card [card]="result.card" layout="wide" />
+                  }
+                </li>
+              }
+            </ul>
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
+            />
+          }
+        </main>
+      </div>
+    }
 
-  @if (!loading() && !error() && viewMode() === 'landing') {
-    <p class="reference-status">Select a type or search to begin.</p>
+    @case ('focusedBrowse') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <aside class="reference-rail">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          <button class="back-to-all" (click)="onAllTypes()">← All types</button>
+          @if (loading()) {
+            <p class="reference-status">Loading…</p>
+          } @else if (error()) {
+            <p class="reference-status reference-status--error">Something went wrong. Please try again.</p>
+          } @else if (focusedResults().length === 0) {
+            <p class="reference-empty-text">No results match these filters.</p>
+          } @else {
+            <ul class="focused-cards" role="list">
+              @for (result of focusedResults(); track result.id) {
+                <li class="focused-card-item">
+                  @if (result.adversary) {
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" />
+                  } @else if (result.card) {
+                    <app-daggerheart-card [card]="result.card" layout="wide" />
+                  }
+                </li>
+              }
+            </ul>
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
+            />
+          }
+        </main>
+      </div>
+    }
   }
 </div>

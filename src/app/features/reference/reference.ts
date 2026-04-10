@@ -4,22 +4,39 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { SearchService } from '../../shared/services/search.service';
 import { CodexBrowseService, BrowsableType } from './services/codex-browse.service';
-import { BrowseResult, SearchFilters, SearchableEntityType } from './models/search.model';
+import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from './models/search.model';
 import { MappedSearchResult, mapSearchResult } from './mappers/search-result.mapper';
+import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
+import { TypeFacetTabs } from './components/type-facet-tabs/type-facet-tabs';
+import { FilterRail } from './components/filter-rail/filter-rail';
+import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
+import { ResultSection } from './components/result-section/result-section';
+import { PaginationControls } from './components/pagination-controls/pagination-controls';
+import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
+import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
 
 export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
+
+export interface MixedSection {
+  type: SearchableEntityType;
+  results: MappedSearchResult[];
+  totalCount: number;
+  topScore: number;
+}
 
 const TYPE_FROM_FILTER: Partial<Record<keyof SearchFilters, SearchableEntityType>> = {
   adversaryType: 'ADVERSARY', trait: 'WEAPON', range: 'WEAPON', burden: 'WEAPON',
   isConsumable: 'LOOT', domainCardType: 'DOMAIN_CARD', associatedDomainId: 'DOMAIN_CARD',
 };
 
+const MIXED_VIEW_CAP = 5;
+
 @Component({
   selector: 'app-reference',
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, LandingTypeGrid, ResultSection, PaginationControls, DaggerheartCard, AdversaryCard],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);
@@ -34,6 +51,7 @@ export class Reference implements OnInit {
   readonly currentPage = signal(0);
   readonly results = signal<MappedSearchResult[]>([]);
   readonly browseResult = signal<BrowseResult | null>(null);
+  readonly totalPages = signal(0);
   readonly loading = signal(false);
   readonly error = signal(false);
 
@@ -43,6 +61,50 @@ export class Reference implements OnInit {
     if (!q && !t) return 'landing';
     if (!q) return 'focusedBrowse';
     return t ? 'focusedSearch' : 'mixedSearch';
+  });
+
+  readonly mixedSections = computed<MixedSection[]>(() => {
+    const results = this.results();
+    const grouped = new Map<SearchableEntityType, MappedSearchResult[]>();
+    for (const r of results) {
+      const existing = grouped.get(r.type) ?? [];
+      grouped.set(r.type, [...existing, r]);
+    }
+    const sections: MixedSection[] = [];
+    for (const [type, items] of grouped.entries()) {
+      const topScore = Math.max(...items.map(i => i.relevanceScore ?? 0));
+      sections.push({ type, results: items.slice(0, MIXED_VIEW_CAP), totalCount: items.length, topScore });
+    }
+    return sections.sort((a, b) => b.topScore - a.topScore);
+  });
+
+  readonly focusedResults = computed<MappedSearchResult[]>(() => {
+    const mode = this.viewMode();
+    if (mode === 'focusedSearch') return this.results();
+    if (mode === 'focusedBrowse') {
+      const br = this.browseResult();
+      if (!br) return [];
+      return [
+        ...br.cards.map(card => ({ type: this.activeType()!, id: card.id, name: card.name, relevanceScore: null, card })),
+        ...br.adversaries.map(adv => ({ type: this.activeType()!, id: adv.id, name: adv.name, relevanceScore: null, adversary: adv })),
+      ];
+    }
+    return [];
+  });
+
+  readonly focusedTotalPages = computed<number>(() => {
+    const mode = this.viewMode();
+    if (mode === 'focusedBrowse') return this.browseResult()?.totalPages ?? 0;
+    return this.totalPages();
+  });
+
+  readonly searchPlaceholder = computed<string>(() => {
+    const type = this.activeType();
+    if (type) {
+      const label = this.typeLabelFor(type).toLowerCase();
+      return `Search within ${label}…`;
+    }
+    return 'Search the archives…';
   });
 
   private readonly searchInput$ = new Subject<string>();
@@ -96,6 +158,22 @@ export class Reference implements OnInit {
 
   onPageChanged(page: number): void { this.currentPage.set(page); this.syncUrl(); }
 
+  onViewAll(type: SearchableEntityType): void {
+    this.activeType.set(type);
+    this.currentPage.set(0);
+    this.syncUrl();
+  }
+
+  onAllTypes(): void {
+    this.activeType.set(null);
+    this.currentPage.set(0);
+    this.syncUrl();
+  }
+
+  typeLabelFor(type: SearchableEntityType): string {
+    return typeLabels[type] ?? type;
+  }
+
   private runSearch(q: string): void {
     if (q.length < 3) return;
     this.loading.set(true);
@@ -105,7 +183,11 @@ export class Reference implements OnInit {
       .search({ q, types: type ? [type] : undefined, ...this.filters(), page: this.currentPage() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: res => { this.results.set(res.results.map(mapSearchResult)); this.loading.set(false); },
+        next: res => {
+          this.results.set(res.results.map(mapSearchResult));
+          this.totalPages.set(res.totalPages);
+          this.loading.set(false);
+        },
         error: () => { this.error.set(true); this.loading.set(false); },
       });
   }
