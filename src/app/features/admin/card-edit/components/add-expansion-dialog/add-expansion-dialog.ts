@@ -1,17 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, output, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { ExpansionService } from '../../../../../shared/services/expansion.service';
 import { ExpansionOption } from '../../../../../shared/models/expansion-api.model';
-
-export interface CreateExpansionRequest {
-  name: string;
-  isPublished: boolean;
-}
-
-interface ExpansionServiceWithCreate extends ExpansionService {
-  createExpansion(request: CreateExpansionRequest): Observable<ExpansionOption>;
-}
 
 @Component({
   selector: 'app-add-expansion-dialog',
@@ -21,7 +11,7 @@ interface ExpansionServiceWithCreate extends ExpansionService {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AddExpansionDialog {
-  private readonly expansionService = inject(ExpansionService) as ExpansionServiceWithCreate;
+  private readonly expansionService = inject(ExpansionService);
 
   readonly created = output<ExpansionOption>();
   readonly cancelled = output<void>();
