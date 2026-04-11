@@ -1,0 +1,22 @@
+<div class="card-edit-toolbar">
+  <button type="button" class="btn btn--secondary" (click)="onBack()">Back to Cards</button>
+  <div class="toolbar-actions">
+    @if (saveSuccess()) {
+      <span class="save-success" role="alert">Saved successfully</span>
+    }
+    @if (error()) {
+      <span class="save-error" role="alert">{{ error() }}</span>
+    }
+    <button
+      type="button"
+      class="btn btn--primary"
+      [disabled]="!hasPendingChanges() || saving()"
+      (click)="onSave()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Changes
+      }
+    </button>
+  </div>
+</div>
