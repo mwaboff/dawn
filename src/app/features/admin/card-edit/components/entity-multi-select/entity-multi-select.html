@@ -1,0 +1,21 @@
+<div class="entity-multi-select panel">
+  @if (label()) {
+    <h4 class="form-label">{{ label() }}</h4>
+  }
+  @if (loading()) {
+    <p class="loading-text">Loading...</p>
+  } @else {
+    <div class="checkbox-list" [class.checkbox-list--scrollable]="options().length > 8">
+      @for (opt of options(); track opt.id) {
+        <label class="checkbox-row">
+          <input
+            type="checkbox"
+            [checked]="isSelected(opt.id)"
+            (change)="toggle(opt.id)"
+          />
+          <span>{{ opt.label }}</span>
+        </label>
+      }
+    </div>
+  }
+</div>
