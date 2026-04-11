@@ -1,189 +1,58 @@
 :host { display: block; }
 
-.adversary-card {
-  display: flex;
-  flex-flow: column;
-  border-radius: 12px;
-  background: linear-gradient(160deg, #2d2020, #231818 50%, #1a1010);
-  border: 1px solid #3a2020;
-  box-shadow: 0 4px 16px rgba(0,0,0,.5);
-  overflow: hidden;
-  font-family: var(--font-body);
-  color: #ddd0c2;
-}
+.adversary-card { display: flex; flex-flow: column; border-radius: 12px; background: linear-gradient(160deg, #2d2020, #231818 50%, #1a1010); border: 1px solid #3a2020; box-shadow: 0 4px 16px rgba(0,0,0,.5); overflow: hidden; font-family: var(--font-body); color: #ddd0c2; }
 
-.adversary-card__header {
-  padding: 1.25rem 1.5rem 1rem;
-  border-bottom: 1px solid rgba(199,64,64,.25);
-  background: linear-gradient(rgba(199,64,64,.08), transparent);
-}
+.adversary-card__header { padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid rgba(199,64,64,.25); background: linear-gradient(rgba(199,64,64,.08), transparent); }
+.adversary-card__header-main { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
 
-.adversary-card__header-main {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: .75rem;
-}
+.adversary-card__name { font-family: var(--font-display); font-weight: 900; margin: 0; font-size: 1.4rem; color: var(--color-text-light); letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
 
-.adversary-card__name {
-  font-family: var(--font-display);
-  font-weight: 900;
-  margin: 0;
-  font-size: 1.4rem;
-  color: var(--color-text-light);
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  line-height: 1.2;
-}
+.adversary-card__badges { display: flex; align-items: center; gap: .4rem; flex-shrink: 0; }
 
-.adversary-card__badges {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  flex-shrink: 0;
-}
+.adversary-card__type-badge { font-weight: 700; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: #c74040; background: rgba(199,64,64,.12); border: 1px solid rgba(199,64,64,.3); border-radius: 4px; padding: .2rem .5rem; }
 
-.adversary-card__type-badge {
-  font-weight: 700;
-  font-size: .7rem;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  color: #c74040;
-  background: rgba(199,64,64,.12);
-  border: 1px solid rgba(199,64,64,.3);
-  border-radius: 4px;
-  padding: .2rem .5rem;
-}
+.adversary-card__tier-badge { font-family: var(--font-display); font-weight: 700; font-size: .7rem; letter-spacing: .08em; color: var(--color-accent); background: rgba(212,160,86,.1); border: 1px solid rgba(212,160,86,.25); border-radius: 4px; padding: .2rem .45rem; }
 
-.adversary-card__tier-badge {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: .7rem;
-  letter-spacing: .08em;
-  color: var(--color-accent);
-  background: rgba(212,160,86,.1);
-  border: 1px solid rgba(212,160,86,.25);
-  border-radius: 4px;
-  padding: .2rem .45rem;
-}
+.adversary-card__body { padding: 1rem 1.5rem 1.25rem; display: flex; flex-flow: column; gap: .75rem; }
+.adversary-card__stats { display: flex; flex-wrap: wrap; gap: .5rem; }
 
-.adversary-card__body {
-  padding: 1rem 1.5rem 1.25rem;
-  display: flex;
-  flex-flow: column;
-  gap: .75rem;
-}
-
-.adversary-card__stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-
-.adversary-card__stat {
-  display: flex;
-  flex-flow: column;
-  align-items: center;
-  background: rgba(199,64,64,.07);
-  border: 1px solid rgba(199,64,64,.2);
-  border-radius: 6px;
-  padding: .35rem .65rem;
-  min-width: 52px;
-}
+.adversary-card__stat { display: flex; flex-flow: column; align-items: center; background: rgba(199,64,64,.07); border: 1px solid rgba(199,64,64,.2); border-radius: 6px; padding: .35rem .65rem; min-width: 52px; }
 
 .adversary-card__stat-label,
 .adversary-card__attack-label,
 .adversary-card__tactics-label,
-.adversary-card__threshold-label {
-  font-size: .7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
+.adversary-card__threshold-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
 
-.adversary-card__stat-label {
-  font-size: .65rem;
-  color: #c74040;
-  opacity: .85;
-}
-
-.adversary-card__attack-label {
-  color: #c74040;
-  display: block;
-  margin-bottom: .3rem;
-  opacity: .85;
-}
-
-.adversary-card__tactics-label {
-  color: var(--color-accent);
-  display: block;
-  margin-bottom: .3rem;
-  opacity: .8;
-}
-
-.adversary-card__threshold-label {
-  letter-spacing: .08em;
-  color: var(--color-accent);
-  opacity: .8;
-}
+.adversary-card__stat-label { font-size: .65rem; color: #c74040; opacity: .85; }
+.adversary-card__attack-label { color: #c74040; display: block; margin-bottom: .3rem; opacity: .85; }
+.adversary-card__tactics-label { color: var(--color-accent); display: block; margin-bottom: .3rem; opacity: .8; }
+.adversary-card__threshold-label { letter-spacing: .08em; color: var(--color-accent); opacity: .8; }
 
 .adversary-card__stat-value,
-.adversary-card__threshold-value {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--color-text-light);
-}
-
+.adversary-card__threshold-value { font-family: var(--font-display); font-weight: 700; color: var(--color-text-light); }
 .adversary-card__stat-value { line-height: 1.2; }
 .adversary-card__threshold-value { font-size: .95rem; }
 
-.adversary-card__thresholds {
-  display: flex;
-  gap: .5rem;
-}
-
-.adversary-card__threshold {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  background: rgba(80,80,80,.15);
-  border: 1px solid rgba(180,140,80,.2);
-  border-radius: 6px;
-  padding: .3rem .6rem;
-}
+.adversary-card__thresholds { display: flex; gap: .5rem; }
+.adversary-card__threshold { display: flex; align-items: center; gap: .4rem; background: rgba(80,80,80,.15); border: 1px solid rgba(180,140,80,.2); border-radius: 6px; padding: .3rem .6rem; }
 
 .adversary-card__attack,
-.adversary-card__features {
-  border-top: 1px solid rgba(199,64,64,.15);
-  padding-top: .5rem;
-}
-
+.adversary-card__features { border-top: 1px solid rgba(199,64,64,.15); padding-top: .5rem; }
 .adversary-card__attack { padding-top: .6rem; }
-
 .adversary-card__attack-details { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 
 .adversary-card__weapon-name,
-.adversary-card__attack-modifier {
-  font-family: var(--font-display);
-  font-weight: 600;
-}
-
+.adversary-card__attack-modifier { font-family: var(--font-display); font-weight: 600; }
 .adversary-card__weapon-name { font-size: .9rem; color: var(--color-text-light); letter-spacing: .04em; }
-
 .adversary-card__attack-range,
 .adversary-card__damage { font-size: .85rem; }
-
 .adversary-card__attack-range::before,
 .adversary-card__damage::before { content: '\00b7'; margin-right: .4rem; opacity: .5; }
-
 .adversary-card__attack-modifier { font-size: .85rem; color: var(--color-accent); }
 
 .adversary-card__tactics,
 .adversary-card__description-section { border-top: 1px solid rgba(212,160,86,.15); padding-top: .6rem; }
-
 .adversary-card__description-section { border-top-color: rgba(212,160,86,.1); }
-
 .adversary-card__tactics-text,
 .adversary-card__description { margin: 0; font-size: .95rem; line-height: 1.6; }
-
 .adversary-card__description { color: #b8a898; line-height: 1.65; font-style: italic; }

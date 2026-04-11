@@ -1,0 +1,8 @@
+<div class="codex-empty" role="status">
+  <p class="codex-empty__message">{{ message() }}</p>
+  @if (hasActiveFilters()) {
+    <button class="codex-empty__clear-btn" type="button" (click)="onClearFilters()">
+      Try clearing filters
+    </button>
+  }
+</div>

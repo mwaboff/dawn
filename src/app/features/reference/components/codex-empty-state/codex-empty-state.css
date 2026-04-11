@@ -1,0 +1,43 @@
+.codex-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  background: color-mix(in srgb, var(--color-parchment, #f5ede0) 8%, transparent);
+  border: 1px solid rgba(212, 160, 86, 0.15);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.codex-empty__message {
+  font-family: var(--font-body, 'Lora', serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: rgba(245, 230, 211, 0.55);
+  margin: 0;
+}
+
+.codex-empty__clear-btn {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent, #d4a056);
+  background: none;
+  border: 1px solid var(--color-accent, #d4a056);
+  border-radius: 4px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.codex-empty__clear-btn:hover {
+  background: rgba(212, 160, 86, 0.12);
+}
+
+.codex-empty__clear-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d4a056);
+  outline-offset: 2px;
+}

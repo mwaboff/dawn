@@ -1,0 +1,25 @@
+<div class="tab-strip-wrapper">
+  <div
+    #tabList
+    class="tab-strip"
+    role="tablist"
+    aria-label="Reference type"
+  >
+    @for (tab of tabs; track tab.type; let i = $index) {
+      <button
+        class="tab-btn"
+        role="tab"
+        [class.tab-btn--active]="isActive(tab)"
+        [attr.aria-selected]="isActive(tab)"
+        [attr.tabindex]="getTabIndex(i)"
+        [attr.aria-label]="tab.label"
+        (click)="onTabClick(tab)"
+        (keydown)="onKeydown($event, i)"
+      >
+        <span class="tab-glyph" aria-hidden="true">{{ tab.glyph }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
+      </button>
+    }
+  </div>
+  <div class="fade-mask" aria-hidden="true"></div>
+</div>

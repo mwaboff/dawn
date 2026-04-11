@@ -1,0 +1,42 @@
+<p class="sr-only" aria-live="polite">Press Cmd-K or Ctrl-K to focus the search bar.</p>
+
+<div class="search-panel">
+  <div class="grain-overlay" aria-hidden="true"></div>
+  <div class="search-row">
+    <span class="quill-glyph" aria-hidden="true">✒</span>
+    <label for="codex-search-input" class="sr-only">Search the archives</label>
+    <input
+      #searchInput
+      id="codex-search-input"
+      class="search-input"
+      type="search"
+      autocomplete="off"
+      [value]="getInternalQuery()"
+      [placeholder]="placeholder()"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+    <span class="kbd-hint" aria-hidden="true">
+      <kbd>⌘K</kbd>
+    </span>
+  </div>
+
+  @if (hasChips()) {
+    <div class="chip-row" role="group" aria-label="Active filters">
+      <hr class="chip-divider" aria-hidden="true" />
+      <div class="chips">
+        @for (chip of activeChips(); track chip.key) {
+          <button
+            class="filter-chip"
+            type="button"
+            [attr.aria-label]="'Remove filter: ' + chip.label"
+            (click)="onChipRemove(chip)"
+          >
+            <span class="chip-label">{{ chip.label }}</span>
+            <span class="chip-remove" aria-hidden="true">×</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

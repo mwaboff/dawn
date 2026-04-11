@@ -1,0 +1,33 @@
+<div class="refine-backdrop" (click)="onBackdropClick()" aria-hidden="true"></div>
+
+<div
+  #panelRef
+  class="refine-panel"
+  role="dialog"
+  aria-labelledby="refine-panel-heading"
+  aria-modal="true"
+  (keydown)="onPanelKeydown($event)"
+>
+  <header class="refine-panel-header">
+    <span id="refine-panel-heading" class="refine-panel-title">Refine</span>
+    <button
+      #closeBtn
+      type="button"
+      class="refine-close-btn"
+      aria-label="Close refine panel"
+      (click)="onCloseClick()"
+    >
+      ✕
+    </button>
+  </header>
+
+  <div class="refine-panel-body">
+    <app-filter-rail
+      [activeType]="activeType()"
+      [filters]="filters()"
+      [viewMode]="viewMode()"
+      [domainOptions]="domainOptions()"
+      (filtersChange)="onFiltersChanged($event)"
+    />
+  </div>
+</div>

@@ -1,5 +1,12 @@
 .adversary-card--wide { flex-flow: row; }
 
+.adversary-card__features-toggle { background: none; border: none; cursor: pointer; color: #c74040; font-weight: 600; padding: 0; display: flex; align-items: center; gap: .35rem; }
+.adversary-card__features-toggle:hover { opacity: .85; }
+.adversary-card__features-toggle-icon { transition: transform .2s ease; font-size: .75rem; }
+.adversary-card__features-toggle-icon--expanded { transform: rotate(90deg); }
+.adversary-card__features-list { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.adversary-card__features-list--expanded { max-height: 2000px; overflow: visible; }
+
 .adversary-card--wide .adversary-card__header {
   flex-shrink: 0;
   width: 220px;

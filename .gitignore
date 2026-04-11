@@ -52,3 +52,6 @@ Thumbs.db
 .dolt/
 *.db
 .beads-credential-key
+
+# Local data dumps / backups
+data/

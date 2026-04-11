@@ -1,79 +1,207 @@
 <div class="reference-page">
   <header class="reference-header">
-    <h1 class="reference-title">Compendium</h1>
-    <p class="reference-subtitle">Browse the archives of Daggerheart</p>
+    <h1 class="reference-title">The Codex</h1>
+    <p class="reference-subtitle">Search the archives of adversaries, artifacts, &amp; ancient lore.</p>
   </header>
 
-  <div class="reference-toolbar">
-    <app-category-selector
-      [categories]="categoryConfigs"
-      [activeCategory]="activeCategorySignal()"
-      (categorySelected)="onCategorySelected($event)"
+  <div class="reference-search-wrap">
+    <app-codex-search-bar
+      [query]="query()"
+      [placeholder]="searchPlaceholder()"
+      (queryChange)="onQueryChanged($event)"
     />
-
-    @if (activeCategorySignal() && activeFilters().length > 0) {
-      <app-reference-filters
-        [filters]="activeFilters()"
-        [currentValues]="filtersSignal()"
-        (filtersChanged)="onFiltersChanged($event)"
-      />
+    @if (isShortQuery()) {
+      <p class="reference-hint" aria-live="polite">Keep typing… (3 characters minimum)</p>
     }
   </div>
 
-  <div class="reference-content">
-  @if (loadingSignal()) {
-    <app-card-skeleton [count]="6" />
+  @switch (viewMode()) {
+    @case ('landing') {
+      <app-landing-type-grid (typeSelect)="onTypeSelected($event)" />
+    }
+
+    @case ('mixedSearch') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          aria-label="Open refine filters"
+          (click)="onRefineOpen()"
+        >
+          <span aria-hidden="true">⚙</span> Refine
+        </button>
+        <aside class="reference-rail" [class.loading]="loading()">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            [domainOptions]="domainOptions()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          @if (loading()) {
+            <app-codex-skeleton variant="mixed" />
+          } @else if (error()) {
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to search the archives. Please try again.</p>
+              </div>
+            </div>
+          } @else if (mixedSections().length === 0) {
+            <app-codex-empty-state
+              variant="search"
+              [query]="query()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
+          } @else {
+            @for (section of mixedSections(); track section.type) {
+              <app-result-section
+                [type]="section.type"
+                [results]="section.results"
+                [totalCount]="section.totalCount"
+                [showViewAll]="true"
+                (viewAll)="onViewAll($event)"
+              />
+            }
+          }
+        </main>
+      </div>
+    }
+
+    @case ('focusedSearch') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          aria-label="Open refine filters"
+          (click)="onRefineOpen()"
+        >
+          <span aria-hidden="true">⚙</span> Refine
+        </button>
+        <aside class="reference-rail" [class.loading]="loading()">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            [domainOptions]="domainOptions()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
+          @if (loading()) {
+            <app-codex-skeleton variant="focused" />
+          } @else if (error()) {
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to search the archives. Please try again.</p>
+              </div>
+            </div>
+          } @else if (focusedResults().length === 0) {
+            <app-codex-empty-state
+              variant="search"
+              [query]="query()"
+              [type]="activeType()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
+          } @else {
+            <ul class="focused-cards" role="list">
+              @for (result of focusedResults(); track result.id) {
+                <li class="focused-card-item">
+                  @if (result.adversary) {
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
+                  } @else if (result.card) {
+                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
+                  }
+                </li>
+              }
+            </ul>
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
+            />
+          }
+        </main>
+      </div>
+    }
+
+    @case ('focusedBrowse') {
+      <app-type-facet-tabs [activeType]="activeType()" (typeChange)="onTypeSelected($event)" />
+      <div class="reference-layout">
+        <button
+          type="button"
+          class="refine-toggle-btn"
+          aria-label="Open refine filters"
+          (click)="onRefineOpen()"
+        >
+          <span aria-hidden="true">⚙</span> Refine
+        </button>
+        <aside class="reference-rail" [class.loading]="loading()">
+          <app-filter-rail
+            [activeType]="activeType()"
+            [filters]="filters()"
+            [viewMode]="viewMode()"
+            [domainOptions]="domainOptions()"
+            (filtersChange)="onFiltersChanged($event)"
+          />
+        </aside>
+        <main class="reference-results">
+          <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
+          @if (loading()) {
+            <app-codex-skeleton variant="focused" />
+          } @else if (error()) {
+            <div class="codex-error-surface" role="alert">
+              <div class="codex-error-banner">
+                <p class="codex-error-title">Something went wrong</p>
+                <p class="codex-error-body">Unable to load results. Please try again.</p>
+              </div>
+            </div>
+          } @else if (focusedResults().length === 0) {
+            <app-codex-empty-state
+              variant="browse"
+              [type]="activeType()"
+              [hasActiveFilters]="hasActiveFilters()"
+              (clearFilters)="onClearFilters()"
+            />
+          } @else {
+            <ul class="focused-cards" role="list">
+              @for (result of focusedResults(); track result.id) {
+                <li class="focused-card-item">
+                  @if (result.adversary) {
+                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
+                  } @else if (result.card) {
+                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
+                  }
+                </li>
+              }
+            </ul>
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
+            />
+          }
+        </main>
+      </div>
+    }
   }
 
-  @if (errorSignal() && !loadingSignal()) {
-    <div class="reference-error">
-      <p class="error-message">Something went wrong. Please try again.</p>
-      <button class="retry-button" (click)="fetchCards()">Retry</button>
-    </div>
-  }
-
-  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() === 'subclasses' && cardsSignal().length > 0) {
-    <app-subclass-path-selector
-      [cards]="cardsSignal()"
-      [collapsibleFeatures]="true"
+  @if (refineSheetOpen()) {
+    <app-refine-sheet
+      [activeType]="activeType()"
+      [filters]="filters()"
+      [viewMode]="viewMode()"
+      [domainOptions]="domainOptions()"
+      (sheetClose)="onRefineClose()"
+      (filtersChange)="onFiltersChanged($event)"
     />
   }
-
-  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() !== 'adversaries' && activeCategorySignal() !== 'subclasses' && cardsSignal().length > 0) {
-    <app-card-selection-grid
-      [cards]="cardsSignal()"
-      [loading]="false"
-      [error]="false"
-      [maxSelections]="0"
-      [layout]="'wide'"
-      [collapsibleFeatures]="true"
-    />
-  }
-
-  @if (!loadingSignal() && !errorSignal() && activeCategorySignal() === 'adversaries' && adversariesSignal().length > 0) {
-    <div class="adversary-grid">
-      @for (adversary of adversariesSignal(); track adversary.id) {
-        <app-adversary-card [adversary]="adversary" [layout]="'wide'" />
-      }
-    </div>
-  }
-
-  @if (!loadingSignal() && !errorSignal() && cardsSignal().length === 0 && adversariesSignal().length === 0 && activeCategorySignal() !== null) {
-    <div class="reference-empty">
-      @if (activeCategorySignal() === 'subclasses' && !filtersSignal()['classId']) {
-        <p class="no-cards-message">Select a class above to browse subclasses.</p>
-      } @else {
-        <p class="no-cards-message">No results found. Try adjusting your filters.</p>
-      }
-    </div>
-  }
-
-  @if (totalPagesSignal() > 1) {
-    <app-pagination-controls
-      [currentPage]="currentPageSignal()"
-      [totalPages]="totalPagesSignal()"
-      (pageChanged)="onPageChanged($event)"
-    />
-  }
-  </div>
 </div>

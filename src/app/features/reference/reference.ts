@@ -1,381 +1,261 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  signal,
-  computed,
-  effect,
-  inject,
-  DestroyRef,
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, effect, inject, DestroyRef, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
-import { AdversaryData } from '../../shared/components/adversary-card/adversary-card.model';
-import {
-  ReferenceCategory,
-  CATEGORY_CONFIGS,
-  CATEGORY_FILTERS,
-} from './models/reference.model';
-import { CategorySelector } from './components/category-selector/category-selector';
-import { ReferenceFilters } from './components/reference-filters/reference-filters';
-import { PaginationControls } from './components/pagination-controls/pagination-controls';
-import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
-import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
-import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
-import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
-import { ClassService } from '../../shared/services/class.service';
-import { SubclassService } from '../../shared/services/subclass.service';
-import { AncestryService } from '../../shared/services/ancestry.service';
-import { CommunityService } from '../../shared/services/community.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subject, debounceTime } from 'rxjs';
+import { SearchService } from '../../shared/services/search.service';
 import { DomainService } from '../../shared/services/domain.service';
-import { WeaponService } from '../../shared/services/weapon.service';
-import { ArmorService } from '../../shared/services/armor.service';
-import { LootService } from '../../shared/services/loot.service';
-import { CompanionService } from '../../shared/services/companion.service';
-import { AdversaryService } from '../../shared/services/adversary.service';
+import { CodexBrowseService, BrowsableType } from './services/codex-browse.service';
+import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from './models/search.model';
+import { MappedSearchResult, mapSearchResult } from './mappers/search-result.mapper';
+import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
+import { TypeFacetTabs } from './components/type-facet-tabs/type-facet-tabs';
+import { FilterRail, FilterOption } from './components/filter-rail/filter-rail';
+import { RefineSheet } from './components/refine-sheet/refine-sheet';
+import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
+import { ResultSection } from './components/result-section/result-section';
+import { PaginationControls } from './components/pagination-controls/pagination-controls';
+import { CodexSkeleton } from './components/codex-skeleton/codex-skeleton';
+import { CodexEmptyState } from './components/codex-empty-state/codex-empty-state';
+import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
+import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
+
+export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
+
+export interface MixedSection {
+  type: SearchableEntityType;
+  results: MappedSearchResult[];
+  totalCount: number;
+  topScore: number;
+}
+
+const TYPE_FROM_FILTER: Partial<Record<keyof SearchFilters, SearchableEntityType>> = {
+  adversaryType: 'ADVERSARY', trait: 'WEAPON', range: 'WEAPON', burden: 'WEAPON',
+  isConsumable: 'LOOT', domainCardType: 'DOMAIN_CARD', associatedDomainId: 'DOMAIN_CARD',
+  level: 'DOMAIN_CARD',
+};
+
+const MIXED_VIEW_CAP = 5;
 
 @Component({
   selector: 'app-reference',
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CategorySelector,
-    ReferenceFilters,
-    PaginationControls,
-    CardSelectionGrid,
-    AdversaryCard,
-    CardSkeleton,
-    SubclassPathSelector,
-  ],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard],
 })
-export class Reference {
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly classService = inject(ClassService);
-  private readonly subclassService = inject(SubclassService);
-  private readonly ancestryService = inject(AncestryService);
-  private readonly communityService = inject(CommunityService);
+export class Reference implements OnInit {
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly searchService = inject(SearchService);
+  private readonly browseService = inject(CodexBrowseService);
   private readonly domainService = inject(DomainService);
-  private readonly weaponService = inject(WeaponService);
-  private readonly armorService = inject(ArmorService);
-  private readonly lootService = inject(LootService);
-  private readonly companionService = inject(CompanionService);
-  private readonly adversaryService = inject(AdversaryService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly categoryConfigs = CATEGORY_CONFIGS;
+  readonly query = signal('');
+  readonly activeType = signal<SearchableEntityType | null>(null);
+  readonly filters = signal<SearchFilters>({});
+  readonly refineSheetOpen = signal(false);
+  readonly currentPage = signal(0);
+  readonly results = signal<MappedSearchResult[]>([]);
+  readonly browseResult = signal<BrowseResult | null>(null);
+  readonly totalPages = signal(0);
+  readonly loading = signal(false);
+  readonly error = signal(false);
+  readonly domainOptions = signal<FilterOption[]>([]);
 
-  private readonly activeCategory = signal<ReferenceCategory | null>(null);
-  private readonly filters = signal<Record<string, unknown>>({});
-  private readonly cards = signal<CardData[]>([]);
-  private readonly adversaries = signal<AdversaryData[]>([]);
-  private readonly loading = signal(false);
-  private readonly error = signal(false);
-  private readonly currentPage = signal(0);
-  private readonly totalPages = signal(0);
+  readonly viewMode = computed<ViewMode>(() => {
+    const q = this.query().trim();
+    const t = this.activeType();
+    if (!q && !t) return 'landing';
+    if (!q) return 'focusedBrowse';
+    return t ? 'focusedSearch' : 'mixedSearch';
+  });
 
-  readonly activeCategorySignal = this.activeCategory.asReadonly();
-  readonly filtersSignal = this.filters.asReadonly();
-  readonly cardsSignal = this.cards.asReadonly();
-  readonly adversariesSignal = this.adversaries.asReadonly();
-  readonly loadingSignal = this.loading.asReadonly();
-  readonly errorSignal = this.error.asReadonly();
-  readonly currentPageSignal = this.currentPage.asReadonly();
-  readonly totalPagesSignal = this.totalPages.asReadonly();
+  readonly mixedSections = computed<MixedSection[]>(() => {
+    const results = this.results();
+    const grouped = new Map<SearchableEntityType, MappedSearchResult[]>();
+    for (const r of results) {
+      // FEATURE results are silently dropped in mixed search — features have no
+      // standalone card design and are not a browsable type in the UI.
+      if (r.type === 'FEATURE') continue;
+      const existing = grouped.get(r.type) ?? [];
+      grouped.set(r.type, [...existing, r]);
+    }
+    const sections: MixedSection[] = [];
+    for (const [type, items] of grouped.entries()) {
+      const topScore = Math.max(...items.map(i => i.relevanceScore ?? 0));
+      sections.push({ type, results: items.slice(0, MIXED_VIEW_CAP), totalCount: items.length, topScore });
+    }
+    return sections.sort((a, b) => b.topScore - a.topScore);
+  });
 
-  readonly categoryConfig = computed(() =>
-    CATEGORY_CONFIGS.find(c => c.id === this.activeCategory())
-  );
+  readonly focusedResults = computed<MappedSearchResult[]>(() => {
+    const mode = this.viewMode();
+    if (mode === 'focusedSearch') return this.results();
+    if (mode === 'focusedBrowse') {
+      const br = this.browseResult();
+      if (!br) return [];
+      return [
+        ...br.cards.map(card => ({ type: this.activeType()!, id: card.id, name: card.name, relevanceScore: null, card })),
+        ...br.adversaries.map(adv => ({ type: this.activeType()!, id: adv.id, name: adv.name, relevanceScore: null, adversary: adv })),
+      ];
+    }
+    return [];
+  });
 
-  readonly activeFilters = computed(() =>
-    this.activeCategory() ? (CATEGORY_FILTERS[this.activeCategory()!] ?? []) : []
-  );
+  readonly focusedTotalPages = computed<number>(() => {
+    const mode = this.viewMode();
+    if (mode === 'focusedBrowse') return this.browseResult()?.totalPages ?? 0;
+    return this.totalPages();
+  });
+
+  readonly isShortQuery = computed<boolean>(() => {
+    const q = this.query().trim();
+    return q.length > 0 && q.length < 3;
+  });
+
+  readonly hasActiveFilters = computed<boolean>(() => Object.keys(this.filters()).length > 0);
+
+  readonly searchPlaceholder = computed<string>(() => {
+    const type = this.activeType();
+    if (type) {
+      const label = this.typeLabelFor(type).toLowerCase();
+      return `Search within ${label}…`;
+    }
+    return 'Search the archives…';
+  });
+
+  private readonly searchInput$ = new Subject<string>();
 
   constructor() {
+    this.searchInput$
+      .pipe(debounceTime(250), takeUntilDestroyed(this.destroyRef))
+      .subscribe(q => this.runSearch(q));
     effect(() => {
-      const category = this.activeCategory();
-      this.filters();
-      this.currentPage();
-      if (category) this.fetchCards();
+      const mode = this.viewMode();
+      const q = this.query().trim();
+      const type = this.activeType();
+      const filters = this.filters();
+      const page = this.currentPage();
+      if (mode === 'landing') { this.results.set([]); this.browseResult.set(null); return; }
+      if (mode === 'focusedBrowse') { this.executeBrowse(type as BrowsableType, filters, page); return; }
+      this.searchInput$.next(q);
     });
   }
 
-  onCategorySelected(category: ReferenceCategory): void {
-    this.filters.set({});
-    this.currentPage.set(0);
-    this.activeCategory.set(category);
+  ngOnInit(): void {
+    const p = this.route.snapshot.queryParams;
+    if (p['q']) this.query.set(p['q'] as string);
+    if (p['type']) this.activeType.set(p['type'] as SearchableEntityType);
+    if (p['page']) this.currentPage.set(Number(p['page']));
+    if (p['filters']) { try { this.filters.set(JSON.parse(p['filters'] as string) as SearchFilters); } catch { /* ignore */ } }
+    this.loadDomainOptions();
   }
 
-  onFiltersChanged(newFilters: Record<string, unknown>): void {
+  private loadDomainOptions(): void {
+    this.domainService.getDomainsPaginated(0, 100)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => this.domainOptions.set(
+          res.cards.map(c => ({ value: String(c.id), label: c.name })),
+        ),
+        error: () => { /* silent — filter select simply won't appear */ },
+      });
+  }
+
+  onQueryChanged(q: string): void {
+    this.currentPage.set(0);
+    this.query.set(q);
+    this.syncUrl();
+  }
+
+  onTypeSelected(type: SearchableEntityType | null): void {
+    this.currentPage.set(0);
+    this.activeType.set(type);
+    this.syncUrl();
+  }
+
+  onRefineOpen(): void {
+    this.refineSheetOpen.set(true);
+  }
+
+  onRefineClose(): void {
+    this.refineSheetOpen.set(false);
+  }
+
+  onFiltersChanged(newFilters: SearchFilters): void {
+    if (this.viewMode() === 'mixedSearch') {
+      const promoted = (Object.keys(newFilters) as (keyof SearchFilters)[])
+        .map(k => TYPE_FROM_FILTER[k]).find(Boolean);
+      if (promoted) this.activeType.set(promoted);
+    }
     this.currentPage.set(0);
     this.filters.set(newFilters);
+    this.syncUrl();
   }
 
-  onPageChanged(page: number): void {
-    this.currentPage.set(page);
+  onPageChanged(page: number): void { this.currentPage.set(page); this.syncUrl(); }
+
+  onClearFilters(): void {
+    this.filters.set({});
+    this.currentPage.set(0);
+    this.syncUrl();
   }
 
-  fetchCards(): void {
-    const category = this.activeCategory();
-    if (!category) return;
+  onViewAll(type: SearchableEntityType): void {
+    this.activeType.set(type);
+    this.currentPage.set(0);
+    this.syncUrl();
+  }
 
+  onAllTypes(): void {
+    this.activeType.set(null);
+    this.currentPage.set(0);
+    this.syncUrl();
+  }
+
+  typeLabelFor(type: SearchableEntityType): string {
+    return typeLabels[type] ?? type;
+  }
+
+  private runSearch(q: string): void {
+    if (q.length < 3) return;
     this.loading.set(true);
     this.error.set(false);
-    this.cards.set([]);
-    this.adversaries.set([]);
-
-    const filters = this.filters();
-    const page = this.currentPage();
-
-    switch (category) {
-      case 'classes':
-        this.classService
-          .getClasses(page)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'subclasses': {
-        const classId = filters['classId'] as number | undefined;
-        if (!classId) {
-          this.cards.set([]);
-          this.totalPages.set(1);
+    const type = this.activeType();
+    this.searchService
+      .search({ q, types: type ? [type] : undefined, ...this.filters(), page: this.currentPage() })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => {
+          this.results.set(res.results.map(mapSearchResult));
+          this.totalPages.set(res.totalPages);
           this.loading.set(false);
-          break;
-        }
-        this.subclassService
-          .getSubclasses(classId, page)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-      }
+        },
+        error: () => { this.error.set(true); this.loading.set(false); },
+      });
+  }
 
-      case 'ancestries':
-        this.ancestryService
-          .getAncestries(page)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
+  private executeBrowse(type: BrowsableType, filters: SearchFilters, page: number): void {
+    this.loading.set(true);
+    this.error.set(false);
+    this.browseService.browse(type, filters as Record<string, unknown>, page)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => { this.browseResult.set(res); this.loading.set(false); },
+        error: () => { this.error.set(true); this.loading.set(false); },
+      });
+  }
 
-      case 'communities':
-        this.communityService
-          .getCommunities(page)
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'domains':
-        this.domainService
-          .getDomains()
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'domainCards': {
-        const domainId = filters['domainId'] as number | undefined;
-        const domainIds = domainId ? [domainId] : [];
-        if (domainIds.length === 0) {
-          this.domainService
-            .loadDomainLookup()
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: lookup => {
-                const allIds = Array.from(lookup.values());
-                if (allIds.length === 0) {
-                  this.cards.set([]);
-                  this.totalPages.set(1);
-                  this.loading.set(false);
-                  return;
-                }
-                this.domainService
-                  .getDomainCards(allIds, page)
-                  .pipe(takeUntilDestroyed(this.destroyRef))
-                  .subscribe({
-                    next: result => {
-                      this.cards.set(result);
-                      this.totalPages.set(1);
-                      this.loading.set(false);
-                    },
-                    error: () => {
-                      this.error.set(true);
-                      this.loading.set(false);
-                    },
-                  });
-              },
-              error: () => {
-                this.error.set(true);
-                this.loading.set(false);
-              },
-            });
-        } else {
-          this.domainService
-            .getDomainCards(domainIds, page)
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe({
-              next: result => {
-                this.cards.set(result);
-                this.totalPages.set(1);
-                this.loading.set(false);
-              },
-              error: () => {
-                this.error.set(true);
-                this.loading.set(false);
-              },
-            });
-        }
-        break;
-      }
-
-      case 'weapons':
-        this.weaponService
-          .getWeapons({
-            page,
-            tier: filters['tier'] as number | undefined,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result.cards);
-              this.totalPages.set(result.totalPages);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'armor':
-        this.armorService
-          .getArmors({
-            page,
-            tier: filters['tier'] as number | undefined,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result.cards);
-              this.totalPages.set(result.totalPages);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'loot':
-        this.lootService
-          .getLoot({
-            page,
-            tier: filters['tier'] as number | undefined,
-            isConsumable: filters['isConsumable'] as boolean | undefined,
-            expansionId: filters['expansionId'] as number | undefined,
-            isOfficial: filters['isOfficial'] as boolean | undefined,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result.cards);
-              this.totalPages.set(result.totalPages);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'companions':
-        this.companionService
-          .getCompanions()
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.cards.set(result);
-              this.totalPages.set(1);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-
-      case 'adversaries':
-        this.adversaryService
-          .getAdversaries({
-            tier: filters['tier'] as number | undefined,
-            adversaryType: filters['adversaryType'] as string | undefined,
-            isOfficial: filters['isOfficial'] as boolean | undefined,
-            expansionId: filters['expansionId'] as number | undefined,
-            page,
-          })
-          .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe({
-            next: result => {
-              this.adversaries.set(result.adversaries);
-              this.totalPages.set(result.totalPages);
-              this.loading.set(false);
-            },
-            error: () => {
-              this.error.set(true);
-              this.loading.set(false);
-            },
-          });
-        break;
-    }
+  private syncUrl(): void {
+    const filtersStr = Object.keys(this.filters()).length ? JSON.stringify(this.filters()) : null;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        q: this.query() || null, type: this.activeType() ?? null,
+        page: this.currentPage() > 0 ? this.currentPage() : null, filters: filtersStr,
+      },
+      queryParamsHandling: 'merge',
+    });
   }
 }

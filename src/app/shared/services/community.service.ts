@@ -2,10 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginatedResponse } from '../models/api.model';
+import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { CommunityCardResponse } from '../models/community-api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapCommunityResponseToCardData } from '../mappers/community.mapper';
+
+export interface CommunityOptions {
+  page?: number;
+  size?: number;
+  expansionId?: number;
+  isOfficial?: boolean;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CommunityService {
@@ -21,5 +28,30 @@ export class CommunityService {
     return this.http
       .get<PaginatedResponse<CommunityCardResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => response.content.map(mapCommunityResponseToCardData)));
+  }
+
+  getCommunitiesPaginated(options: CommunityOptions = {}): Observable<PaginatedCards> {
+    const { page = 0, size = 20, expansionId, isOfficial } = options;
+
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size)
+      .set('expand', 'expansion,features,costTags');
+
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
+    }
+
+    return this.http
+      .get<PaginatedResponse<CommunityCardResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => ({
+        cards: response.content.map(mapCommunityResponseToCardData),
+        currentPage: response.currentPage,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+      })));
   }
 }
