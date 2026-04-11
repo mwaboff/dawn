@@ -56,5 +56,5 @@ export interface CardSchema {
   cardType: string;
   sections: { title: string; fields: FieldDef[] }[];
   previewTags: (value: Record<string, unknown>) => string[];
-  previewSubtitle?: (value: Record<string, unknown>) => string;
+  previewSubtitle?: (value: Record<string, unknown>) => string | undefined;
 }
