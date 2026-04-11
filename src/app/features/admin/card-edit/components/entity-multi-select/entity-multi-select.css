@@ -1,0 +1,36 @@
+.entity-multi-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.loading-text {
+  font-size: 0.875rem;
+  color: rgba(212, 160, 86, 0.65);
+  margin: 0;
+}
+
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.checkbox-list--scrollable {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text, #e8dcc8);
+  cursor: pointer;
+}
+
+.checkbox-row input[type='checkbox'] {
+  cursor: pointer;
+  accent-color: var(--color-accent, #d4a056);
+}
