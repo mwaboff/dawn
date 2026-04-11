@@ -10,6 +10,12 @@ interface CostTagItem {
   category: string;
 }
 
+export interface CostTagFull {
+  id: number;
+  label: string;
+  category: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CostTagLookupService {
   private readonly http = inject(HttpClient);
@@ -19,5 +25,14 @@ export class CostTagLookupService {
     return this.http
       .get<CostTagItem[]>(this.baseUrl, { withCredentials: true })
       .pipe(map(items => items.map(item => ({ id: item.id, label: `${item.label} (${item.category})` }))));
+  }
+
+  listFull(): Observable<CostTagFull[]> {
+    return this.http
+      .get<{ content: CostTagFull[] }>(
+        `${environment.apiUrl}/dh/cost-tags?size=200`,
+        { withCredentials: true }
+      )
+      .pipe(map(r => r.content));
   }
 }
