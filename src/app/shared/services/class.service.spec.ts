@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
@@ -6,6 +6,7 @@ import { ClassService } from './class.service';
 import { ClassResponse } from '../models/class-api.model';
 import { PaginatedResponse } from '../models/api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
+import { LookupOption } from '../models/lookup-option.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -84,6 +85,50 @@ describe('ClassService', () => {
     expect(result![0].name).toBe('Warrior');
     expect(result![0].cardType).toBe('class');
     expect(result![1].name).toBe('Ranger');
+  });
+
+  describe('getClassOptions', () => {
+    it('should fetch classes with page=0 and size=100', () => {
+      service.getClassOptions().subscribe();
+
+      const req = httpTesting.expectOne(
+        r => r.url === 'http://localhost:8080/api/dh/classes' &&
+          r.params.get('page') === '0' &&
+          r.params.get('size') === '100',
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush({ content: [], currentPage: 0, pageSize: 100, totalElements: 0, totalPages: 0 });
+    });
+
+    it('should send withCredentials: true', () => {
+      service.getClassOptions().subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === 'http://localhost:8080/api/dh/classes');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush({ content: [], currentPage: 0, pageSize: 100, totalElements: 0, totalPages: 0 });
+    });
+
+    it('should map response to LookupOption[]', () => {
+      let result: LookupOption[] | undefined;
+      service.getClassOptions().subscribe(opts => (result = opts));
+
+      const req = httpTesting.expectOne(r => r.url === 'http://localhost:8080/api/dh/classes');
+      req.flush({
+        content: [
+          buildClassResponse({ id: 1, name: 'Warrior' }),
+          buildClassResponse({ id: 2, name: 'Ranger' }),
+        ],
+        currentPage: 0,
+        pageSize: 100,
+        totalElements: 2,
+        totalPages: 1,
+      });
+
+      expect(result).toEqual([
+        { id: 1, label: 'Warrior' },
+        { id: 2, label: 'Ranger' },
+      ]);
+    });
   });
 
   it('should propagate HTTP errors', () => {
