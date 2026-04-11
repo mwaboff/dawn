@@ -173,6 +173,130 @@ describe('buildPayloadFromSchema', () => {
   });
 });
 
+const weaponSchema: CardSchema = {
+  cardType: 'weapon',
+  sections: [
+    {
+      title: 'Basics',
+      fields: [
+        { name: 'name', label: 'Name', kind: 'text', required: true, column: 'full' },
+        { name: 'tier', label: 'Tier', kind: 'number', required: true, positive: true, column: 1 },
+      ],
+    },
+    {
+      title: 'Damage',
+      fields: [
+        { name: 'damageDiceCount', label: 'Dice count', kind: 'number', path: ['damage', 'diceCount'], column: 1 },
+        { name: 'damageDiceType', label: 'Dice type', kind: 'enum', required: true, path: ['damage', 'diceType'], column: 2, options: [
+          { value: 'D6', label: 'd6' },
+          { value: 'D10', label: 'd10' },
+        ]},
+        { name: 'damageModifier', label: 'Modifier', kind: 'number', path: ['damage', 'modifier'], column: 1 },
+        { name: 'damageDamageType', label: 'Damage type', kind: 'enum', required: true, path: ['damage', 'damageType'], column: 2, options: [
+          { value: 'PHYSICAL', label: 'Physical' },
+          { value: 'MAGIC', label: 'Magic' },
+        ]},
+      ],
+    },
+  ],
+  previewTags: () => [],
+};
+
+const rawWeapon: RawCardResponse = {
+  id: 7,
+  name: 'Longsword',
+  expansionId: 1,
+  tier: 1,
+  damage: {
+    diceCount: 2,
+    diceType: 'D10',
+    modifier: 3,
+    damageType: 'PHYSICAL',
+    notation: '2d10+3 phy',
+  },
+  cardType: 'weapon',
+};
+
+describe('nested path support', () => {
+  let fb: FormBuilder;
+
+  beforeEach(() => {
+    fb = new FormBuilder();
+  });
+
+  it('reads nested damage values from raw into flat form controls', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    expect(form.get('damageDiceCount')?.value).toBe(2);
+    expect(form.get('damageDiceType')?.value).toBe('D10');
+    expect(form.get('damageModifier')?.value).toBe(3);
+    expect(form.get('damageDamageType')?.value).toBe('PHYSICAL');
+  });
+
+  it('defaults nested values to empty string when raw.damage is missing', () => {
+    const bareWeapon: RawCardResponse = { id: 1, name: 'Bare', expansionId: 1, cardType: 'weapon' };
+    const form = buildFormFromSchema(weaponSchema, bareWeapon, fb);
+    expect(form.get('damageDiceCount')?.value).toBe('');
+    expect(form.get('damageDiceType')?.value).toBe('');
+  });
+
+  it('excludes the nested group from payload when no damage subfield is dirty', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('name')!.setValue('Renamed');
+    form.get('name')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect(payload).toEqual({ name: 'Renamed' });
+    expect('damage' in payload).toBe(false);
+  });
+
+  it('includes the full damage object when any subfield is dirty', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('damageModifier')!.setValue(5);
+    form.get('damageModifier')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect(payload['damage']).toEqual({
+      diceCount: 2,
+      diceType: 'D10',
+      modifier: 5,
+      damageType: 'PHYSICAL',
+    });
+  });
+
+  it('coerces empty diceCount to null in payload (use proficiency)', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('damageDiceCount')!.setValue('');
+    form.get('damageDiceCount')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect((payload['damage'] as Record<string, unknown>)['diceCount']).toBeNull();
+  });
+
+  it('coerces empty modifier to null in payload', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('damageModifier')!.setValue('');
+    form.get('damageModifier')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect((payload['damage'] as Record<string, unknown>)['modifier']).toBeNull();
+  });
+
+  it('preserves negative modifier values in payload', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('damageModifier')!.setValue(-2);
+    form.get('damageModifier')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect((payload['damage'] as Record<string, unknown>)['modifier']).toBe(-2);
+  });
+
+  it('leaves existing flat field behavior unchanged when damage is dirty', () => {
+    const form = buildFormFromSchema(weaponSchema, rawWeapon, fb);
+    form.get('name')!.setValue('Greatsword');
+    form.get('name')!.markAsDirty();
+    form.get('damageDiceType')!.setValue('D6');
+    form.get('damageDiceType')!.markAsDirty();
+    const payload = buildPayloadFromSchema(weaponSchema, form);
+    expect(payload['name']).toBe('Greatsword');
+    expect((payload['damage'] as Record<string, unknown>)['diceType']).toBe('D6');
+  });
+});
+
 describe('applyBackendErrors', () => {
   let fb: FormBuilder;
 

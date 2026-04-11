@@ -36,6 +36,7 @@ export interface BaseField {
   positive?: boolean;
   helpText?: string;
   column?: 1 | 2 | 'full';
+  path?: string[];
 }
 
 export interface EnumField extends BaseField {

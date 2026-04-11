@@ -43,6 +43,38 @@ function getAllFields(schema: CardSchema): FieldDef[] {
   return schema.sections.flatMap(section => section.fields);
 }
 
+function fieldPath(field: FieldDef): string[] {
+  return field.path ?? [field.name];
+}
+
+function readPath(raw: Record<string, unknown>, path: string[]): unknown {
+  let cursor: unknown = raw;
+  for (const key of path) {
+    if (cursor == null || typeof cursor !== 'object') return undefined;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return cursor;
+}
+
+function setPath(target: Record<string, unknown>, path: string[], value: unknown): void {
+  let cursor = target;
+  for (let i = 0; i < path.length - 1; i++) {
+    const key = path[i];
+    const next = cursor[key];
+    if (next == null || typeof next !== 'object') {
+      cursor[key] = {};
+    }
+    cursor = cursor[key] as Record<string, unknown>;
+  }
+  cursor[path[path.length - 1]] = value;
+}
+
+function coerceNumberValue(value: unknown): number | null {
+  if (value === '' || value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+}
+
 export function buildFormFromSchema(
   schema: CardSchema,
   raw: RawCardResponse,
@@ -52,12 +84,13 @@ export function buildFormFromSchema(
 
   for (const field of getAllFields(schema)) {
     const validators = buildValidators(field);
+    const path = fieldPath(field);
     let initialValue: unknown;
 
     if (field.kind === 'entityMulti') {
-      initialValue = raw[field.name] ?? [];
+      initialValue = readPath(raw, path) ?? [];
     } else {
-      initialValue = raw[field.name] ?? null;
+      initialValue = readPath(raw, path) ?? null;
     }
 
     if (field.kind === 'entity' || field.kind === 'entityMulti') {
@@ -74,13 +107,35 @@ export function buildPayloadFromSchema(
   schema: CardSchema,
   form: FormGroup,
 ): Record<string, unknown> {
+  const allFields = getAllFields(schema);
+
+  const dirtyGroups = new Set<string>();
+  for (const field of allFields) {
+    const path = fieldPath(field);
+    if (path.length > 1 && form.get(field.name)?.dirty) {
+      dirtyGroups.add(path.slice(0, -1).join('.'));
+    }
+  }
+
   const payload: Record<string, unknown> = {};
 
-  for (const field of getAllFields(schema)) {
+  for (const field of allFields) {
+    const path = fieldPath(field);
     const control = form.get(field.name);
-    if (control?.dirty) {
-      payload[field.name] = control.value;
+    if (!control) continue;
+
+    if (path.length === 1) {
+      if (control.dirty) {
+        payload[path[0]] = control.value;
+      }
+      continue;
     }
+
+    const parentKey = path.slice(0, -1).join('.');
+    if (!dirtyGroups.has(parentKey)) continue;
+
+    const value = field.kind === 'number' ? coerceNumberValue(control.value) : control.value;
+    setPath(payload, path, value);
   }
 
   return payload;
