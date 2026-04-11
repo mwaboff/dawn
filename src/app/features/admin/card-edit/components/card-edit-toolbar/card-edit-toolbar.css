@@ -1,0 +1,64 @@
+.card-edit-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(212, 160, 86, 0.2);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.save-success {
+  color: #8fd4a4;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.save-error {
+  color: #f5a5ad;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-bright));
+  color: var(--color-bg-dark);
+}
+
+.btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 160, 86, 0.4);
+}
+
+.btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--secondary {
+  background: transparent;
+  border: 1px solid rgba(212, 160, 86, 0.4);
+  color: var(--color-parchment);
+}
+
+.btn--secondary:hover {
+  background: rgba(212, 160, 86, 0.1);
+  border-color: var(--color-accent);
+}
