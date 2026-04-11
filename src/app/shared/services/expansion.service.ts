@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, map, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ExpansionOption } from '../models/expansion-api.model';
+import { CreateExpansionRequest, ExpansionOption } from '../models/expansion-api.model';
 import { PaginatedResponse } from '../models/api.model';
 
 @Injectable({ providedIn: 'root' })
@@ -23,5 +23,15 @@ export class ExpansionService {
         );
     }
     return this.expansions$;
+  }
+
+  createExpansion(body: CreateExpansionRequest): Observable<ExpansionOption> {
+    return this.http
+      .post<ExpansionOption>(this.baseUrl, body, { withCredentials: true })
+      .pipe(tap(() => this.invalidate()));
+  }
+
+  invalidate(): void {
+    this.expansions$ = null;
   }
 }
