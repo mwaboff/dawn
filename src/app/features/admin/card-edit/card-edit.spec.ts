@@ -251,6 +251,19 @@ describe('CardEdit — schema-driven orchestrator', () => {
     });
   });
 
+  describe('11-type schema smoke test', () => {
+    const ALL_TYPES = Object.keys(CARD_EDIT_SCHEMAS);
+
+    it.each(ALL_TYPES)('loads without error and builds form for cardType=%s', async (cardType) => {
+      const schema = CARD_EDIT_SCHEMAS[cardType];
+      const firstField = schema.sections[0].fields[0];
+      const raw = { id: 1, cardType, name: 'Smoke Test', features: [], [firstField.name]: '' };
+      await setup(cardType, raw);
+      expect(component).toBeTruthy();
+      expect(component.cardForm.get(firstField.name)).toBeTruthy();
+    });
+  });
+
   describe('AddExpansionDialog interaction', () => {
     it('opens dialog on openAddExpansionDialog()', async () => {
       await setup();
