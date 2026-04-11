@@ -1,0 +1,61 @@
+@if (field().kind === 'checkbox') {
+  <div class="form-group" [class]="columnClass()">
+    <label class="form-label--inline" [for]="field().name">
+      <input [id]="field().name" type="checkbox" [formControl]="asFormControl()" />
+      {{ field().label }}
+    </label>
+    @if (field().helpText) {
+      <span class="form-help">{{ field().helpText }}</span>
+    }
+    @if (showError()) {
+      <span class="field-error">{{ errorMessage() }}</span>
+    }
+  </div>
+} @else {
+  <div class="form-group" [class]="columnClass()">
+    <label class="form-label" [for]="field().name">{{ field().label }}</label>
+    @if (field().helpText) {
+      <span class="form-help">{{ field().helpText }}</span>
+    }
+    @switch (field().kind) {
+      @case ('text') {
+        <input [id]="field().name" type="text" class="form-input" [formControl]="asFormControl()" [maxlength]="field().maxLength ?? null" />
+      }
+      @case ('url') {
+        <input [id]="field().name" type="url" class="form-input" [formControl]="asFormControl()" [maxlength]="field().maxLength ?? null" />
+      }
+      @case ('textarea') {
+        <textarea [id]="field().name" class="form-textarea" [formControl]="asFormControl()" rows="4"></textarea>
+      }
+      @case ('number') {
+        <input [id]="field().name" type="number" class="form-input" [formControl]="asFormControl()" [min]="field().min ?? null" />
+      }
+      @case ('enum') {
+        <select [id]="field().name" class="form-select" [formControl]="asFormControl()">
+          @for (opt of enumOptions(); track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      }
+      @case ('entity') {
+        <app-entity-select
+          [lookup]="entityLookup()"
+          [control]="asFormControl()"
+          [allowCreate]="entityAllowCreate()"
+          [dependsOnControl]="dependsOnControl() ?? undefined"
+          (createRequested)="onCreateRequested()"
+        />
+      }
+      @case ('entityMulti') {
+        <app-entity-multi-select
+          [lookup]="entityLookup()"
+          [control]="asFormArrayControl()"
+          [dependsOnControl]="dependsOnControl() ?? undefined"
+        />
+      }
+    }
+    @if (showError()) {
+      <span class="field-error">{{ errorMessage() }}</span>
+    }
+  </div>
+}
