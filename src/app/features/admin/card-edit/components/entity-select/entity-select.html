@@ -1,0 +1,15 @@
+<div class="entity-select">
+  <select class="form-select" [formControl]="control()" [attr.aria-label]="label()">
+    @if (loading()) {
+      <option disabled>Loading...</option>
+    } @else {
+      <option [value]="null">{{ placeholder() }}</option>
+      @for (opt of options(); track opt.id) {
+        <option [value]="opt.id">{{ opt.label }}</option>
+      }
+    }
+  </select>
+  @if (allowCreate()) {
+    <button type="button" class="btn btn--secondary" (click)="onCreateClick()">+ New</button>
+  }
+</div>
