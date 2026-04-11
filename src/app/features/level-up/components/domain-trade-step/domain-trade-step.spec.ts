@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { of } from 'rxjs';
 
-import { DomainTradeStep } from './domain-trade-step';
+import { DomainTradeStep, TradeRow } from './domain-trade-step';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { DomainService } from '../../../../shared/services/domain.service';
 import { DomainCardTradeRequest, TradeDisplayPair } from '../../models/level-up-api.model';
@@ -30,11 +30,14 @@ const mockDomainService = {
       [accessibleDomainIds]="accessibleDomainIds()"
       [domainCardLevelCap]="domainCardLevelCap()"
       [newDomainCards]="newDomainCards()"
-      [initialTrades]="initialTrades()"
       [ownedDomainCardIds]="ownedDomainCardIds()"
       [targetLevel]="targetLevel()"
+      [initialTradeRow]="initialTradeRow()"
+      [initialSkipped]="initialSkipped()"
       (tradesChanged)="onTradesChanged($event)"
       (tradeDisplayChanged)="onTradeDisplayChanged($event)"
+      (tradeRowChanged)="onTradeRowChanged($event)"
+      (tradesSkippedChanged)="onTradesSkippedChanged($event)"
     />
   `,
   imports: [DomainTradeStep],
@@ -44,12 +47,15 @@ class TestHost {
   accessibleDomainIds = signal<number[]>([1, 2]);
   domainCardLevelCap = signal<number | null>(3);
   newDomainCards = signal<CardData[]>([]);
-  initialTrades = signal<DomainCardTradeRequest[]>([]);
   ownedDomainCardIds = signal<number[]>([]);
   targetLevel = signal<number | null>(null);
+  initialTradeRow = signal<TradeRow | null>(null);
+  initialSkipped = signal(false);
 
   lastTrades: DomainCardTradeRequest[] | undefined;
   lastTradeDisplayPairs: TradeDisplayPair[] | undefined;
+  lastTradeRow: TradeRow | null | undefined;
+  lastSkipped: boolean | undefined;
 
   onTradesChanged(trades: DomainCardTradeRequest[]): void {
     this.lastTrades = trades;
@@ -57,6 +63,14 @@ class TestHost {
 
   onTradeDisplayChanged(pairs: TradeDisplayPair[]): void {
     this.lastTradeDisplayPairs = pairs;
+  }
+
+  onTradeRowChanged(row: TradeRow | null): void {
+    this.lastTradeRow = row;
+  }
+
+  onTradesSkippedChanged(skipped: boolean): void {
+    this.lastSkipped = skipped;
   }
 }
 
@@ -204,5 +218,73 @@ describe('DomainTradeStep', () => {
     fixture.detectChanges();
 
     expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, [1, 2, 3]);
+  });
+
+  describe('rehydration from initialTradeRow', () => {
+    it('rehydrates trade state from initialTradeRow on init', () => {
+      const hydrated: TradeRow = {
+        tradedOut: [MOCK_CHARACTER_CARDS[0]],
+        tradedIn: [MOCK_TRADABLE_CARDS[0]],
+        equipTradedIn: [],
+      };
+      const f2 = TestBed.createComponent(TestHost);
+      f2.componentInstance.initialTradeRow.set(hydrated);
+      f2.detectChanges();
+
+      const component = f2.debugElement.children[0].componentInstance as DomainTradeStep;
+      expect(component.trade().tradedOut).toHaveLength(1);
+      expect(component.trade().tradedOut[0].id).toBe(1);
+      expect(component.trade().tradedIn).toHaveLength(1);
+      expect(component.trade().tradedIn[0].id).toBe(50);
+
+      const tradeOutBtn = (f2.nativeElement as HTMLElement).querySelector('.trade-card-btn');
+      expect(tradeOutBtn?.classList.contains('selected')).toBe(true);
+    });
+
+    it('rehydrates skipped state from initialSkipped on init', () => {
+      const f2 = TestBed.createComponent(TestHost);
+      f2.componentInstance.initialSkipped.set(true);
+      f2.detectChanges();
+
+      const skipMsg = (f2.nativeElement as HTMLElement).querySelector('.skip-message');
+      expect(skipMsg?.textContent).toContain('No trades will be made');
+    });
+
+    it('prefers initialSkipped over initialTradeRow when both are set (skip wins)', () => {
+      const hydrated: TradeRow = {
+        tradedOut: [MOCK_CHARACTER_CARDS[0]],
+        tradedIn: [],
+        equipTradedIn: [],
+      };
+      const f2 = TestBed.createComponent(TestHost);
+      f2.componentInstance.initialTradeRow.set(hydrated);
+      f2.componentInstance.initialSkipped.set(true);
+      f2.detectChanges();
+
+      const component = f2.debugElement.children[0].componentInstance as DomainTradeStep;
+      expect(component.skipped()).toBe(true);
+      expect(component.trade().tradedOut).toHaveLength(0);
+    });
+  });
+
+  describe('tradeRowChanged output', () => {
+    it('emits tradeRowChanged whenever trade state mutates', () => {
+      const tradeOutBtn = el.querySelector('.trade-card-btn') as HTMLButtonElement;
+      tradeOutBtn.click();
+      fixture.detectChanges();
+
+      expect(host.lastTradeRow).not.toBeNull();
+      expect(host.lastTradeRow?.tradedOut).toHaveLength(1);
+      expect(host.lastTradeRow?.tradedOut[0].id).toBe(1);
+    });
+
+    it('emits tradeRowChanged(null) and tradesSkippedChanged(true) on skip', () => {
+      const skipBtn = el.querySelector('.trade-btn--skip') as HTMLButtonElement;
+      skipBtn.click();
+      fixture.detectChanges();
+
+      expect(host.lastTradeRow).toBeNull();
+      expect(host.lastSkipped).toBe(true);
+    });
   });
 });
