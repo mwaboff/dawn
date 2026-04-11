@@ -1,0 +1,27 @@
+.entity-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entity-select .form-select {
+  flex: 1;
+}
+
+.btn--secondary {
+  padding: 0.5rem 0.875rem;
+  background: transparent;
+  border: 1px solid rgba(212, 160, 86, 0.4);
+  border-radius: 4px;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn--secondary:hover {
+  background: rgba(212, 160, 86, 0.1);
+  border-color: var(--color-accent);
+}

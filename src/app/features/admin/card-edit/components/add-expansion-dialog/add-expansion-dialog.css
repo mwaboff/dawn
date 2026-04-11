@@ -1,0 +1,132 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 6, .7);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-panel {
+  background: linear-gradient(170deg, #faf7f2, #f5ede0);
+  border: 1px solid #c9a87c;
+  border-top: 3px solid var(--color-accent);
+  border-radius: 6px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+}
+
+.dialog-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3e2723;
+  margin: 0 0 1.25rem;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+
+.form-field--checkbox {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-family: 'Lora', serif;
+  font-size: .875rem;
+  font-weight: 600;
+  color: #3e2723;
+  margin-bottom: .375rem;
+}
+
+.form-label--checkbox {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.form-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid #c9a87c;
+  border-radius: 4px;
+  background: #fffdf8;
+  font-family: 'Lora', serif;
+  font-size: .9rem;
+  color: #3e2723;
+  box-sizing: border-box;
+  transition: border-color .2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(212, 160, 86, .2);
+}
+
+.form-input--invalid {
+  border-color: #b33;
+}
+
+.field-error {
+  display: block;
+  margin-top: .25rem;
+  font-family: 'Lora', serif;
+  font-size: .8rem;
+  color: #b33;
+}
+
+.backend-error {
+  font-family: 'Lora', serif;
+  font-size: .875rem;
+  color: #b33;
+  background: rgba(187, 51, 51, .07);
+  border: 1px solid rgba(187, 51, 51, .25);
+  border-radius: 4px;
+  padding: .5rem .75rem;
+  margin: 0 0 1rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
+.dialog-btn {
+  padding: .5rem 1.25rem;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.dialog-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.dialog-btn--cancel {
+  background: transparent;
+  border: 1px solid #c9a87c;
+  color: #5a4230;
+}
+.dialog-btn--cancel:hover:not(:disabled) { background: rgba(139,94,52,.08); }
+
+.dialog-btn--submit {
+  background: var(--color-accent);
+  border: 1px solid #b8892e;
+  color: #fff;
+}
+.dialog-btn--submit:hover:not(:disabled) { filter: brightness(.9); }
+.dialog-btn--submit:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

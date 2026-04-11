@@ -1,0 +1,8 @@
+<div class="preview-sticky">
+  <h3 class="preview-title">
+    Preview <span class="preview-live-pill">LIVE</span>
+  </h3>
+  @if (card()) {
+    <app-daggerheart-card [card]="card()!" layout="wide" [collapsibleFeatures]="true" />
+  }
+</div>

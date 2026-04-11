@@ -18,7 +18,7 @@ import { ConfirmDialog } from './components/confirm-dialog/confirm-dialog';
 import { TierAchievementsStep } from './components/tier-achievements-step/tier-achievements-step';
 import { AdvancementsStep } from './components/advancements-step/advancements-step';
 import { DomainCardStep } from './components/domain-card-step/domain-card-step';
-import { DomainTradeStep } from './components/domain-trade-step/domain-trade-step';
+import { DomainTradeStep, TradeRow } from './components/domain-trade-step/domain-trade-step';
 import { LevelUpReview } from './components/level-up-review/level-up-review';
 
 @Component({
@@ -52,6 +52,8 @@ export class LevelUp implements OnInit {
   readonly unequipDomainCardId = signal<number | undefined>(undefined);
   readonly trades = signal<DomainCardTradeRequest[]>([]);
   readonly tradeDisplayPairs = signal<TradeDisplayPair[]>([]);
+  readonly tradeRow = signal<TradeRow | null>(null);
+  readonly tradesSkipped = signal(false);
 
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -155,6 +157,14 @@ export class LevelUp implements OnInit {
 
   onTradeDisplayChanged(pairs: TradeDisplayPair[]): void {
     this.tradeDisplayPairs.set(pairs);
+  }
+
+  onTradeRowChanged(row: TradeRow | null): void {
+    this.tradeRow.set(row);
+  }
+
+  onTradesSkippedChanged(skipped: boolean): void {
+    this.tradesSkipped.set(skipped);
   }
 
   onSubmit(): void {

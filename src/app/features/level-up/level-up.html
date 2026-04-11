@@ -82,8 +82,12 @@
                 [ownedDomainCardIds]="ownedDomainCardIds()"
                 [targetLevel]="levelUpOptions()!.nextLevel"
                 [newDomainCards]="selectedDomainCards()"
+                [initialTradeRow]="tradeRow()"
+                [initialSkipped]="tradesSkipped()"
                 (tradesChanged)="onTradesChanged($event)"
                 (tradeDisplayChanged)="onTradeDisplayChanged($event)"
+                (tradeRowChanged)="onTradeRowChanged($event)"
+                (tradesSkippedChanged)="onTradesSkippedChanged($event)"
               />
             }
             @case ('review') {

@@ -1,0 +1,64 @@
+<div
+  class="dialog-backdrop"
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeydown($event)"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Create Expansion"
+>
+  <div class="dialog-panel">
+    <h2 class="dialog-title">Create Expansion</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-field">
+        <label class="form-label" for="expansion-name">Name</label>
+        <input
+          id="expansion-name"
+          type="text"
+          class="form-input"
+          formControlName="name"
+          [class.form-input--invalid]="nameControl.dirty && nameControl.invalid"
+          autocomplete="off"
+        />
+        @if (nameControl.dirty && nameControl.hasError('required')) {
+          <span class="field-error" role="alert">Name is required.</span>
+        } @else if (nameControl.dirty && nameControl.hasError('maxlength')) {
+          <span class="field-error" role="alert">Name must be 255 characters or fewer.</span>
+        }
+      </div>
+
+      <div class="form-field form-field--checkbox">
+        <label class="form-label form-label--checkbox">
+          <input type="checkbox" formControlName="isPublished" />
+          Published
+        </label>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="backend-error" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="dialog-btn dialog-btn--cancel"
+          [disabled]="isProcessing()"
+          (click)="onCancel()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="dialog-btn dialog-btn--submit"
+          [disabled]="form.invalid || isProcessing()"
+        >
+          @if (isProcessing()) {
+            Creating...
+          } @else {
+            Create
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

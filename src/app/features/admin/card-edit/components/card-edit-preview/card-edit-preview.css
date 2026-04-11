@@ -1,0 +1,29 @@
+.preview-sticky {
+  position: sticky;
+  top: 6rem;
+}
+
+.preview-title {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.preview-live-pill {
+  background: var(--color-accent);
+  color: var(--color-bg-dark);
+  font-family: Cinzel, serif;
+  text-transform: uppercase;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+}
+
+@media (max-width: 900px) {
+  .preview-sticky {
+    position: static;
+  }
+}

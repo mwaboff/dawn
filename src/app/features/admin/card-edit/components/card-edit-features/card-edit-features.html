@@ -1,0 +1,117 @@
+@if (getEditableFeatures().length > 0) {
+  <div class="features-section">
+    <h3 class="features-title">Features</h3>
+    @for (feature of getEditableFeatures(); track feature.id; let i = $index) {
+      <div class="feature-item" [class.feature-item--dirty]="isDirty(feature)">
+        <button type="button" class="feature-header" (click)="toggleFeature(i)" [attr.aria-expanded]="feature.expanded">
+          <span class="feature-name">{{ feature.form.getRawValue().name }}</span>
+          @if (isDirty(feature)) {
+            <span class="feature-dirty-dot"></span>
+          }
+          <span class="feature-toggle">{{ feature.expanded ? '−' : '+' }}</span>
+        </button>
+        @if (feature.expanded) {
+          <div class="feature-body">
+            <form [formGroup]="feature.form">
+              <div class="form-group">
+                <label class="form-label" [attr.for]="'fn-' + feature.id">Name</label>
+                <input [id]="'fn-' + feature.id" type="text" class="form-input" formControlName="name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" [attr.for]="'fd-' + feature.id">Description</label>
+                <textarea [id]="'fd-' + feature.id" class="form-textarea" formControlName="description" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" [attr.for]="'ft-' + feature.id">Feature Type</label>
+                <input [id]="'ft-' + feature.id" type="text" class="form-input" formControlName="featureType" />
+              </div>
+            </form>
+
+            <div class="subsection">
+              <div class="subsection-header">
+                <span class="subsection-label">Cost Tags</span>
+                <button type="button" class="btn-add-sub" (click)="toggleAddTag(i)" [disabled]="saving()" [attr.aria-expanded]="feature.showAddTag">
+                  {{ feature.showAddTag ? 'Cancel' : '+ Tag' }}
+                </button>
+              </div>
+              <div class="tags-list">
+                @for (tag of feature.costTags; track $index; let ti = $index) {
+                  <span class="tag-chip" [attr.data-category]="tag.category.toLowerCase()">
+                    <span class="tag-label">{{ tag.label }}</span>
+                    <span class="tag-badge">{{ tag.category }}</span>
+                    <button type="button" class="chip-remove" (click)="removeCostTag(i, ti)" [disabled]="saving()" [attr.aria-label]="'Remove ' + tag.label">×</button>
+                  </span>
+                }
+                @if (feature.costTags.length === 0) {
+                  <span class="empty-hint">No cost tags — add one below</span>
+                }
+              </div>
+              @if (feature.showAddTag) {
+                <div class="add-row" [formGroup]="feature.addTagForm">
+                  <input
+                    type="text"
+                    formControlName="newLabel"
+                    class="form-input-sm"
+                    placeholder="Tag label…"
+                    [attr.list]="'tags-' + feature.id"
+                    (input)="onTagLabelInput(i, $any($event.target).value)"
+                    autocomplete="off"
+                  />
+                  <datalist [attr.id]="'tags-' + feature.id">
+                    @for (t of availableCostTags(); track t.id) {
+                      <option [value]="t.label">{{ t.category }}</option>
+                    }
+                  </datalist>
+                  <select formControlName="newCategory" class="form-input-sm form-input-category">
+                    @for (c of costTagCategories; track c) {
+                      <option [value]="c">{{ c }}</option>
+                    }
+                  </select>
+                  <button type="button" class="btn-confirm-sm" (click)="addCostTag(i)" [disabled]="saving()">Add</button>
+                </div>
+              }
+            </div>
+
+            <div class="subsection">
+              <div class="subsection-header">
+                <span class="subsection-label">Modifiers</span>
+                <button type="button" class="btn-add-sub" (click)="toggleAddModifier(i)" [disabled]="saving()" [attr.aria-expanded]="feature.showAddModifier">
+                  {{ feature.showAddModifier ? 'Cancel' : '+ Modifier' }}
+                </button>
+              </div>
+              <div class="modifiers-list">
+                @for (mod of feature.modifiers; track $index; let mi = $index) {
+                  <div class="modifier-row">
+                    <span class="modifier-target">{{ mod.target.replace('_', ' ') }}</span>
+                    <span class="modifier-op" [attr.data-op]="mod.operation">{{ mod.operation }}</span>
+                    <span class="modifier-value" [class.modifier-value--positive]="mod.value > 0" [class.modifier-value--negative]="mod.value < 0">{{ mod.value > 0 ? '+' : '' }}{{ mod.value }}</span>
+                    <button type="button" class="chip-remove modifier-remove" (click)="removeModifier(i, mi)" [disabled]="saving()" [attr.aria-label]="'Remove ' + mod.target + ' modifier'">×</button>
+                  </div>
+                }
+                @if (feature.modifiers.length === 0) {
+                  <span class="empty-hint">No modifiers — add one below</span>
+                }
+              </div>
+              @if (feature.showAddModifier) {
+                <div class="add-row" [formGroup]="feature.addModifierForm">
+                  <select formControlName="target" class="form-input-sm">
+                    @for (t of modifierTargets; track t) {
+                      <option [value]="t">{{ t.replace('_', ' ') }}</option>
+                    }
+                  </select>
+                  <select formControlName="operation" class="form-input-sm form-input-op">
+                    @for (o of modifierOperations; track o) {
+                      <option [value]="o">{{ o }}</option>
+                    }
+                  </select>
+                  <input type="number" formControlName="value" class="form-input-sm form-input-value" />
+                  <button type="button" class="btn-confirm-sm" (click)="addModifier(i)" [disabled]="saving()">Add</button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

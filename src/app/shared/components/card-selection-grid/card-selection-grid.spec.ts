@@ -122,6 +122,51 @@ describe('CardSelectionGrid', () => {
     expect(host.lastSelectedCard?.id).toBe(1);
   });
 
+  it('should also emit cardsSelected with [card] when clicking unselected card in single-select mode', () => {
+    fixture.detectChanges();
+
+    const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+    cardButton.click();
+    fixture.detectChanges();
+
+    expect(host.lastSelectedCards).toHaveLength(1);
+    expect(host.lastSelectedCards?.[0].id).toBe(1);
+  });
+
+  it('should emit cardsSelected with [] when clicking already-selected card via selectedCard input', () => {
+    host.selectedCard.set(MOCK_CARDS[0]);
+    fixture.detectChanges();
+
+    const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+    cardButton.click();
+    fixture.detectChanges();
+
+    expect(host.lastSelectedCards).toEqual([]);
+  });
+
+  it('should emit cardsSelected with [] when clicking already-selected card via selectedCards input (dynamic max=1)', () => {
+    host.selectedCards.set([MOCK_CARDS[0]]);
+    fixture.detectChanges();
+
+    const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+    cardButton.click();
+    fixture.detectChanges();
+
+    expect(host.lastSelectedCards).toEqual([]);
+  });
+
+  it('should emit cardsSelected with [newCard] when replacing via different card in single-select mode', () => {
+    host.selectedCards.set([MOCK_CARDS[0]]);
+    fixture.detectChanges();
+
+    const secondCard = el.querySelectorAll('app-daggerheart-card .card')[1] as HTMLElement;
+    secondCard.click();
+    fixture.detectChanges();
+
+    expect(host.lastSelectedCards).toHaveLength(1);
+    expect(host.lastSelectedCards?.[0].id).toBe(2);
+  });
+
   it('should mark selected card in single-select mode', () => {
     host.selectedCard.set(MOCK_CARDS[0]);
     fixture.detectChanges();

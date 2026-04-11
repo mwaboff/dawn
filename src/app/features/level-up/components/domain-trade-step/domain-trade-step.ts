@@ -25,12 +25,15 @@ export class DomainTradeStep implements OnInit {
   readonly accessibleDomainIds = input.required<number[]>();
   readonly domainCardLevelCap = input.required<number | null>();
   readonly newDomainCards = input<CardData[]>([]);
-  readonly initialTrades = input<DomainCardTradeRequest[]>([]);
   readonly ownedDomainCardIds = input<number[]>([]);
   readonly targetLevel = input<number | null>(null);
+  readonly initialTradeRow = input<TradeRow | null>(null);
+  readonly initialSkipped = input<boolean>(false);
 
   readonly tradesChanged = output<DomainCardTradeRequest[]>();
   readonly tradeDisplayChanged = output<TradeDisplayPair[]>();
+  readonly tradeRowChanged = output<TradeRow | null>();
+  readonly tradesSkippedChanged = output<boolean>();
 
   readonly trade = signal<TradeRow>({ tradedOut: [], tradedIn: [], equipTradedIn: [] });
   readonly tradableCards = signal<CardData[]>([]);
@@ -44,6 +47,14 @@ export class DomainTradeStep implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.initialSkipped()) {
+      this.skipped.set(true);
+    } else {
+      const initial = this.initialTradeRow();
+      if (initial) {
+        this.trade.set(initial);
+      }
+    }
     this.loadTradableCards();
   }
 
@@ -52,6 +63,8 @@ export class DomainTradeStep implements OnInit {
     this.trade.set({ tradedOut: [], tradedIn: [], equipTradedIn: [] });
     this.tradesChanged.emit([]);
     this.tradeDisplayChanged.emit([]);
+    this.tradeRowChanged.emit(null);
+    this.tradesSkippedChanged.emit(true);
   }
 
   onToggleTradeOut(card: DomainCardSummary): void {
@@ -105,6 +118,7 @@ export class DomainTradeStep implements OnInit {
 
   private emitTrades(): void {
     const t = this.trade();
+    this.tradeRowChanged.emit(t);
     if (this.isTradeValid(t)) {
       this.tradesChanged.emit([{
         tradeOutCardIds: t.tradedOut.map(c => c.id),
