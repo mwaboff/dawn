@@ -104,12 +104,7 @@ export class DomainCardStep implements OnInit {
     return this.selectedLevels().size === 0;
   }
 
-  onSingleCardSelected(card: CardData): void {
-    this.selectedCards.set([card]);
-    this.domainCardsSelected.emit([card]);
-  }
-
-  onMultiCardsSelected(cards: CardData[]): void {
+  onCardsSelected(cards: CardData[]): void {
     this.selectedCards.set(cards);
     this.domainCardsSelected.emit(cards);
   }

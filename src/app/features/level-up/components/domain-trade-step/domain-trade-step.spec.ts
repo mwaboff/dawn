@@ -172,6 +172,27 @@ describe('DomainTradeStep', () => {
     expect(component.filteredTradableCards()[0].name).toBe('Stone Wall');
   });
 
+  it('should emit a valid 1-for-1 trade when 1 trade-out and 1 replacement are selected (regression)', () => {
+    // Select 1 card to give up
+    const tradeOutBtn = el.querySelector('.trade-card-btn') as HTMLButtonElement;
+    tradeOutBtn.click();
+    fixture.detectChanges();
+
+    expect(host.lastTrades).toEqual([]);
+
+    // Click 1 replacement card in the CardSelectionGrid (maxSelections now === 1)
+    const replacementCard = el.querySelector('app-card-selection-grid app-daggerheart-card .card') as HTMLElement;
+    expect(replacementCard).toBeTruthy();
+    replacementCard.click();
+    fixture.detectChanges();
+
+    expect(host.lastTrades).toHaveLength(1);
+    expect(host.lastTrades?.[0].tradeOutCardIds).toEqual([1]);
+    expect(host.lastTrades?.[0].tradeInCardIds).toHaveLength(1);
+    expect(host.lastTradeDisplayPairs).toHaveLength(1);
+    expect(host.lastTradeDisplayPairs?.[0].gaveUpName).toBe('Flame Strike');
+  });
+
   it('should use minimum of domainCardLevelCap and targetLevel for loading', () => {
     mockDomainService.getDomainCards.mockClear();
 

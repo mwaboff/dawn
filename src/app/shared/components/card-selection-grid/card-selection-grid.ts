@@ -35,6 +35,9 @@ export class CardSelectionGrid {
   onCardClicked(card: CardData): void {
     if (this.maxSelections() === 1) {
       this.cardSelected.emit(card);
+      const isCurrentlySelected = this.selectedCard()?.id === card.id
+        || this.selectedCards().some(c => c.id === card.id);
+      this.cardsSelected.emit(isCurrentlySelected ? [] : [card]);
       return;
     }
 

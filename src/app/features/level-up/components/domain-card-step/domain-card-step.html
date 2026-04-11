@@ -42,8 +42,7 @@
     [collapsibleFeatures]="true"
     layout="wide"
     [skeletonCount]="6"
-    (cardsSelected)="onMultiCardsSelected($event)"
-    (cardSelected)="onSingleCardSelected($event)"
+    (cardsSelected)="onCardsSelected($event)"
   />
 
   @if (selectedCards().length > 0) {
