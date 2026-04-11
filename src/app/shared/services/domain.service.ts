@@ -7,6 +7,7 @@ import { DomainCardResponse, DomainResponse } from '../models/domain-card-api.mo
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapDomainCardResponseToCardData } from '../mappers/domain-card.mapper';
 import { mapDomainToCardData } from '../mappers/domain.mapper';
+import { LookupOption } from '../models/lookup-option.model';
 
 export interface DomainCardBrowseOptions {
   page?: number;
@@ -26,6 +27,14 @@ export class DomainService {
 
   private domainNameToId = new Map<string, number>();
   private lookupLoaded = false;
+
+  getDomainOptions(): Observable<LookupOption[]> {
+    const params = new HttpParams().set('page', 0).set('size', 100);
+
+    return this.http
+      .get<PaginatedResponse<DomainResponse>>(this.domainsUrl, { params, withCredentials: true })
+      .pipe(map(response => response.content.map(d => ({ id: d.id, label: d.name }))));
+  }
 
   getDomains(): Observable<CardData[]> {
     const params = new HttpParams()

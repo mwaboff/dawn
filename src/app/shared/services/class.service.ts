@@ -6,6 +6,7 @@ import { ClassResponse } from '../models/class-api.model';
 import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapClassResponseToCardData } from '../mappers/class.mapper';
+import { LookupOption } from '../models/lookup-option.model';
 
 export interface ClassOptions {
   page?: number;
@@ -18,6 +19,14 @@ export interface ClassOptions {
 export class ClassService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/classes`;
+
+  getClassOptions(): Observable<LookupOption[]> {
+    const params = new HttpParams().set('page', 0).set('size', 100);
+
+    return this.http
+      .get<PaginatedResponse<ClassResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => response.content.map(c => ({ id: c.id, label: c.name }))));
+  }
 
   getClasses(page = 0, size = 100): Observable<CardData[]> {
     const params = new HttpParams()

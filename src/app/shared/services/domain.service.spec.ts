@@ -187,6 +187,48 @@ describe('DomainService', () => {
     });
   });
 
+  describe('getDomainOptions', () => {
+    it('should fetch domains with page=0 and size=100', () => {
+      service.getDomainOptions().subscribe();
+
+      const req = httpMock.expectOne(
+        r => r.url === DOMAINS_URL && r.params.get('page') === '0' && r.params.get('size') === '100',
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0 });
+    });
+
+    it('should send withCredentials: true', () => {
+      service.getDomainOptions().subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.withCredentials).toBe(true);
+      req.flush({ content: [], totalElements: 0, totalPages: 0, size: 100, number: 0 });
+    });
+
+    it('should map response to LookupOption[]', () => {
+      let result: unknown;
+      service.getDomainOptions().subscribe(opts => (result = opts));
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      req.flush({
+        content: [
+          { id: 1, name: 'Arcana' },
+          { id: 2, name: 'Blade' },
+        ],
+        totalElements: 2,
+        totalPages: 1,
+        size: 100,
+        number: 0,
+      });
+
+      expect(result).toEqual([
+        { id: 1, label: 'Arcana' },
+        { id: 2, label: 'Blade' },
+      ]);
+    });
+  });
+
   describe('clearCache', () => {
     it('should re-fetch after clearCache', () => {
       service.loadDomainLookup().subscribe();
