@@ -224,7 +224,7 @@ describe('Navbar', () => {
       expect(component.isDropdownOpen()).toBe(false);
     });
 
-    it('should show Create Campaign in dropdown when open', () => {
+    it('should show + Character and + Campaign in dropdown when open', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
       fixture.detectChanges();
       component.isDropdownOpen.set(true);
@@ -233,7 +233,8 @@ describe('Navbar', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       const items = compiled.querySelectorAll('.nav-dropdown-item');
       const texts = Array.from(items).map(el => el.textContent?.trim());
-      expect(texts).toContain('Create Campaign');
+      expect(texts).toContain('+ Character');
+      expect(texts).toContain('+ Campaign');
     });
 
     it('should render plus button when logged in', () => {
@@ -281,6 +282,72 @@ describe('Navbar', () => {
       const event = new KeyboardEvent('keydown', { key: 'Escape' });
       component.onKeydown(event);
       expect(component.isDropdownOpen()).toBe(false);
+    });
+  });
+
+  describe('mobile menu', () => {
+    it('should start with mobile menu closed', () => {
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should toggle mobile menu', () => {
+      component.toggleMobileMenu();
+      expect(component.isMobileMenuOpen()).toBe(true);
+      component.toggleMobileMenu();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when closeMobileMenu is called', () => {
+      component.isMobileMenuOpen.set(true);
+      component.closeMobileMenu();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should render mobile menu items when open and logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isMobileMenuOpen.set(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const items = compiled.querySelectorAll('.nav-mobile-item');
+      const texts = Array.from(items).map(el => el.textContent?.trim());
+      expect(texts).toContain('Reference');
+      expect(texts).toContain('+ Character');
+      expect(texts).toContain('+ Campaign');
+      expect(texts).toContain('Profile');
+      expect(texts).toContain('Logout');
+    });
+
+    it('should render mobile menu items when open and logged out', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      component.isMobileMenuOpen.set(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const items = compiled.querySelectorAll('.nav-mobile-item');
+      const texts = Array.from(items).map(el => el.textContent?.trim());
+      expect(texts).toContain('Reference');
+      expect(texts).toContain('Login / Sign Up');
+    });
+
+    it('should close mobile menu on Escape key', () => {
+      component.isMobileMenuOpen.set(true);
+      component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when onCreateCharacter is called', () => {
+      vi.spyOn(router, 'navigate');
+      component.isMobileMenuOpen.set(true);
+      component.onCreateCharacter();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when onCreateCampaign is called', () => {
+      vi.spyOn(router, 'navigate');
+      component.isMobileMenuOpen.set(true);
+      component.onCreateCampaign();
+      expect(component.isMobileMenuOpen()).toBe(false);
     });
   });
 });

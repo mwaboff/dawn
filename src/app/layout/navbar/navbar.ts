@@ -24,6 +24,7 @@ export class Navbar {
   readonly isScrolled = computed(() => this.scrollY() > 10);
   readonly isDropdownOpen = signal(false);
   readonly isUserMenuOpen = signal(false);
+  readonly isMobileMenuOpen = signal(false);
   readonly userInitial = computed(() => {
     const username = this.authService.user()?.username;
     return username ? username.charAt(0).toUpperCase() : '';
@@ -58,6 +59,14 @@ export class Navbar {
     this.isUserMenuOpen.set(false);
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.update(open => !open);
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
+  }
+
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
     if (this.isDropdownOpen() && !target.closest('.nav-create-container')) {
@@ -66,26 +75,33 @@ export class Navbar {
     if (this.isUserMenuOpen() && !target.closest('.nav-user-container')) {
       this.closeUserMenu();
     }
+    if (this.isMobileMenuOpen() && !target.closest('.nav-mobile-menu') && !target.closest('.nav-burger')) {
+      this.closeMobileMenu();
+    }
   }
 
   onKeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape') return;
     if (this.isDropdownOpen()) this.closeDropdown();
     if (this.isUserMenuOpen()) this.closeUserMenu();
+    if (this.isMobileMenuOpen()) this.closeMobileMenu();
   }
 
   onCreateCharacter(): void {
     this.closeDropdown();
+    this.closeMobileMenu();
     this.router.navigate(['/create-character']);
   }
 
   onCreateCampaign(): void {
     this.closeDropdown();
+    this.closeMobileMenu();
     this.router.navigate(['/campaigns/create']);
   }
 
   onLogout(): void {
     this.closeUserMenu();
+    this.closeMobileMenu();
     this.authService.logout().subscribe({
       next: () => this.router.navigate(['/']),
       error: (err) => { console.error('Logout failed:', err); this.router.navigate(['/']); }
