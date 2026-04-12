@@ -41,14 +41,16 @@ describe('Navbar', () => {
   });
 
   describe('onLogout', () => {
-    it('should navigate to home on successful logout', () => {
+    it('should navigate to home and close user menu on successful logout', () => {
       vi.spyOn(authService, 'logout').mockReturnValue(of(void 0));
       const navigateSpy = vi.spyOn(router, 'navigate');
+      component.isUserMenuOpen.set(true);
 
       component.onLogout();
 
       expect(authService.logout).toHaveBeenCalled();
       expect(navigateSpy).toHaveBeenCalledWith(['/']);
+      expect(component.isUserMenuOpen()).toBe(false);
     });
 
     it('should log error and navigate to home on logout error', () => {
@@ -56,12 +58,14 @@ describe('Navbar', () => {
       vi.spyOn(authService, 'logout').mockReturnValue(throwError(() => error));
       const navigateSpy = vi.spyOn(router, 'navigate');
       const consoleSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
+      component.isUserMenuOpen.set(true);
 
       component.onLogout();
 
       expect(authService.logout).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith('Logout failed:', error);
       expect(navigateSpy).toHaveBeenCalledWith(['/']);
+      expect(component.isUserMenuOpen()).toBe(false);
     });
   });
 
@@ -86,8 +90,10 @@ describe('Navbar', () => {
   });
 
   describe('profile link', () => {
-    it('should render profile as routerLink', () => {
+    it('should render profile as routerLink inside user menu', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isUserMenuOpen.set(true);
       fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
       const profileLink = compiled.querySelector('a[routerLink="/profile"]');
@@ -95,21 +101,67 @@ describe('Navbar', () => {
     });
   });
 
-  describe('Campaigns link', () => {
-    it('should show Campaigns link when logged in', () => {
-      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+  describe('user menu', () => {
+    it('should start with user menu closed', () => {
       fixture.detectChanges();
-      const compiled = fixture.nativeElement as HTMLElement;
-      const link = compiled.querySelector('a[routerLink="/campaigns"]');
-      expect(link).toBeTruthy();
+      expect(component.isUserMenuOpen()).toBe(false);
     });
 
-    it('should not show Campaigns link when logged out', () => {
+    it('should toggle user menu when avatar button is clicked', () => {
+      fixture.detectChanges();
+      component.toggleUserMenu();
+      expect(component.isUserMenuOpen()).toBe(true);
+      component.toggleUserMenu();
+      expect(component.isUserMenuOpen()).toBe(false);
+    });
+
+    it('should close user menu when closeUserMenu is called', () => {
+      fixture.detectChanges();
+      component.isUserMenuOpen.set(true);
+      component.closeUserMenu();
+      expect(component.isUserMenuOpen()).toBe(false);
+    });
+
+    it('should render user menu button when logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('.nav-user-btn');
+      expect(btn).toBeTruthy();
+    });
+
+    it('should not render user menu button when logged out', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
       fixture.detectChanges();
+      const btn = fixture.nativeElement.querySelector('.nav-user-btn');
+      expect(btn).toBeFalsy();
+    });
+
+    it('should show Profile and Logout when user menu is open', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isUserMenuOpen.set(true);
+      fixture.detectChanges();
       const compiled = fixture.nativeElement as HTMLElement;
-      const link = compiled.querySelector('a[routerLink="/campaigns"]');
-      expect(link).toBeFalsy();
+      const items = compiled.querySelectorAll('.nav-user-menu-item');
+      const texts = Array.from(items).map(el => el.textContent?.trim());
+      expect(texts).toContain('Profile');
+      expect(texts).toContain('Logout');
+    });
+
+    it('should close user menu when clicking outside', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isUserMenuOpen.set(true);
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('.nav-logo').click();
+      fixture.detectChanges();
+      expect(component.isUserMenuOpen()).toBe(false);
+    });
+
+    it('should close user menu on Escape key', () => {
+      component.isUserMenuOpen.set(true);
+      component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+      expect(component.isUserMenuOpen()).toBe(false);
     });
   });
 
