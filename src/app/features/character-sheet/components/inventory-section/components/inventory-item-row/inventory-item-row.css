@@ -26,3 +26,6 @@
 .card-swap-btn--vault:hover:not(:disabled) { border-color: rgba(160,100,50,.5); color: rgba(212,128,86,.9); background: rgba(212,128,86,.08); }
 .card-swap-btn--equip:hover:not(:disabled) { border-color: rgba(86,180,120,.5); color: rgba(86,200,120,.9); background: rgba(86,180,120,.08); }
 .card-swap-hint { font-family: var(--font-body); font-size: .75rem; color: rgba(212,160,86,.4); font-style: italic; }
+
+.burden-hand { width: 14px; height: 14px; fill: rgba(212,160,86,.7); vertical-align: middle; }
+.equip-stat--burden { display: inline-flex; align-items: center; gap: 3px; }

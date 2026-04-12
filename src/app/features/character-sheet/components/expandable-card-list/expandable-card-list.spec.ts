@@ -16,7 +16,7 @@ import { DomainCardSummary, SubclassCardSummary } from '../../models/character-s
 class TestHost {
   heading = signal('Ancestry');
   cards = signal<AnyCardSummary[]>([
-    { id: 1, name: 'Elf', description: 'Ancient folk', features: [{ name: 'Darkvision', description: 'See in the dark', tags: ['Passive'] }] },
+    { id: 1, name: 'Elf', description: 'Ancient folk', features: [{ name: 'Darkvision', description: 'See in the dark', tags: ['Passive'], modifiers: [] }] },
     { id: 2, name: 'Dwarf', features: [] },
   ]);
   cardType = signal<CardType>('ancestry');
@@ -169,7 +169,7 @@ describe('ExpandableCardList', () => {
         {
           id: 20, name: 'Fireball', domainName: 'Arcana',
           level: 3, recallCost: 2, type: 'Spell',
-          features: [{ name: 'Blast', description: 'Explodes', tags: [] }],
+          features: [{ name: 'Blast', description: 'Explodes', tags: [], modifiers: [] }],
         },
       ];
       host.cards.set(domainCards);

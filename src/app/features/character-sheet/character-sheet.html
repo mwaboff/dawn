@@ -206,7 +206,25 @@
                   <span class="equip-stat">{{ sheet.activePrimaryWeapon.range }}</span>
                 }
                 @if (sheet.activePrimaryWeapon.burden) {
-                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.burden }}</span>
+                  @switch (sheet.activePrimaryWeapon.burden) {
+                    @case ('TWO_HANDED') {
+                      <span class="equip-stat equip-stat--burden" title="Two-Handed">
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                      </span>
+                    }
+                    @default {
+                      <span class="equip-stat equip-stat--burden" title="One-Handed">
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                      </span>
+                    }
+                  }
                 }
               </div>
               @if (sheet.activePrimaryWeapon.features.length > 0) {
@@ -221,6 +239,15 @@
                         <div class="feature-row__tags">
                           @for (tag of feature.tags; track tag) {
                             <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
                           }
                         </div>
                       }
@@ -252,6 +279,15 @@
                         <strong class="feature-row__name">{{ feature.name }}</strong>
                       }
                       <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
+                          }
+                        </div>
+                      }
                     </div>
                   }
                 </div>
@@ -287,6 +323,15 @@
                         <div class="feature-row__tags">
                           @for (tag of feature.tags; track tag) {
                             <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
                           }
                         </div>
                       }

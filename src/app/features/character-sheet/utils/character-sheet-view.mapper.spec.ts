@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapToCharacterSheetView } from './character-sheet-view.mapper';
 import { CharacterSheetResponse } from '../../create-character/models/character-sheet-api.model';
+import { FeatureModifierDisplay } from '../models/character-sheet-view.model';
 
 function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSheetResponse {
   return {
@@ -214,7 +215,7 @@ describe('mapToCharacterSheetView', () => {
       const result = mapToCharacterSheetView(sheet);
       expect(result.activePrimaryWeapon?.id).toBe(10);
       expect(result.activePrimaryWeapon?.name).toBe('Longsword');
-      expect(result.activePrimaryWeapon?.damage).toBe('1d8');
+      expect(result.activePrimaryWeapon?.damage).toBe('1d8 Phy');
     });
 
     it('maps weapon damage to empty string when damage is missing', () => {
@@ -280,6 +281,143 @@ describe('mapToCharacterSheetView', () => {
       const result = mapToCharacterSheetView(sheet);
 
       expect(result.activeArmor?.baseScore).toBe(0);
+    });
+
+    it('damage uses proficiency when diceCount is null', () => {
+      const sheet = makeSheet({
+        proficiency: 4,
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Greatbow', features: [],
+            damage: { diceCount: null, diceType: 'D10', modifier: 3, damageType: 'PHYSICAL', notation: 'ignored' },
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.damage).toBe('4d10+3 Phy');
+    });
+
+    it('isPrimary is mapped from the weapon when false', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'SECONDARY',
+          weapon: { id: 10, name: 'Offhand Dagger', isPrimary: false, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activeSecondaryWeapon?.isPrimary).toBe(false);
+    });
+
+    it('isPrimary defaults to true when missing from weapon', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: { id: 10, name: 'Sword', features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.isPrimary).toBe(true);
+    });
+
+    it('range and trait are formatted from enum labels', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: { id: 10, name: 'Rapier', range: 'VERY_CLOSE', trait: 'FINESSE', features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.range).toBe('Very Close');
+      expect(result.activePrimaryWeapon?.trait).toBe('Finesse');
+    });
+  });
+
+  describe('feature mapping', () => {
+    it('tags are sorted alphabetically', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Sword', features: [{
+              description: 'A fancy feature',
+              costTags: [{ label: 'Zephyr', category: 'X' }, { label: 'Arcane', category: 'X' }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.features[0].tags).toEqual(['Arcane', 'Zephyr']);
+    });
+
+    it('modifiers are mapped with ADD formatted label (positive)', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Sword', features: [{
+              description: 'Evasion boost',
+              modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+      const modifier = result.activePrimaryWeapon?.features[0].modifiers[0] as FeatureModifierDisplay;
+
+      expect(modifier.label).toBe('+1 Evasion');
+      expect(modifier.value).toBe(1);
+      expect(modifier.operation).toBe('ADD');
+      expect(modifier.target).toBe('EVASION');
+    });
+
+    it('modifiers are mapped with ADD formatted label (negative)', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Cursed Blade', features: [{
+              description: 'Evasion penalty',
+              modifiers: [{ target: 'EVASION', operation: 'ADD', value: -1 }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+      const modifier = result.activePrimaryWeapon?.features[0].modifiers[0] as FeatureModifierDisplay;
+
+      expect(modifier.label).toBe('-1 Evasion');
+    });
+
+    it('modifiers are mapped with MULTIPLY formatted label', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Power Blade', features: [{
+              description: 'Double proficiency',
+              modifiers: [{ target: 'PROFICIENCY', operation: 'MULTIPLY', value: 2 }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+      const modifier = result.activePrimaryWeapon?.features[0].modifiers[0] as FeatureModifierDisplay;
+
+      expect(modifier.label).toBe('×2 Proficiency');
     });
   });
 

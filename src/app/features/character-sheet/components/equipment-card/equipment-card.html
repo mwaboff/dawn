@@ -30,6 +30,13 @@
               }
             </div>
           }
+          @if (feature.modifiers.length > 0) {
+            <div class="feature-row__modifiers">
+              @for (mod of feature.modifiers; track mod.label) {
+                <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">{{ mod.label }}</span>
+              }
+            </div>
+          }
         </div>
       }
     </div>

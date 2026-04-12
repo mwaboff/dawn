@@ -5,6 +5,10 @@
     </a>
     <div class="nav-links">
       @if (authService.isLoggedIn()) {
+        <a routerLink="/reference" class="nav-link">Reference</a>
+        @if (authService.isAdmin()) {
+          <a routerLink="/admin" class="nav-link">Admin</a>
+        }
         <div class="nav-create-container">
           <button
             type="button"
@@ -13,33 +17,81 @@
             aria-label="Create menu"
             aria-haspopup="true"
             [attr.aria-expanded]="isDropdownOpen()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="nav-create-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span class="nav-create-label">Create</span>
+            <svg class="nav-create-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
           @if (isDropdownOpen()) {
             <div class="nav-dropdown" role="menu">
               <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCharacter()">
-                Create Character
+                + Character
               </button>
               <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCampaign()">
-                Create Campaign
+                + Campaign
               </button>
             </div>
           }
         </div>
-        <a routerLink="/reference" class="nav-link">Reference</a>
-        <a routerLink="/campaigns" class="nav-link">Campaigns</a>
-        <a routerLink="/profile" class="nav-link">Profile</a>
-        @if (authService.isAdmin()) {
-          <a routerLink="/admin" class="nav-link nav-link-admin">Admin</a>
-        }
-        <button type="button" class="nav-link nav-link-secondary" (click)="onLogout()">Logout</button>
+        <div class="nav-user-container">
+          <button
+            type="button"
+            class="nav-user-btn"
+            (click)="toggleUserMenu()"
+            aria-label="Account menu"
+            aria-haspopup="true"
+            [attr.aria-expanded]="isUserMenuOpen()">
+            <span class="nav-user-initial">{{ userInitial() }}</span>
+          </button>
+          @if (isUserMenuOpen()) {
+            <div class="nav-user-menu" role="menu">
+              <a routerLink="/profile" class="nav-user-menu-item" role="menuitem" (click)="closeUserMenu()">
+                Profile
+              </a>
+              <button type="button" class="nav-user-menu-item" role="menuitem" (click)="onLogout()">
+                Logout
+              </button>
+            </div>
+          }
+        </div>
       } @else {
         <a routerLink="/reference" class="nav-link">Reference</a>
-        <a routerLink="/auth" class="nav-link nav-link-auth">Login / Sign Up</a>
+        <a routerLink="/auth" class="nav-link-auth">Login / Sign Up</a>
       }
     </div>
+    <button
+      type="button"
+      class="nav-burger"
+      (click)="toggleMobileMenu()"
+      aria-label="Toggle navigation menu"
+      [attr.aria-expanded]="isMobileMenuOpen()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
   </div>
+  @if (isMobileMenuOpen()) {
+    <div class="nav-mobile-menu" role="menu">
+      @if (authService.isLoggedIn()) {
+        <a routerLink="/reference" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Reference</a>
+        @if (authService.isAdmin()) {
+          <a routerLink="/admin" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Admin</a>
+        }
+        <button type="button" class="nav-mobile-item" role="menuitem" (click)="onCreateCharacter()">+ Character</button>
+        <button type="button" class="nav-mobile-item" role="menuitem" (click)="onCreateCampaign()">+ Campaign</button>
+        <div class="nav-mobile-divider"></div>
+        <a routerLink="/profile" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Profile</a>
+        <button type="button" class="nav-mobile-item" role="menuitem" (click)="onLogout()">Logout</button>
+      } @else {
+        <a routerLink="/reference" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Reference</a>
+        <a routerLink="/auth" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Login / Sign Up</a>
+      }
+    </div>
+  }
 </nav>

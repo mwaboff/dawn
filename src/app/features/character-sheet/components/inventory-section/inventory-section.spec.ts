@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -26,7 +27,7 @@ import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character
 })
 class TestHost {
   weapons = signal<WeaponDisplay[]>([
-    { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
+    { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', isPrimary: true, features: [] },
   ]);
   armors = signal<ArmorDisplay[]>([]);
   items = signal<LootDisplay[]>([]);
@@ -195,8 +196,8 @@ describe('InventorySection', () => {
 
     it('shows only one confirming state at a time', () => {
       host.weapons.set([
-        { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] },
-        { id: 2, inventoryEntryId: 2, name: 'Sword', damage: '1d6', trait: 'Strength', range: 'Melee', burden: 'Heavy', features: [] },
+        { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', isPrimary: true, features: [] },
+        { id: 2, inventoryEntryId: 2, name: 'Sword', damage: '1d6', trait: 'Strength', range: 'Melee', burden: 'Heavy', isPrimary: true, features: [] },
       ]);
       host.isOwner.set(true);
       fixture.detectChanges();
@@ -258,8 +259,8 @@ describe('InventorySection', () => {
   describe('duplicate entries with shared weaponId', () => {
     it('renders two rows when weapons share the same id but have different inventoryEntryIds', () => {
       host.weapons.set([
-        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
-        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', isPrimary: true, features: [] },
+        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', isPrimary: true, features: [] },
       ]);
       fixture.detectChanges();
 
@@ -268,8 +269,8 @@ describe('InventorySection', () => {
 
     it('tracks confirming state per inventory entry id so only one confirms', () => {
       host.weapons.set([
-        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
-        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', features: [] },
+        { id: 7, inventoryEntryId: 101, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', isPrimary: true, features: [] },
+        { id: 7, inventoryEntryId: 102, name: 'Shortbow', damage: '1d6', trait: 'Finesse', range: 'Ranged', burden: 'Two-handed', isPrimary: true, features: [] },
       ]);
       host.isOwner.set(true);
       fixture.detectChanges();
@@ -278,6 +279,22 @@ describe('InventorySection', () => {
       fixture.detectChanges();
 
       expect(el.querySelectorAll('.confirm-message').length).toBe(1);
+    });
+  });
+
+  describe('isPrimary slot enforcement', () => {
+    it('primary weapon cannot be equipped as secondary', () => {
+      const component = fixture.debugElement.query(By.directive(InventorySection)).componentInstance as InventorySection;
+      const primaryWeapon: WeaponDisplay = { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', isPrimary: true, features: [] };
+
+      expect(component.canEquipWeaponAsSecondary(primaryWeapon)).toBe(false);
+    });
+
+    it('secondary weapon cannot be equipped as primary', () => {
+      const component = fixture.debugElement.query(By.directive(InventorySection)).componentInstance as InventorySection;
+      const secondaryWeapon: WeaponDisplay = { id: 2, inventoryEntryId: 2, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', isPrimary: false, features: [] };
+
+      expect(component.canEquipWeaponAsPrimary(secondaryWeapon)).toBe(false);
     });
   });
 
@@ -306,7 +323,7 @@ describe('InventorySection', () => {
 
   describe('equipped-item remove guard', () => {
     it('hides the remove button when a weapon is equipped', () => {
-      const equipped = { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', features: [] };
+      const equipped = { id: 1, inventoryEntryId: 1, name: 'Dagger', damage: '1d4', trait: 'Finesse', range: 'Melee', burden: 'Light', isPrimary: true, features: [] };
       host.weapons.set([equipped]);
       host.activePrimaryWeapon.set(equipped);
       host.isOwner.set(true);

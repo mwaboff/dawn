@@ -10,3 +10,40 @@
 .feature-row__description { font-family: var(--fb); font-size: .85rem; color: rgba(245,230,211,.75); line-height: 1.4; margin: 0; }
 .feature-row__tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .2rem; }
 .feature-tag { font-family: var(--fb); font-size: .75rem; color: rgba(212,160,86,.85); background: rgba(212,160,86,.08); border: 1px solid var(--cb); border-radius: 2px; padding: .1rem .3rem; }
+
+.burden-hand {
+  width: 14px;
+  height: 14px;
+  fill: rgba(212, 160, 86, .7);
+  vertical-align: middle;
+}
+
+.equip-stat--burden {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.feature-row__modifiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  margin-top: .25rem;
+}
+
+.modifier-badge {
+  font-family: var(--fb);
+  font-size: .72rem;
+  padding: .1rem .35rem;
+  border-radius: 2px;
+  border: 1px solid;
+  background: rgba(86, 160, 120, .08);
+  border-color: rgba(86, 160, 120, .25);
+  color: rgba(120, 210, 160, .9);
+}
+
+.modifier-badge--negative {
+  background: rgba(160, 86, 86, .08);
+  border-color: rgba(160, 86, 86, .25);
+  color: rgba(210, 120, 120, .9);
+}
