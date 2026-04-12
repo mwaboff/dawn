@@ -78,6 +78,7 @@ export class InventorySection {
   }
 
   canEquipWeaponAsPrimary(weapon: WeaponDisplay): boolean {
+    if (!weapon.isPrimary) return false;  // secondary weapons cannot go in primary slot
     const c = this.weaponConstraints();
     if (!c) return false;
     const isTwoHanded = weapon.burden === 'TWO_HANDED';
@@ -88,6 +89,7 @@ export class InventorySection {
   }
 
   canEquipWeaponAsSecondary(weapon: WeaponDisplay): boolean {
+    if (weapon.isPrimary) return false;   // primary weapons cannot go in secondary slot
     const c = this.weaponConstraints();
     if (!c) return false;
     const isTwoHanded = weapon.burden === 'TWO_HANDED';

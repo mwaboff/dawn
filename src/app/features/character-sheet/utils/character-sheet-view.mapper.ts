@@ -11,6 +11,7 @@ import {
   InventoryWeaponResponse,
   InventoryArmorResponse,
   InventoryLootResponse,
+  DamageRollResponse,
 } from '../../create-character/models/character-sheet-api.model';
 import {
   CharacterSheetView,
@@ -21,6 +22,7 @@ import {
   SubclassCardSummary,
   DomainCardSummary,
   FeatureDisplay,
+  FeatureModifierDisplay,
   TraitDisplay,
   ExperienceDisplay,
   ClassEntry,
@@ -28,8 +30,31 @@ import {
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
 import { applyModifiers, collectEquipmentModifiers } from './modifier-calculator.utils';
 
+function formatEnumLabel(s: string): string {
+  return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+}
+
+function formatDamage(damage: DamageRollResponse | undefined | null, proficiency: number): string {
+  if (!damage) return '';
+  const count = damage.diceCount ?? proficiency;
+  const die = damage.diceType.toLowerCase();
+  const mod = damage.modifier;
+  const type = damage.damageType?.toUpperCase() === 'PHYSICAL' ? 'Phy' : 'Mag';
+  const modStr = mod > 0 ? `+${mod}` : mod < 0 ? `${mod}` : '';
+  return `${count}${die}${modStr} ${type}`;
+}
+
+function formatModifierLabel(target: string, operation: string, value: number): string {
+  const label = formatEnumLabel(target);
+  if (operation === 'ADD') return `${value >= 0 ? '+' : ''}${value} ${label}`;
+  if (operation === 'MULTIPLY') return `×${value} ${label}`;
+  return `${label} ${value}`;
+}
+
 export function mapToCharacterSheetView(sheet: CharacterSheetResponse): CharacterSheetView {
   const modifiers = collectEquipmentModifiers(sheet);
+  const proficiencyStat = applyModifiers(sheet.proficiency, modifiers, 'PROFICIENCY');
+  const proficiency = proficiencyStat.modified;
 
   return {
     id: sheet.id,
@@ -39,7 +64,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     pronouns: sheet.pronouns,
     level: sheet.level,
 
-    proficiency: applyModifiers(sheet.proficiency, modifiers, 'PROFICIENCY'),
+    proficiency: proficiencyStat,
     evasion: applyModifiers(sheet.evasion, modifiers, 'EVASION'),
     hitPointMax: applyModifiers(sheet.hitPointMax, modifiers, 'HIT_POINT_MAX'),
     armorScore: applyModifiers(sheet.armorMax, modifiers, 'ARMOR_SCORE'),
@@ -57,8 +82,8 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
 
     traits: mapTraits(sheet),
 
-    activePrimaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'PRIMARY'),
-    activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY'),
+    activePrimaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'PRIMARY', proficiency),
+    activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY', proficiency),
     activeArmor: mapFirstEquippedArmor(sheet.inventoryArmors),
 
     subclassCards: (sheet.subclassCards ?? []).map(c => mapSubclassCardSummary(c)),
@@ -67,7 +92,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     domainCards: (sheet.domainCards ?? []).map(c => mapDomainCardSummary(c)),
     ...splitDomainCards(sheet),
     maxEquippedDomainCards: 5,
-    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapInventoryWeapon(w)),
+    inventoryWeapons: (sheet.inventoryWeapons ?? []).map(w => mapInventoryWeapon(w, proficiency)),
     inventoryArmors: (sheet.inventoryArmors ?? []).map(a => mapInventoryArmor(a)),
     inventoryItems: (sheet.inventoryItems ?? []).map(i => mapInventoryLoot(i)),
 
@@ -88,15 +113,16 @@ function mapTraits(sheet: CharacterSheetResponse): TraitDisplay[] {
   ];
 }
 
-function buildWeaponDisplay(entryId: number, weapon: WeaponResponse): WeaponDisplay {
+function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency: number): WeaponDisplay {
   return {
     id: weapon.id,
     inventoryEntryId: entryId,
     name: weapon.name,
     tier: weapon.tier,
-    damage: weapon.damage?.notation ?? '',
-    trait: weapon.trait ?? '',
-    range: weapon.range ?? '',
+    isPrimary: weapon.isPrimary ?? true,
+    damage: formatDamage(weapon.damage, proficiency),
+    trait: weapon.trait ? formatEnumLabel(weapon.trait) : '',
+    range: weapon.range ? formatEnumLabel(weapon.range) : '',
     burden: weapon.burden ?? '',
     features: (weapon.features ?? []).map(mapFeature),
   };
@@ -114,10 +140,18 @@ function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay 
 }
 
 function mapFeature(feature: FeatureResponse): FeatureDisplay {
+  const rawTags = (feature.costTags ?? []).map(t => t.label);
+  const sortedTags = [...rawTags].sort();
   return {
     name: feature.name ?? '',
     description: feature.description,
-    tags: (feature.costTags ?? []).map(t => t.label),
+    tags: sortedTags,
+    modifiers: (feature.modifiers ?? []).map(m => ({
+      label: formatModifierLabel(m.target, m.operation, m.value),
+      value: m.value,
+      operation: m.operation as FeatureModifierDisplay['operation'],
+      target: m.target,
+    })),
   };
 }
 
@@ -198,9 +232,9 @@ function extractClassEntries(subclassCards: SubclassCardResponse[]): ClassEntry[
   return [...seen.values()];
 }
 
-function mapEquippedWeapon(weapons: InventoryWeaponResponse[] | undefined, slot: 'PRIMARY' | 'SECONDARY'): WeaponDisplay | null {
+function mapEquippedWeapon(weapons: InventoryWeaponResponse[] | undefined, slot: 'PRIMARY' | 'SECONDARY', proficiency: number): WeaponDisplay | null {
   const entry = (weapons ?? []).find(w => w.slot === slot);
-  return entry?.weapon ? buildWeaponDisplay(entry.id, entry.weapon) : null;
+  return entry?.weapon ? buildWeaponDisplay(entry.id, entry.weapon, proficiency) : null;
 }
 
 function mapFirstEquippedArmor(armors: InventoryArmorResponse[] | undefined): ArmorDisplay | null {
@@ -208,14 +242,15 @@ function mapFirstEquippedArmor(armors: InventoryArmorResponse[] | undefined): Ar
   return entry?.armor ? buildArmorDisplay(entry.id, entry.armor) : null;
 }
 
-function mapInventoryWeapon(entry: InventoryWeaponResponse): WeaponDisplay {
+function mapInventoryWeapon(entry: InventoryWeaponResponse, proficiency: number): WeaponDisplay {
   if (entry.weapon) {
-    return buildWeaponDisplay(entry.id, entry.weapon);
+    return buildWeaponDisplay(entry.id, entry.weapon, proficiency);
   }
   return {
     id: entry.weaponId,
     inventoryEntryId: entry.id,
     name: '',
+    isPrimary: true,
     damage: '',
     trait: '',
     range: '',

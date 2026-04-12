@@ -82,6 +82,7 @@ export interface WeaponDisplay {
   inventoryEntryId: number;
   name: string;
   tier?: number;
+  isPrimary: boolean;
   damage: string;
   trait: string;
   range: string;
@@ -111,6 +112,14 @@ export interface FeatureDisplay {
   name: string;
   description: string;
   tags: string[];
+  modifiers: FeatureModifierDisplay[];
+}
+
+export interface FeatureModifierDisplay {
+  label: string;
+  value: number;
+  operation: 'SET' | 'MULTIPLY' | 'ADD';
+  target: string;
 }
 
 export interface CardSummary {

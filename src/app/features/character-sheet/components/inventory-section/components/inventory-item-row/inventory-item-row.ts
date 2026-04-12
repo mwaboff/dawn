@@ -91,7 +91,6 @@ export class InventoryItemRow {
       return [
         { label: 'damage', value: w.damage },
         { label: 'range', value: w.range },
-        { label: 'burden', value: w.burden },
         { label: 'trait', value: w.trait },
       ].filter(s => !!s.value);
     }
@@ -105,6 +104,13 @@ export class InventoryItemRow {
     return l.costTags.map(tag => ({ label: tag, value: tag }));
   });
 
+  readonly weaponBurden = computed<string>(() => {
+    if (this.itemType() === 'weapon') {
+      return this.weapon()?.burden ?? '';
+    }
+    return '';
+  });
+
   readonly cardFeatures = computed<FeatureDisplay[]>(() => {
     const type = this.itemType();
     if (type === 'weapon') {
@@ -115,7 +121,7 @@ export class InventoryItemRow {
     }
     const l = this.loot();
     if (l?.description) {
-      return [{ name: '', description: l.description, tags: [] }];
+      return [{ name: '', description: l.description, tags: [], modifiers: [] }];
     }
     return [];
   });

@@ -76,7 +76,7 @@ describe('EquipmentCard', () => {
 
   it('renders features when provided', () => {
     host.features.set([
-      { name: 'Cleave', description: 'Hit all adjacent enemies', tags: ['Action'] },
+      { name: 'Cleave', description: 'Hit all adjacent enemies', tags: ['Action'], modifiers: [] },
     ]);
     fixture.detectChanges();
 
@@ -85,7 +85,7 @@ describe('EquipmentCard', () => {
 
   it('renders feature tags', () => {
     host.features.set([
-      { name: 'Cleave', description: 'Hit all adjacent enemies', tags: ['Action', 'Melee'] },
+      { name: 'Cleave', description: 'Hit all adjacent enemies', tags: ['Action', 'Melee'], modifiers: [] },
     ]);
     fixture.detectChanges();
 

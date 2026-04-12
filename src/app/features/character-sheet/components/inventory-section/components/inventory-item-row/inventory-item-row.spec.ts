@@ -11,7 +11,8 @@ const weapon: WeaponDisplay = {
   damage: '1d4+2',
   trait: 'Finesse',
   range: 'Melee',
-  burden: 'Light',
+  burden: 'ONE_HANDED',
+  isPrimary: true,
   features: [],
 };
 
@@ -97,10 +98,34 @@ describe('InventoryItemRow', () => {
       expect(texts).toContain('Melee');
     });
 
-    it('renders weapon burden stat', () => {
-      const stats = el.querySelectorAll('.equip-stat');
+    it('renders one-handed burden icon for ONE_HANDED weapon', () => {
+      const burdenEl = el.querySelector('.equip-stat--burden');
+      expect(burdenEl).toBeTruthy();
+      expect(burdenEl?.getAttribute('title')).toBe('One-Handed');
+      expect(burdenEl?.querySelectorAll('.burden-hand').length).toBe(1);
+    });
+
+    it('renders two-handed burden icons for TWO_HANDED weapon', () => {
+      host.item.set({ ...weapon, burden: 'TWO_HANDED' });
+      fixture.detectChanges();
+
+      const burdenEl = el.querySelector('.equip-stat--burden');
+      expect(burdenEl).toBeTruthy();
+      expect(burdenEl?.getAttribute('title')).toBe('Two-Handed');
+      expect(burdenEl?.querySelectorAll('.burden-hand').length).toBe(2);
+    });
+
+    it('does not render burden icon for unknown burden value', () => {
+      host.item.set({ ...weapon, burden: '' });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.equip-stat--burden')).toBeNull();
+    });
+
+    it('does not include burden in cardStats text', () => {
+      const stats = el.querySelectorAll('.equip-stat:not(.equip-stat--burden)');
       const texts = Array.from(stats).map(s => s.textContent?.trim());
-      expect(texts).toContain('Light');
+      expect(texts).not.toContain('ONE_HANDED');
     });
   });
 
