@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 
 interface Feature {
@@ -12,7 +13,7 @@ interface Feature {
   templateUrl: './home.html',
   styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe],
+  imports: [FormatTextPipe, RouterLink],
 })
 export class Home {
   readonly features: Feature[] = [

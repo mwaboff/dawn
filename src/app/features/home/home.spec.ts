@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Home } from './home';
 
 describe('Home', () => {
@@ -7,7 +8,8 @@ describe('Home', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Home]
+      imports: [Home],
+      providers: [provideRouter([])]
     }).compileComponents();
 
     fixture = TestBed.createComponent(Home);
@@ -64,12 +66,14 @@ describe('Home', () => {
     expect(subtitle?.textContent).toContain('Oh Sheet is the Daggerheart toolset');
   });
 
-  it('should render CTA buttons', () => {
+  it('should render CTA links with correct routes', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const buttons = compiled.querySelectorAll('.hero-cta button');
-    expect(buttons.length).toBe(2);
-    expect(buttons[0].textContent).toContain('Get Started');
-    expect(buttons[1].textContent).toContain('Learn More');
+    const links = compiled.querySelectorAll('.hero-cta a');
+    expect(links.length).toBe(2);
+    expect(links[0].textContent).toContain('Create a Character');
+    expect(links[0].getAttribute('href')).toBe('/create-character');
+    expect(links[1].textContent).toContain('Explore the Codex');
+    expect(links[1].getAttribute('href')).toBe('/reference');
   });
 
   it('should render features section title', () => {
