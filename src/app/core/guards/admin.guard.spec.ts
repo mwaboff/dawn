@@ -35,9 +35,9 @@ describe('adminGuard', () => {
       return firstValueFrom(result as Observable<boolean>);
     });
 
-    httpMock.expectOne('http://localhost:8080/api/users/me').flush({
+    httpMock.expectOne('http://localhost:8080/api/auth/me').flush({
       id: 1, username: 'admin', email: 'a@b.com', role: 'ADMIN',
-      createdAt: '', lastModifiedAt: '',
+      createdAt: '', lastModifiedAt: '', usernameChosen: true,
     });
 
     const result = await resultPromise;
@@ -50,9 +50,9 @@ describe('adminGuard', () => {
       return firstValueFrom(result as Observable<boolean>);
     });
 
-    httpMock.expectOne('http://localhost:8080/api/users/me').flush({
+    httpMock.expectOne('http://localhost:8080/api/auth/me').flush({
       id: 1, username: 'owner', email: 'a@b.com', role: 'OWNER',
-      createdAt: '', lastModifiedAt: '',
+      createdAt: '', lastModifiedAt: '', usernameChosen: true,
     });
 
     const result = await resultPromise;
@@ -67,9 +67,9 @@ describe('adminGuard', () => {
       return firstValueFrom(result as Observable<boolean>);
     });
 
-    httpMock.expectOne('http://localhost:8080/api/users/me').flush({
+    httpMock.expectOne('http://localhost:8080/api/auth/me').flush({
       id: 1, username: 'user', email: 'a@b.com', role: 'USER',
-      createdAt: '', lastModifiedAt: '',
+      createdAt: '', lastModifiedAt: '', usernameChosen: true,
     });
 
     const result = await resultPromise;
@@ -85,7 +85,7 @@ describe('adminGuard', () => {
       return firstValueFrom(result as Observable<boolean>);
     });
 
-    httpMock.expectOne('http://localhost:8080/api/users/me')
+    httpMock.expectOne('http://localhost:8080/api/auth/me')
       .flush({}, { status: 401, statusText: 'Unauthorized' });
 
     const result = await resultPromise;

@@ -2,9 +2,11 @@
   <app-card-edit-toolbar
     [hasPendingChanges]="hasPendingChanges()"
     [saving]="saving()"
+    [deleting]="deleting()"
     [error]="error()"
     [saveSuccess]="saveSuccess()"
     (save)="onSave()"
+    (deleteCard)="onDelete()"
     (back)="onBack()"
   />
 
@@ -36,6 +38,7 @@
       <app-card-edit-features
         [features]="rawFeatures()"
         [saving]="saving()"
+        [groupByType]="cardType() === 'class'"
         (featureDirtyChanged)="bumpFormVersion()"
         #featuresRef
       />

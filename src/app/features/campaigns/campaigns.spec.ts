@@ -12,7 +12,7 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     id: 1,
     name: 'Test Campaign',
     creatorId: 1,
-    creator: { id: 1, username: 'gm_user', email: 'gm@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' },
+    creator: { id: 1, username: 'gm_user', email: 'gm@test.com', role: 'USER', createdAt: '', lastModifiedAt: '', usernameChosen: true },
     gameMasterIds: [1],
     playerIds: [2, 3],
     pendingCharacterSheetIds: [],
@@ -126,7 +126,7 @@ describe('Campaigns', () => {
   it('should display GM username', () => {
     fixture.detectChanges();
     flushCampaigns(httpTesting, [
-      buildCampaign({ creator: { id: 1, username: 'dungeon_master', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' } }),
+      buildCampaign({ creator: { id: 1, username: 'dungeon_master', email: '', role: 'USER', createdAt: '', lastModifiedAt: '', usernameChosen: true } }),
     ]);
     fixture.detectChanges();
 

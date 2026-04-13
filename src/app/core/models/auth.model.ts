@@ -3,23 +3,21 @@ import { Role } from '../../shared/models/role.model';
 export interface UserResponse {
   id: number;
   username: string;
-  email: string;
+  role: Role;
+  email?: string;
   avatarUrl?: string;
   timezone?: string;
-  role: Role;
   createdAt: string;
   lastModifiedAt: string;
+  usernameChosen: boolean;
 }
 
-export interface LoginRequest {
-  usernameOrEmail: string;
-  password: string;
-}
-
-export interface RegisterRequest {
+export interface ChooseUsernameRequest {
   username: string;
+}
+
+export interface DevLoginRequest {
   email: string;
-  password: string;
-  timezone?: string;
-  avatarUrl?: string;
+  role?: string;
+  username?: string;
 }

@@ -126,8 +126,6 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
         title: 'Relationships',
         fields: [
           { name: 'associatedDomainIds', label: 'Associated domains', kind: 'entityMulti', lookup: 'domains', column: 'full' },
-          { name: 'hopeFeatureIds', label: 'Hope features', kind: 'entityMulti', lookup: 'hopeFeatures', column: 'full' },
-          { name: 'classFeatureIds', label: 'Class features', kind: 'entityMulti', lookup: 'classFeatures', column: 'full' },
         ],
       },
     ],

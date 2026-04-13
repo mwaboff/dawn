@@ -62,3 +62,60 @@
   background: rgba(212, 160, 86, 0.1);
   border-color: var(--color-accent);
 }
+
+.btn--sm {
+  padding: 0.4rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.btn--danger {
+  background: linear-gradient(135deg, #8b2525, #a33030);
+  color: var(--color-parchment);
+}
+
+.btn--danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 37, 37, 0.4);
+}
+
+.btn--danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--danger-ghost {
+  padding: 0.625rem 1.25rem;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: 1px solid rgba(139, 37, 37, 0.4);
+  color: #c47a7a;
+}
+
+.btn--danger-ghost:hover:not(:disabled) {
+  background: rgba(139, 37, 37, 0.1);
+  border-color: rgba(139, 37, 37, 0.6);
+  color: #d49090;
+}
+
+.btn--danger-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.delete-confirm-text {
+  color: #c47a7a;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+}

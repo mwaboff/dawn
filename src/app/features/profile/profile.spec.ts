@@ -13,6 +13,7 @@ const mockUser: UserResponse = {
   role: 'USER',
   createdAt: '2025-06-15T10:30:00',
   lastModifiedAt: '2025-06-15T10:30:00',
+  usernameChosen: true,
 };
 
 const mockOtherUser: UserResponse = {
@@ -22,6 +23,7 @@ const mockOtherUser: UserResponse = {
   role: 'USER',
   createdAt: '2025-03-10T08:00:00',
   lastModifiedAt: '2025-03-10T08:00:00',
+  usernameChosen: true,
 };
 
 const mockAdminUser: UserResponse = {
@@ -31,6 +33,7 @@ const mockAdminUser: UserResponse = {
   role: 'ADMIN',
   createdAt: '2025-06-15T10:30:00',
   lastModifiedAt: '2025-06-15T10:30:00',
+  usernameChosen: true,
 };
 
 function makeSheet(overrides: Record<string, unknown> = {}) {

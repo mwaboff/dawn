@@ -23,10 +23,10 @@ import { LootService } from '../../../shared/services/loot.service';
 import { CompanionService } from '../../../shared/services/companion.service';
 
 const ADMIN_CATEGORIES: { id: string; label: string }[] = [
+  { id: 'domain', label: 'Domains' },
   { id: 'class', label: 'Classes' },
   { id: 'ancestry', label: 'Ancestries' },
   { id: 'community', label: 'Communities' },
-  { id: 'domain', label: 'Domains' },
   { id: 'domainCard', label: 'Domain Cards' },
   { id: 'weapon', label: 'Weapons' },
   { id: 'armor', label: 'Armor' },

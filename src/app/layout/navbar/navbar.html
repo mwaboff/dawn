@@ -60,7 +60,7 @@
         </div>
       } @else {
         <a routerLink="/reference" class="nav-link">Reference</a>
-        <a routerLink="/auth" class="nav-link-auth">Login / Sign Up</a>
+        <a routerLink="/auth" class="nav-link-auth">Sign In</a>
       }
     </div>
     <button
@@ -90,7 +90,7 @@
         <button type="button" class="nav-mobile-item" role="menuitem" (click)="onLogout()">Logout</button>
       } @else {
         <a routerLink="/reference" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Reference</a>
-        <a routerLink="/auth" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Login / Sign Up</a>
+        <a routerLink="/auth" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Sign In</a>
       }
     </div>
   }

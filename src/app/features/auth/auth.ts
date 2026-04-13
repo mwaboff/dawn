@@ -1,14 +1,10 @@
-import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-
-type AuthTab = 'login' | 'signup';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-auth',
-  imports: [ReactiveFormsModule],
   templateUrl: './auth.html',
   styleUrl: './auth.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -16,108 +12,61 @@ type AuthTab = 'login' | 'signup';
 export class Auth {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly activeTab = signal<AuthTab>('login');
-  readonly loginError = signal<string | null>(null);
-  readonly signupError = signal<string | null>(null);
+  readonly authError = signal<string | null>(null);
   readonly isLoading = signal(false);
-  readonly confirmPasswordTouched = signal(false);
-
-  readonly title = computed(() =>
-    this.activeTab() === 'login' ? 'Welcome Back' : 'Join the Adventure'
-  );
-
-  readonly subtitle = computed(() =>
-    this.activeTab() === 'login'
-      ? 'Sign in to continue your adventure'
-      : 'Create an account to begin your journey'
-  );
-
-  readonly loginForm: FormGroup;
-  readonly signupForm: FormGroup;
+  readonly isDev = !environment.production;
+  readonly devEmail = signal('test@example.com');
 
   constructor() {
-    this.loginForm = this.fb.group({
-      usernameOrEmail: ['', [Validators.required]],
-      password: ['', [Validators.required]]
+    const errorParam = this.route.snapshot.queryParamMap.get('error');
+    if (errorParam) {
+      this.authError.set('Sign-in failed. Please try again.');
+    }
+  }
+
+  onGoogleLogin(): void {
+    this.isLoading.set(true);
+    this.authError.set(null);
+
+    this.authService.loginWithGoogle().then(params => {
+      if (params.error) {
+        this.authError.set('Sign-in failed. Please try again.');
+        this.isLoading.set(false);
+        return;
+      }
+
+      this.authService.checkSession().subscribe(user => {
+        this.isLoading.set(false);
+        if (user && !user.usernameChosen) {
+          this.router.navigate(['/choose-username']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      });
+    }).catch(() => {
+      this.isLoading.set(false);
     });
-
-    this.signupForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
   }
 
-  private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
+  onDevLogin(): void {
+    this.isLoading.set(true);
+    this.authError.set(null);
 
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      return { passwordMismatch: true };
-    }
-    return null;
-  }
-
-  setTab(tab: AuthTab): void {
-    this.activeTab.set(tab);
-    this.loginError.set(null);
-    this.signupError.set(null);
-    this.confirmPasswordTouched.set(false);
-  }
-
-  onConfirmPasswordBlur(): void {
-    this.confirmPasswordTouched.set(true);
-  }
-
-  get showPasswordMismatch(): boolean {
-    return this.confirmPasswordTouched() &&
-           this.signupForm.hasError('passwordMismatch') &&
-           this.signupForm.get('confirmPassword')?.value !== '';
-  }
-
-  onLogin(): void {
-    if (this.loginForm.valid) {
-      this.isLoading.set(true);
-      this.loginError.set(null);
-
-      this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.isLoading.set(false);
+    this.authService.devLogin({ email: this.devEmail() }).subscribe({
+      next: (user) => {
+        this.isLoading.set(false);
+        if (!user.usernameChosen) {
+          this.router.navigate(['/choose-username']);
+        } else {
           this.router.navigate(['/']);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.isLoading.set(false);
-          const message = error.error?.message || 'Login failed. Please check your credentials and try again.';
-          this.loginError.set(message);
         }
-      });
-    }
-  }
-
-  onSignup(): void {
-    if (this.signupForm.valid) {
-      this.isLoading.set(true);
-      this.signupError.set(null);
-
-      const formValue = this.signupForm.value;
-      this.authService.register({
-        username: formValue.username,
-        email: formValue.email,
-        password: formValue.password
-      }).subscribe({
-        next: () => {
-          this.isLoading.set(false);
-          this.router.navigate(['/']);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.isLoading.set(false);
-          const message = error.error?.message || 'Registration failed. Please try again.';
-          this.signupError.set(message);
-        }
-      });
-    }
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.authError.set('Dev login failed.');
+      }
+    });
   }
 }

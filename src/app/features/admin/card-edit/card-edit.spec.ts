@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 import { CardEdit } from './card-edit';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
 import { AdminLookupService } from './services/admin-lookup.service';
@@ -33,14 +34,50 @@ const CLASS_CARD_RAW = {
   startingHitPoints: 6,
   startingClassItems: '',
   associatedDomainIds: [],
-  hopeFeatureIds: [],
-  classFeatureIds: [],
   cardType: 'class',
   features: [
     {
       id: 10,
       name: 'Feature A',
       description: 'Desc A',
+      featureType: 'CLASS',
+      expansionId: 1,
+      costTagIds: [],
+      modifierIds: [],
+      costTags: [],
+      modifiers: [],
+    },
+  ],
+};
+
+const CLASS_CARD_WITH_SPLIT_FEATURES = {
+  id: 2,
+  name: 'Split Feature Class',
+  description: 'A class with separate hope/class features',
+  expansionId: 1,
+  startingEvasion: 8,
+  startingHitPoints: 6,
+  startingClassItems: '',
+  associatedDomainIds: [],
+  cardType: 'class',
+  hopeFeatures: [
+    {
+      id: 100,
+      name: 'Hope Ability',
+      description: 'Hope desc',
+      featureType: 'HOPE',
+      expansionId: 1,
+      costTagIds: [],
+      modifierIds: [],
+      costTags: [],
+      modifiers: [],
+    },
+  ],
+  classFeatures: [
+    {
+      id: 200,
+      name: 'Class Ability',
+      description: 'Class desc',
       featureType: 'CLASS',
       expansionId: 1,
       costTagIds: [],
@@ -94,9 +131,14 @@ describe('CardEdit — schema-driven orchestrator', () => {
       expect(component).toBeTruthy();
     });
 
-    it('calls getCard with expand string', async () => {
+    it('calls getCard with class-specific expand string for classes', async () => {
       await setup();
-      expect(adminCardService.getCard).toHaveBeenCalledWith('class', 1, 'features,costTags,modifiers,expansion');
+      expect(adminCardService.getCard).toHaveBeenCalledWith('class', 1, 'classFeatures,hopeFeatures,costTags,modifiers,expansion');
+    });
+
+    it('calls getCard with standard expand string for non-class types', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW);
+      expect(adminCardService.getCard).toHaveBeenCalledWith('domainCard', 1, 'features,costTags,modifiers,expansion');
     });
 
     it('populates form with all domainCard schema fields', async () => {
@@ -261,6 +303,59 @@ describe('CardEdit — schema-driven orchestrator', () => {
       await setup(cardType, raw);
       expect(component).toBeTruthy();
       expect(component.cardForm.get(firstField.name)).toBeTruthy();
+    });
+  });
+
+  describe('extractFeatures — class with split features', () => {
+    it('combines hopeFeatures and classFeatures when features array is absent', async () => {
+      await setup('class', CLASS_CARD_WITH_SPLIT_FEATURES);
+      const features = component.rawFeatures();
+      expect(features.length).toBe(2);
+      expect(features[0].name).toBe('Hope Ability');
+      expect(features[1].name).toBe('Class Ability');
+    });
+
+    it('uses features array when present', async () => {
+      await setup('class', CLASS_CARD_RAW);
+      const features = component.rawFeatures();
+      expect(features.length).toBe(1);
+      expect(features[0].name).toBe('Feature A');
+    });
+  });
+
+  describe('onDelete', () => {
+    it('calls deleteCard and navigates to /admin/cards on success', async () => {
+      await setup();
+      const deleteSpy = vi.spyOn(adminCardService, 'deleteCard').mockReturnValue(of(void 0 as void));
+      const router = TestBed.inject(Router);
+      const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.onDelete();
+
+      expect(deleteSpy).toHaveBeenCalledWith('class', 1);
+      expect(navSpy).toHaveBeenCalledWith(['/admin/cards']);
+      expect(component.deleting()).toBe(false);
+    });
+
+    it('sets error on delete failure', async () => {
+      await setup();
+      vi.spyOn(adminCardService, 'deleteCard').mockReturnValue(
+        throwError(() => ({ error: { message: 'Cannot delete' } }))
+      );
+
+      component.onDelete();
+
+      expect(component.error()).toBe('Cannot delete');
+      expect(component.deleting()).toBe(false);
+    });
+
+    it('shows fallback error message when no message field', async () => {
+      await setup();
+      vi.spyOn(adminCardService, 'deleteCard').mockReturnValue(throwError(() => ({})));
+
+      component.onDelete();
+
+      expect(component.error()).toBe('Delete failed. Please try again.');
     });
   });
 

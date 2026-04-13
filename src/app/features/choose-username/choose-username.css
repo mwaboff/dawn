@@ -1,0 +1,14 @@
+@import '../../shared/styles/auth-page.css';
+
+.username-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.375rem;
+  animation: auth-formFadeIn 0.4s ease-out;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.45);
+  font-style: italic;
+}

@@ -7,6 +7,37 @@
     @if (error()) {
       <span class="save-error" role="alert">{{ error() }}</span>
     }
+    @if (confirmingDelete()) {
+      <span class="delete-confirm">
+        <span class="delete-confirm-text">Delete this card?</span>
+        <button
+          type="button"
+          class="btn btn--danger"
+          [disabled]="deleting()"
+          (click)="onConfirmDelete()">
+          @if (deleting()) {
+            Deleting...
+          } @else {
+            Confirm
+          }
+        </button>
+        <button
+          type="button"
+          class="btn btn--secondary btn--sm"
+          [disabled]="deleting()"
+          (click)="onCancelDelete()">
+          Cancel
+        </button>
+      </span>
+    } @else {
+      <button
+        type="button"
+        class="btn btn--danger-ghost"
+        [disabled]="saving() || deleting()"
+        (click)="onDeleteClick()">
+        Delete
+      </button>
+    }
     <button
       type="button"
       class="btn btn--primary"

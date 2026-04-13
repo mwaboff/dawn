@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { AuthService, UserResponse, LoginRequest, RegisterRequest } from './auth.service';
+import { AuthService } from './auth.service';
+import { UserResponse } from '../models/auth.model';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -10,21 +11,17 @@ describe('AuthService', () => {
   const mockUser: UserResponse = {
     id: 1,
     username: 'testuser',
-    email: 'test@example.com',
     role: 'USER',
-    createdAt: '2024-01-01T00:00:00Z',
-    lastModifiedAt: '2024-01-01T00:00:00Z'
+    email: 'test@example.com',
+    createdAt: '2026-01-01T00:00:00',
+    lastModifiedAt: '2026-01-01T00:00:00',
+    usernameChosen: true
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [
-        AuthService,
-        provideHttpClient(),
-        provideHttpClientTesting()
-      ]
+      providers: [provideHttpClient(), provideHttpClientTesting()]
     });
-
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -37,127 +34,27 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should initially be logged out', () => {
-    expect(service.isLoggedIn()).toBe(false);
-    expect(service.user()).toBeNull();
-  });
-
-  describe('login', () => {
-    it('should login successfully and update user state', () => {
-      const loginRequest: LoginRequest = {
-        usernameOrEmail: 'test@example.com',
-        password: 'password123'
-      };
-
-      service.login(loginRequest).subscribe(user => {
-        expect(user).toEqual(mockUser);
-        expect(service.isLoggedIn()).toBe(true);
-        expect(service.user()).toEqual(mockUser);
-      });
-
-      const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(loginRequest);
-      expect(req.request.withCredentials).toBe(true);
-      req.flush(mockUser);
-    });
-
-    it('should handle login failure', () => {
-      const loginRequest: LoginRequest = {
-        usernameOrEmail: 'test@example.com',
-        password: 'wrongpassword'
-      };
-
-      service.login(loginRequest).subscribe({
-        error: (error) => {
-          expect(error.status).toBe(401);
-          expect(service.isLoggedIn()).toBe(false);
-        }
-      });
-
-      const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-      req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
-    });
-  });
-
-  describe('register', () => {
-    it('should register successfully and update user state', () => {
-      const registerRequest: RegisterRequest = {
-        username: 'newuser',
-        email: 'new@example.com',
-        password: 'password123'
-      };
-
-      service.register(registerRequest).subscribe(user => {
-        expect(user).toEqual(mockUser);
-        expect(service.isLoggedIn()).toBe(true);
-        expect(service.user()).toEqual(mockUser);
-      });
-
-      const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(registerRequest);
-      expect(req.request.withCredentials).toBe(true);
-      req.flush(mockUser);
-    });
-
-    it('should handle registration failure', () => {
-      const registerRequest: RegisterRequest = {
-        username: 'existinguser',
-        email: 'existing@example.com',
-        password: 'password123'
-      };
-
-      service.register(registerRequest).subscribe({
-        error: (error) => {
-          expect(error.status).toBe(409);
-          expect(service.isLoggedIn()).toBe(false);
-        }
-      });
-
-      const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
-      req.flush({ message: 'Username already exists' }, { status: 409, statusText: 'Conflict' });
-    });
-  });
-
-  describe('logout', () => {
-    it('should logout successfully and clear user state', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
-
-      expect(service.isLoggedIn()).toBe(true);
-
-      service.logout().subscribe(() => {
-        expect(service.isLoggedIn()).toBe(false);
-        expect(service.user()).toBeNull();
-      });
-
-      const req = httpMock.expectOne('http://localhost:8080/api/auth/logout');
-      expect(req.request.method).toBe('POST');
-      expect(req.request.withCredentials).toBe(true);
-      req.flush(null);
-    });
-  });
-
-  describe('clearUser', () => {
-    it('should clear user state without API call', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
-
-      expect(service.isLoggedIn()).toBe(true);
-
-      service.clearUser();
-
+  describe('initial state', () => {
+    it('should not be logged in initially', () => {
       expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('should have null user initially', () => {
       expect(service.user()).toBeNull();
+    });
+
+    it('should not need username initially', () => {
+      expect(service.needsUsername()).toBe(false);
     });
   });
 
   describe('checkSession', () => {
-    it('should update user state when session is valid', () => {
-      service.checkSession().subscribe();
+    it('should set user on successful session check', () => {
+      service.checkSession().subscribe(user => {
+        expect(user).toEqual(mockUser);
+      });
 
-      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/me');
       expect(req.request.method).toBe('GET');
       expect(req.request.withCredentials).toBe(true);
       req.flush(mockUser);
@@ -166,34 +63,118 @@ describe('AuthService', () => {
       expect(service.user()).toEqual(mockUser);
     });
 
-    it('should clear user state when session is expired (401)', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
+    it('should clear user on 401', () => {
+      service.checkSession().subscribe(user => {
+        expect(user).toBeNull();
+      });
 
-      expect(service.isLoggedIn()).toBe(true);
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/me');
+      req.flush(null, { status: 401, statusText: 'Unauthorized' });
 
+      expect(service.isLoggedIn()).toBe(false);
+    });
+
+    it('should detect user needing username', () => {
+      const newUser = { ...mockUser, usernameChosen: false };
       service.checkSession().subscribe();
 
-      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
-      req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/me');
+      req.flush(newUser);
+
+      expect(service.needsUsername()).toBe(true);
+    });
+  });
+
+  describe('chooseUsername', () => {
+    it('should update user after choosing username', () => {
+      service.chooseUsername({ username: 'newname' }).subscribe(user => {
+        expect(user.username).toBe('newname');
+      });
+
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/choose-username');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ username: 'newname' });
+      expect(req.request.withCredentials).toBe(true);
+      req.flush({ ...mockUser, username: 'newname' });
+
+      expect(service.user()?.username).toBe('newname');
+    });
+
+    it('should propagate errors', () => {
+      let errorStatus = 0;
+      service.chooseUsername({ username: 'taken' }).subscribe({
+        error: (e: { status: number }) => { errorStatus = e.status; }
+      });
+
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/choose-username');
+      req.flush({ message: 'Username taken' }, { status: 409, statusText: 'Conflict' });
+
+      expect(errorStatus).toBe(409);
+    });
+  });
+
+  describe('devLogin', () => {
+    it('should set user on dev login', () => {
+      service.devLogin({ email: 'test@example.com' }).subscribe(user => {
+        expect(user).toEqual(mockUser);
+      });
+
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/dev-login');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ email: 'test@example.com' });
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(mockUser);
+
+      expect(service.isLoggedIn()).toBe(true);
+    });
+  });
+
+  describe('logout', () => {
+    it('should clear user on logout', () => {
+      // First set a user
+      service.checkSession().subscribe();
+      httpMock.expectOne('http://localhost:8080/api/auth/me').flush(mockUser);
+      expect(service.isLoggedIn()).toBe(true);
+
+      // Then logout
+      service.logout().subscribe();
+      const req = httpMock.expectOne('http://localhost:8080/api/auth/logout');
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
 
       expect(service.isLoggedIn()).toBe(false);
       expect(service.user()).toBeNull();
     });
+  });
 
-    it('should keep user state on non-401 errors', () => {
-      service.login({ usernameOrEmail: 'test', password: 'test' }).subscribe();
-      httpMock.expectOne('http://localhost:8080/api/auth/login').flush(mockUser);
-
-      expect(service.isLoggedIn()).toBe(true);
-
+  describe('clearUser', () => {
+    it('should reset user to null', () => {
       service.checkSession().subscribe();
-
-      const req = httpMock.expectOne('http://localhost:8080/api/users/me');
-      req.flush({ message: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
-
+      httpMock.expectOne('http://localhost:8080/api/auth/me').flush(mockUser);
       expect(service.isLoggedIn()).toBe(true);
-      expect(service.user()).toEqual(mockUser);
+
+      service.clearUser();
+      expect(service.isLoggedIn()).toBe(false);
+    });
+  });
+
+  describe('role checks', () => {
+    it('should detect admin role', () => {
+      service.checkSession().subscribe();
+      httpMock.expectOne('http://localhost:8080/api/auth/me').flush({ ...mockUser, role: 'ADMIN' });
+      expect(service.isAdmin()).toBe(true);
+    });
+
+    it('should detect moderator role', () => {
+      service.checkSession().subscribe();
+      httpMock.expectOne('http://localhost:8080/api/auth/me').flush({ ...mockUser, role: 'MODERATOR' });
+      expect(service.isModerator()).toBe(true);
+    });
+
+    it('should not be admin for regular user', () => {
+      service.checkSession().subscribe();
+      httpMock.expectOne('http://localhost:8080/api/auth/me').flush(mockUser);
+      expect(service.isAdmin()).toBe(false);
     });
   });
 });
