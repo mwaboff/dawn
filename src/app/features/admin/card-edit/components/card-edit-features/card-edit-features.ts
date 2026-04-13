@@ -52,11 +52,18 @@ export class CardEditFeatures {
 
   readonly features = input<RawFeatureResponse[]>([]);
   readonly saving = input<boolean>(false);
+  readonly groupByType = input<boolean>(false);
 
   readonly featureDirtyChanged = output<void>();
 
   private readonly editableFeatures = signal<EditableFeature[]>([]);
   readonly availableCostTags = signal<CostTagFull[]>([]);
+
+  private readonly featureTypeLabels: Record<string, string> = {
+    HOPE: 'Hope Features',
+    CLASS: 'Class Features',
+  };
+
   readonly modifierTargets = MODIFIER_TARGETS;
   readonly modifierOperations = MODIFIER_OPERATIONS;
   readonly costTagCategories = COST_TAG_CATEGORIES;
@@ -70,6 +77,25 @@ export class CardEditFeatures {
 
   getEditableFeatures(): EditableFeature[] {
     return this.editableFeatures();
+  }
+
+  getFeatureGroups(): { label: string; features: EditableFeature[] }[] {
+    const all = this.editableFeatures();
+    if (!this.groupByType() || all.length === 0) return [{ label: 'Features', features: all }];
+    const groups = new Map<string, EditableFeature[]>();
+    for (const f of all) {
+      const type = f.form.getRawValue().featureType ?? 'OTHER';
+      if (!groups.has(type)) groups.set(type, []);
+      groups.get(type)!.push(f);
+    }
+    return Array.from(groups.entries()).map(([type, features]) => ({
+      label: this.featureTypeLabels[type] ?? type,
+      features,
+    }));
+  }
+
+  getGlobalIndex(feature: EditableFeature): number {
+    return this.editableFeatures().indexOf(feature);
   }
 
   getDirtyFeatures(): EditableFeature[] {

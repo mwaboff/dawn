@@ -64,6 +64,7 @@ export class CardEdit implements OnInit {
   readonly cardId = signal(0);
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly deleting = signal(false);
   readonly error = signal('');
   readonly saveSuccess = signal(false);
   readonly submitted = signal(false);
@@ -172,6 +173,23 @@ export class CardEdit implements OnInit {
       });
   }
 
+  onDelete(): void {
+    this.deleting.set(true);
+    this.error.set('');
+    this.adminCardService.deleteCard(this.cardType(), this.cardId())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deleting.set(false);
+          this.router.navigate(['/admin/cards']);
+        },
+        error: (err) => {
+          this.deleting.set(false);
+          this.error.set(err?.error?.message ?? 'Delete failed. Please try again.');
+        },
+      });
+  }
+
   onBack(): void {
     this.router.navigate(['/admin/cards']);
   }
@@ -191,6 +209,14 @@ export class CardEdit implements OnInit {
     this.addExpansionOpen.set(false);
   }
 
+  private extractFeatures(raw: RawCardResponse): RawFeatureResponse[] {
+    if (raw.features?.length) return raw.features;
+    const hope = (raw['hopeFeatures'] as RawFeatureResponse[] | undefined) ?? [];
+    const cls = (raw['classFeatures'] as RawFeatureResponse[] | undefined) ?? [];
+    if (hope.length || cls.length) return [...hope, ...cls];
+    return [];
+  }
+
   private loadCard(): void {
     this.loading.set(true);
     this.error.set('');
@@ -202,7 +228,7 @@ export class CardEdit implements OnInit {
         next: (response) => {
           const raw = response as RawCardResponse;
           this.rawCard.set(raw);
-          this.rawFeatures.set(raw.features ?? []);
+          this.rawFeatures.set(this.extractFeatures(raw));
           this.cardForm = buildFormFromSchema(this.schema(), raw, this.fb);
           this.cardForm.valueChanges
             .pipe(takeUntilDestroyed(this.destroyRef))

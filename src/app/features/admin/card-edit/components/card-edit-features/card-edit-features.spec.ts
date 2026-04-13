@@ -39,15 +39,28 @@ const mockFeatureWithTags: RawFeatureResponse = {
   modifiers: [{ id: 1, target: 'EVASION', operation: 'ADD', value: 2 }],
 };
 
-function createHostFor(features: RawFeatureResponse[]) {
+const mockHopeFeature: RawFeatureResponse = {
+  id: 30,
+  name: 'Hope Ability',
+  description: 'A hope feature',
+  featureType: 'HOPE',
+  expansionId: 1,
+  costTagIds: [],
+  modifierIds: [],
+  costTags: [],
+  modifiers: [],
+};
+
+function createHostFor(features: RawFeatureResponse[], groupByType = false) {
   @Component({
-    template: '<app-card-edit-features [features]="features" [saving]="saving" (featureDirtyChanged)="onDirtyChanged()" />',
+    template: '<app-card-edit-features [features]="features" [saving]="saving" [groupByType]="groupByType" (featureDirtyChanged)="onDirtyChanged()" />',
     imports: [CardEditFeatures],
     host: { 'data-testid': Math.random().toString(36) },
   })
   class HostComponent {
     features: RawFeatureResponse[] = features;
     saving = false;
+    groupByType = groupByType;
     dirtyChangedCount = 0;
     onDirtyChanged(): void {
       this.dirtyChangedCount++;
@@ -409,6 +422,87 @@ describe('CardEditFeatures', () => {
       component.addModifier(0);
       const payload = component.buildFeaturePayload(component.getEditableFeatures()[0]);
       expect(payload.modifiers).toEqual([{ target: 'EVASION', operation: 'ADD', value: -1 }]);
+    });
+  });
+
+  describe('groupByType', () => {
+    describe('when groupByType is false', () => {
+      const HostComponent = createHostFor([mockFeature, mockHopeFeature], false);
+      let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+      let component: CardEditFeatures;
+
+      beforeEach(async () => {
+        await TestBed.configureTestingModule({
+          imports: [HostComponent],
+          providers,
+        }).compileComponents();
+
+        hostFixture = TestBed.createComponent(HostComponent);
+        hostFixture.detectChanges();
+        component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      });
+
+      it('returns a single group labeled "Features"', () => {
+        const groups = component.getFeatureGroups();
+        expect(groups.length).toBe(1);
+        expect(groups[0].label).toBe('Features');
+        expect(groups[0].features.length).toBe(2);
+      });
+
+      it('renders one features-section', () => {
+        const sections = hostFixture.nativeElement.querySelectorAll('.features-section');
+        expect(sections.length).toBe(1);
+      });
+    });
+
+    describe('when groupByType is true', () => {
+      const HostComponent = createHostFor([mockFeature, mockHopeFeature], true);
+      let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+      let component: CardEditFeatures;
+
+      beforeEach(async () => {
+        await TestBed.configureTestingModule({
+          imports: [HostComponent],
+          providers,
+        }).compileComponents();
+
+        hostFixture = TestBed.createComponent(HostComponent);
+        hostFixture.detectChanges();
+        component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      });
+
+      it('returns groups by featureType', () => {
+        const groups = component.getFeatureGroups();
+        expect(groups.length).toBe(2);
+        expect(groups[0].label).toBe('Class Features');
+        expect(groups[0].features.length).toBe(1);
+        expect(groups[1].label).toBe('Hope Features');
+        expect(groups[1].features.length).toBe(1);
+      });
+
+      it('renders separate sections with correct headings', () => {
+        const titles = hostFixture.nativeElement.querySelectorAll('.features-title');
+        expect(titles.length).toBe(2);
+        expect(titles[0].textContent.trim()).toBe('Class Features');
+        expect(titles[1].textContent.trim()).toBe('Hope Features');
+      });
+
+      it('getGlobalIndex returns correct indices across groups', () => {
+        const groups = component.getFeatureGroups();
+        const classFeature = groups[0].features[0];
+        const hopeFeature = groups[1].features[0];
+        expect(component.getGlobalIndex(classFeature)).toBe(0);
+        expect(component.getGlobalIndex(hopeFeature)).toBe(1);
+      });
+
+      it('toggling a feature in a group uses global index correctly', () => {
+        const groups = component.getFeatureGroups();
+        const hopeFeature = groups[1].features[0];
+        const globalIdx = component.getGlobalIndex(hopeFeature);
+        component.toggleFeature(globalIdx);
+        const updated = component.getEditableFeatures()[globalIdx];
+        expect(updated.expanded).toBe(true);
+      });
     });
   });
 
