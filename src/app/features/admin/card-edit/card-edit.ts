@@ -221,8 +221,12 @@ export class CardEdit implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
+    const expand = this.cardType() === 'class'
+      ? 'classFeatures,hopeFeatures,costTags,modifiers,expansion'
+      : 'features,costTags,modifiers,expansion';
+
     this.adminCardService
-      .getCard(this.cardType(), this.cardId(), 'features,costTags,modifiers,expansion')
+      .getCard(this.cardType(), this.cardId(), expand)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {

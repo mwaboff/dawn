@@ -131,9 +131,14 @@ describe('CardEdit — schema-driven orchestrator', () => {
       expect(component).toBeTruthy();
     });
 
-    it('calls getCard with expand string', async () => {
+    it('calls getCard with class-specific expand string for classes', async () => {
       await setup();
-      expect(adminCardService.getCard).toHaveBeenCalledWith('class', 1, 'features,costTags,modifiers,expansion');
+      expect(adminCardService.getCard).toHaveBeenCalledWith('class', 1, 'classFeatures,hopeFeatures,costTags,modifiers,expansion');
+    });
+
+    it('calls getCard with standard expand string for non-class types', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW);
+      expect(adminCardService.getCard).toHaveBeenCalledWith('domainCard', 1, 'features,costTags,modifiers,expansion');
     });
 
     it('populates form with all domainCard schema fields', async () => {
