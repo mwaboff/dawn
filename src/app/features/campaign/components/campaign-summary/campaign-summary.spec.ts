@@ -9,7 +9,7 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     id: 1,
     name: 'Test Campaign',
     creatorId: 1,
-    creator: { id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' },
+    creator: { id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '', usernameChosen: true },
     gameMasterIds: [1],
     playerIds: [],
     pendingCharacterSheetIds: [],

@@ -13,6 +13,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home').then(m => m.Home)
       },
       {
+        path: 'auth/callback',
+        loadComponent: () => import('./features/auth/auth-callback/auth-callback').then(m => m.AuthCallback)
+      },
+      {
+        path: 'choose-username',
+        loadComponent: () => import('./features/choose-username/choose-username').then(m => m.ChooseUsername)
+      },
+      {
         path: 'auth',
         loadComponent: () => import('./features/auth/auth').then(m => m.Auth)
       },

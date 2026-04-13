@@ -101,7 +101,7 @@ describe('CampaignSheetPicker', () => {
     const authService = TestBed.inject(AuthService);
     vi.spyOn(authService, 'user').mockReturnValue(
       userId !== null
-        ? { id: userId, username: 'testuser', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' }
+        ? { id: userId, username: 'testuser', email: '', role: 'USER', createdAt: '', lastModifiedAt: '', usernameChosen: true }
         : null,
     );
 

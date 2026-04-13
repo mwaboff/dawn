@@ -327,7 +327,7 @@ describe('Navbar', () => {
       const items = compiled.querySelectorAll('.nav-mobile-item');
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('Reference');
-      expect(texts).toContain('Login / Sign Up');
+      expect(texts).toContain('Sign In');
     });
 
     it('should close mobile menu on Escape key', () => {

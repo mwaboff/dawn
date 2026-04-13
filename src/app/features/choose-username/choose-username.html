@@ -1,0 +1,55 @@
+<div class="auth-container">
+  <div class="decorative-ornament auth-ornament auth-ornament-tl"></div>
+  <div class="decorative-ornament auth-ornament auth-ornament-tr"></div>
+  <div class="decorative-ornament auth-ornament auth-ornament-bl"></div>
+  <div class="decorative-ornament auth-ornament auth-ornament-br"></div>
+
+  <div class="grain-overlay"></div>
+  <div class="vignette-overlay"></div>
+
+  <div class="auth-card">
+    <h1 class="auth-title">Claim Your Name</h1>
+    <p class="auth-subtitle">Choose the name others will know you by</p>
+
+    @if (usernameError()) {
+      <div class="form-error" role="alert">
+        {{ usernameError() }}
+      </div>
+    }
+
+    <form [formGroup]="usernameForm" (ngSubmit)="onSubmit()" class="username-form">
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          class="form-input"
+          placeholder="Your adventurer name"
+          autocomplete="username"
+          [class.input-error]="usernameControl.touched && usernameControl.invalid"
+        />
+        @if (usernameControl.touched && usernameControl.errors) {
+          @if (usernameControl.errors['required']) {
+            <span class="field-error" role="alert">Username is required</span>
+          } @else if (usernameControl.errors['minlength']) {
+            <span class="field-error" role="alert">Must be at least 3 characters</span>
+          } @else if (usernameControl.errors['maxlength']) {
+            <span class="field-error" role="alert">Must be 30 characters or fewer</span>
+          } @else if (usernameControl.errors['pattern']) {
+            <span class="field-error" role="alert">Only letters, numbers, underscores, and hyphens</span>
+          }
+        }
+        <span class="form-hint">3-30 characters. Letters, numbers, underscores, hyphens.</span>
+      </div>
+
+      <button type="submit" class="auth-submit" [disabled]="!usernameForm.valid || isLoading()">
+        @if (isLoading()) {
+          Claiming...
+        } @else {
+          Claim Name
+        }
+      </button>
+    </form>
+  </div>
+</div>

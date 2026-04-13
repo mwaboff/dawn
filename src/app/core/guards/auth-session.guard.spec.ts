@@ -1,27 +1,28 @@
 import { TestBed } from '@angular/core/testing';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { Observable, firstValueFrom, of } from 'rxjs';
 import { authSessionGuard } from './auth-session.guard';
-import { AuthService } from '../services/auth.service';
+import { Observable, firstValueFrom } from 'rxjs';
 
 describe('authSessionGuard', () => {
-  let authService: AuthService;
   let httpMock: HttpTestingController;
-  const mockRoute = {} as ActivatedRouteSnapshot;
-  const mockState = {} as RouterStateSnapshot;
+
+  const mockUser = {
+    id: 1, username: 'testuser', role: 'USER', email: 'test@example.com',
+    createdAt: '2026-01-01T00:00:00', lastModifiedAt: '2026-01-01T00:00:00',
+    usernameChosen: true
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        AuthService,
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting()
       ]
     });
-
-    authService = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -29,37 +30,57 @@ describe('authSessionGuard', () => {
     httpMock.verify();
   });
 
-  it('should call checkSession on AuthService', async () => {
-    const checkSessionSpy = vi.spyOn(authService, 'checkSession').mockReturnValue(of(undefined));
+  function runGuard(path?: string) {
+    const route = { routeConfig: { path } } as unknown as ActivatedRouteSnapshot;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return TestBed.runInInjectionContext(() => authSessionGuard(route, {} as any));
+  }
 
-    await TestBed.runInInjectionContext(async () => {
-      const result = authSessionGuard(mockRoute, mockState);
-      await firstValueFrom(result as Observable<boolean>);
-    });
+  it('should allow navigation when not logged in', async () => {
+    const resultPromise = firstValueFrom(runGuard('') as Observable<boolean | import('@angular/router').UrlTree>);
 
-    expect(checkSessionSpy).toHaveBeenCalled();
-  });
-
-  it('should return true after session check completes', async () => {
-    const resultPromise = TestBed.runInInjectionContext(() => {
-      const result = authSessionGuard(mockRoute, mockState);
-      return firstValueFrom(result as Observable<boolean>);
-    });
-
-    httpMock.expectOne('http://localhost:8080/api/users/me').flush({});
+    httpMock.expectOne('http://localhost:8080/api/auth/me')
+      .flush(null, { status: 401, statusText: 'Unauthorized' });
 
     const result = await resultPromise;
     expect(result).toBe(true);
   });
 
-  it('should return true even when session check fails', async () => {
-    const resultPromise = TestBed.runInInjectionContext(() => {
-      const result = authSessionGuard(mockRoute, mockState);
-      return firstValueFrom(result as Observable<boolean>);
-    });
+  it('should allow navigation when user has chosen username', async () => {
+    const resultPromise = firstValueFrom(runGuard('') as Observable<boolean | import('@angular/router').UrlTree>);
 
-    httpMock.expectOne('http://localhost:8080/api/users/me')
-      .flush({}, { status: 401, statusText: 'Unauthorized' });
+    httpMock.expectOne('http://localhost:8080/api/auth/me').flush(mockUser);
+
+    const result = await resultPromise;
+    expect(result).toBe(true);
+  });
+
+  it('should redirect to choose-username when usernameChosen is false', async () => {
+    const resultPromise = firstValueFrom(runGuard('') as Observable<boolean | import('@angular/router').UrlTree>);
+
+    httpMock.expectOne('http://localhost:8080/api/auth/me')
+      .flush({ ...mockUser, usernameChosen: false });
+
+    const result = await resultPromise;
+    expect(result).not.toBe(true);
+    expect(result.toString()).toContain('choose-username');
+  });
+
+  it('should not redirect when already on choose-username page', async () => {
+    const resultPromise = firstValueFrom(runGuard('choose-username') as Observable<boolean | import('@angular/router').UrlTree>);
+
+    httpMock.expectOne('http://localhost:8080/api/auth/me')
+      .flush({ ...mockUser, usernameChosen: false });
+
+    const result = await resultPromise;
+    expect(result).toBe(true);
+  });
+
+  it('should not redirect when on auth/callback page', async () => {
+    const resultPromise = firstValueFrom(runGuard('auth/callback') as Observable<boolean | import('@angular/router').UrlTree>);
+
+    httpMock.expectOne('http://localhost:8080/api/auth/me')
+      .flush({ ...mockUser, usernameChosen: false });
 
     const result = await resultPromise;
     expect(result).toBe(true);

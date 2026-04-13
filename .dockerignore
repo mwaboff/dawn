@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.git/
+.gitignore
+.angular/
+.idea/
+.vscode/
+.worktrees/
+.github/
+.agents/
+.claude/
+*.log
+.DS_Store
+Dockerfile
+.dockerignore
+README.md

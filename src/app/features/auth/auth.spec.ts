@@ -1,252 +1,153 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Auth } from './auth';
-import { ReactiveFormsModule } from '@angular/forms';
+import { provideRouter, ActivatedRoute } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { Auth } from './auth';
 
 describe('Auth', () => {
   let component: Auth;
   let fixture: ComponentFixture<Auth>;
   let httpMock: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Auth, ReactiveFormsModule],
+  function setup(queryParams: Record<string, string> = {}) {
+    TestBed.configureTestingModule({
+      imports: [Auth],
       providers: [
-        AuthService,
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([])
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: {
+              queryParamMap: {
+                get: (key: string) => queryParams[key] || null
+              }
+            }
+          }
+        }
       ]
-    }).compileComponents();
+    });
 
     fixture = TestBed.createComponent(Auth);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-  });
+  }
 
   afterEach(() => {
     httpMock.verify();
   });
 
   it('should create', () => {
+    setup();
     expect(component).toBeTruthy();
   });
 
-  it('should default to login tab', () => {
-    expect(component.activeTab()).toBe('login');
+  it('should display error from query param', () => {
+    setup({ error: 'auth_failed' });
+    expect(component.authError()).toBe('Sign-in failed. Please try again.');
+
+    const errorEl = fixture.nativeElement.querySelector('[role="alert"]');
+    expect(errorEl).toBeTruthy();
+    expect(errorEl.textContent).toContain('Sign-in failed');
   });
 
-  it('should switch to signup tab', () => {
-    component.setTab('signup');
-    expect(component.activeTab()).toBe('signup');
+  it('should not display error without query param', () => {
+    setup();
+    expect(component.authError()).toBeNull();
+
+    const errorEl = fixture.nativeElement.querySelector('[role="alert"]');
+    expect(errorEl).toBeFalsy();
   });
 
-  it('should switch back to login tab', () => {
-    component.setTab('signup');
-    component.setTab('login');
-    expect(component.activeTab()).toBe('login');
+  it('should render Google sign-in button', () => {
+    setup();
+    const btn = fixture.nativeElement.querySelector('.google-btn');
+    expect(btn).toBeTruthy();
+    expect(btn.textContent).toContain('Google');
   });
 
-  it('should clear errors when switching tabs', () => {
-    component.loginError.set('Some error');
-    component.setTab('signup');
-    expect(component.loginError()).toBeNull();
+  it('should not render login or signup forms', () => {
+    setup();
+    const forms = fixture.nativeElement.querySelectorAll('form');
+    expect(forms.length).toBe(0);
+
+    const tabs = fixture.nativeElement.querySelectorAll('.auth-tab');
+    expect(tabs.length).toBe(0);
   });
 
-  it('should have invalid login form when empty', () => {
-    expect(component.loginForm.valid).toBe(false);
+  it('should render dev login section in dev mode', () => {
+    setup();
+    expect(component.isDev).toBe(true);
+
+    const devSection = fixture.nativeElement.querySelector('.dev-login-section');
+    expect(devSection).toBeTruthy();
   });
 
-  it('should have valid login form with username/email and password', () => {
-    component.loginForm.patchValue({
-      usernameOrEmail: 'test@example.com',
-      password: 'password123'
-    });
-    expect(component.loginForm.valid).toBe(true);
-  });
+  it('should handle dev login success', () => {
+    setup();
+    const navigateSpy = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.spyOn((component as any).router, 'navigate');
 
-  it('should accept username in login form', () => {
-    component.loginForm.patchValue({
-      usernameOrEmail: 'myusername',
-      password: 'password123'
-    });
-    expect(component.loginForm.valid).toBe(true);
-  });
-
-  it('should have invalid signup form when empty', () => {
-    expect(component.signupForm.valid).toBe(false);
-  });
-
-  it('should have valid signup form with all fields', () => {
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password123'
-    });
-    expect(component.signupForm.valid).toBe(true);
-  });
-
-  it('should have invalid signup form with short password', () => {
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'short',
-      confirmPassword: 'short'
-    });
-    expect(component.signupForm.valid).toBe(false);
-  });
-
-  it('should have invalid signup form with mismatched passwords', () => {
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password456'
-    });
-    expect(component.signupForm.valid).toBe(false);
-    expect(component.signupForm.hasError('passwordMismatch')).toBe(true);
-  });
-
-  it('should not show password mismatch until confirm field is blurred', () => {
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password456'
-    });
-    expect(component.showPasswordMismatch).toBe(false);
-
-    component.onConfirmPasswordBlur();
-    expect(component.showPasswordMismatch).toBe(true);
-  });
-
-  it('should have invalid signup form with invalid username', () => {
-    component.signupForm.patchValue({
-      username: 'ab',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password123'
-    });
-    expect(component.signupForm.valid).toBe(false);
-  });
-
-  it('should render login tab as active by default', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const loginTab = compiled.querySelector('.auth-tab.active');
-    expect(loginTab?.textContent?.trim()).toBe('Login');
-  });
-
-  it('should render login form by default', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const usernameEmailInput = compiled.querySelector('#login-username-email');
-    expect(usernameEmailInput).toBeTruthy();
-  });
-
-  it('should render signup form when signup tab is active', () => {
-    component.setTab('signup');
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const confirmInput = compiled.querySelector('#signup-confirm');
-    expect(confirmInput).toBeTruthy();
-  });
-
-  it('should have proper aria attributes on tabs', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const tabs = compiled.querySelectorAll('.auth-tab');
-    expect(tabs[0].getAttribute('role')).toBe('tab');
-    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
-    expect(tabs[1].getAttribute('aria-selected')).toBe('false');
-  });
-
-  it('should show login label as Email or Username', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    const label = compiled.querySelector('label[for="login-username-email"]');
-    expect(label?.textContent?.trim()).toBe('Email or Username');
-  });
-
-  it('should show error message on failed login', () => {
-    component.loginForm.patchValue({
-      usernameOrEmail: 'test@example.com',
-      password: 'wrongpassword'
-    });
-    component.onLogin();
-
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-    req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
-
-    fixture.detectChanges();
-    expect(component.loginError()).toBe('Invalid credentials');
-  });
-
-  it('should fall back to generic login error when backend provides no message', () => {
-    component.loginForm.patchValue({
-      usernameOrEmail: 'test@example.com',
-      password: 'wrongpassword'
-    });
-    component.onLogin();
-
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-    req.flush(null, { status: 500, statusText: 'Internal Server Error' });
-
-    expect(component.loginError()).toBe('Login failed. Please check your credentials and try again.');
-  });
-
-  it('should display backend error message on failed signup', () => {
-    component.setTab('signup');
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password123'
-    });
-    component.onSignup();
-
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
-    req.flush({ message: 'Username already exists' }, { status: 409, statusText: 'Conflict' });
-
-    expect(component.signupError()).toBe('Username already exists');
-  });
-
-  it('should fall back to generic signup error when backend provides no message', () => {
-    component.setTab('signup');
-    component.signupForm.patchValue({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'password123',
-      confirmPassword: 'password123'
-    });
-    component.onSignup();
-
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/register');
-    req.flush(null, { status: 500, statusText: 'Internal Server Error' });
-
-    expect(component.signupError()).toBe('Registration failed. Please try again.');
-  });
-
-  it('should set loading state during login', () => {
-    component.loginForm.patchValue({
-      usernameOrEmail: 'test@example.com',
-      password: 'password123'
-    });
-    component.onLogin();
+    component.onDevLogin();
     expect(component.isLoading()).toBe(true);
 
-    const req = httpMock.expectOne('http://localhost:8080/api/auth/login');
-    req.flush({ id: 1, username: 'test', email: 'test@example.com' });
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/dev-login');
+    req.flush({
+      id: 1,
+      username: 'testuser',
+      role: 'USER',
+      email: 'test@example.com',
+      createdAt: '2026-01-01T00:00:00',
+      lastModifiedAt: '2026-01-01T00:00:00',
+      usernameChosen: true
+    });
 
     expect(component.isLoading()).toBe(false);
+    expect(navigateSpy).toHaveBeenCalledWith(['/']);
   });
 
-  it('should display error alert with role attribute', () => {
-    component.loginError.set('Test error');
+  it('should navigate to choose-username when dev login returns usernameChosen false', () => {
+    setup();
+    const navigateSpy = // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.spyOn((component as any).router, 'navigate');
+
+    component.onDevLogin();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/dev-login');
+    req.flush({
+      id: 1,
+      username: 'tmp_user',
+      role: 'USER',
+      email: 'test@example.com',
+      createdAt: '2026-01-01T00:00:00',
+      lastModifiedAt: '2026-01-01T00:00:00',
+      usernameChosen: false
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/choose-username']);
+  });
+
+  it('should display error on dev login failure', () => {
+    setup();
+
+    component.onDevLogin();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/auth/dev-login');
+    req.flush(null, { status: 500, statusText: 'Server Error' });
+
+    expect(component.isLoading()).toBe(false);
+    expect(component.authError()).toBe('Dev login failed.');
+  });
+
+  it('should disable Google button while loading', () => {
+    setup();
+    component.isLoading.set(true);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const errorDiv = compiled.querySelector('.form-error');
-    expect(errorDiv?.getAttribute('role')).toBe('alert');
+
+    const btn = fixture.nativeElement.querySelector('.google-btn');
+    expect(btn.disabled).toBe(true);
+    expect(btn.textContent).toContain('Signing in');
   });
 });
