@@ -336,4 +336,83 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
     ],
     previewTags: () => [],
   },
+
+  adversary: {
+    cardType: 'adversary',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+        ],
+      },
+      {
+        title: 'Combat stats',
+        fields: [
+          { name: 'tier', label: 'Tier', kind: 'number', required: true, positive: true, column: 1 },
+          {
+            name: 'adversaryType', label: 'Type', kind: 'enum', required: true, column: 2, options: [
+              { value: 'MINION', label: 'Minion' },
+              { value: 'BRUISER', label: 'Bruiser' },
+              { value: 'SKULK', label: 'Skulk' },
+              { value: 'SOCIAL', label: 'Social' },
+              { value: 'SOLO', label: 'Solo' },
+              { value: 'LEADER', label: 'Leader' },
+              { value: 'SUPPORT', label: 'Support' },
+              { value: 'HORDE', label: 'Horde' },
+              { value: 'STANDARD', label: 'Standard' },
+            ],
+          },
+          { name: 'difficulty', label: 'Difficulty', kind: 'number', min: 0, column: 1 },
+          { name: 'hitPointMax', label: 'Hit points', kind: 'number', min: 0, column: 2 },
+          { name: 'stressMax', label: 'Stress', kind: 'number', min: 0, column: 1 },
+          { name: 'evasion', label: 'Evasion', kind: 'number', min: 0, column: 2 },
+        ],
+      },
+      {
+        title: 'Thresholds',
+        fields: [
+          { name: 'majorThreshold', label: 'Major threshold', kind: 'number', min: 0, column: 1 },
+          { name: 'severeThreshold', label: 'Severe threshold', kind: 'number', min: 0, column: 2 },
+        ],
+      },
+      {
+        title: 'Attack',
+        fields: [
+          { name: 'weaponName', label: 'Weapon name', kind: 'text', maxLength: 200, column: 1 },
+          {
+            name: 'attackRange', label: 'Range', kind: 'enum', column: 2, options: [
+              { value: 'MELEE', label: 'Melee' },
+              { value: 'VERY_CLOSE', label: 'Very close' },
+              { value: 'CLOSE', label: 'Close' },
+              { value: 'FAR', label: 'Far' },
+              { value: 'VERY_FAR', label: 'Very far' },
+            ],
+          },
+          { name: 'attackModifier', label: 'Attack modifier', kind: 'number', column: 1 },
+          { name: 'damageNotation', label: 'Damage notation', kind: 'text', path: ['damage', 'notation'], column: 1 },
+          {
+            name: 'damageDamageType', label: 'Damage type', kind: 'enum', path: ['damage', 'damageType'], column: 2, options: [
+              { value: 'PHYSICAL', label: 'Physical' },
+              { value: 'MAGIC', label: 'Magic' },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Details',
+        fields: [
+          { name: 'motivesAndTactics', label: 'Motives & tactics', kind: 'textarea', column: 'full' },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      v['adversaryType'] as string | null,
+      v['tier'] != null ? `Tier ${v['tier']}` : null,
+      v['difficulty'] != null ? `Difficulty ${v['difficulty']}` : null,
+    ].filter((t): t is string => !!t),
+  },
 };

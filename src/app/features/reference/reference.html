@@ -111,6 +111,16 @@
               [hasActiveFilters]="hasActiveFilters()"
               (clearFilters)="onClearFilters()"
             />
+          } @else if (isSubclassView() && subclassCards().length > 0) {
+            <app-subclass-path-selector
+              [cards]="subclassCards()"
+              [collapsibleFeatures]="true"
+            />
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
+            />
           } @else {
             <ul class="focused-cards" role="list">
               @for (result of focusedResults(); track result.id) {
@@ -170,6 +180,16 @@
               [type]="activeType()"
               [hasActiveFilters]="hasActiveFilters()"
               (clearFilters)="onClearFilters()"
+            />
+          } @else if (isSubclassView() && subclassCards().length > 0) {
+            <app-subclass-path-selector
+              [cards]="subclassCards()"
+              [collapsibleFeatures]="true"
+            />
+            <app-pagination-controls
+              [currentPage]="currentPage()"
+              [totalPages]="focusedTotalPages()"
+              (pageChanged)="onPageChanged($event)"
             />
           } @else {
             <ul class="focused-cards" role="list">

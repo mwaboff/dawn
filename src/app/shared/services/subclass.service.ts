@@ -11,6 +11,7 @@ export interface SubclassOptions {
   page?: number;
   size?: number;
   associatedClassId?: number;
+  subclassPathId?: number;
   expansionId?: number;
   isOfficial?: boolean;
 }
@@ -42,7 +43,7 @@ export class SubclassService {
   }
 
   getSubclassesPaginated(options: SubclassOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, associatedClassId, expansionId, isOfficial } = options;
+    const { page = 0, size = 20, associatedClassId, subclassPathId, expansionId, isOfficial } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -51,6 +52,9 @@ export class SubclassService {
 
     if (associatedClassId !== undefined) {
       params = params.set('associatedClassId', associatedClassId);
+    }
+    if (subclassPathId !== undefined) {
+      params = params.set('subclassPathId', subclassPathId);
     }
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);

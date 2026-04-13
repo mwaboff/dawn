@@ -212,3 +212,19 @@
     margin-right: -1rem;
   }
 }
+
+app-subclass-path-selector {
+  --tab-bg: rgba(26, 20, 15, 0.4);
+  --tab-color: rgba(245, 230, 211, 0.5);
+  --tab-hover-color: rgba(245, 230, 211, 0.8);
+  --tab-hover-bg: rgba(212, 160, 86, 0.08);
+  --tab-active-color: var(--color-accent);
+  --tab-active-bg: rgba(212, 160, 86, 0.15);
+  --tab-active-border: rgba(212, 160, 86, 0.3);
+  --tab-active-shadow: none;
+  --tab-owned-color: rgba(245, 230, 211, 0.35);
+  --tab-next-color: var(--color-accent);
+  --tab-locked-color: rgba(245, 230, 211, 0.2);
+  --tab-badge-owned: #8fd4a4;
+  --tab-font-size: 0.875rem;
+}
