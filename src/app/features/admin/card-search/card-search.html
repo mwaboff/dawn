@@ -41,7 +41,29 @@
     </div>
   }
 
-  @if (!loading() && !error() && activeCategory() && filteredCards().length > 0) {
+  @if (!loading() && !error() && isSubclassCategory() && filteredCards().length > 0) {
+    <app-subclass-path-selector
+      [cards]="filteredCards()"
+      [collapsibleFeatures]="true"
+      (cardSelected)="onSubclassCardSelected($event)"
+    />
+  }
+
+  @if (!loading() && !error() && isAdversaryCategory() && filteredAdversaries().length > 0) {
+    <div class="adversary-grid">
+      @for (adversary of filteredAdversaries(); track adversary.id) {
+        <div class="adversary-grid__item" role="button" tabindex="0" (click)="onAdversarySelected(adversary)" (keydown.enter)="onAdversarySelected(adversary)">
+          <app-adversary-card
+            [adversary]="adversary"
+            layout="wide"
+            [collapsibleFeatures]="true"
+          />
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading() && !error() && !isSubclassCategory() && !isAdversaryCategory() && activeCategory() && filteredCards().length > 0) {
     <app-card-selection-grid
       [cards]="filteredCards()"
       [loading]="false"
@@ -53,7 +75,7 @@
     />
   }
 
-  @if (!loading() && !error() && activeCategory() && filteredCards().length === 0 && hasCards()) {
+  @if (!loading() && !error() && activeCategory() && filteredCards().length === 0 && filteredAdversaries().length === 0 && hasCards()) {
     <div class="search-empty">
       <p>No cards match your search.</p>
     </div>

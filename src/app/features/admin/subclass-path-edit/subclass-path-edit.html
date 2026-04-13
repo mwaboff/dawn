@@ -1,0 +1,118 @@
+<div class="path-edit">
+  <div class="path-edit__toolbar">
+    <div class="path-edit__title-group">
+      <button type="button" class="btn btn--secondary" (click)="onBack()">
+        Back to Cards
+      </button>
+      <h2 class="path-edit__title">{{ pathName() }}</h2>
+      @if (className()) {
+        <span class="path-edit__class-badge">{{ className() }}</span>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="path-edit__loading">Loading subclass path...</div>
+  }
+
+  @if (loadError() && !loading()) {
+    <div class="path-edit__error">{{ loadError() }}</div>
+  }
+
+  @if (!loading() && !loadError() && levels().length > 0) {
+    <div class="path-edit__tabs" role="tablist" aria-label="Subclass levels">
+      @for (entry of levels(); track entry.level) {
+        <button
+          type="button"
+          class="path-edit__tab"
+          [class.path-edit__tab--active]="activeTab() === entry.level"
+          (click)="setActiveTab(entry.level)"
+          role="tab"
+          [attr.aria-selected]="activeTab() === entry.level"
+        >
+          {{ entry.label }}
+        </button>
+      }
+    </div>
+
+    <div class="path-edit__content">
+      <div class="path-edit__forms">
+        @for (entry of levels(); track entry.level; let idx = $index) {
+          <section
+            class="level-section"
+            [class.level-section--active]="activeTab() === entry.level"
+            role="tabpanel"
+            [attr.aria-label]="entry.label + ' level'"
+          >
+            <div class="level-section__header">
+              <h3 class="level-section__title">{{ entry.label }}</h3>
+              <div class="level-section__actions">
+                @if (entry.saveSuccess) {
+                  <span class="level-section__status level-section__status--success" role="alert">Saved</span>
+                }
+                @if (entry.error) {
+                  <span class="level-section__status level-section__status--error" role="alert">{{ entry.error }}</span>
+                }
+                <button
+                  type="button"
+                  class="btn btn--primary"
+                  [disabled]="entry.saving || !hasPendingChanges(entry, idx)"
+                  (click)="onSaveLevel(entry.level)"
+                >
+                  @if (entry.saving) {
+                    Saving...
+                  } @else {
+                    Save {{ entry.label }}
+                  }
+                </button>
+              </div>
+            </div>
+
+            <form [formGroup]="entry.form" class="level-section__form">
+              @for (section of filteredSections(); track section.title) {
+                <div class="panel">
+                  <h4 class="panel__title">{{ section.title }}</h4>
+                  <div class="panel__grid">
+                    @for (field of section.fields; track field.name) {
+                      <app-card-edit-field
+                        [field]="field"
+                        [control]="getControl(entry, field.name)"
+                        [submitted]="false"
+                        [dependsOnControl]="getDependsOnControl(entry, field)"
+                        (createRequested)="openAddExpansionDialog(entry.level)"
+                      />
+                    }
+                  </div>
+                </div>
+              }
+            </form>
+
+            <app-card-edit-features
+              [features]="entry.features"
+              [saving]="entry.saving"
+              (featureDirtyChanged)="bumpFormVersion()"
+              #featureRef
+            />
+          </section>
+        }
+      </div>
+
+      <div class="path-edit__preview">
+        <app-card-edit-preview [card]="previewCard()" />
+      </div>
+    </div>
+  }
+
+  @if (!loading() && !loadError() && levels().length === 0) {
+    <div class="path-edit__empty">
+      <p>No subclass cards found for this path.</p>
+    </div>
+  }
+
+  @if (addExpansionOpen()) {
+    <app-add-expansion-dialog
+      (created)="onAddExpansionCreated($event)"
+      (cancelled)="closeAddExpansionDialog()"
+    />
+  }
+</div>

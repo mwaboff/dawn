@@ -18,6 +18,8 @@ import { CodexSkeleton } from './components/codex-skeleton/codex-skeleton';
 import { CodexEmptyState } from './components/codex-empty-state/codex-empty-state';
 import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
 import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
+import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
+import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 
 export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
 
@@ -41,7 +43,7 @@ const MIXED_VIEW_CAP = 5;
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard, SubclassPathSelector],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);
@@ -115,6 +117,15 @@ export class Reference implements OnInit {
   });
 
   readonly hasActiveFilters = computed<boolean>(() => Object.keys(this.filters()).length > 0);
+
+  readonly isSubclassView = computed<boolean>(() => this.activeType() === 'SUBCLASS_CARD');
+
+  readonly subclassCards = computed<CardData[]>(() => {
+    if (!this.isSubclassView()) return [];
+    return this.focusedResults()
+      .filter(r => r.card)
+      .map(r => r.card!);
+  });
 
   readonly searchPlaceholder = computed<string>(() => {
     const type = this.activeType();

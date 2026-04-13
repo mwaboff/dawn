@@ -66,3 +66,36 @@
   opacity: 0.7;
   font-family: var(--font-body);
 }
+
+app-subclass-path-selector {
+  --tab-bg: rgba(26, 20, 15, 0.4);
+  --tab-color: rgba(245, 230, 211, 0.5);
+  --tab-hover-color: rgba(245, 230, 211, 0.8);
+  --tab-hover-bg: rgba(212, 160, 86, 0.08);
+  --tab-active-color: var(--color-accent);
+  --tab-active-bg: rgba(212, 160, 86, 0.15);
+  --tab-active-border: rgba(212, 160, 86, 0.3);
+  --tab-active-shadow: none;
+  --tab-owned-color: rgba(245, 230, 211, 0.35);
+  --tab-next-color: var(--color-accent);
+  --tab-locked-color: rgba(245, 230, 211, 0.2);
+  --tab-badge-owned: #8fd4a4;
+  --tab-font-size: 0.875rem;
+}
+
+.adversary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.adversary-grid__item {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 0.5rem;
+}
+
+.adversary-grid__item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(212, 160, 86, 0.15);
+}

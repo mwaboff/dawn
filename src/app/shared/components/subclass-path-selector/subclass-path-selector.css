@@ -1,5 +1,19 @@
 :host {
   display: block;
+
+  --tab-bg: rgba(0, 0, 0, 0.03);
+  --tab-color: #7a5c46;
+  --tab-hover-color: #5c3a2e;
+  --tab-hover-bg: rgba(184, 127, 212, 0.06);
+  --tab-active-color: #b87fd4;
+  --tab-active-bg: #fff;
+  --tab-active-border: rgba(184, 127, 212, 0.3);
+  --tab-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --tab-owned-color: #9a8a7a;
+  --tab-next-color: #d4a056;
+  --tab-locked-color: #c4b9ac;
+  --tab-badge-owned: #6b8e5e;
+  --tab-font-size: 0.78rem;
 }
 
 .card-grid {
@@ -22,16 +36,16 @@
   gap: 0.25rem;
   margin-bottom: 0.5rem;
   padding: 0.2rem;
-  background: rgba(0, 0, 0, 0.03);
+  background: var(--tab-bg);
   border-radius: 6px;
   width: fit-content;
 }
 .tabbed-path__tab {
   padding: 0.35rem 0.85rem;
   font-family: 'Cinzel', serif;
-  font-size: 0.78rem;
+  font-size: var(--tab-font-size);
   font-weight: 600;
-  color: #7a5c46;
+  color: var(--tab-color);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -39,17 +53,17 @@
   transition: all 0.2s ease;
   letter-spacing: 0.04em;
 }
-.tabbed-path__tab:hover { color: #5c3a2e; background: rgba(184, 127, 212, 0.06); }
+.tabbed-path__tab:hover { color: var(--tab-hover-color); background: var(--tab-hover-bg); }
 .tabbed-path__tab--active {
-  color: #b87fd4;
-  background: #fff;
-  border-color: rgba(184, 127, 212, 0.3);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  color: var(--tab-active-color);
+  background: var(--tab-active-bg);
+  border-color: var(--tab-active-border);
+  box-shadow: var(--tab-active-shadow);
 }
 
-.tabbed-path__tab--owned:not(.tabbed-path__tab--active) { color: #9a8a7a; }
-.tabbed-path__tab--next:not(.tabbed-path__tab--active) { color: #d4a056; }
-.tabbed-path__tab--locked:not(.tabbed-path__tab--active) { color: #c4b9ac; }
+.tabbed-path__tab--owned:not(.tabbed-path__tab--active) { color: var(--tab-owned-color); }
+.tabbed-path__tab--next:not(.tabbed-path__tab--active) { color: var(--tab-next-color); }
+.tabbed-path__tab--locked:not(.tabbed-path__tab--active) { color: var(--tab-locked-color); }
 
 .tab-badge {
   display: inline-flex;
@@ -58,7 +72,7 @@
   font-size: 0.6rem;
   line-height: 1;
 }
-.tab-badge--owned { color: #6b8e5e; }
+.tab-badge--owned { color: var(--tab-badge-owned); }
 
 .card-state-wrapper {
   position: relative;

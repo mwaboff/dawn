@@ -21,16 +21,23 @@ import { WeaponService } from '../../../shared/services/weapon.service';
 import { ArmorService } from '../../../shared/services/armor.service';
 import { LootService } from '../../../shared/services/loot.service';
 import { CompanionService } from '../../../shared/services/companion.service';
+import { SubclassService } from '../../../shared/services/subclass.service';
+import { AdversaryService, PaginatedAdversaries } from '../../../shared/services/adversary.service';
+import { SubclassPathSelector } from '../../../shared/components/subclass-path-selector/subclass-path-selector';
+import { AdversaryCard } from '../../../shared/components/adversary-card/adversary-card';
+import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
 
 const ADMIN_CATEGORIES: { id: string; label: string }[] = [
   { id: 'domain', label: 'Domains' },
   { id: 'class', label: 'Classes' },
+  { id: 'subclass', label: 'Subclasses' },
   { id: 'ancestry', label: 'Ancestries' },
   { id: 'community', label: 'Communities' },
   { id: 'domainCard', label: 'Domain Cards' },
   { id: 'weapon', label: 'Weapons' },
   { id: 'armor', label: 'Armor' },
   { id: 'loot', label: 'Loot' },
+  { id: 'adversary', label: 'Adversaries' },
   { id: 'companion', label: 'Companions' },
 ];
 
@@ -39,7 +46,7 @@ const ADMIN_CATEGORIES: { id: string; label: string }[] = [
   templateUrl: './card-search.html',
   styleUrl: './card-search.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, CardSelectionGrid, CardSkeleton],
+  imports: [FormsModule, CardSelectionGrid, CardSkeleton, SubclassPathSelector, AdversaryCard],
 })
 export class CardSearch {
   private readonly router = inject(Router);
@@ -52,15 +59,18 @@ export class CardSearch {
   private readonly armorService = inject(ArmorService);
   private readonly lootService = inject(LootService);
   private readonly companionService = inject(CompanionService);
+  private readonly subclassService = inject(SubclassService);
+  private readonly adversaryService = inject(AdversaryService);
 
   readonly categories = ADMIN_CATEGORIES;
   readonly activeCategory = signal<string | null>(null);
   readonly searchQuery = signal('');
   private readonly allCards = signal<CardData[]>([]);
+  private readonly allAdversaries = signal<AdversaryData[]>([]);
   readonly loading = signal(false);
   readonly error = signal(false);
 
-  readonly hasCards = computed(() => this.allCards().length > 0);
+  readonly hasCards = computed(() => this.allCards().length > 0 || this.allAdversaries().length > 0);
 
   readonly filteredCards = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();
@@ -68,6 +78,16 @@ export class CardSearch {
     if (!query) return cards;
     return cards.filter(card => card.name.toLowerCase().includes(query));
   });
+
+  readonly filteredAdversaries = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    const adversaries = this.allAdversaries();
+    if (!query) return adversaries;
+    return adversaries.filter(a => a.name.toLowerCase().includes(query));
+  });
+
+  readonly isAdversaryCategory = computed(() => this.activeCategory() === 'adversary');
+  readonly isSubclassCategory = computed(() => this.activeCategory() === 'subclass');
 
   constructor() {
     effect(() => {
@@ -78,6 +98,7 @@ export class CardSearch {
 
   onCategorySelected(categoryId: string): void {
     this.searchQuery.set('');
+    this.allAdversaries.set([]);
     this.activeCategory.set(categoryId);
   }
 
@@ -89,6 +110,17 @@ export class CardSearch {
     const category = this.activeCategory();
     if (category) {
       this.router.navigate(['/admin/cards', category, card.id]);
+    }
+  }
+
+  onAdversarySelected(adversary: AdversaryData): void {
+    this.router.navigate(['/admin/cards', 'adversary', adversary.id]);
+  }
+
+  onSubclassCardSelected(card: CardData): void {
+    const pathId = card.metadata?.['subclassPathId'] as number | undefined;
+    if (pathId) {
+      this.router.navigate(['/admin/cards/subclass-path', pathId]);
     }
   }
 
@@ -147,6 +179,23 @@ export class CardSearch {
         break;
       case 'companion':
         this.companionService.getCompanions().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(handlers);
+        break;
+      case 'subclass':
+        this.subclassService.getSubclassesPaginated({ page: 0, size: 200 })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (result) => { this.allCards.set(result.cards); this.loading.set(false); },
+            error: () => { this.error.set(true); this.loading.set(false); },
+          });
+        break;
+      case 'adversary':
+        this.allAdversaries.set([]);
+        this.adversaryService.getAdversaries({ page: 0 })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (result: PaginatedAdversaries) => { this.allAdversaries.set(result.adversaries); this.loading.set(false); },
+            error: () => { this.error.set(true); this.loading.set(false); },
+          });
         break;
       default:
         this.loading.set(false);
