@@ -59,8 +59,6 @@ export class TabNav {
   });
 
   isTabDisabled(tabId: TabId): boolean {
-    if (tabId === 'domain-cards') return false;
-
     const targetIndex = this.tabs().findIndex((t) => t.id === tabId);
     const currentIndex = this.activeIndex();
 
