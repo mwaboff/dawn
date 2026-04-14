@@ -53,6 +53,77 @@
   font-size: 0.9rem;
 }
 
+.path-edit__domains {
+  margin-bottom: 1.5rem;
+}
+
+.path-edit__domains-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.path-edit__domains-header .panel__title {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.path-edit__domains-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.path-edit__domains-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+
+.path-edit__domain-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.path-edit__domain-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(245, 230, 211, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.path-edit__domain-select {
+  padding: 0.5rem 0.75rem;
+  background: rgba(26, 20, 15, 0.6);
+  border: 1px solid rgba(212, 160, 86, 0.2);
+  border-radius: 4px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.path-edit__domain-select:hover {
+  border-color: rgba(212, 160, 86, 0.4);
+}
+
+.path-edit__domain-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(212, 160, 86, 0.15);
+}
+
+.btn--sm {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.775rem;
+}
+
 .path-edit__tabs {
   display: flex;
   gap: 0;
@@ -251,6 +322,16 @@
 
   .panel__grid {
     grid-template-columns: 1fr;
+  }
+
+  .path-edit__domains-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .path-edit__domains-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
   .path-edit__toolbar {

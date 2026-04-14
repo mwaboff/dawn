@@ -21,7 +21,7 @@ import { CardData } from '../../../shared/components/daggerheart-card/daggerhear
 import { SubclassLevel } from '../../../shared/models/subclass-api.model';
 import { PaginatedResponse } from '../../../shared/models/api.model';
 import { CARD_EDIT_SCHEMAS } from '../card-edit/schema/card-edit-schema';
-import { CardSchema, EntityField, FieldDef } from '../card-edit/schema/card-edit-schema.types';
+import { CardSchema, EntityField, FieldDef, LookupOption } from '../card-edit/schema/card-edit-schema.types';
 import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors, buildPreviewCard } from '../card-edit/utils/card-edit-form.utils';
 import { AdminLookupService } from '../card-edit/services/admin-lookup.service';
 import { CardEditField } from '../card-edit/components/card-edit-field/card-edit-field';
@@ -78,6 +78,22 @@ export class SubclassPathEdit implements OnInit {
   private readonly activeExpansionLevel = signal<SubclassLevel | null>(null);
   private readonly formVersion = signal(0);
 
+  private pathRaw = signal<Record<string, unknown> | null>(null);
+  readonly domainOptions = signal<LookupOption[]>([]);
+  readonly domain1 = signal<number | null>(null);
+  readonly domain2 = signal<number | null>(null);
+  readonly domainsSaving = signal(false);
+  readonly domainsSaveSuccess = signal(false);
+  readonly domainsSaveError = signal('');
+  readonly domainsDirty = computed(() => {
+    const raw = this.pathRaw();
+    if (!raw) return false;
+    const original = (raw['associatedDomainIds'] as number[]) ?? [];
+    const current = [this.domain1(), this.domain2()].filter((id): id is number => id !== null);
+    if (original.length !== current.length) return true;
+    return !original.every((id, i) => current[i] === id);
+  });
+
   readonly schema = computed<CardSchema>(() => CARD_EDIT_SCHEMAS['subclass']);
 
   readonly activeTab = signal<SubclassLevel>('FOUNDATION');
@@ -121,6 +137,9 @@ export class SubclassPathEdit implements OnInit {
     const pathId = Number(this.route.snapshot.params['pathId']);
     this.pathId.set(pathId);
     this.loadAll(pathId);
+    this.adminLookupService.list('domains')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(options => this.domainOptions.set(options));
   }
 
   setActiveTab(level: SubclassLevel): void {
@@ -193,6 +212,46 @@ export class SubclassPathEdit implements OnInit {
     return (this.featureRefs()?.[idx]?.getDirtyFeatures().length ?? 0) > 0;
   }
 
+  onDomainChange(slot: 1 | 2, value: string): void {
+    const id = value ? Number(value) : null;
+    if (slot === 1) this.domain1.set(id);
+    else this.domain2.set(id);
+    this.domainsSaveSuccess.set(false);
+  }
+
+  onSaveDomains(): void {
+    const raw = this.pathRaw();
+    if (!raw) return;
+
+    this.domainsSaving.set(true);
+    this.domainsSaveSuccess.set(false);
+    this.domainsSaveError.set('');
+
+    const associatedDomainIds = [this.domain1(), this.domain2()].filter((id): id is number => id !== null);
+
+    const body = {
+      name: raw['name'],
+      associatedClassId: raw['associatedClassId'],
+      expansionId: raw['expansionId'],
+      spellcastingTrait: (raw['spellcastingTrait'] as Record<string, unknown>)?.['trait'] ?? null,
+      associatedDomainIds,
+    };
+
+    this.http.put(`${environment.apiUrl}/dh/subclass-paths/${this.pathId()}`, body, { withCredentials: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.domainsSaving.set(false);
+          this.domainsSaveSuccess.set(true);
+          this.loadAll(this.pathId());
+        },
+        error: (err) => {
+          this.domainsSaving.set(false);
+          this.domainsSaveError.set(err?.error?.message ?? 'Failed to save domains.');
+        },
+      });
+  }
+
   onBack(): void {
     this.router.navigate(['/admin/cards']);
   }
@@ -241,9 +300,14 @@ export class SubclassPathEdit implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ path, cards }) => {
+          this.pathRaw.set(path);
           this.pathName.set(path['name'] as string ?? 'Subclass Path');
           const assocClass = path['associatedClass'] as Record<string, unknown> | undefined;
           this.className.set(assocClass?.['name'] as string ?? '');
+
+          const domainIds = (path['associatedDomainIds'] as number[]) ?? [];
+          this.domain1.set(domainIds[0] ?? null);
+          this.domain2.set(domainIds[1] ?? null);
 
           const levelEntries: LevelEntry[] = [];
 

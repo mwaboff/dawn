@@ -20,6 +20,62 @@
   }
 
   @if (!loading() && !loadError() && levels().length > 0) {
+    <div class="path-edit__domains panel">
+      <div class="path-edit__domains-header">
+        <h4 class="panel__title">Associated Domains</h4>
+        <div class="path-edit__domains-actions">
+          @if (domainsSaveSuccess()) {
+            <span class="level-section__status level-section__status--success" role="alert">Saved</span>
+          }
+          @if (domainsSaveError()) {
+            <span class="level-section__status level-section__status--error" role="alert">{{ domainsSaveError() }}</span>
+          }
+          <button
+            type="button"
+            class="btn btn--primary btn--sm"
+            [disabled]="domainsSaving() || !domainsDirty()"
+            (click)="onSaveDomains()"
+          >
+            @if (domainsSaving()) {
+              Saving...
+            } @else {
+              Save Domains
+            }
+          </button>
+        </div>
+      </div>
+      <div class="path-edit__domains-grid">
+        <div class="path-edit__domain-field">
+          <label class="path-edit__domain-label" for="domain1">Domain 1</label>
+          <select
+            id="domain1"
+            class="path-edit__domain-select"
+            [value]="domain1() ?? ''"
+            (change)="onDomainChange(1, $any($event.target).value)"
+          >
+            <option value="">-- Select Domain --</option>
+            @for (opt of domainOptions(); track opt.id) {
+              <option [value]="opt.id" [selected]="opt.id === domain1()">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="path-edit__domain-field">
+          <label class="path-edit__domain-label" for="domain2">Domain 2</label>
+          <select
+            id="domain2"
+            class="path-edit__domain-select"
+            [value]="domain2() ?? ''"
+            (change)="onDomainChange(2, $any($event.target).value)"
+          >
+            <option value="">-- Select Domain --</option>
+            @for (opt of domainOptions(); track opt.id) {
+              <option [value]="opt.id" [selected]="opt.id === domain2()">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="path-edit__tabs" role="tablist" aria-label="Subclass levels">
       @for (entry of levels(); track entry.level) {
         <button
