@@ -49,6 +49,23 @@
               </p>
             }
           </div>
+          @if (canDelete()) {
+            @if (pendingDeleteId() === character.id) {
+              <span class="roster-inline-confirm">
+                <span class="roster-inline-confirm-text">Delete?</span>
+                <button type="button" class="roster-inline-confirm-btn" (click)="onInlineConfirm($event)">Yes</button>
+                <button type="button" class="roster-inline-cancel-btn" (click)="onInlineCancel($event)">No</button>
+              </span>
+            } @else {
+              <button type="button" class="roster-delete-btn"
+                      [attr.aria-label]="'Delete ' + character.name"
+                      (click)="onDeleteClick($event, character.id)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </button>
+            }
+          }
           <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6" />
           </svg>
@@ -60,5 +77,16 @@
         <a routerLink="/create-character" class="roster-add-link">+ New Character</a>
       </div>
     }
+  }
+  @if (confirmingDeleteId() !== null) {
+    <app-confirm-dialog
+      title="Delete Character"
+      message="This will permanently delete this character sheet. This action cannot be undone."
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      [processing]="deletingId() !== null"
+      (confirmed)="onConfirmDelete()"
+      (cancelled)="onCancelDelete()"
+    />
   }
 </section>

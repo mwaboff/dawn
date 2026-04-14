@@ -11,8 +11,10 @@ import { CharacterSummary } from '../../models/profile.model';
       [loading]="loading()"
       [error]="error()"
       [showCreateButton]="showCreateButton()"
+      [canDelete]="canDelete()"
       (viewCharacter)="viewedId = $event"
       (createCharacter)="createCalled = true"
+      (deleteCharacter)="deletedId = $event"
     />
   `,
   imports: [RosterList],
@@ -22,7 +24,9 @@ class TestHost {
   loading = signal(false);
   error = signal(false);
   showCreateButton = signal(true);
+  canDelete = signal(false);
   viewedId: number | null = null;
+  deletedId: number | null = null;
   createCalled = false;
 }
 
@@ -218,5 +222,111 @@ describe('RosterList', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.roster-add-link')).toBeFalsy();
+  });
+
+  describe('delete functionality', () => {
+    it('should not show delete button when canDelete is false', () => {
+      host.characters.set([makeCharacter()]);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.roster-delete-btn')).toBeFalsy();
+    });
+
+    it('should show delete button when canDelete is true', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter()]);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
+    });
+
+    it('should show inline confirm when delete button is clicked', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      const btn = el.querySelector('.roster-delete-btn') as HTMLButtonElement;
+      btn.click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
+      expect(el.querySelector('.roster-inline-confirm-text')?.textContent?.trim()).toBe('Delete?');
+    });
+
+    it('should not navigate when delete button is clicked', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      const btn = el.querySelector('.roster-delete-btn') as HTMLButtonElement;
+      btn.click();
+      fixture.detectChanges();
+
+      expect(host.viewedId).toBeNull();
+    });
+
+    it('should hide inline confirm when No is clicked', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
+
+      (el.querySelector('.roster-inline-cancel-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
+      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
+    });
+
+    it('should show confirm dialog when inline Yes is clicked', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
+    });
+
+    it('should emit deleteCharacter on modal confirm', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      (el.querySelector('.dialog-btn--confirm') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(host.deletedId).toBe(42);
+    });
+
+    it('should hide dialog and inline confirm on modal cancel', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
+
+      (el.querySelector('.dialog-btn--cancel') as HTMLButtonElement).click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-confirm-dialog')).toBeFalsy();
+      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
+    });
   });
 });

@@ -70,7 +70,6 @@
 
 .profile-divider {
   position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: 1.25rem;

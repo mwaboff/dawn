@@ -147,6 +147,72 @@
   50% { opacity: 0.7; }
 }
 
+.roster-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(245, 230, 211, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.roster-delete-btn svg { width: 16px; height: 16px; }
+.roster-delete-btn:hover { color: #c44; border-color: rgba(196, 68, 68, 0.3); background: rgba(196, 68, 68, 0.08); }
+.roster-delete-btn:focus-visible { outline: 2px solid #c44; outline-offset: 2px; }
+
+.roster-inline-confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.roster-inline-confirm-text {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c47a7a;
+  letter-spacing: 0.05em;
+}
+
+.roster-inline-confirm-btn,
+.roster-inline-cancel-btn {
+  padding: 0.25rem 0.625rem;
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.roster-inline-confirm-btn {
+  background: linear-gradient(135deg, #8b2525, #a33030);
+  border: none;
+  color: var(--color-parchment);
+}
+
+.roster-inline-confirm-btn:hover { box-shadow: 0 2px 8px rgba(139, 37, 37, 0.4); }
+.roster-inline-confirm-btn:focus-visible { outline: 2px solid #c44; outline-offset: 2px; }
+
+.roster-inline-cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(245, 230, 211, 0.2);
+  color: rgba(245, 230, 211, 0.5);
+}
+
+.roster-inline-cancel-btn:hover { border-color: rgba(245, 230, 211, 0.4); color: rgba(245, 230, 211, 0.7); }
+.roster-inline-cancel-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
 @media (max-width: 640px) {
   .roster-entry { padding: 1rem; gap: 1rem; }
   .roster-empty { padding: 3rem 1rem; }

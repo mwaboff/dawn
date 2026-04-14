@@ -65,4 +65,10 @@ export class CharacterSheetService {
       withCredentials: true,
     });
   }
+
+  deleteCharacterSheet(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, {
+      withCredentials: true,
+    });
+  }
 }
