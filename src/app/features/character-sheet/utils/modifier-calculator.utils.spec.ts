@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyModifiers, collectEquipmentModifiers, SourcedModifier } from './modifier-calculator.utils';
+import { applyModifiers, collectAllModifiers, SourcedModifier } from './modifier-calculator.utils';
 import { CharacterSheetResponse } from '../../create-character/models/character-sheet-api.model';
 
 function makeSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSheetResponse {
@@ -176,11 +176,11 @@ describe('applyModifiers', () => {
   });
 });
 
-describe('collectEquipmentModifiers', () => {
+describe('collectAllModifiers', () => {
   it('returns empty array when sheet has no equipment', () => {
     const sheet = makeSheet();
 
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
 
     expect(result).toEqual([]);
   });
@@ -189,7 +189,7 @@ describe('collectEquipmentModifiers', () => {
     const sheet = makeSheet({
       inventoryArmors: [{ id: 200, armorId: 1, equipped: true, armor: { id: 1, name: 'Test Armor' } }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toEqual([]);
   });
 
@@ -203,7 +203,7 @@ describe('collectEquipmentModifiers', () => {
         },
       }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({ target: 'EVASION', operation: 'ADD', value: 2, sourceName: 'Heavy Armor' });
   });
@@ -218,7 +218,7 @@ describe('collectEquipmentModifiers', () => {
         },
       }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toHaveLength(1);
     expect(result[0].target).toBe('HIT_POINT_MAX');
     expect(result[0].sourceName).toBe('Sword');
@@ -234,7 +234,7 @@ describe('collectEquipmentModifiers', () => {
         },
       }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toHaveLength(1);
     expect(result[0].target).toBe('EVASION');
     expect(result[0].sourceName).toBe('Dagger');
@@ -257,7 +257,7 @@ describe('collectEquipmentModifiers', () => {
         },
       ],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toHaveLength(3);
   });
 
@@ -268,7 +268,7 @@ describe('collectEquipmentModifiers', () => {
         armor: { id: 1, name: 'Armor', features: [{ description: 'No modifiers here' }] },
       }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result).toEqual([]);
   });
 
@@ -282,7 +282,102 @@ describe('collectEquipmentModifiers', () => {
         },
       }],
     });
-    const result = collectEquipmentModifiers(sheet);
+    const result = collectAllModifiers(sheet);
     expect(result[0].sourceName).toBe('Enchanted Plate');
+  });
+
+  it('does not collect modifiers from unequipped armor', () => {
+    const sheet = makeSheet({
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: false,
+        armor: {
+          id: 1, name: 'Stored Armor',
+          features: [{ description: 'Bonus', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 5 }] }],
+        },
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toEqual([]);
+  });
+
+  it('collects modifiers from subclass card features', () => {
+    const sheet = makeSheet({
+      subclassCards: [{
+        id: 10, name: 'Shadow Path',
+        features: [{ description: 'Evasive', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }],
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ target: 'EVASION', operation: 'ADD', value: 1, sourceName: 'Shadow Path' });
+  });
+
+  it('collects modifiers from ancestry card features', () => {
+    const sheet = makeSheet({
+      ancestryCards: [{
+        id: 20, name: 'Elf',
+        features: [{ description: 'Keen senses', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 2 }] }],
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ target: 'EVASION', operation: 'ADD', value: 2, sourceName: 'Elf' });
+  });
+
+  it('collects modifiers from community card features', () => {
+    const sheet = makeSheet({
+      communityCards: [{
+        id: 30, name: 'Thieves Guild',
+        features: [{ description: 'Streetwise', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 3 }] }],
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ target: 'HIT_POINT_MAX', operation: 'ADD', value: 3, sourceName: 'Thieves Guild' });
+  });
+
+  it('collects modifiers from equipped domain card features', () => {
+    const sheet = makeSheet({
+      domainCards: [
+        { id: 40, name: 'Arcana Bolt', features: [{ description: 'Power', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] },
+      ],
+      equippedDomainCardIds: [40],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({ target: 'PROFICIENCY', operation: 'ADD', value: 1, sourceName: 'Arcana Bolt' });
+  });
+
+  it('does not collect modifiers from vault domain cards', () => {
+    const sheet = makeSheet({
+      domainCards: [
+        { id: 41, name: 'Stored Spell', features: [{ description: 'Bonus', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 5 }] }] },
+      ],
+      equippedDomainCardIds: [],
+      vaultDomainCardIds: [41],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toEqual([]);
+  });
+
+  it('combines modifiers from all sources together', () => {
+    const sheet = makeSheet({
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: true,
+        armor: { id: 1, name: 'Armor', features: [{ description: 'A', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] },
+      }],
+      inventoryWeapons: [{
+        id: 100, weaponId: 2, equipped: true, slot: 'PRIMARY',
+        weapon: { id: 2, name: 'Sword', features: [{ description: 'B', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 2 }] }] },
+      }],
+      subclassCards: [{ id: 10, name: 'Path', features: [{ description: 'C', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] }],
+      ancestryCards: [{ id: 20, name: 'Elf', features: [{ description: 'D', modifiers: [{ target: 'HOPE_MAX', operation: 'ADD', value: 1 }] }] }],
+      communityCards: [{ id: 30, name: 'Guild', features: [{ description: 'E', modifiers: [{ target: 'STRESS_MAX', operation: 'ADD', value: 1 }] }] }],
+      domainCards: [{ id: 40, name: 'Spell', features: [{ description: 'F', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] }],
+      equippedDomainCardIds: [40],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toHaveLength(6);
+    expect(result.map(m => m.sourceName)).toEqual(['Armor', 'Sword', 'Path', 'Elf', 'Guild', 'Spell']);
   });
 });

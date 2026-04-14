@@ -1,5 +1,5 @@
 import { DisplayStat, ModifierSource } from '../models/character-sheet-view.model';
-import { CharacterSheetResponse, ModifierResponse } from '../../create-character/models/character-sheet-api.model';
+import { CharacterSheetResponse, FeatureResponse, ModifierResponse } from '../../create-character/models/character-sheet-api.model';
 
 export interface SourcedModifier {
   target: string;
@@ -53,7 +53,7 @@ export function applyModifiers(
   };
 }
 
-export function collectEquipmentModifiers(sheet: CharacterSheetResponse): SourcedModifier[] {
+export function collectAllModifiers(sheet: CharacterSheetResponse): SourcedModifier[] {
   const modifiers: SourcedModifier[] = [];
 
   for (const entry of sheet.inventoryArmors ?? []) {
@@ -76,7 +76,28 @@ export function collectEquipmentModifiers(sheet: CharacterSheetResponse): Source
     }
   }
 
+  collectCardModifiers(sheet.subclassCards, modifiers);
+  collectCardModifiers(sheet.ancestryCards, modifiers);
+  collectCardModifiers(sheet.communityCards, modifiers);
+
+  const equippedDomainIds = new Set(sheet.equippedDomainCardIds ?? []);
+  const equippedDomainCards = (sheet.domainCards ?? []).filter(c => equippedDomainIds.has(c.id));
+  collectCardModifiers(equippedDomainCards, modifiers);
+
   return modifiers;
+}
+
+function collectCardModifiers(
+  cards: { name: string; features?: FeatureResponse[] }[] | undefined,
+  modifiers: SourcedModifier[],
+): void {
+  for (const card of cards ?? []) {
+    for (const feature of card.features ?? []) {
+      if (feature.modifiers) {
+        modifiers.push(...feature.modifiers.map(m => toSourced(m, card.name)));
+      }
+    }
+  }
 }
 
 function toSourced(mod: ModifierResponse, sourceName: string): SourcedModifier {
