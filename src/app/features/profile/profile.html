@@ -47,8 +47,10 @@
       [loading]="charactersLoading()"
       [error]="charactersError()"
       [showCreateButton]="isOwnProfile()"
+      [canDelete]="canDeleteItems()"
       (viewCharacter)="onViewCharacter($event)"
       (createCharacter)="onCreateCharacter()"
+      (deleteCharacter)="onDeleteCharacter($event)"
     />
 
     @if (canViewCampaigns()) {
@@ -63,8 +65,10 @@
         [loading]="campaignsLoading()"
         [error]="campaignsError()"
         [showCreateButton]="isOwnProfile()"
+        [canDelete]="canDeleteItems()"
         (viewCampaign)="onViewCampaign($event)"
         (createCampaign)="onCreateCampaign()"
+        (deleteCampaign)="onDeleteCampaign($event)"
       />
     }
   }

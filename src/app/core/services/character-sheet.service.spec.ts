@@ -180,6 +180,24 @@ describe('CharacterSheetService', () => {
     });
   });
 
+  describe('deleteCharacterSheet', () => {
+    it('should DELETE to the correct URL', () => {
+      service.deleteCharacterSheet(5).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/5');
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+    });
+
+    it('should send withCredentials: true', () => {
+      service.deleteCharacterSheet(5).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/5');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(null);
+    });
+  });
+
   describe('getCharacterSheet', () => {
     it('should GET from the correct URL', () => {
       service.getCharacterSheet(42).subscribe();

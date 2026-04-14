@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 
 interface Feature {
@@ -16,6 +17,8 @@ interface Feature {
   imports: [FormatTextPipe, RouterLink],
 })
 export class Home {
+  private readonly authService = inject(AuthService);
+  readonly isLoggedIn = this.authService.isLoggedIn;
   readonly features: Feature[] = [
     {
       icon: 'pen-paper',

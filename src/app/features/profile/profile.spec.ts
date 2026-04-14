@@ -388,6 +388,83 @@ describe('Profile', () => {
     });
   });
 
+  describe('canDeleteItems', () => {
+    it('should be true for own profile', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      expect(component.canDeleteItems()).toBe(true);
+    });
+
+    it('should be true for admin viewing other profile', () => {
+      setup('99', mockAdminUser);
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/99/campaigns')).flush(wrapPaged([]));
+      expect(component.canDeleteItems()).toBe(true);
+    });
+
+    it('should be false for non-admin viewing other profile', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      expect(component.canDeleteItems()).toBe(false);
+    });
+  });
+
+  describe('delete handlers', () => {
+    it('should remove character from list on successful delete', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests([
+        makeSheet({ id: 1, name: 'Aragorn', level: 5 }),
+        makeSheet({ id: 2, name: 'Lyra', level: 3 }),
+      ]);
+      fixture.detectChanges();
+      expect(component.characters().length).toBe(2);
+
+      component.onDeleteCharacter(1);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets/1') && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(component.characters().length).toBe(1);
+      expect(component.characters()[0].name).toBe('Lyra');
+    });
+
+    it('should not remove character on delete error', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests([makeSheet({ id: 1, name: 'Aragorn', level: 5 })]);
+      fixture.detectChanges();
+
+      component.onDeleteCharacter(1);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets/1') && r.method === 'DELETE')
+        .flush(null, { status: 500, statusText: 'Server Error' });
+
+      expect(component.characters().length).toBe(1);
+    });
+
+    it('should remove campaign from list on successful delete', () => {
+      setup();
+      fixture.detectChanges();
+      const campaigns = [
+        { id: 1, name: 'Dragon Slayers', isEnded: false, creatorId: 42, gameMasterIds: [42], playerIds: [], pendingCharacterSheetIds: [], playerCharacterIds: [], nonPlayerCharacterIds: [], createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00' },
+        { id: 2, name: 'Goblin Hunters', isEnded: false, creatorId: 42, gameMasterIds: [42], playerIds: [], pendingCharacterSheetIds: [], playerCharacterIds: [], nonPlayerCharacterIds: [], createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00' },
+      ];
+      flushOwnProfileRequests([], campaigns);
+      fixture.detectChanges();
+      expect(component.campaigns().length).toBe(2);
+
+      component.onDeleteCampaign(1);
+      httpMock.expectOne(r => r.url.includes('/dh/campaigns/1') && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(component.campaigns().length).toBe(1);
+      expect(component.campaigns()[0].name).toBe('Goblin Hunters');
+    });
+  });
+
   describe('no user + no ID', () => {
     it('should redirect to auth if no user', () => {
       setup(null, null);

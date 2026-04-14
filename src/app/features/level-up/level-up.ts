@@ -14,7 +14,7 @@ import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 
 import { LevelUpTabNav } from './components/level-up-tab-nav/level-up-tab-nav';
-import { ConfirmDialog } from './components/confirm-dialog/confirm-dialog';
+import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { TierAchievementsStep } from './components/tier-achievements-step/tier-achievements-step';
 import { AdvancementsStep } from './components/advancements-step/advancements-step';
 import { DomainCardStep } from './components/domain-card-step/domain-card-step';

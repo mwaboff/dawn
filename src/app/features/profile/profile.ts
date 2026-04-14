@@ -1,10 +1,12 @@
-import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { UserResponse } from '../../core/models/auth.model';
 import { UserService } from '../../shared/services/user.service';
+import { CampaignService } from '../../shared/services/campaign.service';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { isAtLeast } from '../../shared/models/role.model';
 import { CharacterSummary, ClassEntry } from './models/profile.model';
@@ -23,6 +25,11 @@ export class Profile implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly campaignService = inject(CampaignService);
+
+  private readonly rosterList = viewChild(RosterList);
+  private readonly campaignRoster = viewChild(CampaignRoster);
 
   readonly profileUser = signal<UserResponse | null>(null);
   readonly profileLoading = signal(true);
@@ -40,6 +47,13 @@ export class Profile implements OnInit {
   });
 
   readonly canViewCampaigns = computed(() => {
+    const current = this.authService.user();
+    if (!current) return false;
+    if (this.isOwnProfile()) return true;
+    return isAtLeast(current.role, 'ADMIN');
+  });
+
+  readonly canDeleteItems = computed(() => {
     const current = this.authService.user();
     if (!current) return false;
     if (this.isOwnProfile()) return true;
@@ -106,6 +120,30 @@ export class Profile implements OnInit {
 
   onCreateCampaign(): void {
     this.router.navigate(['/campaigns/create']);
+  }
+
+  onDeleteCharacter(id: number): void {
+    this.characterSheetService.deleteCharacterSheet(id).subscribe({
+      next: () => {
+        this.characters.update(chars => chars.filter(c => c.id !== id));
+        this.rosterList()?.resetDeleteState();
+      },
+      error: () => {
+        this.rosterList()?.resetDeleteState();
+      },
+    });
+  }
+
+  onDeleteCampaign(id: number): void {
+    this.campaignService.deleteCampaign(id).subscribe({
+      next: () => {
+        this.campaigns.update(camps => camps.filter(c => c.id !== id));
+        this.campaignRoster()?.resetDeleteState();
+      },
+      error: () => {
+        this.campaignRoster()?.resetDeleteState();
+      },
+    });
   }
 
   private loadProfileUser(id: number): void {
