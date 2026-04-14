@@ -28,7 +28,7 @@ import {
   ClassEntry,
 } from '../models/character-sheet-view.model';
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
-import { applyModifiers, collectEquipmentModifiers } from './modifier-calculator.utils';
+import { applyModifiers, collectAllModifiers } from './modifier-calculator.utils';
 
 function formatEnumLabel(s: string): string {
   return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
@@ -52,7 +52,7 @@ function formatModifierLabel(target: string, operation: string, value: number): 
 }
 
 export function mapToCharacterSheetView(sheet: CharacterSheetResponse): CharacterSheetView {
-  const modifiers = collectEquipmentModifiers(sheet);
+  const modifiers = collectAllModifiers(sheet);
   const proficiencyStat = applyModifiers(sheet.proficiency, modifiers, 'PROFICIENCY');
   const proficiency = proficiencyStat.modified;
 
