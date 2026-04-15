@@ -42,6 +42,17 @@
   min-height: 400px;
 }
 
+.bonus-card-hint {
+  color: #7a5c46;
+  font-style: italic;
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(212, 160, 86, 0.1);
+  border-left: 3px solid var(--color-accent, #d4a056);
+  border-radius: 2px;
+}
+
 .placeholder-text {
   color: #7a5c46;
   font-style: italic;

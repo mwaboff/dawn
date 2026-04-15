@@ -102,12 +102,15 @@
             />
           }
           @case ('domain-cards') {
+            @if (bonusDomainCardSlots() > 0) {
+              <p class="bonus-card-hint">Includes {{ bonusDomainCardSlots() }} bonus card(s) from your subclass feature.</p>
+            }
             <app-card-selection-grid
               [cards]="domainCards()"
               [loading]="domainCardsLoading()"
               [error]="domainCardsError()"
               [selectedCards]="selectedDomainCards()"
-              [maxSelections]="2"
+              [maxSelections]="domainCardMaxSelections()"
               [skeletonCount]="6"
               [collapsibleFeatures]="true"
               layout="wide"

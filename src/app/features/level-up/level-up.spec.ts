@@ -5,8 +5,37 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LevelUp } from './level-up';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SubclassService } from '../../shared/services/subclass.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { LevelUpOptionsResponse } from './models/level-up-api.model';
+import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
+
+function makeSubclassCardWithBonus(id: number, value: number): SubclassCardResponse {
+  return {
+    id,
+    name: `Bonus Card ${id}`,
+    cardType: 'SUBCLASS',
+    expansionId: 1,
+    isOfficial: true,
+    featureIds: [1],
+    features: [{
+      id: 1,
+      name: 'Bonus Feature',
+      description: '',
+      featureType: 'PASSIVE',
+      expansionId: 1,
+      costTagIds: [],
+      costTags: [],
+      modifiers: [{ target: 'BONUS_DOMAIN_CARD_SELECTIONS', operation: 'ADD', value }],
+    }],
+    costTagIds: [],
+    costTags: [],
+    subclassPathId: 1,
+    level: 'SPECIALIZATION',
+    createdAt: '',
+    lastModifiedAt: '',
+  };
+}
 
 function makeSheetResponse(overrides: Partial<CharacterSheetResponse> = {}): CharacterSheetResponse {
   return {
@@ -96,12 +125,14 @@ describe('LevelUp', () => {
     undoLevelUp: ReturnType<typeof vi.fn>;
   };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let mockSubclassService: { getCachedCardResponseById: ReturnType<typeof vi.fn> };
   let mockRouter: Router;
 
   function createComponent(
     id: string,
     sheetResponse = of(makeSheetResponse()),
     optionsResponse = of(makeOptionsResponse()),
+    subclassCards: ReadonlyMap<number, SubclassCardResponse> = new Map(),
   ) {
     mockCharacterSheetService = {
       getCharacterSheet: vi.fn().mockReturnValue(sheetResponse),
@@ -112,12 +143,16 @@ describe('LevelUp', () => {
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
+    mockSubclassService = {
+      getCachedCardResponseById: vi.fn((cardId: number) => subclassCards.get(cardId)),
+    };
     TestBed.configureTestingModule({
       imports: [LevelUp],
       providers: [
         provideRouter([]),
         { provide: CharacterSheetService, useValue: mockCharacterSheetService },
         { provide: AuthService, useValue: mockAuthService },
+        { provide: SubclassService, useValue: mockSubclassService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => id } } } },
       ],
     });
@@ -356,6 +391,107 @@ describe('LevelUp', () => {
       component.onSubmit();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/character', 1]);
+    });
+  });
+
+  describe('bonus domain card selections', () => {
+    it('adds bonus slot when UPGRADE_SUBCLASS brings a BONUS_DOMAIN_CARD_SELECTIONS card', () => {
+      const subclassCards = new Map([[500, makeSubclassCardWithBonus(500, 1)]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse()),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'UPGRADE_SUBCLASS', description: 'Upgrade', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+            { type: 'GAIN_HP', description: '+HP', limitPerTier: 2, usedInTier: 0, remaining: 2, mutuallyExclusiveWith: null },
+          ],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([
+        { type: 'UPGRADE_SUBCLASS', subclassCardId: 500 },
+        { type: 'GAIN_HP' },
+      ]);
+
+      expect(component.bonusDomainCardSlots()).toBe(1);
+      expect(component.domainCardMaxSelections()).toBe(2);
+
+      component.onDomainCardsSelected([
+        { id: 70, name: 'Base', description: '', cardType: 'domain' },
+        { id: 71, name: 'Bonus', description: '', cardType: 'domain' },
+      ]);
+      component.onSubmit();
+
+      const submitted = mockCharacterSheetService.levelUp.mock.calls[0][1];
+      expect(submitted.newDomainCardId).toBe(70);
+      expect(submitted.advancements).toHaveLength(3);
+      expect(submitted.advancements[2]).toEqual({ type: 'FEATURE_DOMAIN_CARD', domainCardId: 71 });
+    });
+
+    it('stacks GAIN_DOMAIN_CARD + bonus to require 3 domain card picks and emits correct mapping', () => {
+      const subclassCards = new Map([[500, makeSubclassCardWithBonus(500, 1)]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse()),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'UPGRADE_SUBCLASS', description: 'Upgrade', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+            { type: 'GAIN_DOMAIN_CARD', description: 'Gain card', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: null },
+          ],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([
+        { type: 'UPGRADE_SUBCLASS', subclassCardId: 500 },
+        { type: 'GAIN_DOMAIN_CARD' },
+      ]);
+
+      expect(component.domainCardMaxSelections()).toBe(3);
+
+      component.onDomainCardsSelected([
+        { id: 70, name: 'Base', description: '', cardType: 'domain' },
+        { id: 71, name: 'Gain', description: '', cardType: 'domain' },
+        { id: 72, name: 'Bonus', description: '', cardType: 'domain' },
+      ]);
+      component.onSubmit();
+
+      const submitted = mockCharacterSheetService.levelUp.mock.calls[0][1];
+      expect(submitted.newDomainCardId).toBe(70);
+      const gain = submitted.advancements.find((a: { type: string }) => a.type === 'GAIN_DOMAIN_CARD');
+      expect(gain.domainCardId).toBe(71);
+      const bonus = submitted.advancements.filter((a: { type: string }) => a.type === 'FEATURE_DOMAIN_CARD');
+      expect(bonus).toHaveLength(1);
+      expect(bonus[0].domainCardId).toBe(72);
+    });
+
+    it('does not add bonus slots when subclass card is already owned (defense-in-depth)', () => {
+      const subclassCards = new Map([[100, makeSubclassCardWithBonus(100, 1)]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse({ subclassCardIds: [100] })),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'UPGRADE_SUBCLASS', description: 'Upgrade', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+          ],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([
+        { type: 'UPGRADE_SUBCLASS', subclassCardId: 100 },
+        { type: 'GAIN_HP' },
+      ]);
+
+      expect(component.bonusDomainCardSlots()).toBe(0);
+      expect(component.domainCardMaxSelections()).toBe(1);
     });
   });
 

@@ -31,6 +31,7 @@ export class LevelUpReview {
       UPGRADE_SUBCLASS: 'Upgrade Subclass',
       BOOST_PROFICIENCY: '+1 Proficiency',
       MULTICLASS: 'Multiclass',
+      FEATURE_DOMAIN_CARD: 'Bonus Domain Card',
     };
     return labels[type] ?? type;
   }

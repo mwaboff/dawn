@@ -62,6 +62,17 @@
 
 .tab-content { min-height: 400px; }
 
+.bonus-card-callout {
+  margin: 0 0 1rem 0;
+  padding: .6rem .9rem;
+  background: rgba(212, 160, 86, .12);
+  border-left: 3px solid var(--color-accent, #d4a056);
+  border-radius: 3px;
+  font-family: 'Lora', serif;
+  font-size: .9rem;
+  color: #5a4230;
+}
+
 @media (max-width: 640px) {
   .parchment-container { padding: 1.5rem; }
   .level-up-page { padding: .75rem; }

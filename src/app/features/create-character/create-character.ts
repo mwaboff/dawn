@@ -29,6 +29,8 @@ import { CharacterSheetData } from './models/character-sheet.model';
 import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
 import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
 import { SubmitError, parseSubmitError } from './models/submit-error.model';
+import { SubclassFeatureResponse } from '../../shared/models/subclass-api.model';
+import { sumFeatureModifier } from '../../shared/utils/feature-modifier.utils';
 
 @Component({
   selector: 'app-create-character',
@@ -95,6 +97,18 @@ export class CreateCharacter implements OnInit {
 
   readonly subclassHasMagicAccess = computed(() =>
     this.selectedSubclassCard()?.metadata?.['spellcastingTrait'] != null,
+  );
+
+  private static readonly CREATION_BASE_DOMAIN_CARDS = 2;
+
+  readonly bonusDomainCardSlots = computed<number>(() => {
+    const subclass = this.selectedSubclassCard();
+    const features = subclass?.metadata?.['features'] as SubclassFeatureResponse[] | undefined;
+    return sumFeatureModifier(features, 'BONUS_DOMAIN_CARD_SELECTIONS');
+  });
+
+  readonly domainCardMaxSelections = computed<number>(() =>
+    CreateCharacter.CREATION_BASE_DOMAIN_CARDS + this.bonusDomainCardSlots(),
   );
 
   readonly characterSelections = computed<CharacterSelections>(() => {
@@ -287,7 +301,7 @@ export class CreateCharacter implements OnInit {
 
   onDomainCardsSelected(cards: CardData[]): void {
     this.selectedDomainCards.set(cards);
-    if (cards.length === 2) {
+    if (cards.length === this.domainCardMaxSelections()) {
       this.markStepComplete('domain-cards');
     } else {
       const updated = new Set(this.completedStepsSignal());
@@ -390,6 +404,9 @@ export class CreateCharacter implements OnInit {
         })
       : of(this.selectedAncestryCard()!);
 
+    const allCards = this.selectedDomainCards();
+    const baseCount = CreateCharacter.CREATION_BASE_DOMAIN_CARDS;
+
     ancestryCard$.pipe(
       switchMap(ancestryCard => {
         const characterData = assembleCharacterSheet({
@@ -404,7 +421,8 @@ export class CreateCharacter implements OnInit {
           secondaryWeapon: this.selectedSecondaryWeapon(),
           armor: this.selectedArmor(),
           experiences: this.experienceAssignments(),
-          domainCards: this.selectedDomainCards(),
+          domainCards: allCards.slice(0, baseCount),
+          bonusDomainCards: allCards.slice(baseCount),
         });
         return this.submitCharacterSheet(characterData);
       }),

@@ -1,3 +1,5 @@
+import { ModifierResponse } from '../../features/create-character/models/character-sheet-api.model';
+
 export type SubclassLevel = 'FOUNDATION' | 'SPECIALIZATION' | 'MASTERY';
 
 export interface SpellcastingTraitResponse {
@@ -20,6 +22,7 @@ export interface SubclassFeatureResponse {
   expansionId: number;
   costTagIds: number[];
   costTags: SubclassCostTag[];
+  modifiers?: ModifierResponse[];
 }
 
 export interface SubclassCardResponse {

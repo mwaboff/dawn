@@ -9,6 +9,7 @@ import { PaginatedResponse } from '../../shared/models/api.model';
 import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
 import { AncestryCardResponse } from '../../shared/models/ancestry-api.model';
 import { CommunityCardResponse } from '../../shared/models/community-api.model';
+import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -906,6 +907,134 @@ describe('CreateCharacter', () => {
       expect(component.completedSteps().has('experiences')).toBe(false);
     });
 
+  });
+
+  describe('Bonus Domain Card Selections', () => {
+    function subclassWithBonus(id: number, name: string, bonus: number): SubclassCardResponse {
+      return buildSubclassCardResponse({
+        id,
+        name,
+        subclassPathId: 30 + id,
+        level: 'FOUNDATION',
+        features: [
+          {
+            id: id * 10,
+            name: `${name} Feature`,
+            description: 'grants bonus',
+            featureType: 'PASSIVE',
+            expansionId: 1,
+            costTagIds: [],
+            costTags: [],
+            modifiers: [
+              { target: 'BONUS_DOMAIN_CARD_SELECTIONS', operation: 'ADD', value: bonus },
+            ],
+          },
+        ],
+      });
+    }
+
+    function subclassWithoutBonus(id: number, name: string): SubclassCardResponse {
+      return buildSubclassCardResponse({
+        id,
+        name,
+        subclassPathId: 30 + id,
+        level: 'FOUNDATION',
+        features: [
+          {
+            id: id * 10,
+            name: `${name} Feature`,
+            description: 'no bonus',
+            featureType: 'PASSIVE',
+            expansionId: 1,
+            costTagIds: [],
+            costTags: [],
+            modifiers: [],
+          },
+        ],
+      });
+    }
+
+    function pickSubclass(subclasses: SubclassCardResponse[], targetId: number): void {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards(subclasses);
+      const card = component.subclassCards().find(c => c.id === targetId)!;
+      component.onCardClicked(card);
+      fixture.detectChanges();
+    }
+
+    it('returns 3 max selections when subclass has BONUS_DOMAIN_CARD_SELECTIONS ADD 1', () => {
+      pickSubclass([subclassWithBonus(500, 'BonusPath', 1)], 500);
+      expect(component.bonusDomainCardSlots()).toBe(1);
+      expect(component.domainCardMaxSelections()).toBe(3);
+    });
+
+    it('returns 2 max selections when subclass has no bonus modifier', () => {
+      pickSubclass([subclassWithoutBonus(501, 'PlainPath')], 501);
+      expect(component.bonusDomainCardSlots()).toBe(0);
+      expect(component.domainCardMaxSelections()).toBe(2);
+    });
+
+    it('recomputes to 2 after switching from a bonus subclass to a non-bonus subclass', () => {
+      const subs = [subclassWithBonus(502, 'BonusPath', 1), subclassWithoutBonus(503, 'PlainPath')];
+      pickSubclass(subs, 502);
+      expect(component.domainCardMaxSelections()).toBe(3);
+
+      component.selectedDomainCards.set([
+        { id: 9001, name: 'A', description: '', cardType: 'domain' },
+        { id: 9002, name: 'B', description: '', cardType: 'domain' },
+        { id: 9003, name: 'C', description: '', cardType: 'domain' },
+      ]);
+      component['completedStepsSignal'].set(new Set([...component.completedSteps(), 'domain-cards']));
+      expect(component.completedSteps().has('domain-cards')).toBe(true);
+
+      const plain = component.subclassCards().find(c => c.id === 503)!;
+      component.onCardClicked(plain);
+      fixture.detectChanges();
+
+      expect(component.selectedDomainCards()).toEqual([]);
+      expect(component.completedSteps().has('domain-cards')).toBe(false);
+      expect(component.domainCardMaxSelections()).toBe(2);
+    });
+
+    it('marks domain-cards step complete only when selection count equals domainCardMaxSelections (2)', () => {
+      pickSubclass([subclassWithoutBonus(504, 'PlainPath')], 504);
+
+      const one: CardData[] = [{ id: 1, name: 'A', description: '', cardType: 'domain' }];
+      const two: CardData[] = [
+        { id: 1, name: 'A', description: '', cardType: 'domain' },
+        { id: 2, name: 'B', description: '', cardType: 'domain' },
+      ];
+
+      component.onDomainCardsSelected(one);
+      expect(component.completedSteps().has('domain-cards')).toBe(false);
+
+      component.onDomainCardsSelected(two);
+      expect(component.completedSteps().has('domain-cards')).toBe(true);
+    });
+
+    it('marks domain-cards step complete only when selection count equals domainCardMaxSelections (3)', () => {
+      pickSubclass([subclassWithBonus(505, 'BonusPath', 1)], 505);
+
+      const two: CardData[] = [
+        { id: 1, name: 'A', description: '', cardType: 'domain' },
+        { id: 2, name: 'B', description: '', cardType: 'domain' },
+      ];
+      const three: CardData[] = [
+        ...two,
+        { id: 3, name: 'C', description: '', cardType: 'domain' },
+      ];
+
+      component.onDomainCardsSelected(two);
+      expect(component.completedSteps().has('domain-cards')).toBe(false);
+
+      component.onDomainCardsSelected(three);
+      expect(component.completedSteps().has('domain-cards')).toBe(true);
+    });
+  });
+
+  describe('Experience Tab Render', () => {
     it('should render experience-selector on the experiences tab', () => {
       fixture.detectChanges();
       flushClassCards();

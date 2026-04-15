@@ -7,11 +7,17 @@ export interface LevelUpWizardState {
   equipNewDomainCard: boolean;
   unequipDomainCardId?: number;
   trades: DomainCardTradeRequest[];
+  bonusDomainCardIds: number[];
 }
 
 export function assembleLevelUpRequest(state: LevelUpWizardState): LevelUpRequest {
+  const bonusEntries: AdvancementChoice[] = state.bonusDomainCardIds.map(id => ({
+    type: 'FEATURE_DOMAIN_CARD',
+    domainCardId: id,
+  }));
+
   const request: LevelUpRequest = {
-    advancements: state.advancements,
+    advancements: [...state.advancements, ...bonusEntries],
     newDomainCardId: state.newDomainCardId,
   };
 

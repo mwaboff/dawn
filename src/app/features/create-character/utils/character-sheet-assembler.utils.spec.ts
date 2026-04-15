@@ -156,6 +156,23 @@ describe('assembleCharacterSheet', () => {
     expect(result.vaultDomainCardIds).toEqual([35, 36]);
   });
 
+  it('routes bonus domain cards to vault and leaves base cards equipped', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(21, 'domain')];
+    const bonusDomainCards = [makeCard(50, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards, bonusDomainCards });
+    expect(result.domainCardIds).toEqual([20, 21, 50]);
+    expect(result.equippedDomainCardIds).toEqual([20, 21]);
+    expect(result.vaultDomainCardIds).toEqual([50]);
+  });
+
+  it('vaults every bonus card even when multiple are granted', () => {
+    const domainCards = [makeCard(20, 'domain'), makeCard(21, 'domain')];
+    const bonusDomainCards = [makeCard(50, 'domain'), makeCard(51, 'domain')];
+    const result = assembleCharacterSheet({ ...baseParams, domainCards, bonusDomainCards });
+    expect(result.equippedDomainCardIds).toEqual([20, 21]);
+    expect(result.vaultDomainCardIds).toEqual([50, 51]);
+  });
+
   it('should deduplicate domain card IDs', () => {
     const domainCards = [makeCard(20, 'domain'), makeCard(20, 'domain'), makeCard(21, 'domain')];
     const result = assembleCharacterSheet({ ...baseParams, domainCards });

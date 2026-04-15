@@ -55,7 +55,7 @@ describe('SubclassService', () => {
       r => r.url === baseUrl &&
         r.params.get('page') === '1' &&
         r.params.get('size') === '50' &&
-        r.params.get('expand') === 'features,costTags,subclassPath' &&
+        r.params.get('expand') === 'features,costTags,subclassPath,modifiers' &&
         r.params.get('associatedClassId') === '5',
     );
     expect(req.request.method).toBe('GET');

@@ -3,7 +3,8 @@ import { CharacterSheetResponse } from '../../create-character/models/character-
 export type AdvancementType =
   | 'BOOST_TRAITS' | 'GAIN_HP' | 'GAIN_STRESS' | 'BOOST_EXPERIENCES'
   | 'GAIN_DOMAIN_CARD' | 'BOOST_EVASION' | 'UPGRADE_SUBCLASS'
-  | 'BOOST_PROFICIENCY' | 'MULTICLASS';
+  | 'BOOST_PROFICIENCY' | 'MULTICLASS'
+  | 'FEATURE_DOMAIN_CARD';
 
 export type TraitEnum = 'AGILITY' | 'STRENGTH' | 'FINESSE' | 'INSTINCT' | 'PRESENCE' | 'KNOWLEDGE';
 

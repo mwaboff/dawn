@@ -178,6 +178,7 @@ export class AdvancementsStep implements OnInit {
       UPGRADE_SUBCLASS: 'Upgrade Subclass',
       BOOST_PROFICIENCY: 'Boost Proficiency',
       MULTICLASS: 'Multiclass',
+      FEATURE_DOMAIN_CARD: 'Bonus Domain Card',
     };
     return labels[type] ?? type;
   }

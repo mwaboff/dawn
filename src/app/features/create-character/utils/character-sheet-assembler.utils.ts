@@ -22,6 +22,7 @@ export function assembleCharacterSheet(params: {
   armor: CardData | null;
   experiences: Experience[];
   domainCards: CardData[];
+  bonusDomainCards?: CardData[];
 }): CharacterSheetData {
   const { classCard, armor, traits } = params;
 
@@ -70,9 +71,12 @@ export function assembleCharacterSheet(params: {
     communityCardIds: [params.communityCard.id],
     ancestryCardIds: [params.ancestryCard.id],
     subclassCardIds: [params.subclassCard.id],
-    domainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)),
+    domainCardIds: deduplicateIds([...params.domainCards, ...(params.bonusDomainCards ?? [])].map((c) => c.id)),
     equippedDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(0, MAX_EQUIPPED_DOMAIN_CARDS),
-    vaultDomainCardIds: deduplicateIds(params.domainCards.map((c) => c.id)).slice(MAX_EQUIPPED_DOMAIN_CARDS),
+    vaultDomainCardIds: [
+      ...deduplicateIds(params.domainCards.map((c) => c.id)).slice(MAX_EQUIPPED_DOMAIN_CARDS),
+      ...deduplicateIds((params.bonusDomainCards ?? []).map((c) => c.id)),
+    ],
     experiences: params.experiences
       .filter((exp) => exp.name.trim() !== '' && exp.modifier !== null)
       .map((exp) => ({ name: exp.name.trim(), modifier: exp.modifier! })),

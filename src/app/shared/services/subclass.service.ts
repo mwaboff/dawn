@@ -21,6 +21,7 @@ export class SubclassService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/cards/subclass`;
   private readonly cache = new Map<number, CardData[]>();
+  private readonly cardById = new Map<number, SubclassCardResponse>();
 
   getSubclasses(classId: number, page = 0, size = 20): Observable<CardData[]> {
     const cached = this.cache.get(classId);
@@ -31,12 +32,13 @@ export class SubclassService {
     const params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'features,costTags,subclassPath')
+      .set('expand', 'features,costTags,subclassPath,modifiers')
       .set('associatedClassId', classId);
 
     return this.http
       .get<PaginatedResponse<SubclassCardResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(
+        tap(response => this.cacheRawResponses(response.content)),
         map(response => response.content.map(mapSubclassResponseToCardData)),
         tap(cards => this.cache.set(classId, cards)),
       );
@@ -48,7 +50,7 @@ export class SubclassService {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'features,costTags,subclassPath');
+      .set('expand', 'features,costTags,subclassPath,modifiers');
 
     if (associatedClassId !== undefined) {
       params = params.set('associatedClassId', associatedClassId);
@@ -65,15 +67,29 @@ export class SubclassService {
 
     return this.http
       .get<PaginatedResponse<SubclassCardResponse>>(this.baseUrl, { params, withCredentials: true })
-      .pipe(map(response => ({
-        cards: response.content.map(mapSubclassResponseToCardData),
-        currentPage: response.currentPage,
-        totalPages: response.totalPages,
-        totalElements: response.totalElements,
-      })));
+      .pipe(
+        tap(response => this.cacheRawResponses(response.content)),
+        map(response => ({
+          cards: response.content.map(mapSubclassResponseToCardData),
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          totalElements: response.totalElements,
+        })),
+      );
+  }
+
+  getCachedCardResponseById(id: number): SubclassCardResponse | undefined {
+    return this.cardById.get(id);
   }
 
   clearCache(): void {
     this.cache.clear();
+    this.cardById.clear();
+  }
+
+  private cacheRawResponses(responses: readonly SubclassCardResponse[]): void {
+    for (const response of responses) {
+      this.cardById.set(response.id, response);
+    }
   }
 }

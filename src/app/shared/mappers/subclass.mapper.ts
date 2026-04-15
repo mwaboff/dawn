@@ -29,6 +29,7 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
     associatedClassName: response.associatedClassName,
     level: response.level,
     domainNames: response.domainNames ?? [],
+    features: response.features ?? [],
   };
 
   if (response.spellcastingTrait) {

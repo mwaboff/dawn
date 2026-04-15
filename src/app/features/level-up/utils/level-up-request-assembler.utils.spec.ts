@@ -7,6 +7,7 @@ function makeState(overrides: Partial<LevelUpWizardState> = {}): LevelUpWizardSt
     newDomainCardId: 15,
     equipNewDomainCard: false,
     trades: [],
+    bonusDomainCardIds: [],
     ...overrides,
   };
 }
@@ -92,5 +93,52 @@ describe('assembleLevelUpRequest', () => {
     expect(result.equipNewDomainCard).toBe(true);
     expect(result.unequipDomainCardId).toBe(5);
     expect(result.trades).toHaveLength(1);
+  });
+
+  describe('bonus domain card entries (FEATURE_DOMAIN_CARD)', () => {
+    it('appends no FEATURE_DOMAIN_CARD entries when bonusDomainCardIds is empty', () => {
+      const result = assembleLevelUpRequest(makeState({ bonusDomainCardIds: [] }));
+      expect(result.advancements.filter(a => a.type === 'FEATURE_DOMAIN_CARD')).toHaveLength(0);
+    });
+
+    it('appends one FEATURE_DOMAIN_CARD entry with correct domainCardId and no equipDomainCard', () => {
+      const result = assembleLevelUpRequest(makeState({ bonusDomainCardIds: [42] }));
+      const bonus = result.advancements.filter(a => a.type === 'FEATURE_DOMAIN_CARD');
+      expect(bonus).toHaveLength(1);
+      expect(bonus[0]).toEqual({ type: 'FEATURE_DOMAIN_CARD', domainCardId: 42 });
+      expect(bonus[0].equipDomainCard).toBeUndefined();
+    });
+
+    it('appends two FEATURE_DOMAIN_CARD entries with correct IDs', () => {
+      const result = assembleLevelUpRequest(makeState({ bonusDomainCardIds: [42, 77] }));
+      const bonus = result.advancements.filter(a => a.type === 'FEATURE_DOMAIN_CARD');
+      expect(bonus).toHaveLength(2);
+      expect(bonus.map(b => b.domainCardId)).toEqual([42, 77]);
+    });
+
+    it('places bonus entries after player-chosen advancements', () => {
+      const result = assembleLevelUpRequest(makeState({
+        advancements: [{ type: 'GAIN_HP' }, { type: 'UPGRADE_SUBCLASS', subclassCardId: 9 }],
+        bonusDomainCardIds: [42],
+      }));
+      expect(result.advancements.map(a => a.type)).toEqual([
+        'GAIN_HP',
+        'UPGRADE_SUBCLASS',
+        'FEATURE_DOMAIN_CARD',
+      ]);
+    });
+
+    it('coexists with GAIN_DOMAIN_CARD: player entries retained, bonus appended after', () => {
+      const result = assembleLevelUpRequest(makeState({
+        advancements: [
+          { type: 'GAIN_DOMAIN_CARD', domainCardId: 50, equipDomainCard: true },
+          { type: 'UPGRADE_SUBCLASS', subclassCardId: 9 },
+        ],
+        bonusDomainCardIds: [60],
+      }));
+      expect(result.advancements).toHaveLength(3);
+      expect(result.advancements[0]).toEqual({ type: 'GAIN_DOMAIN_CARD', domainCardId: 50, equipDomainCard: true });
+      expect(result.advancements[2]).toEqual({ type: 'FEATURE_DOMAIN_CARD', domainCardId: 60 });
+    });
   });
 });

@@ -11,7 +11,9 @@ import { LevelUpOptionsResponse, AdvancementChoice, AvailableAdvancement, Domain
 import { LevelUpTab, LevelUpTabId } from './models/level-up.model';
 import { computeVisibleTabs } from './utils/level-up-steps.utils';
 import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils';
+import { countBonusSlotsFromAdvancements } from './utils/bonus-domain-card.utils';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
+import { SubclassService } from '../../shared/services/subclass.service';
 
 import { LevelUpTabNav } from './components/level-up-tab-nav/level-up-tab-nav';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
@@ -33,6 +35,7 @@ export class LevelUp implements OnInit {
   private readonly router = inject(Router);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
+  private readonly subclassService = inject(SubclassService);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -91,10 +94,21 @@ export class LevelUp implements OnInit {
     return options.availableAdvancements.filter(a => !LevelUp.TIER_3_ONLY_TYPES.has(a.type));
   });
 
-  readonly domainCardMaxSelections = computed(() => {
-    const hasGainDomainCard = this.selectedAdvancements().some(a => a.type === 'GAIN_DOMAIN_CARD');
-    return hasGainDomainCard ? 2 : 1;
-  });
+  readonly bonusDomainCardSlots = computed<number>(() =>
+    countBonusSlotsFromAdvancements(
+      this.selectedAdvancements(),
+      new Set(this.rawSheet()?.subclassCardIds ?? []),
+      (id) => this.subclassService.getCachedCardResponseById(id),
+    )
+  );
+
+  readonly baseDomainCardSelections = computed<number>(() =>
+    this.selectedAdvancements().some(a => a.type === 'GAIN_DOMAIN_CARD') ? 2 : 1
+  );
+
+  readonly domainCardMaxSelections = computed<number>(() =>
+    this.baseDomainCardSelections() + this.bonusDomainCardSlots()
+  );
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -169,23 +183,28 @@ export class LevelUp implements OnInit {
 
   onSubmit(): void {
     const options = this.levelUpOptions();
-    const domainCards = this.selectedDomainCards();
-    if (!options || domainCards.length === 0) return;
+    const cards = this.selectedDomainCards();
+    if (!options || cards.length === 0) return;
+
+    const base = this.baseDomainCardSelections();
 
     const advancements = this.selectedAdvancements().map(a => {
-      if (a.type === 'GAIN_DOMAIN_CARD' && domainCards.length > 1) {
-        return { ...a, domainCardId: domainCards[1].id, equipDomainCard: this.equipNewDomainCard() };
+      if (a.type === 'GAIN_DOMAIN_CARD' && cards.length > 1) {
+        return { ...a, domainCardId: cards[1].id, equipDomainCard: this.equipNewDomainCard() };
       }
       return a;
     });
 
+    const bonusDomainCardIds = cards.slice(base).map(c => c.id);
+
     const request = assembleLevelUpRequest({
       advancements,
       newExperienceDescription: (options.tierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
-      newDomainCardId: domainCards[0].id,
+      newDomainCardId: cards[0].id,
       equipNewDomainCard: this.equipNewDomainCard(),
       unequipDomainCardId: this.unequipDomainCardId(),
       trades: this.trades(),
+      bonusDomainCardIds,
     });
 
     this.submitting.set(true);

@@ -57,6 +57,11 @@
               />
             }
             @case ('domain-card') {
+              @if (bonusDomainCardSlots() > 0) {
+                <p class="bonus-card-callout" role="note">
+                  Your new subclass feature grants {{ bonusDomainCardSlots() }} bonus domain card{{ bonusDomainCardSlots() === 1 ? '' : 's' }}. These go straight to your vault.
+                </p>
+              }
               <app-domain-card-step
                 [accessibleDomainIds]="levelUpOptions()!.accessibleDomainIds"
                 [domainCardLevelCap]="levelUpOptions()!.domainCardLevelCap"
