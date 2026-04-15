@@ -97,7 +97,7 @@ describe('InventoryAddPanel', () => {
 
     el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
 
-    expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50 });
+    expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL' });
   });
 
   it('calls armorService when load button clicked for armor type', () => {
@@ -266,6 +266,62 @@ describe('InventoryAddPanel', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.add-panel__slot-badge')).toBeNull();
+  });
+
+  it('renders damage type toggle for weapon itemType', () => {
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    const buttons = el.querySelectorAll('.add-panel__filter-btn');
+    expect(buttons.length).toBe(2);
+    expect(buttons[0].textContent?.trim()).toBe('Physical');
+    expect(buttons[1].textContent?.trim()).toBe('Magic');
+  });
+
+  it('does not render damage type toggle for armor itemType', () => {
+    host.itemType.set('armor');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__filters')).toBeNull();
+  });
+
+  it('does not render damage type toggle for loot itemType', () => {
+    host.itemType.set('loot');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.add-panel__filters')).toBeNull();
+  });
+
+  it('reloads weapons with MAGIC damageType when Magic filter clicked after items loaded', () => {
+    const weapons = [{ id: 1, name: 'Sword', features: [] }];
+    mockWeaponService.getWeaponsRaw.mockReturnValue(of({ items: weapons, currentPage: 0, totalPages: 1, totalElements: 1 }));
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const magicBtn = el.querySelectorAll<HTMLButtonElement>('.add-panel__filter-btn')[1];
+    magicBtn.click();
+    fixture.detectChanges();
+
+    expect(mockWeaponService.getWeaponsRaw).toHaveBeenLastCalledWith({ size: 50, damageType: 'MAGIC' });
+  });
+
+  it('does not fetch weapons when damage filter clicked before items loaded', () => {
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    const magicBtn = el.querySelectorAll<HTMLButtonElement>('.add-panel__filter-btn')[1];
+    magicBtn.click();
+    fixture.detectChanges();
+
+    expect(mockWeaponService.getWeaponsRaw).not.toHaveBeenCalled();
   });
 
   it('clears loaded weapons and shows browse button when itemType switches', () => {

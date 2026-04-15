@@ -13,9 +13,9 @@
               <span class="trait-excluded-note">(chosen in other selection)</span>
             } @else {
               <span class="trait-checkbox__modifier">
-                {{ trait.modifier >= 0 ? '+' : '' }}{{ trait.modifier }}
+                {{ trait.modifier.modified >= 0 ? '+' : '' }}{{ trait.modifier.modified }}
                 @if (isTraitSelected(trait.name)) {
-                  <span class="trait-boost-arrow"> → {{ trait.modifier + 1 >= 0 ? '+' : '' }}{{ trait.modifier + 1 }}</span>
+                  <span class="trait-boost-arrow"> → {{ trait.modifier.modified + 1 >= 0 ? '+' : '' }}{{ trait.modifier.modified + 1 }}</span>
                 }
               </span>
             }

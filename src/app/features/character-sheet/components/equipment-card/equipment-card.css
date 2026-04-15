@@ -6,8 +6,10 @@
 .equipment-card__name { font-family: var(--font-body); font-weight: 700; color: var(--color-parchment); font-size: .9rem; }
 .equipment-card__badge { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(212,160,86,.8); border: 1px solid rgba(212,160,86,.2); border-radius: 2px; padding: .1rem .3rem; }
 .equipment-card__sub-badge { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(212,160,86,.85); border: 1px solid rgba(212,160,86,.3); background: rgba(212,160,86,.06); border-radius: 2px; padding: .05rem .3rem; }
-.equipment-card__stats { display: flex; gap: .75rem; flex-wrap: wrap; }
+.equipment-card__stats { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
 .equip-stat { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.7); }
+.equip-stat--burden { display: inline-flex; align-items: center; gap: 3px; }
+.burden-hand { width: 14px; height: 14px; fill: rgba(212,160,86,.7); vertical-align: middle; }
 .equipment-card__features { margin-top: .4rem; padding-top: .4rem; border-top: 1px solid rgba(212,160,86,.1); display: flex; flex-direction: column; gap: .35rem; }
 .feature-row__name { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-accent); margin-bottom: .15rem; }
 .feature-row__description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.75); line-height: 1.4; margin: 0; }

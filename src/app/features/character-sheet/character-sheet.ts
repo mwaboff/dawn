@@ -10,6 +10,7 @@ import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
+import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../shared/models/loot-api.model';
@@ -32,7 +33,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);

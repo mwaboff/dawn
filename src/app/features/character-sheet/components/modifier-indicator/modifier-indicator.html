@@ -1,0 +1,17 @@
+@if (hasModifier()) {
+  <span class="mod-indicator"
+        tabindex="0"
+        role="button"
+        [attr.aria-label]="ariaLabel()">
+    <span class="mod-indicator__glyph" aria-hidden="true">&#9670;</span>
+    <div class="mod-indicator__tooltip" role="tooltip">
+      <span class="mod-indicator__tooltip-title">{{ statLabel() }}: {{ stat().base }} &rarr; {{ stat().modified }}</span>
+      @for (source of stat().modifierSources; track source.sourceName) {
+        <span class="mod-indicator__tooltip-row">
+          <span class="mod-indicator__tooltip-source">{{ source.sourceName }}</span>
+          <span>{{ formatOp(source.operation, source.value) }}</span>
+        </span>
+      }
+    </div>
+  </span>
+}

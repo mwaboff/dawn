@@ -22,3 +22,8 @@
 .add-panel__item-tier { grid-column: 2; justify-self: center; text-align: center; font-family: var(--font-body); font-size: .75rem; color: rgba(212,160,86,.75); text-transform: uppercase; letter-spacing: .05em; padding-block: .4rem; }
 .add-panel__item-stat--center { grid-column: 3; justify-self: center; text-align: center; font-family: var(--font-body); font-size: .78rem; color: rgba(212,160,86,.6); padding-block: .4rem; }
 .add-panel__item-stat--end { grid-column: 4; justify-self: end; text-align: right; font-family: var(--font-body); font-size: .78rem; color: rgba(212,160,86,.6); padding: .4rem .6rem .4rem 0; }
+.add-panel__filters { display: inline-flex; gap: .25rem; margin-bottom: .5rem; border: 1px solid rgba(212,160,86,.25); border-radius: 3px; padding: .15rem; background: rgba(26,20,15,.6); }
+.add-panel__filter-btn { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(212,160,86,.6); background: transparent; border: none; padding: .3rem .7rem; cursor: pointer; border-radius: 2px; }
+.add-panel__filter-btn:hover:not(.add-panel__filter-btn--active) { color: var(--color-accent); background: rgba(212,160,86,.08); }
+.add-panel__filter-btn--active { color: var(--color-bg, #1a140f); background: rgba(212,160,86,.85); }
+.add-panel__filter-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

@@ -19,5 +19,6 @@ export class EquipmentCard {
   readonly badge = input<string>();
   readonly subBadge = input<string>();
   readonly stats = input<EquipmentStat[]>([]);
+  readonly burden = input<string>('');
   readonly features = input<FeatureDisplay[]>([]);
 }

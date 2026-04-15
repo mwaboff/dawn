@@ -73,7 +73,7 @@ export const TRAIT_SUBSKILLS: Record<string, string[]> = {
 export interface TraitDisplay {
   name: string;
   abbreviation: string;
-  modifier: number;
+  modifier: DisplayStat;
   marked: boolean;
 }
 

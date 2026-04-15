@@ -348,6 +348,32 @@ describe('collectAllModifiers', () => {
     expect(result[0]).toEqual({ target: 'PROFICIENCY', operation: 'ADD', value: 1, sourceName: 'Arcana Bolt' });
   });
 
+  it('does not collect trait-targeted modifiers from unequipped armor', () => {
+    const sheet = makeSheet({
+      inventoryArmors: [{
+        id: 200, armorId: 1, equipped: false,
+        armor: {
+          id: 1, name: 'Stored Cloak',
+          features: [{ description: 'Nimble', modifiers: [{ target: 'AGILITY', operation: 'ADD', value: 1 }] }],
+        },
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toEqual([]);
+  });
+
+  it('does not collect trait-targeted modifiers from vault domain cards', () => {
+    const sheet = makeSheet({
+      domainCards: [
+        { id: 41, name: 'Stored Spell', features: [{ description: 'Boost', modifiers: [{ target: 'PRESENCE', operation: 'ADD', value: 2 }] }] },
+      ],
+      equippedDomainCardIds: [],
+      vaultDomainCardIds: [41],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toEqual([]);
+  });
+
   it('does not collect modifiers from vault domain cards', () => {
     const sheet = makeSheet({
       domainCards: [

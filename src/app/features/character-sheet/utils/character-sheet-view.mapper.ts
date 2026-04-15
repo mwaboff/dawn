@@ -28,7 +28,7 @@ import {
   ClassEntry,
 } from '../models/character-sheet-view.model';
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
-import { applyModifiers, collectAllModifiers } from './modifier-calculator.utils';
+import { applyModifiers, collectAllModifiers, SourcedModifier } from './modifier-calculator.utils';
 
 function formatEnumLabel(s: string): string {
   return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
@@ -80,7 +80,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     stressMarked: sheet.stressMarked,
     gold: sheet.gold,
 
-    traits: mapTraits(sheet),
+    traits: mapTraits(sheet, modifiers),
 
     activePrimaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'PRIMARY', proficiency),
     activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY', proficiency),
@@ -102,14 +102,14 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
   };
 }
 
-function mapTraits(sheet: CharacterSheetResponse): TraitDisplay[] {
+function mapTraits(sheet: CharacterSheetResponse, modifiers: SourcedModifier[]): TraitDisplay[] {
   return [
-    { name: 'Agility', abbreviation: 'AGI', modifier: sheet.agilityModifier, marked: sheet.agilityMarked },
-    { name: 'Strength', abbreviation: 'STR', modifier: sheet.strengthModifier, marked: sheet.strengthMarked },
-    { name: 'Finesse', abbreviation: 'FIN', modifier: sheet.finesseModifier, marked: sheet.finesseMarked },
-    { name: 'Instinct', abbreviation: 'INS', modifier: sheet.instinctModifier, marked: sheet.instinctMarked },
-    { name: 'Presence', abbreviation: 'PRE', modifier: sheet.presenceModifier, marked: sheet.presenceMarked },
-    { name: 'Knowledge', abbreviation: 'KNO', modifier: sheet.knowledgeModifier, marked: sheet.knowledgeMarked },
+    { name: 'Agility', abbreviation: 'AGI', modifier: applyModifiers(sheet.agilityModifier, modifiers, 'AGILITY'), marked: sheet.agilityMarked },
+    { name: 'Strength', abbreviation: 'STR', modifier: applyModifiers(sheet.strengthModifier, modifiers, 'STRENGTH'), marked: sheet.strengthMarked },
+    { name: 'Finesse', abbreviation: 'FIN', modifier: applyModifiers(sheet.finesseModifier, modifiers, 'FINESSE'), marked: sheet.finesseMarked },
+    { name: 'Instinct', abbreviation: 'INS', modifier: applyModifiers(sheet.instinctModifier, modifiers, 'INSTINCT'), marked: sheet.instinctMarked },
+    { name: 'Presence', abbreviation: 'PRE', modifier: applyModifiers(sheet.presenceModifier, modifiers, 'PRESENCE'), marked: sheet.presenceMarked },
+    { name: 'Knowledge', abbreviation: 'KNO', modifier: applyModifiers(sheet.knowledgeModifier, modifiers, 'KNOWLEDGE'), marked: sheet.knowledgeMarked },
   ];
 }
 

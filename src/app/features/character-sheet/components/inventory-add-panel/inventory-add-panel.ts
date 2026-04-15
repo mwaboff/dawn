@@ -28,12 +28,19 @@ export class InventoryAddPanel {
   readonly weaponItems = signal<WeaponResponse[]>([]);
   readonly armorItems = signal<ArmorResponse[]>([]);
   readonly lootItems = signal<LootApiResponse[]>([]);
+  readonly weaponDamageFilter = signal<'PHYSICAL' | 'MAGIC'>('PHYSICAL');
+  readonly weaponItemsLoaded = signal(false);
 
   readonly isCurrentListEmpty = computed(() => {
     const type = this.itemType();
     if (type === 'weapon') return this.weaponItems().length === 0;
     if (type === 'armor') return this.armorItems().length === 0;
     return this.lootItems().length === 0;
+  });
+
+  readonly shouldShowBrowsePrompt = computed(() => {
+    if (this.itemType() === 'weapon') return !this.weaponItemsLoaded();
+    return this.isCurrentListEmpty();
   });
 
   constructor() {
@@ -45,8 +52,18 @@ export class InventoryAddPanel {
         this.weaponItems.set([]);
         this.armorItems.set([]);
         this.lootItems.set([]);
+        this.weaponDamageFilter.set('PHYSICAL');
+        this.weaponItemsLoaded.set(false);
       });
     });
+  }
+
+  onWeaponDamageFilterChange(damageType: 'PHYSICAL' | 'MAGIC'): void {
+    if (this.weaponDamageFilter() === damageType) return;
+    this.weaponDamageFilter.set(damageType);
+    if (this.weaponItemsLoaded()) {
+      this.loadItems();
+    }
   }
 
   loadItems(): void {
@@ -55,9 +72,10 @@ export class InventoryAddPanel {
     this.loadError.set(false);
 
     if (type === 'weapon') {
-      this.weaponService.getWeaponsRaw({ size: 50 }).subscribe({
+      this.weaponService.getWeaponsRaw({ size: 50, damageType: this.weaponDamageFilter() }).subscribe({
         next: (res) => {
           this.weaponItems.set(res.items);
+          this.weaponItemsLoaded.set(true);
           this.loading.set(false);
         },
         error: () => {

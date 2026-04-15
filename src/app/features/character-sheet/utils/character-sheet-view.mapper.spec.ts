@@ -141,7 +141,7 @@ describe('mapToCharacterSheetView', () => {
 
       expect(agility).toBeDefined();
       expect(agility?.abbreviation).toBe('AGI');
-      expect(agility?.modifier).toBe(3);
+      expect(agility?.modifier.modified).toBe(3);
       expect(agility?.marked).toBe(true);
     });
 
@@ -150,7 +150,40 @@ describe('mapToCharacterSheetView', () => {
       const trait = result.traits.find(t => t.name === 'Strength');
 
       expect(trait?.abbreviation).toBe('STR');
-      expect(trait?.modifier).toBe(-1);
+      expect(trait?.modifier.modified).toBe(-1);
+    });
+
+    it('applies equipped armor modifier to a trait', () => {
+      const sheet = makeSheet({
+        agilityModifier: 1,
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: {
+            id: 1, name: 'Swiftweave Cloak',
+            features: [{
+              description: 'Nimble step',
+              modifiers: [{ target: 'AGILITY', operation: 'ADD', value: 1 }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+      const agility = result.traits.find(t => t.name === 'Agility');
+
+      expect(agility?.modifier.base).toBe(1);
+      expect(agility?.modifier.modified).toBe(2);
+      expect(agility?.modifier.hasModifier).toBe(true);
+      expect(agility?.modifier.modifierSources[0].sourceName).toBe('Swiftweave Cloak');
+    });
+
+    it('returns unmodified trait when no modifiers target it', () => {
+      const result = mapToCharacterSheetView(makeSheet({ strengthModifier: 2 }));
+      const strength = result.traits.find(t => t.name === 'Strength');
+
+      expect(strength?.modifier.base).toBe(2);
+      expect(strength?.modifier.modified).toBe(2);
+      expect(strength?.modifier.hasModifier).toBe(false);
     });
 
     it('maps Finesse trait', () => {

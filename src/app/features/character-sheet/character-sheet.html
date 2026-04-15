@@ -48,38 +48,26 @@
             <a class="level-down-btn" [routerLink]="['/character', sheet.id, 'level-down']">Level-</a>
           }
         </div>
-        <div class="shield" [class.shield--interactive]="sheet.evasion.hasModifier" [attr.tabindex]="sheet.evasion.hasModifier ? 0 : null" [attr.aria-label]="sheet.evasion.hasModifier ? 'Evasion ' + sheet.evasion.modified + ' (hover or focus for modifier breakdown)' : null">
+        <div class="shield">
           <span class="shield__label">Evasion</span>
-          <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
-          @if (sheet.evasion.hasModifier) {
-            <div class="modifier-tooltip" role="tooltip">
-              @for (source of sheet.evasion.modifierSources; track source.sourceName) {
-                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
-              }
-            </div>
-          }
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.evasion" statLabel="Evasion" />
+          </span>
         </div>
-        <div class="shield" [class.shield--interactive]="sheet.armorScore.hasModifier" [attr.tabindex]="sheet.armorScore.hasModifier ? 0 : null" [attr.aria-label]="sheet.armorScore.hasModifier ? 'Armor score ' + sheet.armorScore.modified + ' (hover or focus for modifier breakdown)' : null">
+        <div class="shield">
           <span class="shield__label">Armor</span>
-          <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
-          @if (sheet.armorScore.hasModifier) {
-            <div class="modifier-tooltip" role="tooltip">
-              @for (source of sheet.armorScore.modifierSources; track source.sourceName) {
-                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
-              }
-            </div>
-          }
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.armorScore" statLabel="Armor score" />
+          </span>
         </div>
-        <div class="shield" [class.shield--interactive]="sheet.proficiency.hasModifier" [attr.tabindex]="sheet.proficiency.hasModifier ? 0 : null" [attr.aria-label]="sheet.proficiency.hasModifier ? 'Proficiency ' + sheet.proficiency.modified + ' (hover or focus for modifier breakdown)' : null">
+        <div class="shield">
           <span class="shield__label">Prof</span>
-          <span class="shield__value" [class.shield__value--modified]="sheet.proficiency.hasModifier">{{ sheet.proficiency.modified }}</span>
-          @if (sheet.proficiency.hasModifier) {
-            <div class="modifier-tooltip" role="tooltip">
-              @for (source of sheet.proficiency.modifierSources; track source.sourceName) {
-                <span><span class="modifier-tooltip__source">{{ source.sourceName }}</span>: {{ source.operation }} {{ source.value }}</span>
-              }
-            </div>
-          }
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.proficiency.hasModifier">{{ sheet.proficiency.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.proficiency" statLabel="Proficiency" />
+          </span>
         </div>
       </div>
     </header>
@@ -88,9 +76,12 @@
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
           <div class="trait-badge"
-               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier) + (trait.marked ? ', marked' : '')">
+               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier.modified) + (trait.marked ? ', marked' : '')">
+            <span class="trait-badge__indicator">
+              <app-modifier-indicator [stat]="trait.modifier" [statLabel]="trait.name" />
+            </span>
             <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
-            <span class="trait-badge__modifier" aria-hidden="true">{{ formatModifier(trait.modifier) }}</span>
+            <span class="trait-badge__modifier" [class.trait-badge__modifier--modified]="trait.modifier.hasModifier" aria-hidden="true">{{ formatModifier(trait.modifier.modified) }}</span>
             @if (trait.marked) {
               <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
             }
@@ -115,12 +106,14 @@
             </div>
             <div class="damage-marker">
               <span class="damage-marker__value">{{ sheet.majorDamageThreshold.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.majorDamageThreshold" statLabel="Major damage threshold" />
             </div>
             <div class="damage-zone damage-zone--major">
               <span class="damage-zone__label">Major</span>
             </div>
             <div class="damage-marker">
               <span class="damage-marker__value">{{ sheet.severeDamageThreshold.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.severeDamageThreshold" statLabel="Severe damage threshold" />
             </div>
             <div class="damage-zone damage-zone--severe">
               <span class="damage-zone__label">Severe</span>
@@ -135,16 +128,17 @@
               }
             </div>
             <span class="resource-row__count">{{ markedHp() }}/{{ sheet.hitPointMax.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.hitPointMax" statLabel="Hit Points max" />
           </div>
 
           <div class="resource-row">
             <span class="resource-row__label">Armor</span>
             <div class="resource-row__boxes">
-              @for (i of getRange(sheet.armorMax); track i) {
+              @for (i of getRange(sheet.armorScore.modified); track i) {
                 <button class="resource-box" [class.resource-box--marked]="i <= markedArmor()" (click)="toggleResourceBox('armor', i)" [attr.aria-label]="'Armor ' + i" [attr.aria-pressed]="i <= markedArmor()"></button>
               }
             </div>
-            <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorMax }}</span>
+            <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorScore.modified }}</span>
           </div>
         </div>
 
@@ -160,6 +154,7 @@
                 }
               </div>
               <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.hopeMax" statLabel="Hope max" />
             </div>
 
             <div class="hope-stress-divider" aria-hidden="true"></div>
@@ -172,6 +167,7 @@
                 }
               </div>
               <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.stressMax" statLabel="Stress max" />
             </div>
           </div>
         </div>

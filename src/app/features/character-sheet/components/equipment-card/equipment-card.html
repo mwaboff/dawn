@@ -8,10 +8,29 @@
       <span class="equipment-card__sub-badge">{{ subBadge() }}</span>
     }
   </div>
-  @if (stats().length > 0) {
+  @if (stats().length > 0 || burden()) {
     <div class="equipment-card__stats">
       @for (stat of stats(); track stat.label) {
         <span class="equip-stat">{{ stat.value }}</span>
+      }
+      @switch (burden()) {
+        @case ('TWO_HANDED') {
+          <span class="equip-stat equip-stat--burden" title="Two-Handed">
+            <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+            </svg>
+            <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+            </svg>
+          </span>
+        }
+        @case ('ONE_HANDED') {
+          <span class="equip-stat equip-stat--burden" title="One-Handed">
+            <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+            </svg>
+          </span>
+        }
       }
     </div>
   }

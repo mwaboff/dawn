@@ -5,10 +5,35 @@
       <button class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
     </div>
 
-    @if (!loading() && !loadError() && isCurrentListEmpty()) {
+    @if (itemType() === 'weapon') {
+      <div class="add-panel__filters" role="radiogroup" aria-label="Weapon damage type">
+        <button
+          type="button"
+          class="add-panel__filter-btn"
+          [class.add-panel__filter-btn--active]="weaponDamageFilter() === 'PHYSICAL'"
+          (click)="onWeaponDamageFilterChange('PHYSICAL')"
+          role="radio"
+          [attr.aria-checked]="weaponDamageFilter() === 'PHYSICAL'"
+        >Physical</button>
+        <button
+          type="button"
+          class="add-panel__filter-btn"
+          [class.add-panel__filter-btn--active]="weaponDamageFilter() === 'MAGIC'"
+          (click)="onWeaponDamageFilterChange('MAGIC')"
+          role="radio"
+          [attr.aria-checked]="weaponDamageFilter() === 'MAGIC'"
+        >Magic</button>
+      </div>
+    }
+
+    @if (!loading() && !loadError() && shouldShowBrowsePrompt()) {
       <div class="add-panel__prompt">
         <button class="add-panel__load-btn" (click)="loadItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
       </div>
+    }
+
+    @if (itemType() === 'weapon' && weaponItemsLoaded() && !loading() && !loadError() && weaponItems().length === 0) {
+      <p class="add-panel__loading">No weapons match this filter.</p>
     }
 
     @if (loading()) {
