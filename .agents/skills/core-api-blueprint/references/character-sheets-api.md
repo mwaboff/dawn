@@ -794,7 +794,7 @@ All error responses use a standard format:
 | Status | Condition                                                              |
 |--------|------------------------------------------------------------------------|
 | `400`  | Validation failure (missing required fields, out-of-range values)      |
-| `400`  | Constraint violation (e.g., armorMarked > armorMax)                    |
+| `400`  | Constraint violation (e.g., severeDamageThreshold < majorDamageThreshold) |
 | `401`  | Missing or invalid authentication token                                |
 | `403`  | Insufficient permissions (non-owner on update/delete, non-moderator on list all) |
 | `404`  | Character sheet not found or soft-deleted                              |
@@ -817,7 +817,7 @@ All fields marked **required** must be present. Equipment and collection IDs are
 | `proficiency`            | integer   | No       | >= 1, defaults to 1                           |
 | `evasion`                | integer   | Yes      | >= 0                                          |
 | `armorMax`               | integer   | Yes      | >= 0                                          |
-| `armorMarked`            | integer   | Yes      | >= 0, must be <= armorMax                     |
+| `armorMarked`            | integer   | Yes      | >= 0 (may exceed `armorMax`; see Marked vs. Max below) |
 | `majorDamageThreshold`   | integer   | Yes      | > 0                                           |
 | `severeDamageThreshold`  | integer   | Yes      | > 0, must be >= majorDamageThreshold          |
 | `agilityModifier`        | integer   | Yes      | --                                            |
@@ -833,11 +833,11 @@ All fields marked **required** must be present. Equipment and collection IDs are
 | `knowledgeModifier`      | integer   | Yes      | --                                            |
 | `knowledgeMarked`        | boolean   | Yes      | --                                            |
 | `hitPointMax`            | integer   | Yes      | > 0                                           |
-| `hitPointMarked`         | integer   | Yes      | >= 0, must be <= hitPointMax                  |
+| `hitPointMarked`         | integer   | Yes      | >= 0 (may exceed `hitPointMax`; see Marked vs. Max below) |
 | `stressMax`              | integer   | Yes      | > 0                                           |
-| `stressMarked`           | integer   | Yes      | >= 0, must be <= stressMax                    |
+| `stressMarked`           | integer   | Yes      | >= 0 (may exceed `stressMax`; see Marked vs. Max below) |
 | `hopeMax`                | integer   | Yes      | > 0                                           |
-| `hopeMarked`             | integer   | Yes      | >= 0, must be <= hopeMax                      |
+| `hopeMarked`             | integer   | Yes      | >= 0 (may exceed `hopeMax`; see Marked vs. Max below) |
 | `gold`                   | integer   | Yes      | >= 0                                          |
 | `communityCardIds`       | long[]    | No       | Each must reference existing CommunityCard    |
 | `ancestryCardIds`        | long[]    | No       | Each must reference existing AncestryCard     |
@@ -874,6 +874,8 @@ All fields marked **required** must be present. Equipment and collection IDs are
 ### UpdateCharacterSheetRequest
 
 All fields are optional. Only non-null fields are applied. Same validation rules as create but no required fields.
+
+**Marked/Max clamping:** If an update request sets a `*_max` field (`armorMax`, `hitPointMax`, `stressMax`, `hopeMax`) to a value lower than the current stored `*_marked`, the service clamps `*_marked` down to the new max. Otherwise `*_marked` is applied exactly as submitted — including values above `*_max` (e.g. produced by equipped items raising the effective cap). See "Marked vs. Max" under Database Constraints.
 
 Collection fields (`communityCardIds`, `ancestryCardIds`, `subclassCardIds`, `inventoryWeapons`, `inventoryArmors`, `inventoryItems`) replace the entire collection when provided. Omit to leave the collection unchanged.
 
@@ -979,7 +981,7 @@ Request body for the `POST /api/dh/character-sheets/{id}/level-up` endpoint.
 
 | Field                      | Type                       | Required | Validation / Notes                                                     |
 |----------------------------|----------------------------|----------|------------------------------------------------------------------------|
-| `advancements`             | AdvancementChoice[]        | Yes      | Exactly 2 items (`@Size(min=2, max=2)`)                               |
+| `advancements`             | AdvancementChoice[]        | Yes      | At least 2 items (`@Size(min=2)`). Must contain exactly two player-chosen entries (any type other than `FEATURE_DOMAIN_CARD`). Additional `FEATURE_DOMAIN_CARD` entries may be appended when a subclass feature's `BONUS_DOMAIN_CARD_SELECTIONS` modifier grants bonus cards. |
 | `newExperienceDescription` | string                     | Cond.    | Required at tier transitions (levels 2, 5, 8). Description for the new experience created during tier achievement. |
 | `newDomainCardId`          | long                       | Yes      | ID of the domain card to add in Step 4. Must be from an accessible domain and within the tier's level cap. |
 | `equipNewDomainCard`       | boolean                    | No       | Default `false`. Whether to equip the new domain card (equipped count must not exceed 5). |
@@ -996,7 +998,7 @@ One of the two advancement choices included in a `LevelUpRequest`.
 | `traits`                    | Trait[] | BOOST_TRAITS | Exactly 2 traits. Must be unmarked, except during tier transitions at levels 5 and 8 where marks are cleared. |
 | `experienceIds`             | long[]  | BOOST_EXPERIENCES | Exactly 2 experience IDs belonging to the character.                       |
 | `boostNewExperience`        | boolean | No           | `false`. When `true`, automatically includes the newly created tier transition experience as the second boost target. Only valid during tier transitions with BOOST_EXPERIENCES. |
-| `domainCardId`              | long    | GAIN_DOMAIN_CARD | ID of a domain card from an accessible domain, within level cap.            |
+| `domainCardId`              | long    | GAIN_DOMAIN_CARD / FEATURE_DOMAIN_CARD | ID of a domain card from an accessible domain, within level cap.            |
 | `equipDomainCard`           | boolean | No           | Default `false`. For GAIN_DOMAIN_CARD: whether to equip the gained card.        |
 | `subclassCardId`            | long    | UPGRADE_SUBCLASS / MULTICLASS | For UPGRADE_SUBCLASS: ID of the next-level subclass card in a path the character already has. For MULTICLASS: ID of a FOUNDATION-level subclass card from a class the character doesn't already have. |
 
@@ -1013,6 +1015,7 @@ One of the two advancement choices included in a `LevelUpRequest`.
 | `UPGRADE_SUBCLASS`  | `subclassCardId`                                          |
 | `BOOST_PROFICIENCY` | None (type only)                                          |
 | `MULTICLASS`        | `subclassCardId` (must be a FOUNDATION-level card)        |
+| `FEATURE_DOMAIN_CARD` | `domainCardId` (always added unequipped; bypasses the two-advancements count and the `GAIN_DOMAIN_CARD` per-tier limit; not returned by `getLevelUpOptions` — injected by the client when a subclass feature has a `BONUS_DOMAIN_CARD_SELECTIONS` modifier) |
 
 ### DomainCardTradeRequest
 
@@ -1494,6 +1497,7 @@ The six core character traits in Daggerheart.
 | `DAMAGE_ROLL`           | Modifies the character's damage roll result         |
 | `PRIMARY_DAMAGE_ROLL`   | Modifies the character's primary damage roll result |
 | `ARMOR_SCORE`           | Modifies the character's armor score                |
+| `BONUS_DOMAIN_CARD_SELECTIONS` | Declarative: grants extra domain card selections at level-up / character creation. Server does not enforce counts — the client reads it and injects `FEATURE_DOMAIN_CARD` advancement entries. |
 
 ### ModifierOperation
 
@@ -1515,12 +1519,14 @@ The `character_sheets` table enforces these constraints at the database level:
 |-------------------------------------|-----------------------------------------------------|
 | `check_level_positive`              | `level >= 1`                                        |
 | `check_severe_gte_major`            | `severe_damage_threshold >= major_damage_threshold`  |
-| `check_hit_point_marked_lte_max`    | `hit_point_marked <= hit_point_max`                  |
-| `check_stress_marked_lte_max`       | `stress_marked <= stress_max`                        |
-| `check_hope_marked_lte_max`         | `hope_marked <= hope_max`                            |
-| `check_armor_marked_lte_max`        | `armor_marked <= armor_max`                          |
 
-These constraints are also validated in the service layer before persistence, returning `400 Bad Request` with descriptive error messages.
+The service layer also enforces `severe_damage_threshold >= major_damage_threshold`, returning `400 Bad Request` on violation.
+
+### Marked vs. Max
+
+The stored `*_max` columns (`armor_max`, `hit_point_max`, `stress_max`, `hope_max`) represent a character's **base** maximum. Equipped items and features can raise the effective maximum at runtime (e.g. a shield granting +1 armor max). The backend therefore allows `*_marked` to exceed the corresponding `*_max` — clients (the frontend) are the source of truth for the effective cap and submit `*_marked` values accordingly. The previous DB-level `*_marked <= *_max` constraints were removed in migration `V20260414170355941`.
+
+The only exception: when an update request explicitly sets a `*_max` field to a value lower than the current `*_marked`, the service clamps `*_marked` down to the new max. A create request, or an update that does not touch `*_max`, never alters the submitted `*_marked` value.
 
 ### Foreign Key Behavior
 
