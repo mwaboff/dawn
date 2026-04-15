@@ -7,6 +7,8 @@ import { of, throwError, Subject } from 'rxjs';
 import { Reference } from './reference';
 import { SearchService } from '../../shared/services/search.service';
 import { DomainService } from '../../shared/services/domain.service';
+import { ExpansionService } from '../../shared/services/expansion.service';
+import { ClassService } from '../../shared/services/class.service';
 import { CodexBrowseService } from './services/codex-browse.service';
 import { SearchResponse } from './models/search.model';
 
@@ -31,6 +33,8 @@ function buildTestBed(queryParams: Record<string, string> = {}) {
   const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
   const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
   const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
+  const expansionSpy = { getExpansions: vi.fn().mockReturnValue(of([{ id: 1, name: 'Core Set' }])) };
+  const classSpy = { getClassOptions: vi.fn().mockReturnValue(of([{ id: 1, label: 'Warrior' }, { id: 2, label: 'Bard' }])) };
   const routeStub = { snapshot: { queryParams } };
 
   TestBed.configureTestingModule({
@@ -42,6 +46,8 @@ function buildTestBed(queryParams: Record<string, string> = {}) {
       { provide: SearchService, useValue: searchSpy },
       { provide: CodexBrowseService, useValue: browseSpy },
       { provide: DomainService, useValue: domainSpy },
+      { provide: ExpansionService, useValue: expansionSpy },
+      { provide: ClassService, useValue: classSpy },
       { provide: ActivatedRoute, useValue: routeStub },
     ],
   });
@@ -49,7 +55,7 @@ function buildTestBed(queryParams: Record<string, string> = {}) {
   const router = TestBed.inject(Router);
   vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
-  return { searchSpy, browseSpy, domainSpy, router };
+  return { searchSpy, browseSpy, domainSpy, expansionSpy, classSpy, router };
 }
 
 describe('Reference', () => {
@@ -78,6 +84,14 @@ describe('Reference', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('defaults filters to { isOfficial: true } so Official content is the initial filter', () => {
+    expect(component.filters()).toEqual({ isOfficial: true });
+  });
+
+  it('loads expansionOptions from the ExpansionService on init', () => {
+    expect(component.expansionOptions()).toEqual([{ value: '1', label: 'Core Set' }]);
   });
 
   describe('viewMode computation', () => {
@@ -191,7 +205,7 @@ describe('Reference', () => {
       component.activeType.set('WEAPON');
       fixture.detectChanges();
       vi.advanceTimersByTime(0);
-      expect(browseSpy.browse).toHaveBeenCalledWith('WEAPON', {}, 0);
+      expect(browseSpy.browse).toHaveBeenCalledWith('WEAPON', { isOfficial: true }, 0);
     });
 
     it('passes current filters to browse service', () => {
@@ -205,7 +219,7 @@ describe('Reference', () => {
       component.currentPage.set(2);
       component.activeType.set('WEAPON');
       fixture.detectChanges();
-      expect(browseSpy.browse).toHaveBeenCalledWith('WEAPON', {}, 2);
+      expect(browseSpy.browse).toHaveBeenCalledWith('WEAPON', { isOfficial: true }, 2);
     });
 
     it('does not call SearchService in focusedBrowse mode', () => {
@@ -706,6 +720,23 @@ describe('Reference', () => {
     });
   });
 
+  describe('class options loading', () => {
+    it('populates classOptions signal with loaded classes on init', () => {
+      expect(component.classOptions()).toEqual([
+        { value: '1', label: 'Warrior' },
+        { value: '2', label: 'Bard' },
+      ]);
+    });
+  });
+
+  describe('filter auto-promotion — SUBCLASS_CARD', () => {
+    it('promotes to SUBCLASS_CARD when associatedClassId filter applied in mixed search', () => {
+      component.query.set('warden');
+      component.onFiltersChanged({ associatedClassId: 1 });
+      expect(component.activeType()).toBe('SUBCLASS_CARD');
+    });
+  });
+
   describe('state — rail dimming', () => {
     it('adds loading class to reference-rail when loading in mixedSearch', () => {
       component.query.set('sword');
@@ -730,6 +761,8 @@ describe('Reference — URL hydration with pre-set query params', () => {
     const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
     const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
     const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
+    const expansionSpy = { getExpansions: vi.fn().mockReturnValue(of([])) };
+    const classSpy = { getClassOptions: vi.fn().mockReturnValue(of([])) };
 
     TestBed.configureTestingModule({
       imports: [Reference],
@@ -740,6 +773,8 @@ describe('Reference — URL hydration with pre-set query params', () => {
         { provide: SearchService, useValue: searchSpy },
         { provide: CodexBrowseService, useValue: browseSpy },
         { provide: DomainService, useValue: domainSpy },
+        { provide: ExpansionService, useValue: expansionSpy },
+        { provide: ClassService, useValue: classSpy },
         { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
       ],
     });
@@ -774,9 +809,9 @@ describe('Reference — URL hydration with pre-set query params', () => {
     expect(c.filters()).toEqual({ tier: 3 });
   });
 
-  it('ignores malformed filters param gracefully', () => {
+  it('ignores malformed filters param gracefully (falls back to default)', () => {
     const c = buildHydrationTestBed({ filters: 'not-valid-json' });
-    expect(c.filters()).toEqual({});
+    expect(c.filters()).toEqual({ isOfficial: true });
   });
 });
 
@@ -788,6 +823,8 @@ describe('Reference — refine sheet integration', () => {
     const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
     const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
     const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
+    const expansionSpy = { getExpansions: vi.fn().mockReturnValue(of([])) };
+    const classSpy = { getClassOptions: vi.fn().mockReturnValue(of([])) };
     const routeStub = { snapshot: { queryParams: {} } };
 
     TestBed.configureTestingModule({
@@ -799,6 +836,8 @@ describe('Reference — refine sheet integration', () => {
         { provide: SearchService, useValue: searchSpy },
         { provide: CodexBrowseService, useValue: browseSpy },
         { provide: DomainService, useValue: domainSpy },
+        { provide: ExpansionService, useValue: expansionSpy },
+        { provide: ClassService, useValue: classSpy },
         { provide: ActivatedRoute, useValue: routeStub },
       ],
     });

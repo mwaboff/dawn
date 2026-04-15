@@ -11,6 +11,8 @@ import { ViewMode } from '../../reference';
       [filters]="filters()"
       [viewMode]="viewMode()"
       [domainOptions]="domainOptions()"
+      [classOptions]="classOptions()"
+      [expansionOptions]="expansionOptions()"
       (filtersChange)="onFiltersChange($event)"
     />
   `,
@@ -21,6 +23,8 @@ class TestHost {
   filters = signal<SearchFilters>({});
   viewMode = signal<ViewMode>('landing');
   domainOptions = signal<FilterOption[]>([]);
+  classOptions = signal<FilterOption[]>([]);
+  expansionOptions = signal<FilterOption[]>([]);
   lastFilters: SearchFilters | null = null;
   onFiltersChange(f: SearchFilters): void { this.lastFilters = f; }
 }
@@ -49,6 +53,26 @@ describe('FilterRail', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Tier');
     expect(el.textContent).toContain('Official content only');
+  });
+
+  it('always renders the Expansion select with All Expansions option', () => {
+    host.activeType.set(null);
+    host.expansionOptions.set([{ value: '1', label: 'Core Set' }, { value: '2', label: 'Void' }]);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Expansion');
+    expect(el.textContent).toContain('All Expansions');
+    expect(el.textContent).toContain('Core Set');
+    expect(el.textContent).toContain('Void');
+  });
+
+  it('renders Expansion select for type-specific filters too (e.g. WEAPON)', () => {
+    host.activeType.set('WEAPON');
+    host.expansionOptions.set([{ value: '1', label: 'Core Set' }]);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Expansion');
+    expect(el.textContent).toContain('Core Set');
   });
 
   it('renders weapon-specific filters when activeType is WEAPON', () => {
@@ -164,6 +188,47 @@ describe('FilterRail', () => {
     clearBtn.click();
 
     expect(host.lastFilters).toEqual({});
+  });
+
+  describe('SUBCLASS_CARD type — class filter', () => {
+    it('renders a Class select when activeType is SUBCLASS_CARD', () => {
+      host.activeType.set('SUBCLASS_CARD');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.textContent).toContain('Class');
+      expect(el.querySelector('#filter-associatedClassId')).toBeTruthy();
+    });
+
+    it('populates Class select options from classOptions input', () => {
+      host.activeType.set('SUBCLASS_CARD');
+      host.classOptions.set([
+        { value: '1', label: 'Warrior' },
+        { value: '2', label: 'Bard' },
+      ]);
+      fixture.detectChanges();
+      const select = fixture.nativeElement.querySelector('#filter-associatedClassId') as HTMLSelectElement;
+      const labels = Array.from(select.options).map(o => o.textContent?.trim());
+      expect(labels).toEqual(['Any Class', 'Warrior', 'Bard']);
+    });
+
+    it('emits numeric associatedClassId filter when Class is selected', () => {
+      host.activeType.set('SUBCLASS_CARD');
+      host.classOptions.set([{ value: '1', label: 'Warrior' }, { value: '2', label: 'Bard' }]);
+      fixture.detectChanges();
+
+      const select = fixture.nativeElement.querySelector('#filter-associatedClassId') as HTMLSelectElement;
+      select.value = '2';
+      select.dispatchEvent(new Event('change'));
+
+      expect(host.lastFilters).toEqual({ associatedClassId: 2 });
+    });
+
+    it('does not render Class select for non-SUBCLASS_CARD types', () => {
+      host.activeType.set('WEAPON');
+      host.classOptions.set([{ value: '1', label: 'Warrior' }]);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('#filter-associatedClassId')).toBeNull();
+    });
   });
 
   describe('DOMAIN_CARD type — domain filter', () => {

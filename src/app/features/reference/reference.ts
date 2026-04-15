@@ -4,6 +4,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, debounceTime } from 'rxjs';
 import { SearchService } from '../../shared/services/search.service';
 import { DomainService } from '../../shared/services/domain.service';
+import { ExpansionService } from '../../shared/services/expansion.service';
+import { ClassService } from '../../shared/services/class.service';
 import { CodexBrowseService, BrowsableType } from './services/codex-browse.service';
 import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from './models/search.model';
 import { MappedSearchResult, mapSearchResult } from './mappers/search-result.mapper';
@@ -33,7 +35,7 @@ export interface MixedSection {
 const TYPE_FROM_FILTER: Partial<Record<keyof SearchFilters, SearchableEntityType>> = {
   adversaryType: 'ADVERSARY', trait: 'WEAPON', range: 'WEAPON', burden: 'WEAPON',
   isConsumable: 'LOOT', domainCardType: 'DOMAIN_CARD', associatedDomainId: 'DOMAIN_CARD',
-  level: 'DOMAIN_CARD',
+  level: 'DOMAIN_CARD', associatedClassId: 'SUBCLASS_CARD',
 };
 
 const MIXED_VIEW_CAP = 5;
@@ -51,11 +53,13 @@ export class Reference implements OnInit {
   private readonly searchService = inject(SearchService);
   private readonly browseService = inject(CodexBrowseService);
   private readonly domainService = inject(DomainService);
+  private readonly expansionService = inject(ExpansionService);
+  private readonly classService = inject(ClassService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly query = signal('');
   readonly activeType = signal<SearchableEntityType | null>(null);
-  readonly filters = signal<SearchFilters>({});
+  readonly filters = signal<SearchFilters>({ isOfficial: true });
   readonly refineSheetOpen = signal(false);
   readonly currentPage = signal(0);
   readonly results = signal<MappedSearchResult[]>([]);
@@ -64,6 +68,8 @@ export class Reference implements OnInit {
   readonly loading = signal(false);
   readonly error = signal(false);
   readonly domainOptions = signal<FilterOption[]>([]);
+  readonly classOptions = signal<FilterOption[]>([]);
+  readonly expansionOptions = signal<FilterOption[]>([]);
 
   readonly viewMode = computed<ViewMode>(() => {
     const q = this.query().trim();
@@ -161,6 +167,30 @@ export class Reference implements OnInit {
     if (p['page']) this.currentPage.set(Number(p['page']));
     if (p['filters']) { try { this.filters.set(JSON.parse(p['filters'] as string) as SearchFilters); } catch { /* ignore */ } }
     this.loadDomainOptions();
+    this.loadClassOptions();
+    this.loadExpansionOptions();
+  }
+
+  private loadClassOptions(): void {
+    this.classService.getClassOptions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: list => this.classOptions.set(
+          list.map(c => ({ value: String(c.id), label: c.label })),
+        ),
+        error: () => { /* silent — filter select simply won't appear */ },
+      });
+  }
+
+  private loadExpansionOptions(): void {
+    this.expansionService.getExpansions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: list => this.expansionOptions.set(
+          list.map(e => ({ value: String(e.id), label: e.name })),
+        ),
+        error: () => { /* silent — filter select simply won't appear */ },
+      });
   }
 
   private loadDomainOptions(): void {

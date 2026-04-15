@@ -61,6 +61,13 @@ describe('mapWeaponResponseToCardData', () => {
     expect(result.subtitle).toBe('Magic Weapon');
   });
 
+  it('should set subtitleSecondary to Tier label', () => {
+    const response = buildWeaponResponse({ tier: 3 });
+    const result = mapWeaponResponseToCardData(response);
+
+    expect(result.subtitleSecondary).toBe('Tier 3');
+  });
+
   it('should generate tags with notation, range, burden, and trait', () => {
     const response = buildWeaponResponse({
       damage: { diceCount: 1, diceType: 'D8', modifier: 0, damageType: 'PHYSICAL', notation: '1d8' },

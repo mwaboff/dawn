@@ -133,6 +133,7 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
   SUBCLASS_CARD: [
+    { kind: 'select', key: 'associatedClassId', label: 'Class', options: [{ value: '', label: 'Any Class' }] },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
   COMPANION: [
@@ -151,24 +152,48 @@ export class FilterRail {
   readonly filters = input<SearchFilters>({});
   readonly viewMode = input<ViewMode>('landing');
   readonly domainOptions = input<FilterOption[]>([]);
+  readonly classOptions = input<FilterOption[]>([]);
+  readonly expansionOptions = input<FilterOption[]>([]);
 
   readonly filtersChange = output<SearchFilters>();
 
   readonly activeControls = computed<FilterControl[]>(() => {
     const type = this.activeType();
-    if (!type) return UNIVERSAL_FILTERS;
-    const controls = TYPE_FILTERS[type] ?? UNIVERSAL_FILTERS;
-    if (type === 'DOMAIN_CARD') {
-      const opts = this.domainOptions();
-      return controls.map(c => {
-        if (c.kind === 'select' && c.key === 'associatedDomainId') {
-          return { ...c, options: [{ value: '', label: 'Any Domain' }, ...opts] };
-        }
-        return c;
-      });
+    const baseControls = !type ? UNIVERSAL_FILTERS : (TYPE_FILTERS[type] ?? UNIVERSAL_FILTERS);
+    const controls: FilterControl[] = [];
+    let expansionInjected = false;
+    for (const c of baseControls) {
+      if (c.kind === 'select' && c.key === 'expansionId') {
+        controls.push(this.buildExpansionControl());
+        expansionInjected = true;
+      } else if (type === 'DOMAIN_CARD' && c.kind === 'select' && c.key === 'associatedDomainId') {
+        controls.push({ ...c, options: [{ value: '', label: 'Any Domain' }, ...this.domainOptions()] });
+      } else if (type === 'SUBCLASS_CARD' && c.kind === 'select' && c.key === 'associatedClassId') {
+        controls.push({ ...c, options: [{ value: '', label: 'Any Class' }, ...this.classOptions()] });
+      } else {
+        controls.push(c);
+      }
+    }
+    if (!expansionInjected) {
+      const officialIdx = controls.findIndex(c => c.kind === 'checkbox' && c.key === 'isOfficial');
+      const expansion = this.buildExpansionControl();
+      if (officialIdx >= 0) {
+        controls.splice(officialIdx, 0, expansion);
+      } else {
+        controls.push(expansion);
+      }
     }
     return controls;
   });
+
+  private buildExpansionControl(): SelectFilter {
+    return {
+      kind: 'select',
+      key: 'expansionId',
+      label: 'Expansion',
+      options: [{ value: '', label: 'All Expansions' }, ...this.expansionOptions()],
+    };
+  }
 
   getSelectValue(key: keyof SearchFilters): string {
     const val = this.filters()[key];

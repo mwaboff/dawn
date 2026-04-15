@@ -37,6 +37,8 @@ export class RefineSheet implements OnInit, AfterViewInit, OnDestroy {
   readonly filters = input<SearchFilters>({});
   readonly viewMode = input<ViewMode>('landing');
   readonly domainOptions = input<FilterOption[]>([]);
+  readonly classOptions = input<FilterOption[]>([]);
+  readonly expansionOptions = input<FilterOption[]>([]);
 
   readonly sheetClose = output<void>();
   readonly filtersChange = output<SearchFilters>();

@@ -6,11 +6,9 @@
   <div class="adversary-card__header">
     <div class="adversary-card__header-main">
       <h3 class="adversary-card__name">{{ adversary().name }}</h3>
-      <div class="adversary-card__badges">
-        <span class="adversary-card__type-badge">{{ adversary().adversaryType }}</span>
-        <span class="adversary-card__tier-badge">{{ tierLabel }}</span>
-      </div>
     </div>
+    <p class="adversary-card__subtitle">{{ adversary().adversaryType }}</p>
+    <p class="adversary-card__subtitle adversary-card__subtitle--secondary">{{ tierLabel }}</p>
   </div>
 
   <div class="adversary-card__body">

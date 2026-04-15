@@ -64,6 +64,9 @@ export class SearchService {
     if (params.associatedDomainId != null) {
       httpParams = httpParams.set('associatedDomainId', String(params.associatedDomainId));
     }
+    if (params.associatedClassId != null) {
+      httpParams = httpParams.set('associatedClassId', String(params.associatedClassId));
+    }
     if (params.trait) {
       httpParams = httpParams.set('trait', params.trait);
     }

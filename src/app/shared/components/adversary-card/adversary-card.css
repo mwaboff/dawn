@@ -7,11 +7,8 @@
 
 .adversary-card__name { font-family: var(--font-display); font-weight: 900; margin: 0; font-size: 1.4rem; color: var(--color-text-light); letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
 
-.adversary-card__badges { display: flex; align-items: center; gap: .4rem; flex-shrink: 0; }
-
-.adversary-card__type-badge { font-weight: 700; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: #c74040; background: rgba(199,64,64,.12); border: 1px solid rgba(199,64,64,.3); border-radius: 4px; padding: .2rem .5rem; }
-
-.adversary-card__tier-badge { font-family: var(--font-display); font-weight: 700; font-size: .7rem; letter-spacing: .08em; color: var(--color-accent); background: rgba(212,160,86,.1); border: 1px solid rgba(212,160,86,.25); border-radius: 4px; padding: .2rem .45rem; }
+.adversary-card__subtitle { margin: 0.25rem 0 0; font-family: var(--font-body); font-size: 1rem; color: var(--color-accent); text-transform: uppercase; letter-spacing: .12em; }
+.adversary-card__subtitle--secondary { font-size: .85rem; opacity: .75; letter-spacing: .14em; }
 
 .adversary-card__body { padding: 1rem 1.5rem 1.25rem; display: flex; flex-flow: column; gap: .75rem; }
 .adversary-card__stats { display: flex; flex-wrap: wrap; gap: .5rem; }

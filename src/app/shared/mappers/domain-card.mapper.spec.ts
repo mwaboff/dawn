@@ -34,10 +34,10 @@ describe('mapDomainCardResponseToCardData', () => {
     expect(result.name).toBe('Void Blast');
   });
 
-  it('should set cardType to domain', () => {
+  it('should set cardType to domainCard', () => {
     const result = mapDomainCardResponseToCardData(buildDomainCardResponse());
 
-    expect(result.cardType).toBe('domain');
+    expect(result.cardType).toBe('domainCard');
   });
 
   it('should set subtitle to domain name', () => {

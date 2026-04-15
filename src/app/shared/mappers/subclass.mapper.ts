@@ -14,7 +14,8 @@ function mapFeature(feature: SubclassFeatureResponse): CardFeature {
 
 export function mapSubclassResponseToCardData(response: SubclassCardResponse): CardData {
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
-  const subtitle = response.domainNames?.length
+  const subtitle = response.associatedClassName ?? undefined;
+  const subtitleSecondary = response.domainNames?.length
     ? response.domainNames.join(' · ')
     : undefined;
 
@@ -42,6 +43,7 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
     description: '',
     cardType: 'subclass',
     subtitle,
+    subtitleSecondary,
     tags,
     features: features.length > 0 ? features : undefined,
     metadata,

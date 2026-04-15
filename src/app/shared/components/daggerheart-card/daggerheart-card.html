@@ -18,6 +18,9 @@
       @if (card().subtitle) {
         <p class="card__subtitle">{{ card().subtitle }}</p>
       }
+      @if (card().subtitleSecondary) {
+        <p class="card__subtitle card__subtitle--secondary">{{ card().subtitleSecondary }}</p>
+      }
     </div>
 
     <!-- Card Body -->

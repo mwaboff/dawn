@@ -166,25 +166,39 @@ describe('mapSubclassResponseToCardData', () => {
     expect(result.features).toBeUndefined();
   });
 
-  it('should map domainNames to subtitle joined with separator', () => {
+  it('should map associatedClassName to subtitle', () => {
+    const response = buildSubclassCardResponse({ associatedClassName: 'Bard' });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.subtitle).toBe('Bard');
+  });
+
+  it('should not set subtitle when associatedClassName is undefined', () => {
+    const response = buildSubclassCardResponse({ associatedClassName: undefined });
+    const result = mapSubclassResponseToCardData(response);
+
+    expect(result.subtitle).toBeUndefined();
+  });
+
+  it('should map domainNames to subtitleSecondary joined with separator', () => {
     const response = buildSubclassCardResponse({ domainNames: ['Arcana', 'Sage'] });
     const result = mapSubclassResponseToCardData(response);
 
-    expect(result.subtitle).toBe('Arcana · Sage');
+    expect(result.subtitleSecondary).toBe('Arcana · Sage');
   });
 
-  it('should not set subtitle when domainNames is empty', () => {
+  it('should not set subtitleSecondary when domainNames is empty', () => {
     const response = buildSubclassCardResponse({ domainNames: [] });
     const result = mapSubclassResponseToCardData(response);
 
-    expect(result.subtitle).toBeUndefined();
+    expect(result.subtitleSecondary).toBeUndefined();
   });
 
-  it('should not set subtitle when domainNames is undefined', () => {
+  it('should not set subtitleSecondary when domainNames is undefined', () => {
     const response = buildSubclassCardResponse({ domainNames: undefined });
     const result = mapSubclassResponseToCardData(response);
 
-    expect(result.subtitle).toBeUndefined();
+    expect(result.subtitleSecondary).toBeUndefined();
   });
 
   it('should not set tags when no spellcastingTrait', () => {

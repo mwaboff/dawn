@@ -39,6 +39,7 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
     description: '',
     cardType: 'weapon',
     subtitle,
+    subtitleSecondary: `Tier ${response.tier}`,
     tags: [response.damage.notation, formattedRange, formattedBurden, formattedTrait],
     features: features.length > 0 ? features : undefined,
     metadata: {

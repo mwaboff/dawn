@@ -76,6 +76,14 @@ describe('CardFeatureItem', () => {
     expect(tagsContainer).toBeFalsy();
   });
 
+  it('should not render name span when name is empty', () => {
+    host.feature.set({ name: '', description: 'No name.', subtitle: 'Spell Feature' });
+    fixture.detectChanges();
+
+    const name = fixture.nativeElement.querySelector('.card__feature-name');
+    expect(name).toBeFalsy();
+  });
+
   it('should escape HTML in descriptions', () => {
     host.feature.set({ ...MOCK_FEATURE, description: '<script>alert("xss")</script>' });
     fixture.detectChanges();

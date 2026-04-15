@@ -220,10 +220,17 @@ describe('mapArmorResponseToCardData', () => {
     expect(result.metadata!['modifiers']).toEqual([]);
   });
 
-  it('should not set subtitle', () => {
+  it('should set subtitle to Armor', () => {
     const response = buildArmorResponse();
     const result = mapArmorResponseToCardData(response);
 
-    expect(result.subtitle).toBeUndefined();
+    expect(result.subtitle).toBe('Armor');
+  });
+
+  it('should set subtitleSecondary to Tier label', () => {
+    const response = buildArmorResponse({ tier: 2 });
+    const result = mapArmorResponseToCardData(response);
+
+    expect(result.subtitleSecondary).toBe('Tier 2');
   });
 });

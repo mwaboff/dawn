@@ -229,7 +229,7 @@ describe('mapSearchResult', () => {
     const result = mapSearchResult(buildBase({ type: 'DOMAIN_CARD', id: 8, name: 'Fireball', expandedEntity: domainCardEntity }));
 
     expect(result.card).toBeDefined();
-    expect(result.card!.cardType).toBe('domain');
+    expect(result.card!.cardType).toBe('domainCard');
   });
 
   it('should map DOMAIN with expandedEntity to a card via domain mapper', () => {

@@ -33,6 +33,7 @@ export interface SearchParams {
   adversaryType?: string;
   domainCardType?: string;
   associatedDomainId?: number;
+  associatedClassId?: number;
   trait?: string;
   range?: string;
   burden?: string;
@@ -68,6 +69,7 @@ export interface SearchFilters {
   adversaryType?: string;
   domainCardType?: string;
   associatedDomainId?: number;
+  associatedClassId?: number;
   trait?: string;
   range?: string;
   burden?: string;

@@ -38,7 +38,7 @@ export class AdversaryCard {
   }
 
   get tierLabel(): string {
-    return `T${this.adversary().tier}`;
+    return `Tier ${this.adversary().tier}`;
   }
 
   get damageLabel(): string {

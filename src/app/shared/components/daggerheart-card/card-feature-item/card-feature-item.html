@@ -1,6 +1,8 @@
 <div class="card__feature-item">
   <div class="card__feature-header">
-    <span class="card__feature-name">{{ feature().name }}</span>
+    @if (feature().name) {
+      <span class="card__feature-name">{{ feature().name }}</span>
+    }
     @if (feature().subtitle) {
       <span class="card__feature-subtitle">{{ feature().subtitle }}</span>
     }

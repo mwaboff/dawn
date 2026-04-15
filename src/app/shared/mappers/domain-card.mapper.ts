@@ -60,7 +60,7 @@ export function mapDomainCardResponseToCardData(response: DomainCardResponse): C
     id: response.id,
     name: response.name,
     description: buildDescription(response),
-    cardType: 'domain',
+    cardType: 'domainCard',
     subtitle: domainName || undefined,
     tags: buildTags(response),
     features: features.length > 0 ? features : undefined,

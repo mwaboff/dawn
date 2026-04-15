@@ -23,6 +23,8 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
     name: response.name,
     description: '',
     cardType: 'armor',
+    subtitle: 'Armor',
+    subtitleSecondary: `Tier ${response.tier}`,
     tags: [
       `Score: ${response.baseScore}`,
       `Major: ${response.baseMajorThreshold}+`,

@@ -73,22 +73,22 @@ describe('AdversaryCard', () => {
     expect(name.textContent.trim()).toBe('Goblin Scout');
   });
 
-  it('should render the adversary type badge', () => {
-    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
-    expect(badge.textContent.trim()).toBe('MINION');
+  it('should render the adversary type as the primary subtitle', () => {
+    const subtitle = fixture.nativeElement.querySelector('.adversary-card__subtitle:not(.adversary-card__subtitle--secondary)');
+    expect(subtitle.textContent.trim()).toBe('MINION');
   });
 
-  it('should render the tier badge as T1', () => {
-    const tier = fixture.nativeElement.querySelector('.adversary-card__tier-badge');
-    expect(tier.textContent.trim()).toBe('T1');
+  it('should render the tier as the secondary subtitle (Tier 1)', () => {
+    const tier = fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary');
+    expect(tier.textContent.trim()).toBe('Tier 1');
   });
 
-  it('should render tier badge as T2 for tier 2', () => {
+  it('should render tier as Tier 2 for tier 2', () => {
     host.adversary.set({ ...MOCK_ADVERSARY, tier: 2 });
     fixture.detectChanges();
 
-    const tier = fixture.nativeElement.querySelector('.adversary-card__tier-badge');
-    expect(tier.textContent.trim()).toBe('T2');
+    const tier = fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary');
+    expect(tier.textContent.trim()).toBe('Tier 2');
   });
 
   it('should have aria-label with name and type', () => {
