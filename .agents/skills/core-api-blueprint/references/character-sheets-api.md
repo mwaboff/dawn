@@ -1498,6 +1498,7 @@ The six core character traits in Daggerheart.
 | `PRIMARY_DAMAGE_ROLL`   | Modifies the character's primary damage roll result |
 | `ARMOR_SCORE`           | Modifies the character's armor score                |
 | `BONUS_DOMAIN_CARD_SELECTIONS` | Declarative: grants extra domain card selections at level-up / character creation. Server does not enforce counts — the client reads it and injects `FEATURE_DOMAIN_CARD` advancement entries. |
+| `BONUS_EXPERIENCE_MODIFIER`    | Declarative: grants a one-time +N bonus to a player-chosen existing experience at level-up / character creation. Server does not apply the bonus — the client reads it to prompt the player and writes the bonus into the chosen experience. |
 
 ### ModifierOperation
 

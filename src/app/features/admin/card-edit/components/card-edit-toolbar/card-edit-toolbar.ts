@@ -1,15 +1,14 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-card-edit-toolbar',
   templateUrl: './card-edit-toolbar.html',
   styleUrl: './card-edit-toolbar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ConfirmDialog],
 })
 export class CardEditToolbar {
-  private readonly platformId = inject(PLATFORM_ID);
-
   readonly hasPendingChanges = input<boolean>(false);
   readonly saving = input<boolean>(false);
   readonly deleting = input<boolean>(false);
@@ -20,6 +19,7 @@ export class CardEditToolbar {
   readonly save = output<void>();
   readonly deleteCard = output<void>();
 
+  readonly pendingDelete = signal(false);
   readonly confirmingDelete = signal(false);
 
   onBack(): void {
@@ -31,18 +31,23 @@ export class CardEditToolbar {
   }
 
   onDeleteClick(): void {
+    this.pendingDelete.set(true);
+  }
+
+  onInlineConfirm(): void {
     this.confirmingDelete.set(true);
   }
 
+  onInlineCancel(): void {
+    this.pendingDelete.set(false);
+  }
+
   onConfirmDelete(): void {
-    if (isPlatformBrowser(this.platformId) && !confirm('This action is permanent and cannot be undone. Are you absolutely sure?')) {
-      return;
-    }
-    this.confirmingDelete.set(false);
     this.deleteCard.emit();
   }
 
   onCancelDelete(): void {
     this.confirmingDelete.set(false);
+    this.pendingDelete.set(false);
   }
 }

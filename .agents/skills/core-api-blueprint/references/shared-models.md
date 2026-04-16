@@ -288,5 +288,6 @@ Character attributes that a feature modifier can affect.
 | `PRIMARY_DAMAGE_ROLL` | Modifies the character's primary damage roll result |
 | `ARMOR_SCORE` | Modifies the character's armor score |
 | `BONUS_DOMAIN_CARD_SELECTIONS` | Declarative marker — subclass features with this modifier grant additional domain card selections at character creation and level-up. The server does not enforce counts from this value; the client reads it to render extra picker slots and injects `FEATURE_DOMAIN_CARD` advancement entries into level-up requests. |
+| `BONUS_EXPERIENCE_MODIFIER` | Declarative marker — features with this modifier grant a one-time +N bonus to a player-chosen existing experience at character creation or level-up. The server does not apply the bonus; the client reads it to prompt the player to pick an experience and writes the resulting bonus into the experience itself. |
 
 **Used by:** FeatureModifier entity, FeatureModifierResponse, CreateFeatureModifierRequest, FeatureModifierInput, FeatureModifierRepository

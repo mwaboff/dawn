@@ -7,11 +7,18 @@ import {
   effect,
   inject,
   DestroyRef,
+  computed,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { RawFeatureResponse, FeatureUpdateRequest } from '../../../models/admin-api.model';
+import { RawFeatureResponse, FeatureUpdateRequest, FeatureInput } from '../../../models/admin-api.model';
 import { CostTagLookupService, CostTagFull } from '../../../../../shared/services/cost-tag-lookup.service';
+import {
+  FeatureType,
+  FEATURE_TYPE_LABELS,
+  defaultFeatureTypeForCard,
+} from '../../../../../shared/models/feature-type.model';
+import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
 
 const MODIFIER_TARGETS = [
   'AGILITY', 'STRENGTH', 'FINESSE', 'INSTINCT', 'PRESENCE', 'KNOWLEDGE',
@@ -27,6 +34,7 @@ const COST_TAG_CATEGORIES = ['COST', 'LIMITATION', 'TIMING'] as const;
 
 export interface EditableFeature {
   id: number;
+  isNew: boolean;
   pristine: RawFeatureResponse;
   form: FormGroup;
   expanded: boolean;
@@ -45,7 +53,7 @@ export interface EditableFeature {
   templateUrl: './card-edit-features.html',
   styleUrl: './card-edit-features.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ConfirmDialog],
 })
 export class CardEditFeatures {
   private readonly fb = inject(FormBuilder);
@@ -55,8 +63,15 @@ export class CardEditFeatures {
   readonly features = input<RawFeatureResponse[]>([]);
   readonly saving = input<boolean>(false);
   readonly groupByType = input<boolean>(false);
+  readonly cardType = input<string>('');
+  readonly expansionId = input<number>(0);
 
   readonly featureDirtyChanged = output<void>();
+  readonly deleteFeature = output<number>();
+
+  readonly pendingDeleteId = signal<number | null>(null);
+  readonly confirmingDeleteId = signal<number | null>(null);
+  readonly deletingId = signal<number | null>(null);
 
   private readonly editableFeatures = signal<EditableFeature[]>([]);
   readonly availableCostTags = signal<CostTagFull[]>([]);
@@ -69,6 +84,13 @@ export class CardEditFeatures {
   readonly modifierTargets = MODIFIER_TARGETS;
   readonly modifierOperations = MODIFIER_OPERATIONS;
   readonly costTagCategories = COST_TAG_CATEGORIES;
+
+  readonly featureTypeOptions = computed(() =>
+    (Object.keys(FEATURE_TYPE_LABELS) as FeatureType[]).map(value => ({
+      value,
+      label: FEATURE_TYPE_LABELS[value],
+    })),
+  );
 
   constructor() {
     effect(() => this.populateFeatures(this.features()));
@@ -104,7 +126,16 @@ export class CardEditFeatures {
     return this.editableFeatures().filter(f => this.isDirty(f));
   }
 
+  getDraftFeatures(): EditableFeature[] {
+    return this.editableFeatures().filter(f => f.isNew);
+  }
+
+  getExistingDirtyFeatures(): EditableFeature[] {
+    return this.editableFeatures().filter(f => !f.isNew && this.isDirty(f));
+  }
+
   isDirty(feature: EditableFeature): boolean {
+    if (feature.isNew) return true;
     return feature.form.dirty || feature.tagsDirty || feature.modifiersDirty;
   }
 
@@ -118,6 +149,69 @@ export class CardEditFeatures {
       costTags: feature.costTags,
       modifiers: feature.modifiers,
     };
+  }
+
+  buildNewFeaturePayload(feature: EditableFeature): FeatureInput {
+    const fv = feature.form.getRawValue();
+    return {
+      name: fv.name,
+      description: fv.description,
+      featureType: fv.featureType,
+      expansionId: this.expansionId(),
+      costTags: feature.costTags,
+      modifiers: feature.modifiers,
+    };
+  }
+
+  addDraft(): void {
+    const defaultType = defaultFeatureTypeForCard(this.cardType());
+    const form = this.fb.nonNullable.group({
+      name: [''],
+      description: [''],
+      featureType: [defaultType as FeatureType],
+    });
+    form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.featureDirtyChanged.emit());
+
+    const pristine: RawFeatureResponse = {
+      id: 0,
+      name: '',
+      description: '',
+      featureType: defaultType,
+      expansionId: this.expansionId(),
+      costTagIds: [],
+      modifierIds: [],
+      costTags: [],
+      modifiers: [],
+    };
+
+    const draft: EditableFeature = {
+      id: 0,
+      isNew: true,
+      pristine,
+      form,
+      expanded: true,
+      costTags: [],
+      modifiers: [],
+      tagsDirty: false,
+      modifiersDirty: false,
+      showAddTag: false,
+      showAddModifier: false,
+      addTagForm: this.fb.group({ newLabel: [''], newCategory: ['COST'] }),
+      addModifierForm: this.fb.group({ target: ['AGILITY'], operation: ['ADD'], value: [0] }),
+    };
+
+    this.editableFeatures.update(fs => [draft, ...fs]);
+    this.featureDirtyChanged.emit();
+  }
+
+  discardDraft(index: number): void {
+    const current = this.editableFeatures();
+    if (index < 0 || index >= current.length) return;
+    if (!current[index].isNew) return;
+    this.editableFeatures.update(fs => fs.filter((_, i) => i !== index));
+    this.featureDirtyChanged.emit();
   }
 
   toggleFeature(index: number): void {
@@ -189,18 +283,53 @@ export class CardEditFeatures {
     this.featureDirtyChanged.emit();
   }
 
+  onDeleteFeatureClick(event: Event, id: number): void {
+    event.stopPropagation();
+    this.pendingDeleteId.set(id);
+  }
+
+  onInlineDeleteConfirm(event: Event): void {
+    event.stopPropagation();
+    this.confirmingDeleteId.set(this.pendingDeleteId());
+  }
+
+  onInlineDeleteCancel(event: Event): void {
+    event.stopPropagation();
+    this.pendingDeleteId.set(null);
+  }
+
+  onConfirmDelete(): void {
+    const id = this.confirmingDeleteId();
+    if (id !== null) {
+      this.deletingId.set(id);
+      this.deleteFeature.emit(id);
+    }
+  }
+
+  onCancelDelete(): void {
+    this.confirmingDeleteId.set(null);
+    this.pendingDeleteId.set(null);
+  }
+
+  resetDeleteState(): void {
+    this.pendingDeleteId.set(null);
+    this.confirmingDeleteId.set(null);
+    this.deletingId.set(null);
+  }
+
   private populateFeatures(rawFeatures: RawFeatureResponse[]): void {
     this.editableFeatures.set(rawFeatures.map(f => {
       const form = this.fb.nonNullable.group({
         name: [f.name],
         description: [f.description],
-        featureType: [f.featureType],
+        featureType: [f.featureType as FeatureType],
       });
       form.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.featureDirtyChanged.emit());
       return {
         id: f.id,
+        isNew: false,
         pristine: { ...f },
         form,
         expanded: false,

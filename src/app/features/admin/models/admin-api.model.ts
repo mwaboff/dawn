@@ -1,3 +1,5 @@
+import { FeatureType } from '../../../shared/models/feature-type.model';
+
 export interface RawCardResponse {
   id: number;
   name: string;
@@ -21,7 +23,7 @@ export interface RawFeatureResponse {
   id: number;
   name: string;
   description: string;
-  featureType: string;
+  featureType: FeatureType;
   expansionId: number;
   costTagIds: number[];
   modifierIds: number[];
@@ -45,8 +47,10 @@ export interface RawModifier {
 export interface FeatureUpdateRequest {
   name: string;
   description: string;
-  featureType: string;
+  featureType: FeatureType;
   expansionId: number;
   costTags?: { label: string; category: string }[];
   modifiers?: { target: string; operation: string; value: number }[];
 }
+
+export type FeatureInput = FeatureUpdateRequest;
