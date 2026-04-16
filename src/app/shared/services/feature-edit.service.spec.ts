@@ -45,6 +45,14 @@ describe('FeatureEditService', () => {
     req.flush({ id: 42, ...body, costTagIds: [], modifierIds: [] });
   });
 
+  it('should DELETE feature at correct endpoint', () => {
+    service.deleteFeature(42).subscribe();
+
+    const req = httpMock.expectOne('http://localhost:8080/api/dh/features/42');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
   it('should include costTags and modifiers in request', () => {
     const body: FeatureUpdateRequest = {
       name: 'Feature',

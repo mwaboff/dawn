@@ -1,7 +1,36 @@
-.features-section {
+.features-toolbar {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(212, 160, 86, 0.2);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-add-feature {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: 1px solid rgba(212, 160, 86, 0.4);
+  border-radius: 4px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-feature:hover:not(:disabled) {
+  background: rgba(212, 160, 86, 0.12);
+  border-color: var(--color-accent);
+}
+
+.btn-add-feature:disabled,
+.btn-discard:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.features-section {
+  margin-top: 1rem;
 }
 
 .features-title {
@@ -21,6 +50,120 @@
 
 .feature-item--dirty {
   border-color: rgba(212, 160, 86, 0.5);
+}
+
+.feature-item--new {
+  border-color: rgba(212, 160, 86, 0.6);
+  border-left-width: 3px;
+  background: rgba(212, 160, 86, 0.03);
+}
+
+.feature-header-row {
+  display: flex;
+}
+
+.feature-header-row .feature-header {
+  flex: 1;
+}
+
+.btn-discard {
+  padding: 0 1rem;
+  background: none;
+  border: none;
+  border-left: 1px solid rgba(212, 160, 86, 0.2);
+  color: rgba(212, 160, 86, 0.6);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn-discard:hover:not(:disabled) {
+  color: #c47a7a;
+}
+
+.btn-delete-feature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-left: 1px solid rgba(212, 160, 86, 0.2);
+  color: rgba(212, 160, 86, 0.55);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.btn-delete-feature svg { width: 16px; height: 16px; }
+
+.btn-delete-feature:hover:not(:disabled) {
+  color: #c47a7a;
+  background: rgba(196, 122, 122, 0.08);
+}
+
+.btn-delete-feature:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.feature-inline-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.75rem;
+  border-left: 1px solid rgba(212, 160, 86, 0.2);
+}
+
+.feature-inline-confirm-text {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: #c47a7a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.feature-inline-confirm-btn,
+.feature-inline-cancel-btn {
+  padding: 0.2rem 0.5rem;
+  background: none;
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.feature-inline-confirm-btn:hover:not(:disabled) {
+  color: #c47a7a;
+  border-color: rgba(196, 122, 122, 0.6);
+  background: rgba(196, 122, 122, 0.1);
+}
+
+.feature-inline-cancel-btn:hover:not(:disabled) {
+  color: var(--color-accent);
+  border-color: rgba(212, 160, 86, 0.6);
+  background: rgba(212, 160, 86, 0.08);
+}
+
+.feature-inline-confirm-btn:disabled,
+.feature-inline-cancel-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.feature-new-chip {
+  padding: 0.15rem 0.5rem;
+  background: rgba(212, 160, 86, 0.1);
+  border: 1px solid rgba(212, 160, 86, 0.5);
+  border-radius: 3px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.form-select {
+  cursor: pointer;
 }
 
 .feature-header {

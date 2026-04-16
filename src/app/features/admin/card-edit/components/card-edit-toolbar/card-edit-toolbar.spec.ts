@@ -108,17 +108,18 @@ describe('CardEditToolbar', () => {
     it('renders the delete ghost button initially', () => {
       expect(el.querySelector('.btn--danger-ghost')).toBeTruthy();
       expect(el.querySelector('.delete-confirm')).toBeNull();
+      expect(el.querySelector('app-confirm-dialog')).toBeNull();
     });
 
-    it('shows confirmation strip when delete is clicked', () => {
-      const btn = el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!;
-      btn.click();
+    it('shows inline confirmation strip when delete is clicked', () => {
+      el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
       fixture.detectChanges();
       expect(el.querySelector('.delete-confirm')).toBeTruthy();
       expect(el.querySelector('.delete-confirm-text')?.textContent?.trim()).toBe('Delete this card?');
+      expect(el.querySelector('app-confirm-dialog')).toBeNull();
     });
 
-    it('hides confirmation strip when cancel is clicked', () => {
+    it('hides inline strip when inline cancel is clicked', () => {
       el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
       fixture.detectChanges();
 
@@ -130,42 +131,54 @@ describe('CardEditToolbar', () => {
       expect(el.querySelector('.btn--danger-ghost')).toBeTruthy();
     });
 
-    it('emits deleteCard and shows browser confirm on confirm click', () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
-
+    it('opens ConfirmDialog when inline Confirm is clicked', () => {
       el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
       fixture.detectChanges();
 
       el.querySelector<HTMLButtonElement>('.btn--danger')!.click();
       fixture.detectChanges();
 
-      expect(window.confirm).toHaveBeenCalled();
-      expect(host.deleteSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not emit deleteCard when browser confirm is cancelled', () => {
-      vi.spyOn(window, 'confirm').mockReturnValue(false);
-
-      el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
-      fixture.detectChanges();
-
-      el.querySelector<HTMLButtonElement>('.btn--danger')!.click();
-      fixture.detectChanges();
-
-      expect(window.confirm).toHaveBeenCalled();
+      expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
       expect(host.deleteSpy).not.toHaveBeenCalled();
     });
 
-    it('shows "Deleting..." label when deleting is true', () => {
+    it('emits deleteCard when ConfirmDialog is confirmed', () => {
+      el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.btn--danger')!.click();
+      fixture.detectChanges();
+
+      const confirmBtn = el.querySelector<HTMLButtonElement>('.dialog-btn--confirm')!;
+      confirmBtn.click();
+      fixture.detectChanges();
+
+      expect(host.deleteSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not emit deleteCard when ConfirmDialog is cancelled', () => {
+      el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.btn--danger')!.click();
+      fixture.detectChanges();
+
+      const cancelBtn = el.querySelector<HTMLButtonElement>('.dialog-btn--cancel')!;
+      cancelBtn.click();
+      fixture.detectChanges();
+
+      expect(host.deleteSpy).not.toHaveBeenCalled();
+      expect(el.querySelector('app-confirm-dialog')).toBeNull();
+    });
+
+    it('shows "Deleting..." label on inline Confirm button when deleting is true', () => {
       el.querySelector<HTMLButtonElement>('.btn--danger-ghost')!.click();
       fixture.detectChanges();
 
       host.deleting.set(true);
       fixture.detectChanges();
 
-      const confirmBtn = el.querySelector<HTMLButtonElement>('.btn--danger')!;
-      expect(confirmBtn.textContent?.trim()).toBe('Deleting...');
-      expect(confirmBtn.disabled).toBe(true);
+      const inlineConfirmBtn = el.querySelector<HTMLButtonElement>('.btn--danger')!;
+      expect(inlineConfirmBtn.textContent?.trim()).toBe('Deleting...');
+      expect(inlineConfirmBtn.disabled).toBe(true);
     });
 
     it('is disabled when saving', () => {

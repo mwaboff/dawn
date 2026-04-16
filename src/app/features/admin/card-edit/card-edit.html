@@ -39,7 +39,10 @@
         [features]="rawFeatures()"
         [saving]="saving()"
         [groupByType]="cardType() === 'class'"
+        [cardType]="cardType()"
+        [expansionId]="rawCard()?.expansionId ?? 0"
         (featureDirtyChanged)="bumpFormVersion()"
+        (deleteFeature)="onDeleteFeature($event)"
         #featuresRef
       />
 

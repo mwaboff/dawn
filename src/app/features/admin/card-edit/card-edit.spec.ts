@@ -6,7 +6,9 @@ import { of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { CardEdit } from './card-edit';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
+import { FeatureEditService } from '../../../shared/services/feature-edit.service';
 import { AdminLookupService } from './services/admin-lookup.service';
+import { RawFeatureResponse } from '../models/admin-api.model';
 import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
 import { By } from '@angular/platform-browser';
 
@@ -323,6 +325,107 @@ describe('CardEdit — schema-driven orchestrator', () => {
     });
   });
 
+  describe('onSave — with draft features', () => {
+    const DOMAIN_CARD_RAW_WITH_FEATURE = {
+      ...DOMAIN_CARD_RAW,
+      features: [
+        {
+          id: 77,
+          name: 'Existing',
+          description: 'Existing desc',
+          featureType: 'DOMAIN',
+          expansionId: 1,
+          costTagIds: [],
+          modifierIds: [],
+          costTags: [],
+          modifiers: [],
+        },
+      ],
+    };
+
+    it('issues a single updateCard call with features array when only a draft is present', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW_WITH_FEATURE);
+      const updateSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
+      vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(DOMAIN_CARD_RAW_WITH_FEATURE));
+
+      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      featuresComp.addDraft();
+      const draft = featuresComp.getEditableFeatures()[0];
+      draft.form.patchValue({ name: 'Draft Name', description: 'Draft Desc' });
+
+      component.onSave();
+
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+      const [, , body] = updateSpy.mock.calls[0];
+      const b = body as Record<string, unknown>;
+      const features = b['features'] as Record<string, unknown>[];
+      expect(features.length).toBe(1);
+      expect(features[0]['name']).toBe('Draft Name');
+      expect(features[0]['featureType']).toBe('DOMAIN');
+      expect(features[0]['id']).toBeUndefined();
+      expect(b['featureIds']).toEqual([77]);
+    });
+
+    it('routes draft + existing feature edit into separate PUT calls', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW_WITH_FEATURE);
+      const updateCardSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
+      const featureEditService = TestBed.inject(FeatureEditService);
+      const updateFeatureSpy = vi.spyOn(featureEditService, 'updateFeature').mockReturnValue(of({} as RawFeatureResponse));
+      vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(DOMAIN_CARD_RAW_WITH_FEATURE));
+
+      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      featuresComp.addDraft();
+      const draft = featuresComp.getEditableFeatures()[0];
+      draft.form.patchValue({ name: 'Draft', description: 'D' });
+      const existing = featuresComp.getEditableFeatures()[1];
+      existing.form.get('name')?.setValue('Edited');
+      existing.form.get('name')?.markAsDirty();
+
+      component.onSave();
+
+      expect(updateCardSpy).toHaveBeenCalledTimes(1);
+      expect(updateFeatureSpy).toHaveBeenCalledTimes(1);
+      expect(updateFeatureSpy).toHaveBeenCalledWith(77, expect.objectContaining({ name: 'Edited' }));
+    });
+
+    it('does not call updateCard when drafts are discarded and no other changes exist', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW);
+      const updateSpy = vi.spyOn(adminCardService, 'updateCard');
+
+      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      featuresComp.addDraft();
+      featuresComp.discardDraft(0);
+
+      component.onSave();
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('splits class-card drafts by featureType into hopeFeatures/classFeatures', async () => {
+      await setup('class', CLASS_CARD_WITH_SPLIT_FEATURES);
+      const updateSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
+      vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(CLASS_CARD_WITH_SPLIT_FEATURES));
+
+      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      featuresComp.addDraft();
+      featuresComp.getEditableFeatures()[0].form.patchValue({ name: 'Class Draft', featureType: 'CLASS' });
+      featuresComp.addDraft();
+      featuresComp.getEditableFeatures()[0].form.patchValue({ name: 'Hope Draft', featureType: 'HOPE' });
+
+      component.onSave();
+
+      const [, , body] = updateSpy.mock.calls[0];
+      const b = body as Record<string, unknown>;
+      expect((b['hopeFeatures'] as unknown[]).length).toBe(1);
+      expect((b['classFeatures'] as unknown[]).length).toBe(1);
+      expect((b['hopeFeatures'] as Record<string, unknown>[])[0]['name']).toBe('Hope Draft');
+      expect((b['classFeatures'] as Record<string, unknown>[])[0]['name']).toBe('Class Draft');
+      expect(b['features']).toBeUndefined();
+      expect(b['hopeFeatureIds']).toEqual([100]);
+      expect(b['classFeatureIds']).toEqual([200]);
+    });
+  });
+
   describe('onDelete', () => {
     it('calls deleteCard and navigates to /admin/cards on success', async () => {
       await setup();
@@ -356,6 +459,62 @@ describe('CardEdit — schema-driven orchestrator', () => {
       component.onDelete();
 
       expect(component.error()).toBe('Delete failed. Please try again.');
+    });
+  });
+
+  describe('onDeleteFeature', () => {
+    const DOMAIN_CARD_RAW_WITH_FEATURE = {
+      ...DOMAIN_CARD_RAW,
+      features: [
+        {
+          id: 77,
+          name: 'Existing',
+          description: 'Existing desc',
+          featureType: 'DOMAIN',
+          expansionId: 1,
+          costTagIds: [],
+          modifierIds: [],
+          costTags: [],
+          modifiers: [],
+        },
+      ],
+    };
+
+    it('calls FeatureEditService.deleteFeature with id and reloads card on success', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW_WITH_FEATURE);
+      const featureEditService = TestBed.inject(FeatureEditService);
+      const deleteSpy = vi.spyOn(featureEditService, 'deleteFeature').mockReturnValue(of(void 0 as void));
+      const reloadSpy = vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(DOMAIN_CARD_RAW));
+
+      component.onDeleteFeature(77);
+      await fixture.whenStable();
+
+      expect(deleteSpy).toHaveBeenCalledWith(77);
+      expect(reloadSpy).toHaveBeenCalled();
+    });
+
+    it('sets error banner when delete fails', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW_WITH_FEATURE);
+      const featureEditService = TestBed.inject(FeatureEditService);
+      vi.spyOn(featureEditService, 'deleteFeature').mockReturnValue(
+        throwError(() => ({ error: { message: 'Cannot delete feature' } }))
+      );
+
+      component.onDeleteFeature(77);
+      await fixture.whenStable();
+
+      expect(component.error()).toBe('Cannot delete feature');
+    });
+
+    it('shows fallback message when error has no message', async () => {
+      await setup('domainCard', DOMAIN_CARD_RAW_WITH_FEATURE);
+      const featureEditService = TestBed.inject(FeatureEditService);
+      vi.spyOn(featureEditService, 'deleteFeature').mockReturnValue(throwError(() => ({})));
+
+      component.onDeleteFeature(77);
+      await fixture.whenStable();
+
+      expect(component.error()).toBe('Delete feature failed. Please try again.');
     });
   });
 

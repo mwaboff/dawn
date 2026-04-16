@@ -31,7 +31,7 @@ const mockFeatureWithTags: RawFeatureResponse = {
   id: 20,
   name: 'Feature B',
   description: 'Desc B',
-  featureType: 'ABILITY',
+  featureType: 'OTHER',
   expansionId: 1,
   costTagIds: [1],
   modifierIds: [1],
@@ -51,9 +51,9 @@ const mockHopeFeature: RawFeatureResponse = {
   modifiers: [],
 };
 
-function createHostFor(features: RawFeatureResponse[], groupByType = false) {
+function createHostFor(features: RawFeatureResponse[], groupByType = false, cardType = '', expansionId = 1) {
   @Component({
-    template: '<app-card-edit-features [features]="features" [saving]="saving" [groupByType]="groupByType" (featureDirtyChanged)="onDirtyChanged()" />',
+    template: '<app-card-edit-features [features]="features" [saving]="saving" [groupByType]="groupByType" [cardType]="cardType" [expansionId]="expansionId" (featureDirtyChanged)="onDirtyChanged()" (deleteFeature)="onDeleteFeature($event)" />',
     imports: [CardEditFeatures],
     host: { 'data-testid': Math.random().toString(36) },
   })
@@ -61,9 +61,15 @@ function createHostFor(features: RawFeatureResponse[], groupByType = false) {
     features: RawFeatureResponse[] = features;
     saving = false;
     groupByType = groupByType;
+    cardType = cardType;
+    expansionId = expansionId;
     dirtyChangedCount = 0;
+    deletedFeatureIds: number[] = [];
     onDirtyChanged(): void {
       this.dirtyChangedCount++;
+    }
+    onDeleteFeature(id: number): void {
+      this.deletedFeatureIds.push(id);
     }
   }
   return HostComponent;
@@ -193,11 +199,11 @@ describe('CardEditFeatures', () => {
 
     it('buildFeaturePayload should use form values for name, description, featureType', () => {
       const editableFeatures = component.getEditableFeatures();
-      editableFeatures[0].form.patchValue({ name: 'Updated Name', description: 'Updated Desc', featureType: 'ABILITY' });
+      editableFeatures[0].form.patchValue({ name: 'Updated Name', description: 'Updated Desc', featureType: 'OTHER' });
       const payload = component.buildFeaturePayload(editableFeatures[0]);
       expect(payload.name).toBe('Updated Name');
       expect(payload.description).toBe('Updated Desc');
-      expect(payload.featureType).toBe('ABILITY');
+      expect(payload.featureType).toBe('OTHER');
     });
 
     it('isDirty should return false initially', () => {
@@ -537,6 +543,365 @@ describe('CardEditFeatures', () => {
       component.addCostTag(0);
       expect(component.getEditableFeatures()[0].costTags.length).toBe(1);
       expect(component.getEditableFeatures()[1].costTags.length).toBe(1);
+    });
+  });
+
+  describe('feature type select', () => {
+    const HostComponent = createHostFor([mockFeature]);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+    });
+
+    it('renders a select with all 8 FeatureType options when a feature is expanded', () => {
+      const header = hostFixture.nativeElement.querySelector('.feature-header');
+      header.click();
+      hostFixture.detectChanges();
+      const options = hostFixture.nativeElement.querySelectorAll('.form-select option');
+      expect(options.length).toBe(8);
+    });
+
+    it('renders human-readable labels for feature types', () => {
+      const header = hostFixture.nativeElement.querySelector('.feature-header');
+      header.click();
+      hostFixture.detectChanges();
+      const options = Array.from(hostFixture.nativeElement.querySelectorAll('.form-select option')) as HTMLOptionElement[];
+      const labels = options.map(o => o.textContent?.trim());
+      expect(labels).toContain('Hope');
+      expect(labels).toContain('Class');
+      expect(labels).toContain('Domain');
+      expect(labels).toContain('Other');
+    });
+  });
+
+  describe('draft creation (+ New Feature)', () => {
+    const HostComponent = createHostFor([], false, 'domainCard', 7);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let host: InstanceType<typeof HostComponent>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      host = hostFixture.componentInstance;
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('renders the + New Feature toolbar button even when feature list is empty', () => {
+      const btn = hostFixture.nativeElement.querySelector('.btn-add-feature');
+      expect(btn).not.toBeNull();
+      expect(btn.textContent.trim()).toBe('+ New Feature');
+    });
+
+    it('addDraft prepends an isNew feature to the list', () => {
+      component.addDraft();
+      const features = component.getEditableFeatures();
+      expect(features.length).toBe(1);
+      expect(features[0].isNew).toBe(true);
+    });
+
+    it('draft defaults feature type based on cardType (domainCard -> DOMAIN)', () => {
+      component.addDraft();
+      const draft = component.getEditableFeatures()[0];
+      expect(draft.form.getRawValue().featureType).toBe('DOMAIN');
+    });
+
+    it('draft is expanded by default', () => {
+      component.addDraft();
+      const draft = component.getEditableFeatures()[0];
+      expect(draft.expanded).toBe(true);
+    });
+
+    it('draft uses provided expansionId as pristine expansionId', () => {
+      component.addDraft();
+      const draft = component.getEditableFeatures()[0];
+      expect(draft.pristine.expansionId).toBe(7);
+    });
+
+    it('draft is considered dirty immediately', () => {
+      component.addDraft();
+      const draft = component.getEditableFeatures()[0];
+      expect(component.isDirty(draft)).toBe(true);
+    });
+
+    it('draft appears in getDirtyFeatures and getDraftFeatures', () => {
+      component.addDraft();
+      expect(component.getDirtyFeatures().length).toBe(1);
+      expect(component.getDraftFeatures().length).toBe(1);
+    });
+
+    it('discardDraft removes the draft by index', () => {
+      component.addDraft();
+      expect(component.getEditableFeatures().length).toBe(1);
+      component.discardDraft(0);
+      expect(component.getEditableFeatures().length).toBe(0);
+    });
+
+    it('clicking + New Feature renders a feature-item with feature-item--new class', () => {
+      const btn = hostFixture.nativeElement.querySelector('.btn-add-feature');
+      btn.click();
+      hostFixture.detectChanges();
+      const newItem = hostFixture.nativeElement.querySelector('.feature-item--new');
+      expect(newItem).not.toBeNull();
+    });
+
+    it('draft header shows a NEW chip', () => {
+      component.addDraft();
+      hostFixture.detectChanges();
+      const chip = hostFixture.nativeElement.querySelector('.feature-new-chip');
+      expect(chip).not.toBeNull();
+      expect(chip.textContent.trim()).toBe('NEW');
+    });
+
+    it('draft renders a Discard button instead of the toggle indicator', () => {
+      component.addDraft();
+      hostFixture.detectChanges();
+      const discard = hostFixture.nativeElement.querySelector('.btn-discard');
+      expect(discard).not.toBeNull();
+    });
+
+    it('buildNewFeaturePayload returns a payload without an id and with expansionId from input', () => {
+      component.addDraft();
+      const draft = component.getEditableFeatures()[0];
+      draft.form.patchValue({ name: 'My New Feature', description: 'Does a thing' });
+      const payload = component.buildNewFeaturePayload(draft);
+      expect(payload).toEqual({
+        name: 'My New Feature',
+        description: 'Does a thing',
+        featureType: 'DOMAIN',
+        expansionId: 7,
+        costTags: [],
+        modifiers: [],
+      });
+      expect((payload as unknown as Record<string, unknown>)['id']).toBeUndefined();
+    });
+
+    it('emits featureDirtyChanged when a draft is added', () => {
+      const prevCount = host.dirtyChangedCount;
+      component.addDraft();
+      expect(host.dirtyChangedCount).toBeGreaterThan(prevCount);
+    });
+
+    it('emits featureDirtyChanged when a draft is discarded', () => {
+      component.addDraft();
+      const prevCount = host.dirtyChangedCount;
+      component.discardDraft(0);
+      expect(host.dirtyChangedCount).toBeGreaterThan(prevCount);
+    });
+  });
+
+  describe('discardDraft on existing features', () => {
+    const HostComponent = createHostFor([mockFeature], false, 'domainCard', 1);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('is a no-op on non-draft features', () => {
+      expect(component.getEditableFeatures().length).toBe(1);
+      component.discardDraft(0);
+      expect(component.getEditableFeatures().length).toBe(1);
+    });
+  });
+
+  describe('draft creation with ancestry cardType', () => {
+    const HostComponent = createHostFor([], false, 'ancestry', 2);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('defaults draft featureType to ANCESTRY', () => {
+      component.addDraft();
+      expect(component.getEditableFeatures()[0].form.getRawValue().featureType).toBe('ANCESTRY');
+    });
+  });
+
+  describe('draft creation with unknown cardType', () => {
+    const HostComponent = createHostFor([], false, 'adversary', 2);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('falls back to OTHER', () => {
+      component.addDraft();
+      expect(component.getEditableFeatures()[0].form.getRawValue().featureType).toBe('OTHER');
+    });
+  });
+
+  describe('feature deletion', () => {
+    const HostComponent = createHostFor([mockFeature, mockFeatureWithTags]);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let host: InstanceType<typeof HostComponent>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      host = hostFixture.componentInstance;
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('renders a trash delete button for existing features', () => {
+      const buttons = hostFixture.nativeElement.querySelectorAll('.btn-delete-feature');
+      expect(buttons.length).toBe(2);
+    });
+
+    it('does not render a trash button for draft features', () => {
+      component.addDraft();
+      hostFixture.detectChanges();
+      const deleteButtons = hostFixture.nativeElement.querySelectorAll('.btn-delete-feature');
+      expect(deleteButtons.length).toBe(2);
+      const discardButton = hostFixture.nativeElement.querySelector('.btn-discard');
+      expect(discardButton).not.toBeNull();
+    });
+
+    it('shows inline Delete? strip when trash button is clicked', () => {
+      const deleteBtn = (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement);
+      deleteBtn.click();
+      hostFixture.detectChanges();
+      const inlineConfirm = hostFixture.nativeElement.querySelector('.feature-inline-confirm');
+      expect(inlineConfirm).not.toBeNull();
+      expect(hostFixture.nativeElement.querySelector('.feature-inline-confirm-text')?.textContent?.trim()).toBe('Delete?');
+    });
+
+    it('does not open modal on first click', () => {
+      const deleteBtn = (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement);
+      deleteBtn.click();
+      hostFixture.detectChanges();
+      expect(hostFixture.nativeElement.querySelector('app-confirm-dialog')).toBeNull();
+    });
+
+    it('hides inline strip when No is clicked', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-cancel-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      expect(hostFixture.nativeElement.querySelector('.feature-inline-confirm')).toBeNull();
+    });
+
+    it('opens ConfirmDialog when Yes is clicked', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-confirm-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      expect(hostFixture.nativeElement.querySelector('app-confirm-dialog')).not.toBeNull();
+      expect(host.deletedFeatureIds.length).toBe(0);
+    });
+
+    it('emits deleteFeature with correct id on modal confirm', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-confirm-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.dialog-btn--confirm') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      expect(host.deletedFeatureIds).toEqual([mockFeature.id]);
+    });
+
+    it('does not emit deleteFeature when modal cancel is clicked', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-confirm-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.dialog-btn--cancel') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      expect(host.deletedFeatureIds.length).toBe(0);
+      expect(hostFixture.nativeElement.querySelector('app-confirm-dialog')).toBeNull();
+    });
+
+    it('sets deletingId and disables modal buttons while deleting', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-confirm-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.dialog-btn--confirm') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      expect(component.deletingId()).toBe(mockFeature.id);
+    });
+
+    it('resetDeleteState clears all delete signals', () => {
+      (hostFixture.nativeElement.querySelectorAll('.btn-delete-feature')[0] as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      (hostFixture.nativeElement.querySelector('.feature-inline-confirm-btn') as HTMLButtonElement).click();
+      hostFixture.detectChanges();
+      component.resetDeleteState();
+      expect(component.pendingDeleteId()).toBeNull();
+      expect(component.confirmingDeleteId()).toBeNull();
+      expect(component.deletingId()).toBeNull();
+    });
+
+  });
+
+  describe('getExistingDirtyFeatures', () => {
+    const HostComponent = createHostFor([mockFeature], false, 'domainCard', 1);
+    let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
+    let component: CardEditFeatures;
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers,
+      }).compileComponents();
+
+      hostFixture = TestBed.createComponent(HostComponent);
+      hostFixture.detectChanges();
+      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+    });
+
+    it('excludes drafts from getExistingDirtyFeatures', () => {
+      component.addDraft();
+      const existing = component.getEditableFeatures()[1];
+      existing.form.get('name')?.setValue('Edited');
+      existing.form.get('name')?.markAsDirty();
+      const existingDirty = component.getExistingDirtyFeatures();
+      expect(existingDirty.length).toBe(1);
+      expect(existingDirty[0].id).toBe(mockFeature.id);
     });
   });
 });

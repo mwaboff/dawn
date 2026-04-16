@@ -1,30 +1,63 @@
+<div class="features-toolbar">
+  <button type="button" class="btn-add-feature" (click)="addDraft()" [disabled]="saving()">+ New Feature</button>
+</div>
 @if (getEditableFeatures().length > 0) {
   @for (group of getFeatureGroups(); track group.label) {
     <div class="features-section">
       <h3 class="features-title">{{ group.label }}</h3>
-      @for (feature of group.features; track feature.id) {
-        <div class="feature-item" [class.feature-item--dirty]="isDirty(feature)">
-          <button type="button" class="feature-header" (click)="toggleFeature(getGlobalIndex(feature))" [attr.aria-expanded]="feature.expanded">
-            <span class="feature-name">{{ feature.form.getRawValue().name }}</span>
-            @if (isDirty(feature)) {
-              <span class="feature-dirty-dot"></span>
+      @for (feature of group.features; track feature.isNew ? ('draft-' + getGlobalIndex(feature)) : feature.id) {
+        <div class="feature-item" [class.feature-item--dirty]="isDirty(feature)" [class.feature-item--new]="feature.isNew">
+          <div class="feature-header-row">
+            <button type="button" class="feature-header" (click)="toggleFeature(getGlobalIndex(feature))" [attr.aria-expanded]="feature.expanded">
+              <span class="feature-name">{{ feature.form.getRawValue().name || (feature.isNew ? 'New feature' : '') }}</span>
+              @if (feature.isNew) {
+                <span class="feature-new-chip">NEW</span>
+              } @else if (isDirty(feature)) {
+                <span class="feature-dirty-dot"></span>
+              }
+              @if (!feature.isNew) {
+                <span class="feature-toggle">{{ feature.expanded ? '−' : '+' }}</span>
+              }
+            </button>
+            @if (feature.isNew) {
+              <button type="button" class="btn-discard" (click)="discardDraft(getGlobalIndex(feature))" [disabled]="saving()">Discard</button>
+            } @else if (pendingDeleteId() === feature.id) {
+              <span class="feature-inline-confirm">
+                <span class="feature-inline-confirm-text">Delete?</span>
+                <button type="button" class="feature-inline-confirm-btn" (click)="onInlineDeleteConfirm($event)" [disabled]="saving()">Yes</button>
+                <button type="button" class="feature-inline-cancel-btn" (click)="onInlineDeleteCancel($event)" [disabled]="saving()">No</button>
+              </span>
+            } @else {
+              <button
+                type="button"
+                class="btn-delete-feature"
+                [disabled]="saving()"
+                [attr.aria-label]="'Delete ' + (feature.form.getRawValue().name || 'feature')"
+                (click)="onDeleteFeatureClick($event, feature.id)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+              </button>
             }
-            <span class="feature-toggle">{{ feature.expanded ? '−' : '+' }}</span>
-          </button>
+          </div>
           @if (feature.expanded) {
             <div class="feature-body">
               <form [formGroup]="feature.form">
                 <div class="form-group">
-                  <label class="form-label" [attr.for]="'fn-' + feature.id">Name</label>
-                  <input [id]="'fn-' + feature.id" type="text" class="form-input" formControlName="name" />
+                  <label class="form-label" [attr.for]="'fn-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)">Name</label>
+                  <input [id]="'fn-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)" type="text" class="form-input" formControlName="name" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label" [attr.for]="'fd-' + feature.id">Description</label>
-                  <textarea [id]="'fd-' + feature.id" class="form-textarea" formControlName="description" rows="3"></textarea>
+                  <label class="form-label" [attr.for]="'fd-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)">Description</label>
+                  <textarea [id]="'fd-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)" class="form-textarea" formControlName="description" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" [attr.for]="'ft-' + feature.id">Feature Type</label>
-                  <input [id]="'ft-' + feature.id" type="text" class="form-input" formControlName="featureType" />
+                  <label class="form-label" [attr.for]="'ft-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)">Feature Type</label>
+                  <select [id]="'ft-' + (feature.isNew ? 'draft-' + getGlobalIndex(feature) : feature.id)" class="form-input form-select" formControlName="featureType">
+                    @for (opt of featureTypeOptions(); track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
                 </div>
               </form>
 
@@ -116,4 +149,15 @@
       }
     </div>
   }
+}
+@if (confirmingDeleteId() !== null) {
+  <app-confirm-dialog
+    title="Delete Feature"
+    message="This will permanently delete this feature. This action cannot be undone."
+    confirmLabel="Delete"
+    cancelLabel="Cancel"
+    [processing]="deletingId() !== null"
+    (confirmed)="onConfirmDelete()"
+    (cancelled)="onCancelDelete()"
+  />
 }

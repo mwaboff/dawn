@@ -14,7 +14,8 @@ import { FormBuilder, ReactiveFormsModule, FormGroup, AbstractControl, FormContr
 import { forkJoin, Observable } from 'rxjs';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
 import { FeatureEditService } from '../../../shared/services/feature-edit.service';
-import { RawCardResponse, RawFeatureResponse } from '../models/admin-api.model';
+import { RawCardResponse, RawFeatureResponse, FeatureInput } from '../models/admin-api.model';
+import { EditableFeature } from './components/card-edit-features/card-edit-features';
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
 import { CardSchema, EntityField, FieldDef } from './schema/card-edit-schema.types';
@@ -135,17 +136,19 @@ export class CardEdit implements OnInit {
     this.error.set('');
 
     const saves: Observable<unknown>[] = [];
+    const featuresComp = this.featuresRef();
+    const drafts = featuresComp?.getDraftFeatures() ?? [];
+    const extras = this.buildDraftsExtras(featuresComp, drafts);
 
-    if (this.cardForm.dirty) {
+    if (this.cardForm.dirty || drafts.length > 0) {
       saves.push(this.adminCardService.updateCard(
         this.cardType(), this.cardId(),
-        buildPayloadFromSchema(this.schema(), this.cardForm),
+        buildPayloadFromSchema(this.schema(), this.cardForm, extras),
       ));
     }
 
-    const featuresComp = this.featuresRef();
     if (featuresComp) {
-      for (const feature of featuresComp.getDirtyFeatures()) {
+      for (const feature of featuresComp.getExistingDirtyFeatures()) {
         saves.push(this.featureEditService.updateFeature(feature.id, featuresComp.buildFeaturePayload(feature)));
       }
     }
@@ -190,6 +193,22 @@ export class CardEdit implements OnInit {
       });
   }
 
+  onDeleteFeature(id: number): void {
+    this.error.set('');
+    this.featureEditService.deleteFeature(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.featuresRef()?.resetDeleteState();
+          this.loadCard();
+        },
+        error: (err) => {
+          this.featuresRef()?.resetDeleteState();
+          this.error.set(err?.error?.message ?? 'Delete feature failed. Please try again.');
+        },
+      });
+  }
+
   onBack(): void {
     this.router.navigate(['/admin/cards']);
   }
@@ -207,6 +226,41 @@ export class CardEdit implements OnInit {
     this.cardForm.get('expansionId')?.markAsDirty();
     this.adminLookupService.invalidate('expansions');
     this.addExpansionOpen.set(false);
+  }
+
+  private buildDraftsExtras(
+    featuresComp: CardEditFeatures | undefined,
+    drafts: EditableFeature[],
+  ): Record<string, unknown> | undefined {
+    if (!featuresComp || drafts.length === 0) return undefined;
+    const newPayloads = drafts.map(d => featuresComp.buildNewFeaturePayload(d));
+    const existing = this.rawFeatures();
+
+    if (this.cardType() === 'class') {
+      const hopeFeatureIds: number[] = [];
+      const classFeatureIds: number[] = [];
+      for (const f of existing) {
+        if (f.featureType === 'HOPE') hopeFeatureIds.push(f.id);
+        else classFeatureIds.push(f.id);
+      }
+      const hopeFeatures: FeatureInput[] = [];
+      const classFeatures: FeatureInput[] = [];
+      for (const p of newPayloads) {
+        if (p.featureType === 'HOPE') hopeFeatures.push(p);
+        else classFeatures.push(p);
+      }
+      return {
+        hopeFeatureIds,
+        classFeatureIds,
+        hopeFeatures,
+        classFeatures,
+      };
+    }
+
+    return {
+      featureIds: existing.map(f => f.id),
+      features: newPayloads,
+    };
   }
 
   private extractFeatures(raw: RawCardResponse): RawFeatureResponse[] {

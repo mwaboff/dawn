@@ -13,4 +13,10 @@ export class FeatureEditService {
       `${environment.apiUrl}/dh/features/${id}`, body, { withCredentials: true }
     );
   }
+
+  deleteFeature(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${environment.apiUrl}/dh/features/${id}`, { withCredentials: true }
+    );
+  }
 }
