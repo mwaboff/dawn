@@ -1,7 +1,8 @@
 import { ModifierResponse } from '../../features/create-character/models/character-sheet-api.model';
 
 export type ModifierTarget =
-  | 'BONUS_DOMAIN_CARD_SELECTIONS';
+  | 'BONUS_DOMAIN_CARD_SELECTIONS'
+  | 'BONUS_EXPERIENCE_MODIFIER';
 
 interface FeatureLike {
   modifiers?: readonly ModifierResponse[];

@@ -23,7 +23,7 @@ export class AncestryService {
     const params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'expansion,features,costTags');
+      .set('expand', 'expansion,features,costTags,modifiers');
 
     return this.http
       .get<PaginatedResponse<AncestryCardResponse>>(this.baseUrl, { params, withCredentials: true })
@@ -36,7 +36,7 @@ export class AncestryService {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'expansion,features,costTags');
+      .set('expand', 'expansion,features,costTags,modifiers');
 
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);

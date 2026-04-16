@@ -10,7 +10,7 @@
       />
 
       <app-tab-nav
-        [tabs]="tabs"
+        [tabs]="tabs()"
         [activeTab]="activeTab()"
         [completedSteps]="completedSteps()"
         (tabSelected)="onTabSelected($event)"
@@ -117,6 +117,14 @@
               (cardsSelected)="onDomainCardsSelected($event)"
             />
           }
+          @case ('bonuses') {
+            <app-experience-bonus-allocator
+              [experiences]="experienceAssignments()"
+              [totalBonus]="experienceBonusPoints()"
+              [initialAllocations]="experienceBonusAllocations()"
+              (allocationsChanged)="onExperienceBonusesChanged($event)"
+            />
+          }
           @case ('review') {
             <app-review-section
               [classCard]="selectedClassCard()!"
@@ -127,7 +135,7 @@
               [primaryWeapon]="selectedPrimaryWeapon()"
               [secondaryWeapon]="selectedSecondaryWeapon()"
               [armor]="selectedArmor()"
-              [experiences]="experienceAssignments()"
+              [experiences]="effectiveExperiences()"
               [domainCards]="selectedDomainCards()"
               [submitting]="submitting()"
               [submitError]="submitError()"

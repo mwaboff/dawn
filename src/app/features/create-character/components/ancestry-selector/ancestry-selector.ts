@@ -2,12 +2,15 @@ import { Component, ChangeDetectionStrategy, input, output, signal, computed } f
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { CardData, CardFeature } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { AncestryFeatureResponse } from '../../../../shared/models/ancestry-api.model';
 
 export interface MixedAncestrySelection {
   ancestry1: CardData;
   ancestry2: CardData;
   feature1: CardFeature;
   feature2: CardFeature;
+  feature1Raw?: AncestryFeatureResponse;
+  feature2Raw?: AncestryFeatureResponse;
   expansionId: number;
 }
 
@@ -96,6 +99,8 @@ export class AncestrySelector {
 
     const feature1 = features.get(ancestries[0].id)!;
     const feature2 = features.get(ancestries[1].id)!;
+    const feature1Raw = this.findRawFeature(ancestries[0], feature1);
+    const feature2Raw = this.findRawFeature(ancestries[1], feature2);
     const expansionId = (ancestries[0].metadata?.['expansionId'] as number) ?? 1;
 
     this.mixedAncestrySelected.emit({
@@ -103,8 +108,20 @@ export class AncestrySelector {
       ancestry2: ancestries[1],
       feature1,
       feature2,
+      feature1Raw,
+      feature2Raw,
       expansionId,
     });
+  }
+
+  private findRawFeature(ancestry: CardData, picked: CardFeature): AncestryFeatureResponse | undefined {
+    const raw = ancestry.metadata?.['features'] as AncestryFeatureResponse[] | undefined;
+    if (!raw) return undefined;
+    if (picked.id !== undefined) {
+      const byId = raw.find(f => f.id === picked.id);
+      if (byId) return byId;
+    }
+    return raw.find(f => f.name === picked.name);
   }
 
   private resetMixedState(): void {

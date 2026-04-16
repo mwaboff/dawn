@@ -1,0 +1,52 @@
+<div class="bonus-allocator">
+  <p class="allocator-intro">
+    Your selected cards grant <strong>{{ totalBonus() }}</strong> bonus
+    {{ totalBonus() === 1 ? 'point' : 'points' }} to distribute across your
+    experiences. Spend each point on any experience to increase its modifier.
+  </p>
+
+  <ul class="bonus-list" role="list">
+    @for (exp of experiences(); track exp.name; let i = $index) {
+      <li
+        class="bonus-row"
+        [class.bonus-row--allocated]="allocationList()[i] > 0"
+      >
+        <span class="exp-name">{{ exp.name || 'Unnamed Experience' }}</span>
+
+        <div class="stepper" role="group" [attr.aria-label]="'Bonus for ' + (exp.name || 'experience ' + (i + 1))">
+          <button
+            type="button"
+            class="step-btn"
+            [disabled]="!canDecrement(i)"
+            [attr.aria-label]="'Decrease bonus for ' + (exp.name || 'experience ' + (i + 1))"
+            (click)="onDecrement(i)"
+          >−</button>
+          <span
+            class="total-value"
+            [class.total-value--boosted]="effectiveModifier(i) > (exp.modifier ?? 0)"
+            [class.total-value--diminished]="effectiveModifier(i) < (exp.modifier ?? 0)"
+            aria-live="polite"
+            [attr.aria-label]="'Total modifier ' + formatModifier(effectiveModifier(i))"
+          >{{ formatModifier(effectiveModifier(i)) }}</span>
+          <button
+            type="button"
+            class="step-btn"
+            [disabled]="!canIncrement()"
+            [attr.aria-label]="'Increase bonus for ' + (exp.name || 'experience ' + (i + 1))"
+            (click)="onIncrement(i)"
+          >+</button>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <div class="allocator-footer">
+    <span
+      class="remaining-badge"
+      [class.remaining-badge--complete]="isComplete()"
+      aria-live="polite"
+    >
+      Points remaining: {{ remaining() }} / {{ totalBonus() }}
+    </span>
+  </div>
+</div>
