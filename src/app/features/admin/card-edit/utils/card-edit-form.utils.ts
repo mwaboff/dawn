@@ -106,6 +106,7 @@ export function buildFormFromSchema(
 export function buildPayloadFromSchema(
   schema: CardSchema,
   form: FormGroup,
+  extras?: Record<string, unknown>,
 ): Record<string, unknown> {
   const allFields = getAllFields(schema);
 
@@ -136,6 +137,12 @@ export function buildPayloadFromSchema(
 
     const value = field.kind === 'number' ? coerceNumberValue(control.value) : control.value;
     setPath(payload, path, value);
+  }
+
+  if (extras) {
+    for (const [key, value] of Object.entries(extras)) {
+      payload[key] = value;
+    }
   }
 
   return payload;
