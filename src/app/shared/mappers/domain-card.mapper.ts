@@ -71,6 +71,7 @@ export function mapDomainCardResponseToCardData(response: DomainCardResponse): C
       level: response.level,
       recallCost: response.recallCost,
       modifiers: extractModifiers(response),
+      features: response.features ?? [],
       accentColor,
     },
   };

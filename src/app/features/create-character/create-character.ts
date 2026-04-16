@@ -9,7 +9,7 @@ import { CardSelectionGrid } from '../../shared/components/card-selection-grid/c
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
 import { AncestrySelector, MixedAncestrySelection } from './components/ancestry-selector/ancestry-selector';
-import { CHARACTER_TABS, CharacterSelections, TabId } from './models/create-character.model';
+import { CHARACTER_TABS, CharacterSelections, Tab, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { ClassService } from '../../shared/services/class.service';
 import { SubclassService } from '../../shared/services/subclass.service';
@@ -20,11 +20,12 @@ import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
 import { ExperienceSelector } from './components/experience-selector/experience-selector';
+import { ExperienceBonusAllocator } from './components/experience-bonus-allocator/experience-bonus-allocator';
 import { ReviewSection } from './components/review-section/review-section';
 import { TraitAssignments, TraitKey } from './models/trait.model';
 import { Experience, isExperienceComplete } from './models/experience.model';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
-import { CharacterSheetResponse } from './models/character-sheet-api.model';
+import { CharacterSheetResponse, ModifierResponse } from './models/character-sheet-api.model';
 import { CharacterSheetData } from './models/character-sheet.model';
 import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
 import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
@@ -32,9 +33,13 @@ import { SubmitError, parseSubmitError } from './models/submit-error.model';
 import { SubclassFeatureResponse } from '../../shared/models/subclass-api.model';
 import { sumFeatureModifier } from '../../shared/utils/feature-modifier.utils';
 
+interface FeatureWithModifiers {
+  modifiers?: readonly ModifierResponse[];
+}
+
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ReviewSection],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,7 +53,6 @@ export class CreateCharacter implements OnInit {
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly router = inject(Router);
 
-  readonly tabs = CHARACTER_TABS;
   readonly activeTab = signal<TabId>('class');
   private readonly selectedCards = signal<Partial<Record<TabId, CardData>>>({});
   private readonly completedStepsSignal = signal<Set<TabId>>(new Set());
@@ -109,6 +113,40 @@ export class CreateCharacter implements OnInit {
 
   readonly domainCardMaxSelections = computed<number>(() =>
     CreateCharacter.CREATION_BASE_DOMAIN_CARDS + this.bonusDomainCardSlots(),
+  );
+
+  readonly experienceBonusAllocations = signal<number[]>([]);
+
+  readonly effectiveExperiences = computed<Experience[]>(() => {
+    const allocations = this.experienceBonusAllocations();
+    return this.experienceAssignments().map((exp, i) => ({
+      name: exp.name,
+      modifier: (exp.modifier ?? 0) + (allocations[i] ?? 0),
+    }));
+  });
+
+  readonly experienceBonusPoints = computed<number>(() => {
+    const sourceFeatures: FeatureWithModifiers[] = [];
+    const subclass = this.selectedSubclassCard();
+    const ancestry = this.selectedAncestryCard();
+    const community = this.selectedCommunityCard();
+    const subFeatures = subclass?.metadata?.['features'] as SubclassFeatureResponse[] | undefined;
+    const ancFeatures = ancestry?.metadata?.['features'] as FeatureWithModifiers[] | undefined;
+    const comFeatures = community?.metadata?.['features'] as FeatureWithModifiers[] | undefined;
+    if (subFeatures) sourceFeatures.push(...subFeatures);
+    if (ancFeatures) sourceFeatures.push(...ancFeatures);
+    if (comFeatures) sourceFeatures.push(...comFeatures);
+    for (const card of this.selectedDomainCards()) {
+      const dcFeatures = card.metadata?.['features'] as FeatureWithModifiers[] | undefined;
+      if (dcFeatures) sourceFeatures.push(...dcFeatures);
+    }
+    return sumFeatureModifier(sourceFeatures, 'BONUS_EXPERIENCE_MODIFIER');
+  });
+
+  readonly tabs = computed<Tab[]>(() =>
+    this.experienceBonusPoints() > 0
+      ? CHARACTER_TABS
+      : CHARACTER_TABS.filter(t => t.id !== 'bonuses'),
   );
 
   readonly characterSelections = computed<CharacterSelections>(() => {
@@ -191,7 +229,10 @@ export class CreateCharacter implements OnInit {
       description: `A blend of ${selection.ancestry1.name} and ${selection.ancestry2.name} heritage.`,
       cardType: 'ancestry',
       features: [selection.feature1, selection.feature2],
-      metadata: { isMixed: true },
+      metadata: {
+        isMixed: true,
+        features: [selection.feature1Raw, selection.feature2Raw].filter(f => f !== undefined),
+      },
     };
     this.selectedCards.set({ ...this.selectedCards(), ancestry: tempCard });
     this.markStepComplete('ancestry');
@@ -301,13 +342,15 @@ export class CreateCharacter implements OnInit {
 
   onDomainCardsSelected(cards: CardData[]): void {
     this.selectedDomainCards.set(cards);
+    this.experienceBonusAllocations.set([]);
+    const completed = new Set(this.completedStepsSignal());
+    completed.delete('bonuses');
     if (cards.length === this.domainCardMaxSelections()) {
-      this.markStepComplete('domain-cards');
+      completed.add('domain-cards');
     } else {
-      const updated = new Set(this.completedStepsSignal());
-      updated.delete('domain-cards');
-      this.completedStepsSignal.set(updated);
+      completed.delete('domain-cards');
     }
+    this.completedStepsSignal.set(completed);
   }
 
   private clearDomainCardSelections(): void {
@@ -328,6 +371,18 @@ export class CreateCharacter implements OnInit {
   onArmorSelected(armor: CardData | null): void {
     this.selectedArmor.set(armor);
     this.markStepComplete('starting-armor');
+  }
+
+  onExperienceBonusesChanged(allocations: number[]): void {
+    this.experienceBonusAllocations.set(allocations);
+    const used = allocations.reduce((s, n) => s + n, 0);
+    if (used === this.experienceBonusPoints() && used > 0) {
+      this.markStepComplete('bonuses');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('bonuses');
+      this.completedStepsSignal.set(updated);
+    }
   }
 
   onExperiencesChanged(experiences: Experience[]): void {
@@ -406,6 +461,7 @@ export class CreateCharacter implements OnInit {
 
     const allCards = this.selectedDomainCards();
     const baseCount = CreateCharacter.CREATION_BASE_DOMAIN_CARDS;
+    const effectiveExperiences = this.effectiveExperiences();
 
     ancestryCard$.pipe(
       switchMap(ancestryCard => {
@@ -420,7 +476,7 @@ export class CreateCharacter implements OnInit {
           primaryWeapon: this.selectedPrimaryWeapon(),
           secondaryWeapon: this.selectedSecondaryWeapon(),
           armor: this.selectedArmor(),
-          experiences: this.experienceAssignments(),
+          experiences: effectiveExperiences,
           domainCards: allCards.slice(0, baseCount),
           bonusDomainCards: allCards.slice(baseCount),
         });
@@ -483,28 +539,31 @@ export class CreateCharacter implements OnInit {
   }
 
   private invalidateSteps(fromTabId: TabId, inclusive: boolean): void {
-    const tabIndex = this.tabs.findIndex((t) => t.id === fromTabId);
+    const tabs = this.tabs();
+    const tabIndex = tabs.findIndex((t) => t.id === fromTabId);
     const startIndex = inclusive ? tabIndex : tabIndex + 1;
     const updatedSteps = new Set(this.completedStepsSignal());
     const updatedCards = { ...this.selectedCards() };
 
-    for (let i = startIndex; i < this.tabs.length; i++) {
-      updatedSteps.delete(this.tabs[i].id);
-      delete updatedCards[this.tabs[i].id];
+    for (let i = startIndex; i < tabs.length; i++) {
+      updatedSteps.delete(tabs[i].id);
+      delete updatedCards[tabs[i].id];
     }
 
     this.completedStepsSignal.set(updatedSteps);
     this.selectedCards.set(updatedCards);
+    this.experienceBonusAllocations.set([]);
   }
 
   private isTabReachable(tabId: TabId): boolean {
-    const targetIndex = this.tabs.findIndex((t) => t.id === tabId);
-    const currentIndex = this.tabs.findIndex((t) => t.id === this.activeTab());
+    const tabs = this.tabs();
+    const targetIndex = tabs.findIndex((t) => t.id === tabId);
+    const currentIndex = tabs.findIndex((t) => t.id === this.activeTab());
 
     if (targetIndex <= currentIndex) return true;
 
     for (let i = 0; i < targetIndex; i++) {
-      if (!this.completedStepsSignal().has(this.tabs[i].id)) return false;
+      if (!this.completedStepsSignal().has(tabs[i].id)) return false;
     }
     return true;
   }

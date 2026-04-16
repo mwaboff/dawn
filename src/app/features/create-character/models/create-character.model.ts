@@ -13,6 +13,7 @@ export type TabId =
   | 'starting-armor'
   | 'experiences'
   | 'domain-cards'
+  | 'bonuses'
   | 'review';
 
 export type CharacterFormField = 'name' | 'pronouns';
@@ -39,5 +40,6 @@ export const CHARACTER_TABS: Tab[] = [
   { id: 'starting-armor', label: 'Starting Armor' },
   { id: 'experiences', label: 'Experiences' },
   { id: 'domain-cards', label: 'Domain Cards' },
+  { id: 'bonuses', label: 'Bonuses' },
   { id: 'review', label: 'Review' },
 ];

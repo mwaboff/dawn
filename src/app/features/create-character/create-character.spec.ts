@@ -259,11 +259,12 @@ describe('CreateCharacter', () => {
       expect(component.activeTab()).toBe('class');
     });
 
-    it('should use CHARACTER_TABS constant', () => {
+    it('hides the bonuses tab when no card grants bonus experience', () => {
       fixture.detectChanges();
       flushClassCards();
-      expect(component.tabs).toBe(CHARACTER_TABS);
-      expect(component.tabs).toHaveLength(10);
+      const tabIds = component.tabs().map(t => t.id);
+      expect(tabIds).not.toContain('bonuses');
+      expect(tabIds).toEqual(CHARACTER_TABS.filter(t => t.id !== 'bonuses').map(t => t.id));
     });
   });
 

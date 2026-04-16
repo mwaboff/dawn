@@ -1,3 +1,5 @@
+import { ModifierResponse } from '../../features/create-character/models/character-sheet-api.model';
+
 export interface CommunityCostTag {
   id: number;
   label: string;
@@ -12,6 +14,7 @@ export interface CommunityFeatureResponse {
   expansionId: number;
   costTagIds: number[];
   costTags: CommunityCostTag[];
+  modifiers?: ModifierResponse[];
 }
 
 export interface CommunityCardResponse {

@@ -127,10 +127,10 @@ describe('mapCommunityResponseToCardData', () => {
     expect(result.subtitle).toBeUndefined();
   });
 
-  it('should not set metadata', () => {
+  it('should expose raw features in metadata', () => {
     const response = buildCommunityCardResponse();
     const result = mapCommunityResponseToCardData(response);
 
-    expect(result.metadata).toBeUndefined();
+    expect(result.metadata?.['features']).toEqual(response.features);
   });
 });

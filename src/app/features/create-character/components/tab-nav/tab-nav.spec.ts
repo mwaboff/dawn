@@ -47,10 +47,10 @@ describe('TabNav', () => {
   });
 
   describe('Initial State', () => {
-    it('should render all 10 chapter markers', () => {
+    it('should render a chapter marker for every tab', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('.chapter-marker');
-      expect(markers.length).toBe(10);
+      expect(markers.length).toBe(CHARACTER_TABS.length);
     });
 
     it('should display step numbers in marker pips', () => {
@@ -125,7 +125,7 @@ describe('TabNav', () => {
     it('should have tab role on each marker', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('[role="tab"]');
-      expect(markers.length).toBe(10);
+      expect(markers.length).toBe(CHARACTER_TABS.length);
     });
 
     it('should have descriptive aria-labels with step numbers', () => {

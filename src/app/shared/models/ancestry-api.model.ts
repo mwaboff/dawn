@@ -1,3 +1,5 @@
+import { ModifierResponse } from '../../features/create-character/models/character-sheet-api.model';
+
 export interface AncestryCostTag {
   id: number;
   label: string;
@@ -12,6 +14,7 @@ export interface AncestryFeatureResponse {
   expansionId: number;
   costTagIds: number[];
   costTags: AncestryCostTag[];
+  modifiers?: ModifierResponse[];
 }
 
 export interface AncestryCardResponse {

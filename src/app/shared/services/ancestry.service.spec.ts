@@ -53,7 +53,7 @@ describe('AncestryService', () => {
       r => r.url === baseUrl &&
         r.params.get('page') === '0' &&
         r.params.get('size') === '20' &&
-        r.params.get('expand') === 'expansion,features,costTags',
+        r.params.get('expand') === 'expansion,features,costTags,modifiers',
     );
     expect(req.request.method).toBe('GET');
     req.flush(buildPaginatedResponse([]));

@@ -22,6 +22,9 @@ export function mapAncestryResponseToCardData(response: AncestryCardResponse): C
     description: response.description,
     cardType: 'ancestry',
     features: features.length > 0 ? features : undefined,
-    metadata: { expansionId: response.expansionId },
+    metadata: {
+      expansionId: response.expansionId,
+      features: response.features ?? [],
+    },
   };
 }

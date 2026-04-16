@@ -127,10 +127,11 @@ describe('mapAncestryResponseToCardData', () => {
     expect(result.subtitle).toBeUndefined();
   });
 
-  it('should set metadata with expansionId', () => {
+  it('should set metadata with expansionId and raw features', () => {
     const response = buildAncestryCardResponse({ expansionId: 5 });
     const result = mapAncestryResponseToCardData(response);
-    expect(result.metadata).toEqual({ expansionId: 5 });
+    expect(result.metadata?.['expansionId']).toBe(5);
+    expect(result.metadata?.['features']).toEqual(response.features);
   });
 
   it('should map feature id', () => {

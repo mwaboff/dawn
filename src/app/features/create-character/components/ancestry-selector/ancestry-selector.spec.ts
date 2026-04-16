@@ -200,6 +200,39 @@ describe('AncestrySelector', () => {
       expect(host.mixedSelection!.expansionId).toBe(1);
     });
 
+    it('includes raw features (with modifiers) when ancestry metadata exposes them', () => {
+      const rawElfFeature = {
+        id: 10,
+        name: 'Darkvision',
+        description: 'See in darkness',
+        featureType: 'PASSIVE',
+        expansionId: 1,
+        costTagIds: [],
+        costTags: [],
+        modifiers: [{ id: 1, target: 'BONUS_EXPERIENCE_MODIFIER', operation: 'ADD', value: 1, createdAt: '', lastModifiedAt: '' }],
+      };
+      host.cards = [
+        makeAncestryCard({ metadata: { expansionId: 1, features: [rawElfFeature] } }),
+        makeAncestryCard({
+          id: 2,
+          name: 'Dwarf',
+          features: [{ id: 20, name: 'Stonecunning', description: 'Know stone', subtitle: 'Ancestry Feature' }],
+          metadata: { expansionId: 1, features: [{ id: 20, name: 'Stonecunning', description: 'Know stone', featureType: 'PASSIVE', expansionId: 1, costTagIds: [], costTags: [] }] },
+        }),
+      ];
+      fixture.detectChanges();
+      component.setMode('mixed');
+      component.onAncestriesSelected([host.cards[0], host.cards[1]]);
+      component.proceedToFeatures();
+      component.toggleFeature(1, host.cards[0].features![0]);
+      component.toggleFeature(2, host.cards[1].features![0]);
+      component.confirmMixedSelection();
+
+      expect(host.mixedSelection!.feature1Raw).toEqual(rawElfFeature);
+      expect(host.mixedSelection!.feature1Raw?.modifiers?.[0].target).toBe('BONUS_EXPERIENCE_MODIFIER');
+      expect(host.mixedSelection!.feature2Raw?.id).toBe(20);
+    });
+
     it('should show back link in feature forge step', () => {
       expect(fixture.nativeElement.querySelector('.back-link')).toBeTruthy();
     });

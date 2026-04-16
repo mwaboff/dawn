@@ -78,7 +78,7 @@ export class DomainService {
       .set('page', page)
       .set('size', size)
       .set('associatedDomainIds', domainIds.join(','))
-      .set('expand', 'features,costTags,associatedDomain');
+      .set('expand', 'features,costTags,associatedDomain,modifiers');
 
     if (levels?.length) {
       params = params.set('levels', levels.join(','));
@@ -104,7 +104,7 @@ export class DomainService {
     let params = new HttpParams()
       .set('page', page)
       .set('size', size)
-      .set('expand', 'features,costTags,associatedDomain');
+      .set('expand', 'features,costTags,associatedDomain,modifiers');
 
     if (associatedDomainId !== undefined) {
       params = params.set('associatedDomainIds', associatedDomainId);
