@@ -1,3 +1,5 @@
+.card-group__heading--class { color: #5e8ed4; }
+.expandable-card--class { border-left-color: #5e8ed4; }
 .equipment-card { padding: .6rem .75rem; background: rgba(212,160,86,.04); border-left: 2px solid var(--cg); border-radius: 0 4px 4px 0; margin-bottom: .5rem; }
 .equipment-card:last-child { margin-bottom: 0; }
 .equipment-card__header { display: flex; align-items: center; gap: .75rem; margin-bottom: .25rem; }

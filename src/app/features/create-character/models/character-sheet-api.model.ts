@@ -198,6 +198,14 @@ export interface AncestryCardResponse {
   features?: FeatureResponse[];
 }
 
+export interface ClassCardResponse {
+  id: number;
+  name: string;
+  description?: string;
+  hopeFeatures?: FeatureResponse[];
+  classFeatures?: FeatureResponse[];
+}
+
 export interface SubclassCardResponse {
   id: number;
   name: string;
@@ -265,9 +273,13 @@ export interface CharacterSheetResponse {
   experienceIds: number[];
   createdAt: string;
   lastModifiedAt: string;
+  classId?: number;
+  className?: string;
+  class?: ClassCardResponse;
   experiences?: ExperienceResponse[];
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];
+  classCards?: ClassCardResponse[];
   subclassCards?: SubclassCardResponse[];
   domainCards?: DomainCardResponse[];
   inventoryWeapons?: InventoryWeaponResponse[];

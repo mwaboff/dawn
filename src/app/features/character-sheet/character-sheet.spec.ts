@@ -165,6 +165,7 @@ describe('CharacterSheet', () => {
       'experiences',
       'communityCards',
       'ancestryCards',
+      'class',
       'subclassCards',
       'domainCards',
       'inventoryWeapons',

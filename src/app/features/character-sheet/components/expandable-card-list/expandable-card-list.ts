@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, input, output, signal } from '@angu
 import { CardSummary, SubclassCardSummary, DomainCardSummary } from '../../models/character-sheet-view.model';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 
-export type CardType = 'subclass' | 'ancestry' | 'community' | 'domain';
+export type CardType = 'class' | 'subclass' | 'ancestry' | 'community' | 'domain';
 export type AnyCardSummary = CardSummary | SubclassCardSummary | DomainCardSummary;
 
 @Component({

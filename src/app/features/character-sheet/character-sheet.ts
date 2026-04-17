@@ -143,6 +143,7 @@ export class CharacterSheet implements OnInit {
       'experiences',
       'communityCards',
       'ancestryCards',
+      'class',
       'subclassCards',
       'domainCards',
       'inventoryWeapons',
