@@ -163,6 +163,7 @@ describe('CharacterSheet', () => {
 
     expect(mockService.getCharacterSheet).toHaveBeenCalledWith(42, [
       'experiences',
+      'classCards',
       'communityCards',
       'ancestryCards',
       'subclassCards',

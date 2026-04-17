@@ -2,6 +2,7 @@ import {
   CharacterSheetResponse,
   WeaponResponse,
   ArmorResponse,
+  ClassCardResponse,
   CommunityCardResponse,
   AncestryCardResponse,
   SubclassCardResponse,
@@ -86,6 +87,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY', proficiency),
     activeArmor: mapFirstEquippedArmor(sheet.inventoryArmors),
 
+    classCards: (sheet.classCards ?? []).map(c => mapClassCardSummary(c)),
     subclassCards: (sheet.subclassCards ?? []).map(c => mapSubclassCardSummary(c)),
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),
@@ -152,6 +154,15 @@ function mapFeature(feature: FeatureResponse): FeatureDisplay {
       operation: m.operation as FeatureModifierDisplay['operation'],
       target: m.target,
     })),
+  };
+}
+
+function mapClassCardSummary(card: ClassCardResponse): CardSummary {
+  return {
+    id: card.id,
+    name: card.name,
+    description: card.description,
+    features: (card.features ?? []).map(mapFeature),
   };
 }
 

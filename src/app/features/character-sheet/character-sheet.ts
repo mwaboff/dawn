@@ -141,6 +141,7 @@ export class CharacterSheet implements OnInit {
   private loadCharacterSheet(id: number): void {
     const expandFields = [
       'experiences',
+      'classCards',
       'communityCards',
       'ancestryCards',
       'subclassCards',

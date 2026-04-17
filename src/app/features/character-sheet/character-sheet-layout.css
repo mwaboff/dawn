@@ -1,10 +1,11 @@
-:host { --color-card-subclass: #b87fd4; --color-card-ancestry: #d4c256; --color-card-community: #56d478; --color-card-domain: #d48056; --color-damage-minor: #6aad7a; --color-damage-major: #c8943c; --color-damage-severe: #c05050; }
+:host { --color-card-class: #5e8ed4; --color-card-subclass: #b87fd4; --color-card-ancestry: #d4c256; --color-card-community: #56d478; --color-card-domain: #d48056; --color-damage-minor: #6aad7a; --color-damage-major: #c8943c; --color-damage-severe: #c05050; }
 
 .traits-section { margin-bottom: 1.5rem; }
 .cards-section { margin-bottom: 1.5rem; }
 .card-group { margin-bottom: 1.25rem; }
 .card-group:last-child { margin-bottom: 0; }
 .card-group__heading { font-family: var(--font-display); font-size: .875rem; text-transform: uppercase; letter-spacing: .2em; margin: 0 0 .5rem; padding-bottom: .35rem; border-bottom: 1px solid var(--cb); }
+.card-group__heading--class { color: var(--color-card-class); }
 .card-group__heading--subclass { color: var(--color-card-subclass); }
 .card-group__heading--ancestry { color: var(--color-card-ancestry); }
 .card-group__heading--community { color: var(--color-card-community); }
@@ -12,6 +13,7 @@
 .card-group__list { display: flex; flex-direction: column; gap: .5rem; }
 .card-group__list--grid { display: grid; grid-template-columns: repeat(2,1fr); gap: .5rem; }
 .expandable-card { background: rgba(26,20,15,.7); border: 1px solid rgba(212,160,86,.1); border-left: 3px solid; border-radius: 0 6px 6px 0; overflow: hidden; }
+.expandable-card--class { border-left-color: var(--color-card-class); }
 .expandable-card--subclass { border-left-color: var(--color-card-subclass); }
 .expandable-card--ancestry { border-left-color: var(--color-card-ancestry); }
 .expandable-card--community { border-left-color: var(--color-card-community); }

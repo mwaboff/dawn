@@ -28,6 +28,7 @@ export interface CharacterSheetView {
   activeSecondaryWeapon: WeaponDisplay | null;
   activeArmor: ArmorDisplay | null;
 
+  classCards: CardSummary[];
   subclassCards: SubclassCardSummary[];
   ancestryCards: CardSummary[];
   communityCards: CardSummary[];

@@ -370,6 +370,46 @@
     </div>
 
     <section class="cards-section" aria-label="Cards">
+      @if (sheet.classCards.length > 0) {
+        <div class="card-group">
+          <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          <div class="card-group__list">
+            @for (card of sheet.classCards; track card.id) {
+              <div class="expandable-card expandable-card--class">
+                <button class="expandable-card__header" (click)="toggleCard(card.id)"
+                        [attr.aria-expanded]="isCardExpanded(card.id)"
+                        [attr.aria-controls]="'card-body-' + card.id">
+                  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isCardExpanded(card.id)" aria-hidden="true">&#9654;</span>
+                  <h4 class="expandable-card__name">{{ card.name }}</h4>
+                </button>
+                @if (isCardExpanded(card.id)) {
+                  <div class="expandable-card__body" [id]="'card-body-' + card.id">
+                    @if (card.description) {
+                      <p class="card-description" [innerHTML]="card.description | formatText"></p>
+                    }
+                    @for (feature of card.features; track feature.name) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                        @if (feature.tags.length > 0) {
+                          <div class="feature-row__tags">
+                            @for (tag of feature.tags; track tag) {
+                              <span class="feature-tag">{{ tag }}</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       @if (sheet.subclassCards.length > 0) {
         <div class="card-group">
           <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>

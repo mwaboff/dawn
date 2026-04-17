@@ -39,6 +39,7 @@ const mockCharacterSheet: CharacterSheetView = {
   activePrimaryWeapon: null,
   activeSecondaryWeapon: null,
   activeArmor: null,
+  classCards: [],
   subclassCards: [],
   ancestryCards: [],
   communityCards: [],
