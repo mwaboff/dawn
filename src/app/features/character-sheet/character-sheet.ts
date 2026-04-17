@@ -1,12 +1,13 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
+import { Subject, EMPTY, switchMap, debounceTime, tap, catchError, forkJoin } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ClassService } from '../../shared/services/class.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
-import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
+import { mapToCharacterSheetView, mapClassCardSummary } from './utils/character-sheet-view.mapper';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
@@ -38,6 +39,7 @@ import {
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly classService = inject(ClassService);
   private readonly authService = inject(AuthService);
 
   readonly loading = signal(true);
@@ -141,7 +143,6 @@ export class CharacterSheet implements OnInit {
   private loadCharacterSheet(id: number): void {
     const expandFields = [
       'experiences',
-      'classCards',
       'communityCards',
       'ancestryCards',
       'subclassCards',
@@ -161,12 +162,34 @@ export class CharacterSheet implements OnInit {
           this.rawSheet.set(response);
           this.characterSheet.set(mapToCharacterSheetView(response));
           this.loading.set(false);
+          this.loadClassCards(response);
         },
         error: () => {
           this.error.set(true);
           this.loading.set(false);
         },
       });
+  }
+
+  private loadClassCards(sheet: CharacterSheetResponse): void {
+    const classIds = new Set<number>();
+    for (const subclass of sheet.subclassCards ?? []) {
+      if (subclass.associatedClassId) {
+        classIds.add(subclass.associatedClassId);
+      }
+    }
+    if (classIds.size === 0) return;
+
+    const expand = ['classFeatures', 'hopeFeatures', 'costTags', 'modifiers'];
+    const requests = Array.from(classIds).map(id => this.classService.getClassCard(id, expand));
+
+    forkJoin(requests).subscribe({
+      next: (cards) => {
+        const mapped = cards.map(mapClassCardSummary);
+        this.characterSheet.update(current => current ? { ...current, classCards: mapped } : current);
+      },
+      error: () => { /* leave classCards empty on failure */ },
+    });
   }
 
   toggleResourceBox(resource: 'hp' | 'stress' | 'hope' | 'armor', index: number): void {

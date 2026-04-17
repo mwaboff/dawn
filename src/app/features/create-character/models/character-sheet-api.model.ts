@@ -202,8 +202,8 @@ export interface ClassCardResponse {
   id: number;
   name: string;
   description?: string;
-  featureIds?: number[];
-  features?: FeatureResponse[];
+  hopeFeatures?: FeatureResponse[];
+  classFeatures?: FeatureResponse[];
 }
 
 export interface SubclassCardResponse {
@@ -263,7 +263,6 @@ export interface CharacterSheetResponse {
   gold: number;
   ownerId: number;
   ownerName?: string;
-  classCardIds?: number[];
   communityCardIds: number[];
   ancestryCardIds: number[];
   subclassCardIds: number[];
@@ -275,7 +274,6 @@ export interface CharacterSheetResponse {
   createdAt: string;
   lastModifiedAt: string;
   experiences?: ExperienceResponse[];
-  classCards?: ClassCardResponse[];
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];
   subclassCards?: SubclassCardResponse[];
