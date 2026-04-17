@@ -455,6 +455,26 @@ describe('mapToCharacterSheetView', () => {
   });
 
   describe('cards', () => {
+    it('maps class card from sheet.class field', () => {
+      const sheet = makeSheet({
+        class: { id: 9, name: 'Wizard', description: 'Master of arcane', hopeFeatures: [], classFeatures: [] },
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.classCards).toHaveLength(1);
+      expect(result.classCards[0].id).toBe(9);
+      expect(result.classCards[0].name).toBe('Wizard');
+    });
+
+    it('returns empty classCards when neither class nor classCards provided', () => {
+      const sheet = makeSheet({});
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.classCards).toEqual([]);
+    });
+
     it('maps subclass cards basic fields', () => {
       const sheet = makeSheet({
         subclassCards: [

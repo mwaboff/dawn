@@ -87,7 +87,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY', proficiency),
     activeArmor: mapFirstEquippedArmor(sheet.inventoryArmors),
 
-    classCards: [],
+    classCards: (sheet.classCards ?? (sheet.class ? [sheet.class] : [])).map(c => mapClassCardSummary(c)),
     subclassCards: (sheet.subclassCards ?? []).map(c => mapSubclassCardSummary(c)),
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),
@@ -157,7 +157,7 @@ function mapFeature(feature: FeatureResponse): FeatureDisplay {
   };
 }
 
-export function mapClassCardSummary(card: ClassCardResponse): CardSummary {
+function mapClassCardSummary(card: ClassCardResponse): CardSummary {
   return {
     id: card.id,
     name: card.name,

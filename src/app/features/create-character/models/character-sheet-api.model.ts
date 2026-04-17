@@ -273,9 +273,13 @@ export interface CharacterSheetResponse {
   experienceIds: number[];
   createdAt: string;
   lastModifiedAt: string;
+  classId?: number;
+  className?: string;
+  class?: ClassCardResponse;
   experiences?: ExperienceResponse[];
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];
+  classCards?: ClassCardResponse[];
   subclassCards?: SubclassCardResponse[];
   domainCards?: DomainCardResponse[];
   inventoryWeapons?: InventoryWeaponResponse[];

@@ -3,7 +3,6 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ClassResponse } from '../models/class-api.model';
-import { ClassCardResponse } from '../../features/create-character/models/character-sheet-api.model';
 import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { mapClassResponseToCardData } from '../mappers/class.mapper';
@@ -27,17 +26,6 @@ export class ClassService {
     return this.http
       .get<PaginatedResponse<ClassResponse>>(this.baseUrl, { params, withCredentials: true })
       .pipe(map(response => response.content.map(c => ({ id: c.id, label: c.name }))));
-  }
-
-  getClassCard(id: number, expand?: string[]): Observable<ClassCardResponse> {
-    let params = new HttpParams();
-    if (expand?.length) {
-      params = params.set('expand', expand.join(','));
-    }
-    return this.http.get<ClassCardResponse>(`${this.baseUrl}/${id}`, {
-      params,
-      withCredentials: true,
-    });
   }
 
   getClasses(page = 0, size = 100): Observable<CardData[]> {
