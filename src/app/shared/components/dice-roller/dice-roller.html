@@ -141,9 +141,8 @@
 
         <output class="ts-result-panel" aria-live="polite" aria-atomic="true">
           @if (recent()) {
-            <div class="ts-result-label">LAST ROLL</div>
-            <div class="ts-result-total">{{ recent()!.total }}</div>
-            @if (recent()!.duality) {
+            <div class="ts-result-total">{{ isRolling() ? displayTotal() : recent()!.total }}</div>
+            @if (!isRolling() && recent()!.duality) {
               <div class="ts-result-outcome"
                 [class.ts-outcome--hope]="recent()!.duality!.outcome === 'hope'"
                 [class.ts-outcome--fear]="recent()!.duality!.outcome === 'fear'"
@@ -156,13 +155,11 @@
               }
             }
           } @else {
-            <div class="ts-result-label">LAST ROLL</div>
             <div class="ts-result-empty">—</div>
-            <div class="ts-result-idle">roll some dice, friend</div>
           }
         </output>
 
-        <button type="button" class="ts-roll-btn" (click)="onRoll()">ROLL</button>
+        <button type="button" class="ts-roll-btn" (click)="onRoll()" [disabled]="!canRoll()">ROLL</button>
 
         <div class="ts-chronicle">
           <div class="ts-chronicle-header">
@@ -171,7 +168,7 @@
           </div>
           <ul class="ts-history-list" aria-label="Roll history">
             @if (service.history().length === 0) {
-              <li class="ts-history-empty">the page is blank</li>
+              <li class="ts-history-empty">no rolls recorded</li>
             } @else {
               @for (entry of service.history(); track entry.id) {
                 <li class="ts-history-row">

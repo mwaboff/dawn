@@ -5,9 +5,11 @@ import {
   signal,
   computed,
   OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { DiceRollerService } from '../../../core/services/dice-roller.service';
 import {
+  DICE_SIDES,
   DICE_TYPES,
   DiceType,
   RollRequest,
@@ -20,10 +22,17 @@ import {
   styleUrl: './dice-roller.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DiceRoller implements OnInit {
+export class DiceRoller implements OnInit, OnDestroy {
   readonly service = inject(DiceRollerService);
 
   readonly diceTypes: readonly DiceType[] = DICE_TYPES;
+
+  private readonly _isRolling = signal(false);
+  private readonly _displayTotal = signal<number>(0);
+  readonly isRolling = computed(() => this._isRolling());
+  readonly displayTotal = computed(() => this._displayTotal());
+  private rollingInterval: ReturnType<typeof setInterval> | null = null;
+  private rollingTimeout: ReturnType<typeof setTimeout> | null = null;
 
   private readonly counts = signal<Record<DiceType, number>>({
     d4: 0,
@@ -39,6 +48,9 @@ export class DiceRoller implements OnInit {
 
   readonly recent = computed<RollResult | null>(() => this.service.history()[0] ?? null);
   readonly isDualityChecked = computed(() => this.includeDuality());
+  readonly canRoll = computed(() =>
+    this.includeDuality() || this.diceTypes.some(t => this.counts()[t] !== 0)
+  );
 
   ngOnInit(): void {
     const pending = this.service.consumePendingRequest();
@@ -81,6 +93,39 @@ export class DiceRoller implements OnInit {
       includeDuality: this.includeDuality(),
     };
     this.service.roll(request);
+
+    const includeDuality = this.includeDuality();
+    const minRoll = dice.reduce((sum, sel) => {
+      const faces = DICE_SIDES[sel.type];
+      return sel.count > 0 ? sum + sel.count : sum - Math.abs(sel.count) * faces;
+    }, 0) + (includeDuality ? 2 : 0);
+    const maxRoll = dice.reduce((sum, sel) => {
+      const faces = DICE_SIDES[sel.type];
+      return sel.count > 0 ? sum + sel.count * faces : sum - Math.abs(sel.count);
+    }, 0) + (includeDuality ? 24 : 0);
+    const range = maxRoll - minRoll;
+    const randomInRange = () => Math.floor(Math.random() * (range + 1)) + minRoll;
+
+    if (this.rollingInterval) clearInterval(this.rollingInterval);
+    if (this.rollingTimeout) clearTimeout(this.rollingTimeout);
+    this._isRolling.set(true);
+    this._displayTotal.set(randomInRange());
+
+    this.rollingInterval = setInterval(() => {
+      this._displayTotal.set(randomInRange());
+    }, 50);
+
+    this.rollingTimeout = setTimeout(() => {
+      clearInterval(this.rollingInterval!);
+      this.rollingInterval = null;
+      this.rollingTimeout = null;
+      this._isRolling.set(false);
+    }, 250);
+  }
+
+  ngOnDestroy(): void {
+    if (this.rollingInterval) clearInterval(this.rollingInterval);
+    if (this.rollingTimeout) clearTimeout(this.rollingTimeout);
   }
 
   outcomeLabel(result: RollResult): string {

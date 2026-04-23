@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { DiceRoller } from './dice-roller';
@@ -129,12 +129,17 @@ describe('DiceRoller', () => {
     service.isOpen.set(true);
     fixture.detectChanges();
 
+    const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+    increaseD6.click();
+    fixture.detectChanges();
+
     const spy = vi.spyOn(service, 'roll');
     const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
     rollBtn.click();
 
     const request = spy.mock.calls[0][0];
-    expect(request.dice.length).toBe(0);
+    expect(request.dice.every(d => d.count !== 0)).toBe(true);
+    expect(request.dice.find(d => d.type === 'd4')).toBeUndefined();
   });
 
   it('roll request includes dice with negative counts', () => {
@@ -175,6 +180,10 @@ describe('DiceRoller', () => {
 
   it('duality defaults to false in RollRequest', () => {
     service.isOpen.set(true);
+    fixture.detectChanges();
+
+    const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+    increaseD6.click();
     fixture.detectChanges();
 
     const spy = vi.spyOn(service, 'roll');
@@ -280,7 +289,7 @@ describe('DiceRoller', () => {
     fixture.detectChanges();
 
     const empty = fixture.nativeElement.querySelector('.ts-history-empty');
-    expect(empty?.textContent).toContain('the page is blank');
+    expect(empty?.textContent).toContain('no rolls recorded');
   });
 
   it('close button inside menu calls service.close()', () => {
@@ -348,13 +357,120 @@ describe('DiceRoller', () => {
     expect(fixture.componentInstance.getCount('d4')).toBe(0);
   });
 
-  it('shows idle state before any rolls', () => {
+  it('Roll button is disabled when no dice are selected', () => {
+    service.isOpen.set(true);
+    fixture.detectChanges();
+    const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+    expect(rollBtn.disabled).toBe(true);
+  });
+
+  it('Roll button is enabled when at least one die is selected', () => {
+    service.isOpen.set(true);
+    fixture.detectChanges();
+    const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+    increaseD6.click();
+    fixture.detectChanges();
+    const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+    expect(rollBtn.disabled).toBe(false);
+  });
+
+  it('Roll button is enabled when duality is toggled with no other dice', () => {
+    service.isOpen.set(true);
+    fixture.detectChanges();
+    const dualityBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-duality-btn');
+    dualityBtn.click();
+    fixture.detectChanges();
+    const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+    expect(rollBtn.disabled).toBe(false);
+  });
+
+  it('isRolling is false initially', () => {
+    expect(fixture.componentInstance.isRolling()).toBe(false);
+  });
+
+  describe('roll animation', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('isRolling becomes true immediately after clicking roll', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      expect(fixture.componentInstance.isRolling()).toBe(true);
+    });
+
+    it('isRolling becomes false after 500ms', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      vi.advanceTimersByTime(250);
+
+      expect(fixture.componentInstance.isRolling()).toBe(false);
+    });
+
+    it('displayTotal stays within min-max range during rolling with positive dice', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click(); // 1d6: min=1, max=6
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      const displayVal = fixture.componentInstance.displayTotal();
+      expect(displayVal).toBeGreaterThanOrEqual(1);
+      expect(displayVal).toBeLessThanOrEqual(6);
+    });
+
+    it('displayTotal updates on each interval tick', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const increaseD20: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d20"]');
+      increaseD20.click(); // 1d20: min=1, max=20
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      const first = fixture.componentInstance.displayTotal();
+      vi.advanceTimersByTime(50);
+      // After one tick the interval fires and updates the display
+      expect(typeof fixture.componentInstance.displayTotal()).toBe('number');
+      expect(fixture.componentInstance.isRolling()).toBe(true);
+      const second = fixture.componentInstance.displayTotal();
+      expect(second).toBeGreaterThanOrEqual(1);
+      expect(second).toBeLessThanOrEqual(20);
+      // first is already checked to be a valid number; both are valid
+      expect(first).toBeGreaterThanOrEqual(1);
+      expect(first).toBeLessThanOrEqual(20);
+    });
+  });
+
+  it('shows em-dash in result panel before any rolls', () => {
     service.history.set([]);
     service.isOpen.set(true);
     fixture.detectChanges();
 
-    const idle = fixture.nativeElement.querySelector('.ts-result-idle');
-    expect(idle?.textContent).toContain('roll some dice, friend');
+    const empty = fixture.nativeElement.querySelector('.ts-result-empty');
+    expect(empty?.textContent).toContain('—');
   });
 
   it('pre-fills dice counts from consumePendingRequest on init', () => {

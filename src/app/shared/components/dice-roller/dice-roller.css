@@ -38,7 +38,8 @@
 .ts-outcome--fear{color:var(--fear-color);font-weight:600}
 .ts-outcome--crit{display:inline-block;background:var(--ink);color:var(--crit-color);font-weight:700;padding:2px 8px;border-radius:4px;font-size:18px}
 .ts-roll-btn{width:100%;padding:10px;background:var(--wx);color:var(--bs);font-size:14px;font-weight:700;letter-spacing:3px;border:1px solid #3a0808;border-radius:20px;cursor:pointer}
-.ts-roll-btn:hover{background:#9a2020}
+.ts-roll-btn:hover:not(:disabled){background:#9a2020}
+.ts-roll-btn:disabled{background:#6b4a3a;border-color:#4a3028;color:#a88070;cursor:not-allowed;opacity:0.6}
 .ts-chronicle{display:flex;flex-direction:column;gap:4px}
 .ts-chronicle-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ru);padding-bottom:3px}
 .ts-chronicle-title{font-size:11px;letter-spacing:2px;color:var(--i2)}
@@ -49,5 +50,5 @@
 .ts-history-outcome{font-style:italic;margin-left:6px}
 .ts-history-outcome.ts-outcome--hope{color:#7a5320;font-weight:600}
 .ts-history-outcome.ts-outcome--fear{color:var(--fear-color);font-weight:600}
-.ts-history-outcome.ts-outcome--crit{background:var(--ink);color:var(--crit-color);padding:1px 5px;border-radius:3px;font-weight:700;font-style:normal}
+.ts-history-outcome.ts-outcome--crit{background:var(--ink);color:var(--crit-color);padding:1px 5px;border-radius:3px;font-weight:700;font-style:normal;font-size:inherit}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
