@@ -1,1 +1,196 @@
-<app-dice-variant-tavern-scroll />
+<div class="ts-root">
+  <button
+    type="button"
+    class="ts-fab"
+    [attr.aria-label]="service.isOpen() ? 'Close dice roller' : 'Open dice roller'"
+    [attr.aria-expanded]="service.isOpen()"
+    aria-controls="dice-roller-menu"
+    (click)="service.toggle()"
+  >
+    <svg viewBox="-12 -12 24 24" width="27" height="27" aria-hidden="true" focusable="false"
+         fill="none" stroke="currentColor" stroke-width="1.5">
+      <polygon points="0,-10 5.9,-8.1 9.5,-3.1 9.5,3.1 5.9,8.1 0,10 -5.9,8.1 -9.5,3.1 -9.5,-3.1 -5.9,-8.1"/>
+    </svg>
+  </button>
+
+  @if (service.isOpen()) {
+    <section
+      id="dice-roller-menu"
+      class="ts-menu"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Dice roller"
+    >
+      <div class="ts-dowel ts-dowel--top" aria-hidden="true"></div>
+
+      <div class="ts-scroll-body">
+        <div class="ts-menu-header">
+          <button
+            type="button"
+            class="ts-close-btn"
+            aria-label="Close dice roller"
+            (click)="service.close()"
+          >✕</button>
+        </div>
+
+        <div class="ts-tray" role="group" aria-label="Dice selection">
+          @for (type of diceTypes; track type) {
+            <div class="ts-tray-cell" role="group" [attr.aria-label]="type + ' count'">
+              <div class="ts-die-icon" aria-hidden="true">
+                @switch (type) {
+                  @case ('d4') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <polygon points="0,-21 22,14 -22,14" fill="#f7eccd"/>
+                      <text x="0" y="8" font-family="Cinzel,serif" font-size="10" text-anchor="middle" fill="#2b1a0c" stroke="none">d4</text>
+                    </svg>
+                  }
+                  @case ('d6') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <rect x="-20" y="-20" width="40" height="40" rx="2" fill="#f7eccd"/>
+                      <text x="0" y="4" font-family="Cinzel,serif" font-size="10" text-anchor="middle" fill="#2b1a0c" stroke="none">d6</text>
+                    </svg>
+                  }
+                  @case ('d8') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <polygon points="0,-22 20,0 0,22 -20,0" fill="#f7eccd"/>
+                      <text x="0" y="4" font-family="Cinzel,serif" font-size="10" text-anchor="middle" fill="#2b1a0c" stroke="none">d8</text>
+                    </svg>
+                  }
+                  @case ('d10') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <polygon points="0,-22 23,-5 14,22 -14,22 -23,-5" fill="#f7eccd"/>
+                      <text x="0" y="7" font-family="Cinzel,serif" font-size="9" text-anchor="middle" fill="#2b1a0c" stroke="none">d10</text>
+                    </svg>
+                  }
+                  @case ('d12') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <polygon points="0,-22 12.9,-17.8 20.9,-6.8 20.9,6.8 12.9,17.8 0,22 -12.9,17.8 -20.9,6.8 -20.9,-6.8 -12.9,-17.8" fill="#f7eccd"/>
+                      <text x="0" y="4" font-family="Cinzel,serif" font-size="9" text-anchor="middle" fill="#2b1a0c" stroke="none">d12</text>
+                    </svg>
+                  }
+                  @case ('d20') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <polygon points="0,-22 19.1,-11 19.1,11 0,22 -19.1,11 -19.1,-11" fill="#f7eccd"/>
+                      <text x="0" y="4" font-family="Cinzel,serif" font-size="10" text-anchor="middle" fill="#2b1a0c" stroke="none">d20</text>
+                    </svg>
+                  }
+                  @case ('d100') {
+                    <svg viewBox="-24 -24 48 48" width="52" height="52" aria-hidden="true"
+                         fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                      <circle cx="0" cy="0" r="21" fill="#f7eccd"/>
+                      <text x="0" y="4" font-family="Cinzel,serif" font-size="9" text-anchor="middle" fill="#2b1a0c" stroke="none">d100</text>
+                    </svg>
+                  }
+                }
+              </div>
+              <div class="ts-counter">
+                <button
+                  type="button"
+                  class="ts-counter-btn"
+                  [attr.aria-label]="'Decrease ' + type"
+                  (click)="adjustCount(type, -1)"
+                >−</button>
+                <span
+                  class="ts-counter-val"
+                  [class.ts-counter-val--negative]="getCount(type) < 0"
+                  [class.ts-counter-val--nonzero]="getCount(type) !== 0"
+                  aria-live="polite"
+                >{{ getCount(type) }}</span>
+                <button
+                  type="button"
+                  class="ts-counter-btn"
+                  [attr.aria-label]="'Increase ' + type"
+                  (click)="adjustCount(type, 1)"
+                >+</button>
+              </div>
+            </div>
+          }
+
+          <button
+            type="button"
+            class="ts-tray-cell ts-duality-btn"
+            [class.ts-duality-active]="isDualityChecked()"
+            [attr.aria-pressed]="isDualityChecked()"
+            aria-label="Toggle duality dice"
+            (click)="toggleDuality(!isDualityChecked())"
+          >
+            <div class="ts-die-icon" aria-hidden="true">
+              <svg viewBox="-28 -28 56 56" width="52" height="52" aria-hidden="true"
+                   fill="none" stroke="#2b1a0c" stroke-width="1.25">
+                <g transform="translate(-3,3)">
+                  <polygon points="0,-22 12.9,-17.8 20.9,-6.8 20.9,6.8 12.9,17.8 0,22 -12.9,17.8 -20.9,6.8 -20.9,-6.8 -12.9,-17.8" fill="#e8d4a8"/>
+                </g>
+                <g transform="translate(3,-3)">
+                  <polygon points="0,-22 12.9,-17.8 20.9,-6.8 20.9,6.8 12.9,17.8 0,22 -12.9,17.8 -20.9,6.8 -20.9,-6.8 -12.9,-17.8" fill="rgba(212,160,86,0.35)" stroke="#b8903a"/>
+                </g>
+              </svg>
+            </div>
+            <span class="ts-duality-btn-label" [class.ts-duality-btn-label--active]="isDualityChecked()">Duality</span>
+          </button>
+        </div>
+
+        <div class="ts-tray-actions">
+          <button type="button" class="ts-reset-btn" (click)="resetCounts()">reset dice</button>
+        </div>
+
+        <output class="ts-result-panel" aria-live="polite" aria-atomic="true">
+          @if (recent()) {
+            <div class="ts-result-label">LAST ROLL</div>
+            <div class="ts-result-total">{{ recent()!.total }}</div>
+            @if (recent()!.duality) {
+              <div class="ts-result-outcome"
+                [class.ts-outcome--hope]="recent()!.duality!.outcome === 'hope'"
+                [class.ts-outcome--fear]="recent()!.duality!.outcome === 'fear'"
+                [class.ts-outcome--crit]="recent()!.duality!.outcome === 'crit'"
+              >
+                {{ outcomeLabel(recent()!) }}
+              </div>
+              @if (recent()!.duality!.outcome === 'crit') {
+                <span class="sr-only">Critical Success!</span>
+              }
+            }
+          } @else {
+            <div class="ts-result-label">LAST ROLL</div>
+            <div class="ts-result-empty">—</div>
+            <div class="ts-result-idle">roll some dice, friend</div>
+          }
+        </output>
+
+        <button type="button" class="ts-roll-btn" (click)="onRoll()">ROLL</button>
+
+        <div class="ts-chronicle">
+          <div class="ts-chronicle-header">
+            <span class="ts-chronicle-title">CHRONICLE</span>
+            <button type="button" class="ts-clear-btn" (click)="service.clearHistory()">clear</button>
+          </div>
+          <ul class="ts-history-list" aria-label="Roll history">
+            @if (service.history().length === 0) {
+              <li class="ts-history-empty">the page is blank</li>
+            } @else {
+              @for (entry of service.history(); track entry.id) {
+                <li class="ts-history-row">
+                  <span class="ts-history-dice">{{ historyDiceStr(entry) }} = <strong>{{ entry.total }}</strong></span>
+                  @if (entry.duality) {
+                    <span class="ts-history-outcome"
+                      [class.ts-outcome--hope]="entry.duality.outcome === 'hope'"
+                      [class.ts-outcome--fear]="entry.duality.outcome === 'fear'"
+                      [class.ts-outcome--crit]="entry.duality.outcome === 'crit'"
+                    >{{ entry.duality.outcome === 'crit' ? 'CRIT!' : entry.duality.outcome === 'hope' ? 'Hope' : 'Fear' }}</span>
+                  }
+                </li>
+              }
+            }
+          </ul>
+        </div>
+      </div>
+
+      <div class="ts-dowel ts-dowel--bottom" aria-hidden="true"></div>
+    </section>
+  }
+</div>
