@@ -49,6 +49,7 @@
 .card__subtitle:last-of-type { margin-bottom: 1rem; }
 .card__subtitle--secondary { font-size: .85rem; opacity: .75; letter-spacing: .14em; }
 .card__description { font-family: var(--font-body); margin: 0; font-size: 1.05rem; color: #ddd0c2; line-height: 1.75; }
+.card__features { margin-top: 1.25rem; }
 .card__type-badge { position: absolute; z-index: 5; font-family: var(--font-body); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none; bottom: .75rem; right: .75rem; font-size: .8rem; color: var(--ca); opacity: .75; }
 .card__tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid rgba(212,160,86,.15); }
 .card__tag { font-family: var(--font-body); font-weight: 600; font-size: .9rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ca); padding: .2rem 0; }
