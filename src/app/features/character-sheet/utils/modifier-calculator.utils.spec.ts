@@ -336,7 +336,18 @@ describe('collectAllModifiers', () => {
     expect(result[0]).toEqual({ target: 'HIT_POINT_MAX', operation: 'ADD', value: 3, sourceName: 'Thieves Guild' });
   });
 
-  it('collects modifiers from equipped domain card features', () => {
+  it('does not collect modifiers from class card features', () => {
+    const sheet = makeSheet({
+      classCards: [{
+        id: 5, name: 'Warrior Strike',
+        classFeatures: [{ description: 'Bonus attack', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }],
+      }],
+    });
+    const result = collectAllModifiers(sheet);
+    expect(result).toEqual([]);
+  });
+
+  it('does not collect modifiers from equipped domain card features', () => {
     const sheet = makeSheet({
       domainCards: [
         { id: 40, name: 'Arcana Bolt', features: [{ description: 'Power', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] },
@@ -344,8 +355,7 @@ describe('collectAllModifiers', () => {
       equippedDomainCardIds: [40],
     });
     const result = collectAllModifiers(sheet);
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({ target: 'PROFICIENCY', operation: 'ADD', value: 1, sourceName: 'Arcana Bolt' });
+    expect(result).toEqual([]);
   });
 
   it('does not collect trait-targeted modifiers from unequipped armor', () => {
@@ -396,14 +406,15 @@ describe('collectAllModifiers', () => {
         id: 100, weaponId: 2, equipped: true, slot: 'PRIMARY',
         weapon: { id: 2, name: 'Sword', features: [{ description: 'B', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 2 }] }] },
       }],
-      subclassCards: [{ id: 10, name: 'Path', features: [{ description: 'C', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] }],
-      ancestryCards: [{ id: 20, name: 'Elf', features: [{ description: 'D', modifiers: [{ target: 'HOPE_MAX', operation: 'ADD', value: 1 }] }] }],
-      communityCards: [{ id: 30, name: 'Guild', features: [{ description: 'E', modifiers: [{ target: 'STRESS_MAX', operation: 'ADD', value: 1 }] }] }],
-      domainCards: [{ id: 40, name: 'Spell', features: [{ description: 'F', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] }],
+      classCards: [{ id: 5, name: 'Strike', classFeatures: [{ description: 'C', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] }],
+      subclassCards: [{ id: 10, name: 'Path', features: [{ description: 'D', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] }],
+      ancestryCards: [{ id: 20, name: 'Elf', features: [{ description: 'E', modifiers: [{ target: 'HOPE_MAX', operation: 'ADD', value: 1 }] }] }],
+      communityCards: [{ id: 30, name: 'Guild', features: [{ description: 'F', modifiers: [{ target: 'STRESS_MAX', operation: 'ADD', value: 1 }] }] }],
+      domainCards: [{ id: 40, name: 'Spell', features: [{ description: 'G', modifiers: [{ target: 'STRENGTH', operation: 'ADD', value: 1 }] }] }],
       equippedDomainCardIds: [40],
     });
     const result = collectAllModifiers(sheet);
-    expect(result).toHaveLength(6);
-    expect(result.map(m => m.sourceName)).toEqual(['Armor', 'Sword', 'Path', 'Elf', 'Guild', 'Spell']);
+    expect(result).toHaveLength(5);
+    expect(result.map(m => m.sourceName)).toEqual(['Armor', 'Sword', 'Path', 'Elf', 'Guild']);
   });
 });

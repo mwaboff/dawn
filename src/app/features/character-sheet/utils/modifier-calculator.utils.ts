@@ -80,10 +80,6 @@ export function collectAllModifiers(sheet: CharacterSheetResponse): SourcedModif
   collectCardModifiers(sheet.ancestryCards, modifiers);
   collectCardModifiers(sheet.communityCards, modifiers);
 
-  const equippedDomainIds = new Set(sheet.equippedDomainCardIds ?? []);
-  const equippedDomainCards = (sheet.domainCards ?? []).filter(c => equippedDomainIds.has(c.id));
-  collectCardModifiers(equippedDomainCards, modifiers);
-
   return modifiers;
 }
 
