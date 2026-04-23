@@ -7,10 +7,10 @@
 .equipment-card__badge { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(212,160,86,.8); border: 1px solid var(--cb); border-radius: 2px; padding: .1rem .3rem; }
 .equipment-card__stats { display: flex; gap: .75rem; flex-wrap: wrap; }
 .equip-stat { font-family: var(--fb); font-size: .85rem; color: rgba(245,230,211,.7); }
-.equipment-card__features { margin-top: .4rem; padding-top: .4rem; border-top: 1px solid rgba(212,160,86,.1); display: flex; flex-direction: column; gap: .35rem; }
-.feature-row__name { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ca); margin-bottom: .15rem; }
-.feature-row__description { font-family: var(--fb); font-size: .85rem; color: rgba(245,230,211,.75); line-height: 1.4; margin: 0; }
-.feature-row__tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .2rem; }
+.equipment-card__features { margin-top: .4rem; padding-top: .4rem; border-top: 1px solid rgba(212,160,86,.1); display: flex; flex-direction: column; gap: .75rem; }
+.feature-row__name { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ca); margin-bottom: .25rem; }
+.feature-row__description { font-family: var(--fb); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+.feature-row__tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
 .feature-tag { font-family: var(--fb); font-size: .75rem; color: rgba(212,160,86,.85); background: rgba(212,160,86,.08); border: 1px solid var(--cb); border-radius: 2px; padding: .1rem .3rem; }
 
 .burden-hand {
