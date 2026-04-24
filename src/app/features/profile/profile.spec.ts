@@ -465,6 +465,46 @@ describe('Profile', () => {
     });
   });
 
+  describe('avatar display', () => {
+    it('should show avatar image when user has avatarUrl', () => {
+      const userWithAvatar = { ...mockUser, avatarUrl: 'https://example.com/avatar.jpg' };
+      setup(null, userWithAvatar);
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-avatar')).toBeTruthy();
+      expect(el.querySelector('.profile-avatar')?.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+    });
+
+    it('should show sigil when user has no avatarUrl', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-avatar')).toBeFalsy();
+      expect(el.querySelector('.profile-sigil svg')).toBeTruthy();
+    });
+
+    it('should fall back to sigil when avatar image fails to load', () => {
+      const userWithAvatar = { ...mockUser, avatarUrl: 'https://example.com/broken.jpg' };
+      setup(null, userWithAvatar);
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+
+      component.onAvatarError();
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.profile-avatar')).toBeFalsy();
+      expect(el.querySelector('.profile-sigil svg')).toBeTruthy();
+    });
+  });
+
   describe('no user + no ID', () => {
     it('should redirect to auth if no user', () => {
       setup(null, null);

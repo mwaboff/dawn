@@ -60,13 +60,27 @@
 
 .profile-sigil {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   color: var(--color-accent);
+}
+
+.profile-sigil svg {
+  width: 100%;
+  height: 100%;
   opacity: 0.2;
 }
 
-.profile-sigil svg { width: 100%; height: 100%; }
+.profile-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(212, 160, 86, 0.45);
+  box-shadow:
+    0 0 0 3px rgba(212, 160, 86, 0.1),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+}
 
 .profile-divider {
   position: relative;
@@ -166,6 +180,6 @@
 @media (max-width: 640px) {
   .profile { padding: 7rem 1.25rem 4rem; }
   .profile-header { flex-direction: column-reverse; align-items: flex-start; gap: 1rem; margin-bottom: 2.5rem; }
-  .profile-sigil { width: 48px; height: 48px; }
+  .profile-sigil { width: 64px; height: 64px; }
   .profile-error { padding: 4rem 1rem; }
 }

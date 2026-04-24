@@ -29,10 +29,19 @@
         <p class="profile-joined">Member since {{ joinDate() }}</p>
       </div>
       <div class="profile-sigil">
-        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
-          <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
-        </svg>
+        @if (user.avatarUrl && !avatarError()) {
+          <img
+            class="profile-avatar"
+            [src]="user.avatarUrl"
+            [alt]="user.username + '\'s avatar'"
+            (error)="onAvatarError()"
+          />
+        } @else {
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <circle cx="32" cy="32" r="28" stroke-dasharray="4 3" />
+            <path d="M32 12 L38 28 L54 28 L41 38 L46 54 L32 44 L18 54 L23 38 L10 28 L26 28 Z" />
+          </svg>
+        }
       </div>
     </header>
 
