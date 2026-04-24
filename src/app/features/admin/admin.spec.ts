@@ -39,6 +39,12 @@ describe('Admin', () => {
     expect(tabs[1]?.textContent?.trim()).toBe('Bulk Upload');
   });
 
+  it('should render User Manager tab', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const tabs = compiled.querySelectorAll('.admin-tab');
+    expect(tabs[2]?.textContent?.trim()).toBe('User Manager');
+  });
+
   it('should have router outlet', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const outlet = compiled.querySelector('router-outlet');

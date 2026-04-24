@@ -60,6 +60,8 @@ export class Profile implements OnInit {
     return isAtLeast(current.role, 'ADMIN');
   });
 
+  readonly avatarError = signal(false);
+
   readonly joinDate = computed(() => {
     const createdAt = this.profileUser()?.createdAt;
     if (!createdAt) return '';
@@ -104,6 +106,10 @@ export class Profile implements OnInit {
       this.loadCharacters(currentUser.id);
       this.loadCampaignsIfAllowed(currentUser.id);
     }
+  }
+
+  onAvatarError(): void {
+    this.avatarError.set(true);
   }
 
   onViewCharacter(id: number): void {

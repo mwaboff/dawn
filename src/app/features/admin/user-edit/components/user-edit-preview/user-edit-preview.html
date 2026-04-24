@@ -1,0 +1,26 @@
+<div class="preview-sticky">
+  <h3 class="preview-title">Preview <span class="preview-live-pill">LIVE</span></h3>
+  <div class="preview-card" [class.preview-card--banned]="data().banned">
+    <div class="preview-avatar">
+      @if (data().avatarUrl) {
+        <img [src]="data().avatarUrl" alt="" class="preview-avatar-img" />
+      } @else {
+        <span class="preview-avatar-initial">{{ initial() }}</span>
+      }
+    </div>
+    <div class="preview-username">{{ data().username || '—' }}</div>
+    <div class="preview-role">{{ data().role }}</div>
+    @if (data().banned) {
+      <div class="preview-ban-pill">Banned</div>
+      @if (data().banReason) {
+        <div class="preview-ban-reason">Reason: {{ data().banReason }}</div>
+      }
+    }
+    @if (data().email) {
+      <div class="preview-meta">{{ data().email }}</div>
+    }
+    @if (data().lastSeenAt) {
+      <div class="preview-meta">Last seen {{ data().lastSeenAt }}</div>
+    }
+  </div>
+</div>

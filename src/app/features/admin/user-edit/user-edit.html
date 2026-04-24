@@ -1,0 +1,61 @@
+<div class="user-edit">
+  <app-user-edit-toolbar
+    [hasPendingChanges]="hasPendingChanges()"
+    [saving]="saving()"
+    [processing]="processingBan()"
+    [banned]="userIsBanned()"
+    [error]="error()"
+    [saveSuccess]="saveSuccess()"
+    (back)="onBack()"
+    (save)="onSave()"
+    (ban)="onBan($event)"
+    (unban)="onUnban()"
+  />
+
+  @if (toast()) {
+    <div class="user-edit-toast" role="status">{{ toast() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="user-edit-loading">Loading user data...</div>
+  } @else if (user(); as currentUser) {
+    <div class="user-edit-content">
+      <div class="user-edit-main">
+        <app-user-edit-identity-panel
+          [form]="form"
+          [user]="currentUser"
+          [identities]="identities()"
+          [submitted]="submitted()"
+          (copied)="onCopied($event)"
+        />
+
+        <app-user-edit-history-list
+          title="Login history"
+          [columns]="loginColumns"
+          [rows]="loginEvents()"
+          emptyText="No login events recorded."
+        />
+
+        <app-user-edit-history-list
+          title="Username history"
+          [columns]="usernameColumns"
+          [rows]="usernameHistory()"
+          emptyText="No username changes."
+        />
+
+        <app-user-edit-history-list
+          title="Admin actions"
+          [columns]="actionColumns"
+          [rows]="adminActions()"
+          emptyText="No admin actions logged."
+        />
+      </div>
+
+      @if (previewData(); as preview) {
+        <app-user-edit-preview [data]="preview" />
+      }
+    </div>
+  } @else if (error()) {
+    <div class="user-edit-error">{{ error() }}</div>
+  }
+</div>
