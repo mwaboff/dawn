@@ -1,0 +1,41 @@
+:host { display: block; }
+
+.user-edit { display: block; }
+
+.user-edit-content {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.user-edit-main { min-width: 0; }
+
+.user-edit-loading,
+.user-edit-error {
+  text-align: center;
+  padding: 3rem;
+  font-family: var(--font-body);
+  color: var(--color-parchment);
+  opacity: 0.7;
+}
+
+.user-edit-error { color: #f5a5ad; opacity: 1; }
+
+.user-edit-toast {
+  position: fixed;
+  top: 5rem;
+  right: 2rem;
+  padding: 0.625rem 1rem;
+  background: rgba(143, 212, 164, 0.15);
+  border: 1px solid rgba(143, 212, 164, 0.4);
+  border-radius: 4px;
+  color: #8fd4a4;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  z-index: 50;
+}
+
+@media (max-width: 900px) {
+  .user-edit-content { grid-template-columns: 1fr; }
+}

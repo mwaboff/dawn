@@ -10,6 +10,8 @@ export const ADMIN_ROUTES: Routes = [
       { path: 'cards/subclass-path/:pathId', loadComponent: () => import('./subclass-path-edit/subclass-path-edit').then(m => m.SubclassPathEdit) },
       { path: 'cards/:cardType/:id', loadComponent: () => import('./card-edit/card-edit').then(m => m.CardEdit) },
       { path: 'bulk-upload', loadComponent: () => import('./bulk-upload/bulk-upload').then(m => m.BulkUpload) },
+      { path: 'users', loadComponent: () => import('./user-list/user-list').then(m => m.UserList) },
+      { path: 'users/:userId', loadComponent: () => import('./user-edit/user-edit').then(m => m.UserEdit) },
     ]
   }
 ];

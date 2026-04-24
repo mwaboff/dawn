@@ -1,0 +1,27 @@
+<section class="history-panel">
+  <h3 class="history-title">{{ title() }}</h3>
+  @if (rows().length === 0) {
+    <p class="history-empty">{{ emptyText() }}</p>
+  } @else {
+    <div class="history-table-wrapper">
+      <table class="history-table">
+        <thead>
+          <tr>
+            @for (col of columns(); track col.key) {
+              <th scope="col">{{ col.label }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track trackByIndex($index); let i = $index) {
+            <tr>
+              @for (col of columns(); track col.key) {
+                <td>{{ cellValue(row, col.key) }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

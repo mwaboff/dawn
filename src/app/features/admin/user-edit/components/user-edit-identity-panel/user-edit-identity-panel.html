@@ -1,0 +1,109 @@
+<section class="identity-panel" [formGroup]="form()">
+  <h3 class="panel-title">Identity</h3>
+
+  <div class="identity-grid">
+    <div class="form-group">
+      <label for="username" class="form-label">Username</label>
+      <input id="username" type="text" class="form-input" formControlName="username" maxlength="100" />
+      @if (hasError('username', 'required')) {
+        <p class="form-error">Username is required.</p>
+      } @else if (hasError('username', 'minlength')) {
+        <p class="form-error">Username must be at least 3 characters.</p>
+      } @else if (hasError('username', 'maxlength')) {
+        <p class="form-error">Username must be 100 characters or fewer.</p>
+      } @else if (backendError('username')) {
+        <p class="form-error">{{ backendError('username') }}</p>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="avatarUrl" class="form-label">Avatar URL</label>
+      <input id="avatarUrl" type="text" class="form-input" formControlName="avatarUrl" maxlength="500" />
+      @if (hasError('avatarUrl', 'maxlength')) {
+        <p class="form-error">Avatar URL must be 500 characters or fewer.</p>
+      } @else if (backendError('avatarUrl')) {
+        <p class="form-error">{{ backendError('avatarUrl') }}</p>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="role" class="form-label">Role</label>
+      <select id="role" class="form-input" formControlName="role">
+        @for (role of roleOptions(); track role) {
+          <option [value]="role">{{ role }}</option>
+        }
+      </select>
+      <p class="form-hint">Changing the role revokes all active sessions for this user.</p>
+      @if (backendError('role')) {
+        <p class="form-error">{{ backendError('role') }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="identity-readonly">
+    <div class="readonly-row">
+      <span class="readonly-label">User ID</span>
+      <span class="readonly-value">{{ user().id }}</span>
+      <button type="button" class="copy-btn" (click)="onCopy(user().id, 'User ID')" aria-label="Copy user ID">Copy</button>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Email</span>
+      <span class="readonly-value">{{ user().email || '—' }}</span>
+      @if (user().email) {
+        <button type="button" class="copy-btn" (click)="onCopy(user().email, 'Email')" aria-label="Copy email">Copy</button>
+      }
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Timezone</span>
+      <span class="readonly-value">{{ user().timezone || '—' }}</span>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Joined</span>
+      <span class="readonly-value">{{ formatDate(user().createdAt) }}</span>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Last modified</span>
+      <span class="readonly-value">{{ formatDate(user().lastModifiedAt) }}</span>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Last seen</span>
+      <span class="readonly-value">{{ formatDate(user().lastSeenAt) }}</span>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Deleted</span>
+      <span class="readonly-value">{{ formatDate(user().deletedAt) }}</span>
+    </div>
+    <div class="readonly-row">
+      <span class="readonly-label">Banned</span>
+      <span class="readonly-value">
+        @if (isUserBanned(user())) { Yes — {{ formatDate(user().bannedAt) }} } @else { No }
+      </span>
+    </div>
+    @if (user().banReason) {
+      <div class="readonly-row">
+        <span class="readonly-label">Ban reason</span>
+        <span class="readonly-value">{{ user().banReason }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="identity-providers">
+    <h4 class="subpanel-title">Linked providers</h4>
+    @if (identities().length === 0) {
+      <p class="identity-empty">No linked providers.</p>
+    } @else {
+      <ul class="provider-list">
+        @for (id of identities(); track id.provider + id.linkedAt) {
+          <li class="provider-row">
+            <span class="provider-name">{{ id.provider }}</span>
+            @if (id.displayName) { <span class="provider-display">{{ id.displayName }}</span> }
+            <span class="provider-date">Linked {{ formatDate(id.linkedAt) }}</span>
+            @if (id.lastUsedAt) {
+              <span class="provider-date">Last used {{ formatDate(id.lastUsedAt) }}</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</section>

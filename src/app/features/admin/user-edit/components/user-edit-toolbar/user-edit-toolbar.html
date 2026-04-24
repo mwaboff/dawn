@@ -1,0 +1,86 @@
+<div class="user-edit-toolbar">
+  <button type="button" class="btn btn--secondary" (click)="onBack()">Back to Users</button>
+  <div class="toolbar-actions">
+    @if (saveSuccess()) {
+      <span class="save-success" role="alert">Saved successfully</span>
+    }
+    @if (error()) {
+      <span class="save-error" role="alert">{{ error() }}</span>
+    }
+
+    @if (banned()) {
+      <button
+        type="button"
+        class="btn btn--secondary"
+        [disabled]="processing()"
+        (click)="onUnbanClick()">
+        Unban user
+      </button>
+    } @else if (pendingBan()) {
+      <span class="ban-confirm">
+        <span class="ban-confirm-text">Ban this user?</span>
+        <input
+          type="text"
+          class="ban-reason-input"
+          [formControl]="reasonCtrl"
+          placeholder="Reason (optional)"
+          maxlength="500"
+        />
+        <button
+          type="button"
+          class="btn btn--danger"
+          [disabled]="processing()"
+          (click)="onInlineConfirm()">
+          @if (processing()) { Banning... } @else { Confirm }
+        </button>
+        <button
+          type="button"
+          class="btn btn--secondary btn--sm"
+          [disabled]="processing()"
+          (click)="onInlineCancel()">
+          Cancel
+        </button>
+      </span>
+    } @else {
+      <button
+        type="button"
+        class="btn btn--danger-ghost"
+        [disabled]="saving() || processing()"
+        (click)="onBanClick()">
+        Ban user
+      </button>
+    }
+
+    <button
+      type="button"
+      class="btn btn--primary"
+      [disabled]="!hasPendingChanges() || saving()"
+      (click)="onSave()">
+      @if (saving()) { Saving... } @else { Save Changes }
+    </button>
+  </div>
+</div>
+
+@if (confirmingBan()) {
+  <app-confirm-dialog
+    title="Ban User"
+    message="This will ban the user and revoke all active sessions. Continue?"
+    confirmLabel="Ban"
+    cancelLabel="Cancel"
+    [processing]="processing()"
+    (confirmed)="onConfirmBan()"
+    (cancelled)="onCancelBan()"
+  />
+}
+
+@if (confirmingUnban()) {
+  <app-confirm-dialog
+    title="Unban User"
+    message="This will restore the user's access. Continue?"
+    confirmLabel="Unban"
+    cancelLabel="Cancel"
+    [processing]="processing()"
+    (confirmed)="onConfirmUnban()"
+    (cancelled)="onCancelUnban()"
+  />
+}
