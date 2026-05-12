@@ -1,8 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { CampaignRoster } from './campaign-roster';
 import { CampaignResponse } from '../../../../shared/models/campaign-api.model';
+import { InlineDeleteConfirm } from '../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 
 function makeCampaign(overrides: Partial<CampaignResponse> = {}): CampaignResponse {
   return {
@@ -158,70 +160,70 @@ describe('CampaignRoster', () => {
   });
 
   describe('delete functionality', () => {
-    it('should not show delete button when canDelete is false', () => {
+    it('should not show inline-delete-confirm when canDelete is false', () => {
       host.campaigns.set([makeCampaign()]);
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-delete-btn')).toBeFalsy();
+      expect(el.querySelector('app-inline-delete-confirm')).toBeFalsy();
     });
 
-    it('should show delete button when canDelete is true', () => {
+    it('should render inline-delete-confirm when canDelete is true', () => {
       host.canDelete.set(true);
       host.campaigns.set([makeCampaign()]);
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
+      expect(el.querySelector('app-inline-delete-confirm')).toBeTruthy();
     });
 
-    it('should show inline confirm when delete button is clicked', () => {
+    it('should pass correct itemLabel to inline-delete-confirm', () => {
+      host.canDelete.set(true);
+      host.campaigns.set([makeCampaign({ name: 'Dragon Slayers' })]);
+      fixture.detectChanges();
+
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      expect(child.componentInstance.itemLabel()).toBe('Dragon Slayers');
+    });
+
+    it('should set pendingDeleteId when child emits requested', () => {
       host.canDelete.set(true);
       host.campaigns.set([makeCampaign({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
-      expect(el.querySelector('.roster-inline-confirm-text')?.textContent?.trim()).toBe('Delete?');
+      expect(child.componentInstance.active()).toBe(true);
     });
 
-    it('should not navigate when delete button is clicked', () => {
+    it('should show confirm dialog when child emits confirmed', () => {
       host.canDelete.set(true);
       host.campaigns.set([makeCampaign({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-
-      expect(host.viewedId).toBeNull();
-    });
-
-    it('should hide inline confirm when No is clicked', () => {
-      host.canDelete.set(true);
-      host.campaigns.set([makeCampaign({ id: 42 })]);
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-inline-cancel-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-
-      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
-      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
-    });
-
-    it('should show confirm dialog when inline Yes is clicked', () => {
-      host.canDelete.set(true);
-      host.campaigns.set([makeCampaign({ id: 42 })]);
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
 
       expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
+    });
+
+    it('should reset pendingDeleteId when child emits cancelled', () => {
+      host.canDelete.set(true);
+      host.campaigns.set([makeCampaign({ id: 42 })]);
+      fixture.detectChanges();
+
+      const campaignRoster = fixture.debugElement.query(By.directive(CampaignRoster)).componentInstance as CampaignRoster;
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
+      fixture.detectChanges();
+
+      child.componentInstance.cancelled.emit();
+      fixture.detectChanges();
+
+      expect(campaignRoster.pendingDeleteId()).toBeNull();
     });
 
     it('should emit deleteCampaign on modal confirm', () => {
@@ -229,24 +231,27 @@ describe('CampaignRoster', () => {
       host.campaigns.set([makeCampaign({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
+
       (el.querySelector('.dialog-btn--confirm') as HTMLButtonElement).click();
       fixture.detectChanges();
 
       expect(host.deletedId).toBe(42);
     });
 
-    it('should hide dialog and inline confirm on modal cancel', () => {
+    it('should hide dialog on modal cancel', () => {
       host.canDelete.set(true);
       host.campaigns.set([makeCampaign({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
       expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
 
@@ -254,7 +259,6 @@ describe('CampaignRoster', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('app-confirm-dialog')).toBeFalsy();
-      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
     });
   });
 });

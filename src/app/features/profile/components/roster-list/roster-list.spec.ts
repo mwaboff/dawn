@@ -1,8 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { RosterList } from './roster-list';
 import { CharacterSummary } from '../../models/profile.model';
+import { InlineDeleteConfirm } from '../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 
 @Component({
   template: `
@@ -37,6 +39,7 @@ function makeCharacter(overrides: Partial<CharacterSummary> = {}): CharacterSumm
     level: 5,
     classEntries: [],
     createdAt: '2025-06-15T10:30:00',
+    lastModifiedAt: '2025-06-15T10:30:00',
     ...overrides,
   };
 }
@@ -225,74 +228,71 @@ describe('RosterList', () => {
   });
 
   describe('delete functionality', () => {
-    it('should not show delete button when canDelete is false', () => {
+    it('should not show inline-delete-confirm when canDelete is false', () => {
       host.characters.set([makeCharacter()]);
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-delete-btn')).toBeFalsy();
+      expect(el.querySelector('app-inline-delete-confirm')).toBeFalsy();
     });
 
-    it('should show delete button when canDelete is true', () => {
+    it('should render inline-delete-confirm when canDelete is true', () => {
       host.canDelete.set(true);
       host.characters.set([makeCharacter()]);
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
+      expect(el.querySelector('app-inline-delete-confirm')).toBeTruthy();
     });
 
-    it('should show inline confirm when delete button is clicked', () => {
+    it('should pass correct itemLabel to inline-delete-confirm', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ name: 'Kael' })]);
+      fixture.detectChanges();
+
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      expect(child.componentInstance.itemLabel()).toBe('Kael');
+    });
+
+    it('should set pendingDeleteId when child emits requested', () => {
       host.canDelete.set(true);
       host.characters.set([makeCharacter({ id: 42 })]);
       fixture.detectChanges();
 
-      const btn = el.querySelector('.roster-delete-btn') as HTMLButtonElement;
-      btn.click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
 
-      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
-      expect(el.querySelector('.roster-inline-confirm-text')?.textContent?.trim()).toBe('Delete?');
+      expect(el.querySelector('app-inline-delete-confirm[ng-reflect-active="true"]') ||
+             fixture.debugElement.query(By.directive(InlineDeleteConfirm)).componentInstance.active()).toBe(true);
     });
 
-    it('should not navigate when delete button is clicked', () => {
+    it('should show confirm dialog when child emits confirmed', () => {
       host.canDelete.set(true);
       host.characters.set([makeCharacter({ id: 42 })]);
       fixture.detectChanges();
 
-      const btn = el.querySelector('.roster-delete-btn') as HTMLButtonElement;
-      btn.click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-
-      expect(host.viewedId).toBeNull();
-    });
-
-    it('should hide inline confirm when No is clicked', () => {
-      host.canDelete.set(true);
-      host.characters.set([makeCharacter({ id: 42 })]);
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
-
-      (el.querySelector('.roster-inline-cancel-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-
-      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
-      expect(el.querySelector('.roster-delete-btn')).toBeTruthy();
-    });
-
-    it('should show confirm dialog when inline Yes is clicked', () => {
-      host.canDelete.set(true);
-      host.characters.set([makeCharacter({ id: 42 })]);
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
-      fixture.detectChanges();
-
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
 
       expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
+    });
+
+    it('should reset pendingDeleteId when child emits cancelled', () => {
+      host.canDelete.set(true);
+      host.characters.set([makeCharacter({ id: 42 })]);
+      fixture.detectChanges();
+
+      const rosterList = fixture.debugElement.query(By.directive(RosterList)).componentInstance as RosterList;
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
+      fixture.detectChanges();
+
+      child.componentInstance.cancelled.emit();
+      fixture.detectChanges();
+
+      expect(rosterList.pendingDeleteId()).toBeNull();
     });
 
     it('should emit deleteCharacter on modal confirm', () => {
@@ -300,9 +300,10 @@ describe('RosterList', () => {
       host.characters.set([makeCharacter({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
 
       (el.querySelector('.dialog-btn--confirm') as HTMLButtonElement).click();
@@ -311,14 +312,15 @@ describe('RosterList', () => {
       expect(host.deletedId).toBe(42);
     });
 
-    it('should hide dialog and inline confirm on modal cancel', () => {
+    it('should hide dialog on modal cancel', () => {
       host.canDelete.set(true);
       host.characters.set([makeCharacter({ id: 42 })]);
       fixture.detectChanges();
 
-      (el.querySelector('.roster-delete-btn') as HTMLButtonElement).click();
+      const child = fixture.debugElement.query(By.directive(InlineDeleteConfirm));
+      child.componentInstance.requested.emit();
       fixture.detectChanges();
-      (el.querySelector('.roster-inline-confirm-btn') as HTMLButtonElement).click();
+      child.componentInstance.confirmed.emit();
       fixture.detectChanges();
       expect(el.querySelector('app-confirm-dialog')).toBeTruthy();
 
@@ -326,7 +328,6 @@ describe('RosterList', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('app-confirm-dialog')).toBeFalsy();
-      expect(el.querySelector('.roster-inline-confirm')).toBeFalsy();
     });
   });
 });

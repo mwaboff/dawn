@@ -18,15 +18,10 @@
   height: 56px;
   background: rgba(245, 230, 211, 0.03);
   border-radius: 2px;
-  animation: pickerPulse 1.5s ease-in-out infinite;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
 }
 
 .sheet-picker-skeleton:nth-child(2) { animation-delay: 0.15s; }
-
-@keyframes pickerPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
-}
 
 .sheet-picker-message {
   font-family: var(--font-body);

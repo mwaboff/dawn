@@ -84,12 +84,11 @@
 .campaigns-message { padding: 3rem 2rem; text-align: center; }
 .campaigns-message p { font-size: 0.9375rem; color: rgba(245, 230, 211, 0.4); }
 .campaigns-loading { display: flex; flex-direction: column; gap: 2px; }
-.campaigns-skeleton { height: 60px; background: rgba(245, 230, 211, 0.03); border-radius: 2px; animation: campaignsPulse 1.5s ease-in-out infinite; }
+.campaigns-skeleton { height: 60px; background: rgba(245, 230, 211, 0.03); border-radius: 2px; animation: skeletonPulse 1.5s ease-in-out infinite; }
 .campaigns-skeleton:nth-child(2) { animation-delay: 0.15s; }
 .campaigns-skeleton:nth-child(3) { animation-delay: 0.3s; }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes campaignsPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.7; } }
 
 @media (max-width: 640px) {
   .campaigns { padding: 7rem 1.25rem 4rem; }
