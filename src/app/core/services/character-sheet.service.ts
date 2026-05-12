@@ -7,6 +7,7 @@ import {
   CharacterSheetResponse,
   CreateCharacterSheetRequest,
   UpdateCharacterSheetRequest,
+  UpdateCharacterSheetNotesRequest,
   CreateExperienceRequest,
   ExperienceResponse,
 } from '../../features/create-character/models/character-sheet-api.model';
@@ -56,6 +57,15 @@ export class CharacterSheetService {
 
   updateCharacterSheet(id: number, request: UpdateCharacterSheetRequest): Observable<CharacterSheetResponse> {
     return this.http.put<CharacterSheetResponse>(`${this.baseUrl}/${id}`, request, {
+      withCredentials: true,
+    });
+  }
+
+  updateCharacterSheetNotes(
+    id: number,
+    request: UpdateCharacterSheetNotesRequest,
+  ): Observable<CharacterSheetResponse> {
+    return this.http.patch<CharacterSheetResponse>(`${this.baseUrl}/${id}/notes`, request, {
       withCredentials: true,
     });
   }

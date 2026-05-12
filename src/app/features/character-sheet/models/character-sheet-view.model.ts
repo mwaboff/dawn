@@ -42,6 +42,7 @@ export interface CharacterSheetView {
 
   experiences: ExperienceDisplay[];
   classEntries: ClassEntry[];
+  notes?: string;
 }
 
 export interface ClassEntry {
