@@ -696,6 +696,53 @@
         </div>
       </section>
     }
+    @if (canAccessNotes()) {
+      <section class="notes-section panel" aria-label="Character notes">
+        <button
+          type="button"
+          class="notes-toggle"
+          [attr.aria-expanded]="notesExpanded()"
+          aria-controls="notes-body"
+          (click)="toggleNotesExpanded()"
+        >
+          <h2 class="panel__title notes-title">
+            <span class="notes-title__label">Notes</span>
+            @if (isSavingNotes()) {
+              <app-saving-spinner />
+            } @else if (notesSavedAt() !== null) {
+              <span class="notes-status notes-status--saved" aria-live="polite">
+                <svg class="notes-status__icon" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Saved
+              </span>
+            }
+          </h2>
+          <span class="notes-chevron" [class.is-open]="notesExpanded()" aria-hidden="true">⌄</span>
+        </button>
+
+        @if (notesExpanded()) {
+          <div id="notes-body" class="notes-body">
+            <textarea
+              class="notes-textarea"
+              [value]="currentNotes()"
+              (input)="onNotesInput($event)"
+              maxlength="10000"
+              rows="10"
+              placeholder="Backstory, session notes, GM hints… (only you and game admins can see this)"
+              aria-label="Free-form character notes"
+            ></textarea>
+            <div class="notes-meta">
+              <span
+                class="notes-count"
+                [class.is-warning]="notesCharCount() >= 9500"
+                [class.is-danger]="notesCharCount() >= 9900"
+              >{{ notesCharCount() | number }} / 10,000</span>
+            </div>
+          </div>
+        }
+      </section>
+    }
     <app-dice-roller />
   }
 </main>

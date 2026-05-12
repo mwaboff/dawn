@@ -198,6 +198,62 @@ describe('CharacterSheetService', () => {
     });
   });
 
+  describe('updateCharacterSheetNotes', () => {
+    it('should PATCH to the correct URL', () => {
+      service.updateCharacterSheetNotes(42, { notes: 'hello world' }).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      expect(req.request.method).toBe('PATCH');
+      req.flush(buildSheetResponse());
+    });
+
+    it('should send withCredentials: true', () => {
+      service.updateCharacterSheetNotes(42, { notes: 'hello world' }).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(buildSheetResponse());
+    });
+
+    it('should send the request body', () => {
+      service.updateCharacterSheetNotes(42, { notes: 'hello world' }).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      expect(req.request.body).toEqual({ notes: 'hello world' });
+      req.flush(buildSheetResponse());
+    });
+
+    it('should allow an empty string for notes', () => {
+      service.updateCharacterSheetNotes(42, { notes: '' }).subscribe();
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      expect(req.request.body.notes).toBe('');
+      req.flush(buildSheetResponse());
+    });
+
+    it('should return the response body', () => {
+      const mockResponse = buildSheetResponse({ id: 42, notes: 'sanitized' });
+      let result: CharacterSheetResponse | undefined;
+
+      service.updateCharacterSheetNotes(42, { notes: 'sanitized' }).subscribe(r => (result = r));
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      req.flush(mockResponse);
+
+      expect(result?.notes).toBe('sanitized');
+    });
+
+    it('should propagate HTTP errors', () => {
+      let error: HttpErrorResponse | undefined;
+      service.updateCharacterSheetNotes(42, { notes: 'hello' }).subscribe({ error: e => (error = e) });
+
+      const req = httpTesting.expectOne('http://localhost:8080/api/dh/character-sheets/42/notes');
+      req.flush('Internal Server Error', { status: 500, statusText: 'Internal Server Error' });
+
+      expect(error?.status).toBe(500);
+    });
+  });
+
   describe('getCharacterSheet', () => {
     it('should GET from the correct URL', () => {
       service.getCharacterSheet(42).subscribe();

@@ -101,6 +101,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     experiences: (sheet.experiences ?? []).map(mapExperience),
 
     classEntries: extractClassEntries(sheet.subclassCards ?? []),
+    notes: sheet.notes,
   };
 }
 

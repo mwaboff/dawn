@@ -1,10 +1,12 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
+import { isAtLeast } from '../../shared/models/role.model';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
@@ -32,9 +34,9 @@ import {
 @Component({
   selector: 'app-character-sheet',
   templateUrl: './character-sheet.html',
-  styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css'],
+  styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -61,6 +63,7 @@ export class CharacterSheet implements OnInit {
   private readonly healthSave$ = new Subject<void>();
   private readonly hopeStressSave$ = new Subject<void>();
   private readonly goldSave$ = new Subject<void>();
+  private readonly notesSave$ = new Subject<void>();
 
   private readonly savingSections = signal<Set<string>>(new Set());
   readonly isSavingHealth = computed(() => this.savingSections().has('health'));
@@ -78,6 +81,26 @@ export class CharacterSheet implements OnInit {
     const user = this.authService.user();
     return sheet !== null && user !== null && sheet.ownerId === user.id;
   });
+
+  readonly canAccessNotes = computed(() => {
+    const sheet = this.characterSheet();
+    const user = this.authService.user();
+    if (!sheet || !user) return false;
+    return sheet.ownerId === user.id || isAtLeast(user.role, 'MODERATOR');
+  });
+
+  private readonly localNotes = signal<string | null>(null);
+  readonly notesExpanded = signal(false);
+  readonly notesSavedAt = signal<number | null>(null);
+
+  readonly currentNotes = computed(() => {
+    const local = this.localNotes();
+    if (local !== null) return local;
+    const sheet = this.characterSheet();
+    return sheet?.notes ?? '';
+  });
+  readonly notesCharCount = computed(() => this.currentNotes().length);
+  readonly isSavingNotes = computed(() => this.savingSections().has('notes'));
 
   readonly canLevelUp = computed(() => {
     const sheet = this.characterSheet();
@@ -217,6 +240,19 @@ export class CharacterSheet implements OnInit {
   adjustGold(amount: number): void {
     this.localGoldAdjustment.update(current => current + amount);
     this.goldSave$.next();
+  }
+
+  onNotesInput(event: Event): void {
+    if (!this.canAccessNotes()) return;
+    const value = (event.target as HTMLTextAreaElement).value;
+    const capped = value.length > 10000 ? value.slice(0, 10000) : value;
+    this.localNotes.set(capped);
+    this.notesSavedAt.set(null);
+    this.notesSave$.next();
+  }
+
+  toggleNotesExpanded(): void {
+    this.notesExpanded.update(open => !open);
   }
 
   canEquipCard(): boolean {
@@ -615,6 +651,37 @@ export class CharacterSheet implements OnInit {
             return EMPTY;
           }),
         );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
+
+    this.notesSave$.pipe(
+      debounceTime(800),
+      switchMap(() => {
+        if (!this.canAccessNotes()) return EMPTY;
+        const raw = this.rawSheet();
+        if (!raw) return EMPTY;
+        const snapshot = raw.notes ?? '';
+        const pending = this.currentNotes();
+        this.markSaving('notes');
+        return this.characterSheetService
+          .updateCharacterSheetNotes(raw.id, { notes: pending })
+          .pipe(
+            tap(response => {
+              const newNotes = response.notes ?? '';
+              this.rawSheet.update(s => s ? { ...s, notes: newNotes } : s);
+              this.characterSheet.update(s => s ? { ...s, notes: newNotes } : s);
+              this.localNotes.set(null);
+              this.clearSaving('notes');
+              this.notesSavedAt.set(Date.now());
+            }),
+            catchError(() => {
+              this.localNotes.set(snapshot);
+              this.clearSaving('notes');
+              this.notesSavedAt.set(null);
+              return EMPTY;
+            }),
+          );
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe();

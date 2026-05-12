@@ -54,11 +54,15 @@ const mockResponse: CharacterSheetResponse = {
 describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
   let component: CharacterSheet;
-  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn> };
+  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheetNotes: ReturnType<typeof vi.fn> };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
-    mockService = { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse), updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)) };
+    mockService = {
+      getCharacterSheet: vi.fn().mockReturnValue(serviceResponse),
+      updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)),
+      updateCharacterSheetNotes: vi.fn().mockReturnValue(of(mockResponse)),
+    };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
@@ -1452,6 +1456,317 @@ describe('CharacterSheet', () => {
 
       expect(component.inventoryError()).toBeNull();
       expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('notes', () => {
+    describe('access gating', () => {
+      it('canAccessNotes() returns true when user is the sheet owner', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        expect(component.canAccessNotes()).toBe(true);
+      });
+
+      it('canAccessNotes() returns false for a non-owner USER', () => {
+        createComponent('1');
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        expect(component.canAccessNotes()).toBe(false);
+      });
+
+      it.each([
+        ['MODERATOR'],
+        ['ADMIN'],
+        ['OWNER'],
+      ])('canAccessNotes() returns true for non-owner with role %s', (role) => {
+        createComponent('1');
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role, createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        expect(component.canAccessNotes()).toBe(true);
+      });
+
+      it('notes-section is absent from DOM when canAccessNotes() is false', () => {
+        createComponent('1');
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.notes-section')).toBeNull();
+      });
+
+      it('notes-section is present in DOM when canAccessNotes() is true', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.notes-section')).not.toBeNull();
+      });
+    });
+
+    describe('expand/collapse', () => {
+      it('notesExpanded() defaults to false', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        expect(component.notesExpanded()).toBe(false);
+      });
+
+      it('notes-textarea is absent before toggling', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.notes-textarea')).toBeNull();
+      });
+
+      it('toggleNotesExpanded() flips notesExpanded to true then back to false', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        component.toggleNotesExpanded();
+        expect(component.notesExpanded()).toBe(true);
+
+        component.toggleNotesExpanded();
+        expect(component.notesExpanded()).toBe(false);
+      });
+
+      it('notes-textarea appears in DOM after expanding', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        component.toggleNotesExpanded();
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.notes-textarea')).not.toBeNull();
+      });
+    });
+
+    describe('debounced save', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('fires updateCharacterSheetNotes after 800ms debounce', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        expect(mockService.updateCharacterSheetNotes).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(800);
+        expect(mockService.updateCharacterSheetNotes).toHaveBeenCalledWith(1, { notes: 'hello' });
+      });
+
+      it('does not fire updateCharacterSheetNotes before 800ms elapses', () => {
+        createComponent('1');
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        vi.advanceTimersByTime(799);
+
+        expect(mockService.updateCharacterSheetNotes).not.toHaveBeenCalled();
+      });
+
+      it('rapid typing within debounce window fires only one request with the latest value', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'first' } } as unknown as Event);
+        component.onNotesInput({ target: { value: 'second' } } as unknown as Event);
+        component.onNotesInput({ target: { value: 'third' } } as unknown as Event);
+
+        vi.advanceTimersByTime(800);
+
+        expect(mockService.updateCharacterSheetNotes).toHaveBeenCalledTimes(1);
+        expect(mockService.updateCharacterSheetNotes).toHaveBeenCalledWith(1, { notes: 'third' });
+      });
+
+      it('successful response with a sanitized value updates characterSheet().notes to server value', () => {
+        const sanitizedResponse = { ...mockResponse, notes: 'SANITIZED' };
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(of(sanitizedResponse));
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'typed text' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+
+        expect(component.characterSheet()?.notes).toBe('SANITIZED');
+      });
+
+      it('network failure rolls back local edits and clears saving state', () => {
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(throwError(() => new Error('fail')));
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'attempted text' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+
+        expect(component.isSavingNotes()).toBe(false);
+        expect(component.notesSavedAt()).toBeNull();
+        expect(component.currentNotes()).toBe('');
+      });
+    });
+
+    describe('char counter classes', () => {
+      it('applies neither is-warning nor is-danger for text shorter than 9500 chars', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+        component.onNotesInput({ target: { value: 'x'.repeat(100) } } as unknown as Event);
+        fixture.detectChanges();
+
+        const countEl = fixture.nativeElement.querySelector('.notes-count') as HTMLElement;
+        expect(countEl.classList.contains('is-warning')).toBe(false);
+        expect(countEl.classList.contains('is-danger')).toBe(false);
+      });
+
+      it('applies is-warning but not is-danger for text length between 9500 and 9899', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+        component.onNotesInput({ target: { value: 'x'.repeat(9500) } } as unknown as Event);
+        fixture.detectChanges();
+
+        const countEl = fixture.nativeElement.querySelector('.notes-count') as HTMLElement;
+        expect(countEl.classList.contains('is-warning')).toBe(true);
+        expect(countEl.classList.contains('is-danger')).toBe(false);
+      });
+
+      it('applies both is-warning and is-danger for text length >= 9900', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+        component.onNotesInput({ target: { value: 'x'.repeat(9900) } } as unknown as Event);
+        fixture.detectChanges();
+
+        const countEl = fixture.nativeElement.querySelector('.notes-count') as HTMLElement;
+        expect(countEl.classList.contains('is-warning')).toBe(true);
+        expect(countEl.classList.contains('is-danger')).toBe(true);
+      });
+    });
+
+    describe('hard cap', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('truncates input longer than 10000 chars to exactly 10000 before saving', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'x'.repeat(12000) } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+
+        expect(mockService.updateCharacterSheetNotes).toHaveBeenCalledTimes(1);
+        const calledNotes = mockService.updateCharacterSheetNotes.mock.calls[0][1].notes as string;
+        expect(calledNotes.length).toBe(10000);
+      });
+    });
+
+    describe('saved indicator lifecycle', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('notesSavedAt() is null on initial cold load and DOM has no .notes-status', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+        fixture.detectChanges();
+
+        expect(component.notesSavedAt()).toBeNull();
+        expect(fixture.nativeElement.querySelector('.notes-status')).toBeNull();
+      });
+
+      it('isSavingNotes() is true while in-flight and spinner renders, no .notes-status', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+        fixture.detectChanges();
+
+        expect(component.isSavingNotes()).toBe(true);
+        expect(component.notesSavedAt()).toBeNull();
+        expect(fixture.nativeElement.querySelector('app-saving-spinner')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.notes-status')).toBeNull();
+      });
+
+      it('after save success isSavingNotes is false, notesSavedAt is set, and .notes-status renders with Saved text', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+
+        saveResponse$.next(mockResponse);
+        saveResponse$.complete();
+        fixture.detectChanges();
+
+        expect(component.isSavingNotes()).toBe(false);
+        expect(component.notesSavedAt()).not.toBeNull();
+        const statusEl = fixture.nativeElement.querySelector('.notes-status') as HTMLElement;
+        expect(statusEl).not.toBeNull();
+        expect(statusEl.textContent).toContain('Saved');
+      });
+
+      it('typing after a successful save immediately clears notesSavedAt', () => {
+        const saveResponse$ = new Subject<CharacterSheetResponse>();
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(saveResponse$.asObservable());
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+        saveResponse$.next(mockResponse);
+        saveResponse$.complete();
+
+        expect(component.notesSavedAt()).not.toBeNull();
+
+        component.onNotesInput({ target: { value: 'hello!' } } as unknown as Event);
+
+        expect(component.notesSavedAt()).toBeNull();
+      });
+
+      it('after save failure isSavingNotes is false, notesSavedAt is null, no spinner, no .notes-status', () => {
+        createComponent('1');
+        mockService.updateCharacterSheetNotes.mockReturnValue(throwError(() => new Error('fail')));
+        fixture.detectChanges();
+        component.toggleNotesExpanded();
+
+        component.onNotesInput({ target: { value: 'hello' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+        fixture.detectChanges();
+
+        expect(component.isSavingNotes()).toBe(false);
+        expect(component.notesSavedAt()).toBeNull();
+        expect(fixture.nativeElement.querySelector('app-saving-spinner')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.notes-status')).toBeNull();
+      });
     });
   });
 });

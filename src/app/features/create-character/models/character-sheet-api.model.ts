@@ -261,6 +261,7 @@ export interface CharacterSheetResponse {
   hopeMax: number;
   hopeMarked: number;
   gold: number;
+  notes?: string; // omitted when null on server; max 10,000 chars
   ownerId: number;
   ownerName?: string;
   communityCardIds: number[];
@@ -285,4 +286,8 @@ export interface CharacterSheetResponse {
   inventoryWeapons?: InventoryWeaponResponse[];
   inventoryArmors?: InventoryArmorResponse[];
   inventoryItems?: InventoryLootResponse[];
+}
+
+export interface UpdateCharacterSheetNotesRequest {
+  notes: string;
 }
