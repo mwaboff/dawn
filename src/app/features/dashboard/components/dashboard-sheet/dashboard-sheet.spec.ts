@@ -144,12 +144,12 @@ describe('DashboardSheet', () => {
     expect(forgeLink?.getAttribute('href')).toBe('/create-character');
   });
 
-  it('should link "+ Begin a chronicle" dashed add row to /campaigns/create', () => {
+  it('should link "+ Start a new story" dashed add row to /campaigns/create', () => {
     host.campaigns.set([makeCampaign()]);
     fixture.detectChanges();
 
     const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
-    const beginLink = adds.find(a => a.textContent?.includes('Begin a chronicle'));
+    const beginLink = adds.find(a => a.textContent?.includes('Start a new story'));
     expect(beginLink?.getAttribute('href')).toBe('/campaigns/create');
   });
 
