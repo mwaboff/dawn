@@ -1,1 +1,32 @@
 /* Shared form control modifiers and density variants. Populated by Slice 4. */
+
+.form-input--sm {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  background: rgba(26, 20, 18, 0.8);
+  border: 1px solid rgba(212, 160, 86, 0.25);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  transition: border-color 0.15s ease;
+}
+
+.form-input--sm:focus {
+  border-color: rgba(212, 160, 86, 0.6);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 160, 86, 0.1);
+}
+
+.form-input-category {
+  flex: 0 0 110px;
+}
+
+.form-input-op {
+  flex: 0 0 90px;
+}
+
+.form-input-value {
+  flex: 0 0 72px;
+}
