@@ -5,7 +5,7 @@
 
   <div class="ds-columns">
     <section class="panel">
-      <h2 class="panel__title">Characters</h2>
+      <h2 class="panel__title">Characters ({{ characters().length }})</h2>
       @if (charactersLoading()) {
         <div class="roster-loading">
           @for (i of skeletonIndexes; track i) {
@@ -49,7 +49,7 @@
     </section>
 
     <section class="panel">
-      <h2 class="panel__title">Campaigns</h2>
+      <h2 class="panel__title">Campaigns ({{ campaigns().length }})</h2>
       @if (campaignsLoading()) {
         <div class="roster-loading">
           @for (i of skeletonIndexes; track i) {

@@ -169,6 +169,30 @@ describe('DashboardSheet', () => {
     expect(adds.some(a => a.textContent?.includes('Forge a hero'))).toBe(false);
   });
 
+  it('should show the character count in the Characters panel title', () => {
+    host.characters.set([makeCharacter({ id: 1 }), makeCharacter({ id: 2 }), makeCharacter({ id: 3 })]);
+    fixture.detectChanges();
+
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Characters (3)');
+  });
+
+  it('should show the campaign count in the Campaigns panel title', () => {
+    host.campaigns.set([makeCampaign({ id: 1 }), makeCampaign({ id: 2 })]);
+    fixture.detectChanges();
+
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Campaigns (2)');
+  });
+
+  it('should show zero counts when both lists are empty', () => {
+    fixture.detectChanges();
+
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Characters (0)');
+    expect(titles).toContain('Campaigns (0)');
+  });
+
   it('should render username in the greeting', () => {
     host.username.set('Elara');
     fixture.detectChanges();
