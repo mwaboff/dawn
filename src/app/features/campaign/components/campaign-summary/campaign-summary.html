@@ -7,7 +7,38 @@
     }
   </div>
   <p class="summary-gm">Game Master: {{ gmName() }}</p>
-  @if (campaign().description) {
-    <p class="summary-description">{{ campaign().description }}</p>
+
+  @if (editing()) {
+    <div class="summary-edit">
+      <textarea
+        class="summary-textarea"
+        rows="6"
+        maxlength="2000"
+        placeholder="Describe your campaign's story, setting, or session details"
+        [value]="draft()"
+        (input)="onDraftChange($any($event.target).value)"
+        [disabled]="saving()"
+      ></textarea>
+      @if (errorMessage(); as err) {
+        <p class="summary-edit-error">{{ err }}</p>
+      }
+      <div class="summary-edit-actions">
+        <button type="button" class="summary-edit-cancel" (click)="onCancelEdit()" [disabled]="saving()">Cancel</button>
+        <button type="button" class="summary-edit-save" (click)="onSave()" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    @if (campaign().description) {
+      <p class="summary-description" [innerHTML]="campaign().description | formatText"></p>
+    }
+    @if (canManage()) {
+      <div class="summary-edit-row">
+        <button type="button" class="summary-edit-btn" (click)="onStartEdit()">
+          {{ campaign().description ? 'Edit description' : 'Add description' }}
+        </button>
+      </div>
+    }
   }
 </div>

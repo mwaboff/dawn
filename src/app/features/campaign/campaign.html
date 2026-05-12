@@ -23,7 +23,7 @@
       <p class="campaign-error-text">Failed to load this campaign. Please try again later.</p>
     </div>
   } @else if (campaign(); as c) {
-    <app-campaign-summary [campaign]="c" />
+    <app-campaign-summary [campaign]="c" [canManage]="canManage()" (updated)="campaign.set($event)" />
 
     @if (canManage() && hasPending()) {
       <div class="campaign-divider">
