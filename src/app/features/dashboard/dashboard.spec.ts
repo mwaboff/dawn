@@ -10,7 +10,7 @@ import { Dashboard } from './dashboard';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../shared/services/user.service';
 import { CampaignService } from '../../shared/services/campaign.service';
-import { DASHBOARD_VARIANT_STORAGE_KEY, DASHBOARD_PREVIEW_LIMIT } from './models/dashboard.model';
+import { DASHBOARD_PREVIEW_LIMIT } from './models/dashboard.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { PaginatedResponse } from '../../shared/models/api.model';
@@ -21,12 +21,17 @@ function makeSheet(overrides: {
   level?: number;
   lastModifiedAt?: string;
   createdAt?: string;
+  associatedClassName?: string;
+  subclassPathName?: string;
 } = {}): CharacterSheetResponse {
+  const subclassCards = overrides.associatedClassName
+    ? [{ associatedClassName: overrides.associatedClassName, subclassPathName: overrides.subclassPathName }]
+    : [];
   return {
     id: overrides.id ?? 1,
     name: overrides.name ?? 'Aragorn',
     level: overrides.level ?? 1,
-    subclassCards: [],
+    subclassCards,
     createdAt: overrides.createdAt ?? '2025-01-01T00:00:00',
     lastModifiedAt: overrides.lastModifiedAt ?? '2025-01-01T00:00:00',
   } as unknown as CharacterSheetResponse;
@@ -65,14 +70,7 @@ function setup(opts: {
   user?: { id: number; username: string; usernameChosen: boolean; role: string } | null;
   charactersResult?: Observable<PaginatedResponse<CharacterSheetResponse>>;
   campaignsResult?: Observable<PaginatedResponse<CampaignResponse>>;
-  storedVariant?: string;
 } = {}) {
-  if (opts.storedVariant !== undefined) {
-    localStorage.setItem(DASHBOARD_VARIANT_STORAGE_KEY, opts.storedVariant);
-  } else {
-    localStorage.removeItem(DASHBOARD_VARIANT_STORAGE_KEY);
-  }
-
   const defaultUser = { id: 1, username: 'Aragorn', usernameChosen: true, role: 'USER' };
   const resolvedUser = 'user' in opts ? opts.user : defaultUser;
   const userSignal = signal(resolvedUser);
@@ -107,80 +105,13 @@ function setup(opts: {
 
 describe('Dashboard', () => {
   afterEach(() => {
-    localStorage.clear();
     vi.restoreAllMocks();
   });
 
   it('should create', () => {
     const { fixture } = setup();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('app-dashboard-ledger')).toBeTruthy();
-  });
-
-  it('should read "sheet" from localStorage and seed variant to "sheet"', () => {
-    const { fixture } = setup({ storedVariant: 'sheet' });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.variant()).toBe('sheet');
-  });
-
-  it('should read "war-table" from localStorage and seed variant to "war-table"', () => {
-    const { fixture } = setup({ storedVariant: 'war-table' });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.variant()).toBe('war-table');
-  });
-
-  it('should default variant to "ledger" when storage is empty', () => {
-    const { fixture } = setup();
-    fixture.detectChanges();
-    expect(fixture.componentInstance.variant()).toBe('ledger');
-  });
-
-  it('should default variant to "ledger" when storage holds garbage', () => {
-    const { fixture } = setup({ storedVariant: 'foo' });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.variant()).toBe('ledger');
-  });
-
-  it('should update variant() to "sheet" when setVariant is called', () => {
-    const { fixture } = setup();
-    fixture.detectChanges();
-    fixture.componentInstance.setVariant('sheet');
-    fixture.detectChanges();
-    expect(fixture.componentInstance.variant()).toBe('sheet');
-  });
-
-  it('should write "sheet" to localStorage when setVariant("sheet") is called', () => {
-    const { fixture } = setup();
-    fixture.detectChanges();
-    fixture.componentInstance.setVariant('sheet');
-    expect(localStorage.getItem(DASHBOARD_VARIANT_STORAGE_KEY)).toBe('sheet');
-  });
-
-  it('should render app-dashboard-ledger only when variant is "ledger"', () => {
-    const { fixture } = setup();
-    fixture.detectChanges();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('app-dashboard-ledger')).toBeTruthy();
-    expect(el.querySelector('app-dashboard-sheet')).toBeFalsy();
-    expect(el.querySelector('app-dashboard-war-table')).toBeFalsy();
-  });
-
-  it('should render app-dashboard-sheet only when variant is "sheet"', () => {
-    const { fixture } = setup({ storedVariant: 'sheet' });
-    fixture.detectChanges();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('app-dashboard-sheet')).toBeTruthy();
-    expect(el.querySelector('app-dashboard-ledger')).toBeFalsy();
-    expect(el.querySelector('app-dashboard-war-table')).toBeFalsy();
-  });
-
-  it('should render app-dashboard-war-table only when variant is "war-table"', () => {
-    const { fixture } = setup({ storedVariant: 'war-table' });
-    fixture.detectChanges();
-    const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('app-dashboard-war-table')).toBeTruthy();
-    expect(el.querySelector('app-dashboard-ledger')).toBeFalsy();
-    expect(el.querySelector('app-dashboard-sheet')).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('.dashboard__header')).toBeTruthy();
   });
 
   it('should call getUserCharacterSheets with the current user id', () => {
@@ -307,5 +238,126 @@ describe('Dashboard', () => {
     });
     fixture.detectChanges();
     expect(fixture.componentInstance.bothEmpty()).toBe(false);
+  });
+
+  it('should render character count in panel title', () => {
+    const sheets = [
+      makeSheet({ id: 1 }),
+      makeSheet({ id: 2 }),
+      makeSheet({ id: 3 }),
+    ];
+    const { fixture } = setup({ charactersResult: of(sheetsPage(sheets)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Characters (3)');
+  });
+
+  it('should render campaign count in panel title', () => {
+    const campaigns = [makeCampaign({ id: 1 }), makeCampaign({ id: 2 })];
+    const { fixture } = setup({ campaignsResult: of(campaignsPage(campaigns)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Campaigns (2)');
+  });
+
+  it('should render zero counts when both lists are empty', () => {
+    const { fixture } = setup({
+      charactersResult: of(sheetsPage([])),
+      campaignsResult: of(campaignsPage([])),
+    });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Characters (0)');
+    expect(titles).toContain('Campaigns (0)');
+  });
+
+  it('should render character entries with border-left color matching the class', () => {
+    const sheets = [makeSheet({ associatedClassName: 'Guardian' })];
+    const { fixture } = setup({ charactersResult: of(sheetsPage(sheets)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const row = el.querySelector('.dashboard-row') as HTMLElement | null;
+    expect(row).toBeTruthy();
+    const borderLeft = row!.style.borderLeft;
+    expect(borderLeft).toBeTruthy();
+    const hasBorderColor = borderLeft.includes('#5e8ed4') || borderLeft.includes('rgb(94, 142, 212)');
+    expect(hasBorderColor).toBe(true);
+  });
+
+  it('should link character row to /character/{id}', () => {
+    const sheets = [makeSheet({ id: 42 })];
+    const { fixture } = setup({ charactersResult: of(sheetsPage(sheets)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('.dashboard-row') as HTMLAnchorElement | null;
+    expect(link?.getAttribute('href')).toBe('/character/42');
+  });
+
+  it('should link campaign row to /campaign/{id}', () => {
+    const campaigns = [makeCampaign({ id: 7 })];
+    const { fixture } = setup({ campaignsResult: of(campaignsPage(campaigns)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('.dashboard-row--saga') as HTMLAnchorElement | null;
+    expect(link?.getAttribute('href')).toBe('/campaign/7');
+  });
+
+  it('should link "+ Forge a hero" dashed row to /create-character', () => {
+    const { fixture } = setup({ charactersResult: of(sheetsPage([])) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    const forgeLink = adds.find(a => a.textContent?.includes('Forge a hero'));
+    expect(forgeLink?.getAttribute('href')).toBe('/create-character');
+  });
+
+  it('should link "+ Start a new story" dashed row to /campaigns/create', () => {
+    const { fixture } = setup({ campaignsResult: of(campaignsPage([])) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    const beginLink = adds.find(a => a.textContent?.includes('Start a new story'));
+    expect(beginLink?.getAttribute('href')).toBe('/campaigns/create');
+  });
+
+  it('should render username in .dashboard__greeting', () => {
+    const { fixture } = setup({
+      user: { id: 1, username: 'Elara', usernameChosen: true, role: 'USER' },
+    });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.dashboard__greeting')?.textContent?.trim()).toContain('Elara');
+  });
+
+  it('should render loading skeletons when charactersLoading is true', () => {
+    const { fixture } = setup({ charactersResult: new Observable() });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelectorAll('.roster-skeleton').length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('should render empty-state copy for characters via .dashboard-empty__text', () => {
+    const { fixture } = setup({
+      charactersResult: of(sheetsPage([])),
+      campaignsResult: of(campaignsPage([])),
+    });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const emptyTexts = Array.from(el.querySelectorAll('.dashboard-empty__text')).map(t => t.textContent?.trim());
+    expect(emptyTexts).toContain('No heroes inscribed. Forge your first.');
+  });
+
+  it('should render empty-state copy for campaigns via .dashboard-empty__text', () => {
+    const { fixture } = setup({
+      charactersResult: of(sheetsPage([])),
+      campaignsResult: of(campaignsPage([])),
+    });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const emptyTexts = Array.from(el.querySelectorAll('.dashboard-empty__text')).map(t => t.textContent?.trim());
+    expect(emptyTexts).toContain('No sagas underway. Start your first.');
   });
 });

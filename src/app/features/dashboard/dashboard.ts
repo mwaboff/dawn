@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -7,23 +8,15 @@ import { CampaignService } from '../../shared/services/campaign.service';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { CharacterSummary } from '../profile/models/profile.model';
 import { mapToSummary } from '../profile/models/profile.mapper';
-import {
-  DASHBOARD_PREVIEW_LIMIT,
-  DashboardVariant,
-  readStoredVariant,
-  writeStoredVariant,
-} from './models/dashboard.model';
-import { DashboardLedger } from './components/dashboard-ledger/dashboard-ledger';
-import { DashboardSheet } from './components/dashboard-sheet/dashboard-sheet';
-import { DashboardWarTable } from './components/dashboard-war-table/dashboard-war-table';
-import { VariantSwitcher } from './components/variant-switcher/variant-switcher';
+import { DASHBOARD_PREVIEW_LIMIT } from './models/dashboard.model';
+import { classBorderColor } from './utils/class-color.utils';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DashboardLedger, DashboardSheet, DashboardWarTable, VariantSwitcher],
+  imports: [RouterLink],
 })
 export class Dashboard implements OnInit {
   private readonly authService = inject(AuthService);
@@ -38,8 +31,6 @@ export class Dashboard implements OnInit {
   readonly campaignsLoading = signal(true);
   readonly campaignsError = signal(false);
 
-  readonly variant = signal<DashboardVariant>(readStoredVariant());
-
   readonly username = computed(() => this.authService.user()?.username ?? 'Adventurer');
 
   readonly bothEmpty = computed(() =>
@@ -47,6 +38,8 @@ export class Dashboard implements OnInit {
     !this.charactersError() && !this.campaignsError() &&
     this.characters().length === 0 && this.campaigns().length === 0
   );
+
+  protected readonly skeletonIndexes = [1, 2, 3] as const;
 
   ngOnInit(): void {
     const user = this.authService.user();
@@ -59,9 +52,8 @@ export class Dashboard implements OnInit {
     this.loadCampaigns();
   }
 
-  setVariant(v: DashboardVariant): void {
-    this.variant.set(v);
-    writeStoredVariant(v);
+  borderColorFor(c: CharacterSummary): string {
+    return classBorderColor(c.classEntries[0]?.className);
   }
 
   private loadCharacters(ownerId: number): void {

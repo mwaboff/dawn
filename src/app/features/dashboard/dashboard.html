@@ -1,41 +1,85 @@
 <div class="dashboard">
-  <div class="dashboard__switcher">
-    <app-variant-switcher [variant]="variant()" (variantChange)="setVariant($event)" />
-  </div>
+  <header class="dashboard__header">
+    <h1 class="dashboard__greeting">Welcome back, {{ username() }}</h1>
+  </header>
 
-  @switch (variant()) {
-    @case ('ledger') {
-      <app-dashboard-ledger
-        [characters]="characters()"
-        [charactersLoading]="charactersLoading()"
-        [charactersError]="charactersError()"
-        [campaigns]="campaigns()"
-        [campaignsLoading]="campaignsLoading()"
-        [campaignsError]="campaignsError()"
-        [username]="username()"
-      />
-    }
-    @case ('sheet') {
-      <app-dashboard-sheet
-        [characters]="characters()"
-        [charactersLoading]="charactersLoading()"
-        [charactersError]="charactersError()"
-        [campaigns]="campaigns()"
-        [campaignsLoading]="campaignsLoading()"
-        [campaignsError]="campaignsError()"
-        [username]="username()"
-      />
-    }
-    @case ('war-table') {
-      <app-dashboard-war-table
-        [characters]="characters()"
-        [charactersLoading]="charactersLoading()"
-        [charactersError]="charactersError()"
-        [campaigns]="campaigns()"
-        [campaignsLoading]="campaignsLoading()"
-        [campaignsError]="campaignsError()"
-        [username]="username()"
-      />
-    }
-  }
+  <div class="dashboard__columns">
+    <section class="panel">
+      <h2 class="panel__title">Characters ({{ characters().length }})</h2>
+      @if (charactersLoading()) {
+        <div class="roster-loading">
+          @for (i of skeletonIndexes; track i) {
+            <div class="roster-skeleton"></div>
+          }
+        </div>
+      } @else if (charactersError()) {
+        <div class="roster-message"><p>Couldn't load characters.</p></div>
+      } @else {
+        @if (characters().length === 0) {
+          <div class="dashboard-empty">
+            <p class="dashboard-empty__text">No heroes inscribed. Forge your first.</p>
+          </div>
+        } @else {
+          <ol class="roster-list dashboard__list">
+            @for (c of characters(); track c.id) {
+              <li>
+                <a class="roster-entry dashboard-row" [style.border-left]="'3px solid ' + borderColorFor(c)" [routerLink]="['/character', c.id]">
+                  <span class="roster-level">{{ c.level }}</span>
+                  <div class="roster-info">
+                    <span class="roster-character-name">{{ c.name }}</span>
+                    @if (c.classEntries.length > 0) {
+                      <p class="roster-class">
+                        <span class="roster-class-name">{{ c.classEntries[0].className }}</span>
+                        @if (c.classEntries[0].subclassName) {
+                          <span class="roster-class-sep" aria-hidden="true"> · </span>
+                          <span class="roster-class-subclass">{{ c.classEntries[0].subclassName }}</span>
+                        }
+                      </p>
+                    }
+                  </div>
+                </a>
+              </li>
+            }
+          </ol>
+        }
+        <a class="roster-entry roster-entry--add" routerLink="/create-character">
+          <span class="roster-entry-add-link">+ Forge a hero</span>
+        </a>
+      }
+    </section>
+
+    <section class="panel">
+      <h2 class="panel__title">Campaigns ({{ campaigns().length }})</h2>
+      @if (campaignsLoading()) {
+        <div class="roster-loading">
+          @for (i of skeletonIndexes; track i) {
+            <div class="roster-skeleton"></div>
+          }
+        </div>
+      } @else if (campaignsError()) {
+        <div class="roster-message"><p>Couldn't load campaigns.</p></div>
+      } @else {
+        @if (campaigns().length === 0) {
+          <div class="dashboard-empty">
+            <p class="dashboard-empty__text">No sagas underway. Start your first.</p>
+          </div>
+        } @else {
+          <ol class="roster-list dashboard__list">
+            @for (campaign of campaigns(); track campaign.id) {
+              <li>
+                <a class="roster-entry dashboard-row dashboard-row--saga" [routerLink]="['/campaign', campaign.id]">
+                  <div class="roster-info">
+                    <span class="roster-character-name">{{ campaign.name }}</span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ol>
+        }
+        <a class="roster-entry roster-entry--add" routerLink="/campaigns/create">
+          <span class="roster-entry-add-link">+ Start a new story</span>
+        </a>
+      }
+    </section>
+  </div>
 </div>
