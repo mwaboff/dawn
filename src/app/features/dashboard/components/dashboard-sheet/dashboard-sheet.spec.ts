@@ -79,52 +79,8 @@ describe('DashboardSheet', () => {
     expect(el.querySelector('app-dashboard-sheet')).toBeTruthy();
   });
 
-  it('should render three shields with labels Heroes, Sagas, Days', () => {
-    const labels = el.querySelectorAll('.ds-shield__label');
-    const texts = Array.from(labels).map(l => l.textContent?.trim());
-    expect(texts).toContain('Heroes');
-    expect(texts).toContain('Sagas');
-    expect(texts).toContain('Days');
-  });
-
-  it('should show Heroes shield value matching characters length', () => {
-    host.characters.set([makeCharacter({ id: 1 }), makeCharacter({ id: 2 })]);
-    fixture.detectChanges();
-
-    const shields = el.querySelectorAll('.ds-shield');
-    const heroesShield = Array.from(shields).find(s => s.getAttribute('aria-label') === 'Heroes');
-    expect(heroesShield?.querySelector('.ds-shield__value')?.textContent?.trim()).toBe('2');
-  });
-
-  it('should show Sagas shield value matching campaigns length', () => {
-    host.campaigns.set([makeCampaign({ id: 1 }), makeCampaign({ id: 2 }), makeCampaign({ id: 3 })]);
-    fixture.detectChanges();
-
-    const shields = el.querySelectorAll('.ds-shield');
-    const sagasShield = Array.from(shields).find(s => s.getAttribute('aria-label') === 'Sagas');
-    expect(sagasShield?.querySelector('.ds-shield__value')?.textContent?.trim()).toBe('3');
-  });
-
-  it('should show Days shield as 0 when no campaigns', () => {
-    host.campaigns.set([]);
-    fixture.detectChanges();
-
-    const shields = el.querySelectorAll('.ds-shield');
-    const daysShield = Array.from(shields).find(s => s.getAttribute('aria-label') === 'Days adventuring');
-    expect(daysShield?.querySelector('.ds-shield__value')?.textContent?.trim()).toBe('0');
-  });
-
-  it('should compute Days from oldest campaign createdAt', () => {
-    host.campaigns.set([
-      makeCampaign({ id: 1, createdAt: '2024-01-01T00:00:00' }),
-      makeCampaign({ id: 2, createdAt: '2025-01-01T00:00:00' }),
-    ]);
-    fixture.detectChanges();
-
-    const shields = el.querySelectorAll('.ds-shield');
-    const daysShield = Array.from(shields).find(s => s.getAttribute('aria-label') === 'Days adventuring');
-    const value = parseInt(daysShield?.querySelector('.ds-shield__value')?.textContent?.trim() ?? '-1', 10);
-    expect(value).toBeGreaterThan(0);
+  it('should not render shields in the header', () => {
+    expect(el.querySelector('.ds-shield')).toBeFalsy();
   });
 
   it('should render character loading skeletons when charactersLoading is true', () => {
@@ -159,7 +115,6 @@ describe('DashboardSheet', () => {
     expect(row).toBeTruthy();
     const borderLeft = row!.style.borderLeft;
     expect(borderLeft).toBeTruthy();
-    // Guardian maps to #5e8ed4 (rgb(94, 142, 212))
     const hasBorderColor = borderLeft.includes('#5e8ed4') || borderLeft.includes('rgb(94, 142, 212)');
     expect(hasBorderColor).toBe(true);
   });
@@ -180,22 +135,38 @@ describe('DashboardSheet', () => {
     expect(link?.getAttribute('href')).toBe('/campaign/7');
   });
 
-  it('should link "+ Forge a hero" CTA to /create-character', () => {
+  it('should link "+ Forge a hero" dashed add row to /create-character', () => {
     host.characters.set([makeCharacter()]);
     fixture.detectChanges();
 
-    const ctas = Array.from(el.querySelectorAll('.ds-cta')) as HTMLAnchorElement[];
-    const forgeLink = ctas.find(a => a.textContent?.includes('Forge a hero'));
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    const forgeLink = adds.find(a => a.textContent?.includes('Forge a hero'));
     expect(forgeLink?.getAttribute('href')).toBe('/create-character');
   });
 
-  it('should link "+ Begin a chronicle" CTA to /campaigns/create', () => {
+  it('should link "+ Begin a chronicle" dashed add row to /campaigns/create', () => {
     host.campaigns.set([makeCampaign()]);
     fixture.detectChanges();
 
-    const ctas = Array.from(el.querySelectorAll('.ds-cta')) as HTMLAnchorElement[];
-    const beginLink = ctas.find(a => a.textContent?.includes('Begin a chronicle'));
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    const beginLink = adds.find(a => a.textContent?.includes('Begin a chronicle'));
     expect(beginLink?.getAttribute('href')).toBe('/campaigns/create');
+  });
+
+  it('should still render the dashed add rows when the character list is empty', () => {
+    host.characters.set([]);
+    fixture.detectChanges();
+
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    expect(adds.some(a => a.textContent?.includes('Forge a hero'))).toBe(true);
+  });
+
+  it('should not render the dashed add row while characters are loading', () => {
+    host.charactersLoading.set(true);
+    fixture.detectChanges();
+
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    expect(adds.some(a => a.textContent?.includes('Forge a hero'))).toBe(false);
   });
 
   it('should render username in the greeting', () => {

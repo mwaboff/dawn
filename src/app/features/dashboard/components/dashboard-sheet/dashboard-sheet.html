@@ -1,20 +1,6 @@
 <div class="dashboard-sheet">
   <header class="ds-header">
     <h1 class="ds-name">Welcome back, {{ username() }}</h1>
-    <div class="ds-shields">
-      <div class="ds-shield" aria-label="Heroes">
-        <span class="ds-shield__label">Heroes</span>
-        <span class="ds-shield__value">{{ characters().length }}</span>
-      </div>
-      <div class="ds-shield" aria-label="Sagas">
-        <span class="ds-shield__label">Sagas</span>
-        <span class="ds-shield__value">{{ campaigns().length }}</span>
-      </div>
-      <div class="ds-shield" aria-label="Days adventuring">
-        <span class="ds-shield__label">Days</span>
-        <span class="ds-shield__value">{{ daysAdventuring() }}</span>
-      </div>
-    </div>
   </header>
 
   <div class="ds-columns">
@@ -28,34 +14,37 @@
         </div>
       } @else if (charactersError()) {
         <div class="roster-message"><p>Couldn't load characters.</p></div>
-      } @else if (characters().length === 0) {
-        <div class="ds-empty">
-          <p class="ds-empty__text">No heroes inscribed. Forge your first.</p>
-          <a class="ds-cta" routerLink="/create-character">+ Forge a hero</a>
-        </div>
       } @else {
-        <ol class="roster-list ds-list">
-          @for (c of characters(); track c.id) {
-            <li>
-              <a class="roster-entry ds-row" [style.border-left]="'3px solid ' + borderColorFor(c)" [routerLink]="['/character', c.id]">
-                <span class="roster-level">{{ c.level }}</span>
-                <div class="roster-info">
-                  <span class="roster-character-name">{{ c.name }}</span>
-                  @if (c.classEntries.length > 0) {
-                    <p class="roster-class">
-                      <span class="roster-class-name">{{ c.classEntries[0].className }}</span>
-                      @if (c.classEntries[0].subclassName) {
-                        <span class="roster-class-sep" aria-hidden="true"> · </span>
-                        <span class="roster-class-subclass">{{ c.classEntries[0].subclassName }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              </a>
-            </li>
-          }
-        </ol>
-        <a class="ds-cta" routerLink="/create-character">+ Forge a hero</a>
+        @if (characters().length === 0) {
+          <div class="ds-empty">
+            <p class="ds-empty__text">No heroes inscribed. Forge your first.</p>
+          </div>
+        } @else {
+          <ol class="roster-list ds-list">
+            @for (c of characters(); track c.id) {
+              <li>
+                <a class="roster-entry ds-row" [style.border-left]="'3px solid ' + borderColorFor(c)" [routerLink]="['/character', c.id]">
+                  <span class="roster-level">{{ c.level }}</span>
+                  <div class="roster-info">
+                    <span class="roster-character-name">{{ c.name }}</span>
+                    @if (c.classEntries.length > 0) {
+                      <p class="roster-class">
+                        <span class="roster-class-name">{{ c.classEntries[0].className }}</span>
+                        @if (c.classEntries[0].subclassName) {
+                          <span class="roster-class-sep" aria-hidden="true"> · </span>
+                          <span class="roster-class-subclass">{{ c.classEntries[0].subclassName }}</span>
+                        }
+                      </p>
+                    }
+                  </div>
+                </a>
+              </li>
+            }
+          </ol>
+        }
+        <a class="roster-entry roster-entry--add" routerLink="/create-character">
+          <span class="roster-entry-add-link">+ Forge a hero</span>
+        </a>
       }
     </section>
 
@@ -69,24 +58,27 @@
         </div>
       } @else if (campaignsError()) {
         <div class="roster-message"><p>Couldn't load campaigns.</p></div>
-      } @else if (campaigns().length === 0) {
-        <div class="ds-empty">
-          <p class="ds-empty__text">No sagas underway. Begin a chronicle.</p>
-          <a class="ds-cta" routerLink="/campaigns/create">+ Begin a chronicle</a>
-        </div>
       } @else {
-        <ol class="roster-list ds-list">
-          @for (campaign of campaigns(); track campaign.id) {
-            <li>
-              <a class="roster-entry ds-row ds-row--saga" [routerLink]="['/campaign', campaign.id]">
-                <div class="roster-info">
-                  <span class="roster-character-name">{{ campaign.name }}</span>
-                </div>
-              </a>
-            </li>
-          }
-        </ol>
-        <a class="ds-cta" routerLink="/campaigns/create">+ Begin a chronicle</a>
+        @if (campaigns().length === 0) {
+          <div class="ds-empty">
+            <p class="ds-empty__text">No sagas underway. Begin a chronicle.</p>
+          </div>
+        } @else {
+          <ol class="roster-list ds-list">
+            @for (campaign of campaigns(); track campaign.id) {
+              <li>
+                <a class="roster-entry ds-row ds-row--saga" [routerLink]="['/campaign', campaign.id]">
+                  <div class="roster-info">
+                    <span class="roster-character-name">{{ campaign.name }}</span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ol>
+        }
+        <a class="roster-entry roster-entry--add" routerLink="/campaigns/create">
+          <span class="roster-entry-add-link">+ Begin a chronicle</span>
+        </a>
       }
     </section>
   </div>
