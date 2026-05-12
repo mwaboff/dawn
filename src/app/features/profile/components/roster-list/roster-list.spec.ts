@@ -39,6 +39,7 @@ function makeCharacter(overrides: Partial<CharacterSummary> = {}): CharacterSumm
     level: 5,
     classEntries: [],
     createdAt: '2025-06-15T10:30:00',
+    lastModifiedAt: '2025-06-15T10:30:00',
     ...overrides,
   };
 }

@@ -1,0 +1,41 @@
+<div class="dashboard">
+  <div class="dashboard__switcher">
+    <app-variant-switcher [variant]="variant()" (variantChange)="setVariant($event)" />
+  </div>
+
+  @switch (variant()) {
+    @case ('ledger') {
+      <app-dashboard-ledger
+        [characters]="characters()"
+        [charactersLoading]="charactersLoading()"
+        [charactersError]="charactersError()"
+        [campaigns]="campaigns()"
+        [campaignsLoading]="campaignsLoading()"
+        [campaignsError]="campaignsError()"
+        [username]="username()"
+      />
+    }
+    @case ('sheet') {
+      <app-dashboard-sheet
+        [characters]="characters()"
+        [charactersLoading]="charactersLoading()"
+        [charactersError]="charactersError()"
+        [campaigns]="campaigns()"
+        [campaignsLoading]="campaignsLoading()"
+        [campaignsError]="campaignsError()"
+        [username]="username()"
+      />
+    }
+    @case ('war-table') {
+      <app-dashboard-war-table
+        [characters]="characters()"
+        [charactersLoading]="charactersLoading()"
+        [charactersError]="charactersError()"
+        [campaigns]="campaigns()"
+        [campaignsLoading]="campaignsLoading()"
+        [campaignsError]="campaignsError()"
+        [username]="username()"
+      />
+    }
+  }
+</div>

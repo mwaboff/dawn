@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
+import { Dashboard } from '../dashboard/dashboard';
 
 interface Feature {
   icon: string;
@@ -14,7 +15,7 @@ interface Feature {
   templateUrl: './home.html',
   styleUrl: './home.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe, RouterLink],
+  imports: [FormatTextPipe, RouterLink, Dashboard],
 })
 export class Home {
   private readonly authService = inject(AuthService);

@@ -195,6 +195,56 @@
 .roster-inline-cancel-btn:hover { border-color: rgba(245, 230, 211, 0.4); color: rgba(245, 230, 211, 0.7); }
 .roster-inline-cancel-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
+.roster-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(245, 230, 211, 0.5);
+  border: 1px solid rgba(245, 230, 211, 0.15);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.roster-entry:hover .roster-level { color: var(--color-accent); border-color: var(--color-accent); }
+
+.roster-pronouns {
+  font-size: 0.8125rem;
+  color: rgba(245, 230, 211, 0.35);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.roster-entry--add {
+  background: transparent;
+  border: 1px dashed rgba(212, 160, 86, 0.3);
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+
+.roster-entry--add:hover,
+.roster-entry--add:focus-visible {
+  background: rgba(212, 160, 86, 0.06);
+  border-color: rgba(212, 160, 86, 0.6);
+}
+
+.roster-entry-add-link {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
 @media (max-width: 640px) {
   .roster-entry { padding: 1rem; gap: 1rem; }
   .roster-empty { padding: 3rem 1rem; }

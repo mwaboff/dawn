@@ -1,0 +1,15 @@
+<div class="variant-switcher" role="group" aria-label="Dashboard layout">
+  <span class="variant-switcher__eyebrow">Preview</span>
+  <div class="variant-switcher__chips">
+    @for (chip of chips; track chip.value; let i = $index) {
+      <button
+        type="button"
+        class="variant-switcher__chip"
+        [class.variant-switcher__chip--active]="chip.value === variant()"
+        [attr.aria-pressed]="chip.value === variant()"
+        (click)="onSelect(chip.value)"
+        (keydown)="onKeydown($event, i)"
+      >{{ chip.label }}</button>
+    }
+  </div>
+</div>

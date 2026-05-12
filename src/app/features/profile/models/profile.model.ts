@@ -10,4 +10,5 @@ export interface CharacterSummary {
   level: number;
   classEntries: ClassEntry[];
   createdAt: string;
+  lastModifiedAt: string;
 }

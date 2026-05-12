@@ -3,8 +3,12 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
+import { vi } from 'vitest';
+import { of } from 'rxjs';
 import { Home } from './home';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../shared/services/user.service';
+import { CampaignService } from '../../shared/services/campaign.service';
 
 describe('Home', () => {
   let component: Home;
@@ -13,12 +17,25 @@ describe('Home', () => {
   function setup(isLoggedIn = false) {
     const mockAuthService = {
       isLoggedIn: signal(isLoggedIn),
+      user: signal(isLoggedIn ? { id: 1, username: 'Aragorn', usernameChosen: true, role: 'USER' } : null),
+    };
+    const mockUserSvc = {
+      getUserCharacterSheets: vi.fn().mockReturnValue(
+        of({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 100 })
+      ),
+    };
+    const mockCampaignSvc = {
+      getMyCampaigns: vi.fn().mockReturnValue(
+        of({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 20 })
+      ),
     };
 
     TestBed.configureTestingModule({
       imports: [Home],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
+        { provide: UserService, useValue: mockUserSvc },
+        { provide: CampaignService, useValue: mockCampaignSvc },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -98,15 +115,18 @@ describe('Home', () => {
     expect(links[1].getAttribute('href')).toBe('/reference');
   });
 
-  it('should render "Create a Character" CTA when logged in', () => {
+  it('should render <app-dashboard> when logged in', () => {
     setup(true);
     const compiled = fixture.nativeElement as HTMLElement;
-    const links = compiled.querySelectorAll('.hero-cta a');
-    expect(links.length).toBe(2);
-    expect(links[0].textContent).toContain('Create a Character');
-    expect(links[0].getAttribute('href')).toBe('/create-character');
-    expect(links[1].textContent).toContain('Explore the Codex');
-    expect(links[1].getAttribute('href')).toBe('/reference');
+    expect(compiled.querySelector('app-dashboard')).toBeTruthy();
+    expect(compiled.querySelector('.hero')).toBeFalsy();
+  });
+
+  it('should NOT render <app-dashboard> when not logged in', () => {
+    setup(false);
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-dashboard')).toBeFalsy();
+    expect(compiled.querySelector('.hero')).toBeTruthy();
   });
 
   it('should always show Explore the Codex link', () => {

@@ -9,7 +9,8 @@ import { UserService } from '../../shared/services/user.service';
 import { CampaignService } from '../../shared/services/campaign.service';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { isAtLeast } from '../../shared/models/role.model';
-import { CharacterSummary, ClassEntry } from './models/profile.model';
+import { CharacterSummary } from './models/profile.model';
+import { mapToSummary } from './models/profile.mapper';
 import { RosterList } from './components/roster-list/roster-list';
 import { CampaignRoster } from './components/campaign-roster/campaign-roster';
 
@@ -173,7 +174,7 @@ export class Profile implements OnInit {
 
   private loadCharacters(ownerId: number): void {
     this.userService.getUserCharacterSheets(ownerId, 0, 100, 'subclassCards').pipe(
-      map(response => response.content.map(sheet => this.mapToSummary(sheet))),
+      map(response => response.content.map(sheet => mapToSummary(sheet))),
       catchError((error: HttpErrorResponse) => {
         if (error.status !== 403) {
           this.charactersError.set(true);
@@ -204,25 +205,4 @@ export class Profile implements OnInit {
     });
   }
 
-  private mapToSummary(sheet: { id: number; name: string; pronouns?: string; level: number; subclassCards?: { associatedClassName?: string; subclassPathName?: string }[]; createdAt: string }): CharacterSummary {
-    return {
-      id: sheet.id,
-      name: sheet.name,
-      pronouns: sheet.pronouns,
-      level: sheet.level,
-      classEntries: this.extractClassEntries(sheet.subclassCards ?? []),
-      createdAt: sheet.createdAt,
-    };
-  }
-
-  private extractClassEntries(subclassCards: { associatedClassName?: string; subclassPathName?: string }[]): ClassEntry[] {
-    const seen = new Map<string, ClassEntry>();
-    for (const card of subclassCards) {
-      const className = card.associatedClassName ?? 'Unknown';
-      if (!seen.has(className)) {
-        seen.set(className, { className, subclassName: card.subclassPathName });
-      }
-    }
-    return Array.from(seen.values());
-  }
 }

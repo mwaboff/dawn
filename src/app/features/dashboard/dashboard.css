@@ -1,0 +1,16 @@
+.dashboard {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.dashboard__switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 860px) {
+  .dashboard { padding: 1rem; }
+  .dashboard__switcher { justify-content: flex-start; }
+}
