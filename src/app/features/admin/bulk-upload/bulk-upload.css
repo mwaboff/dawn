@@ -66,37 +66,6 @@
   border: none;
 }
 
-.btn--primary {
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-bright));
-  color: var(--color-bg-dark);
-}
-
-.btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 160, 86, 0.4);
-}
-
-.btn--primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn--secondary {
-  background: transparent;
-  border: 1px solid rgba(212, 160, 86, 0.4);
-  color: var(--color-parchment);
-}
-
-.btn--secondary:hover:not(:disabled) {
-  background: rgba(212, 160, 86, 0.1);
-  border-color: var(--color-accent);
-}
-
-.btn--secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .message {
   padding: 1rem;
   border-radius: 4px;

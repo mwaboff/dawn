@@ -223,44 +223,6 @@
   font-size: 0.75rem;
 }
 
-.btn {
-  padding: 0.625rem 1.25rem;
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  text-decoration: none;
-}
-
-.btn--primary {
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-bright));
-  color: var(--color-bg-dark);
-}
-
-.btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 160, 86, 0.4);
-}
-
-.btn--primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn--secondary {
-  background: transparent;
-  border: 1px solid rgba(212, 160, 86, 0.4);
-  color: var(--color-parchment);
-}
-
-.btn--secondary:hover {
-  background: rgba(212, 160, 86, 0.1);
-  border-color: var(--color-accent);
-}
-
 @media (max-width: 900px) {
   .card-edit-content {
     grid-template-columns: 1fr;
