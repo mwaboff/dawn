@@ -2,13 +2,14 @@ import { Component, ChangeDetectionStrategy, input, output, signal } from '@angu
 import { RouterLink } from '@angular/router';
 import { CampaignResponse } from '../../../../shared/models/campaign-api.model';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { InlineDeleteConfirm } from '../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 
 @Component({
   selector: 'app-campaign-roster',
   templateUrl: './campaign-roster.html',
   styleUrl: './campaign-roster.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ConfirmDialog],
+  imports: [RouterLink, ConfirmDialog, InlineDeleteConfirm],
 })
 export class CampaignRoster {
   readonly campaigns = input.required<CampaignResponse[]>();
@@ -25,18 +26,15 @@ export class CampaignRoster {
   readonly confirmingDeleteId = signal<number | null>(null);
   readonly deletingId = signal<number | null>(null);
 
-  onDeleteClick(event: Event, id: number): void {
-    event.stopPropagation();
+  onDeleteRequest(id: number): void {
     this.pendingDeleteId.set(id);
   }
 
-  onInlineConfirm(event: Event): void {
-    event.stopPropagation();
+  onDeleteConfirm(): void {
     this.confirmingDeleteId.set(this.pendingDeleteId());
   }
 
-  onInlineCancel(event: Event): void {
-    event.stopPropagation();
+  onDeleteCancel(): void {
     this.pendingDeleteId.set(null);
   }
 
