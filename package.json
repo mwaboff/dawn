@@ -45,7 +45,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@vitest/coverage-v8": "^4.0.18",
     "angular-eslint": "21.2.0",
-    "eslint": "^9.39.2",
+    "eslint": "^10.2.0",
     "jsdom": "^27.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.12",
