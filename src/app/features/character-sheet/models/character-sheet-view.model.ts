@@ -98,6 +98,8 @@ export interface ArmorDisplay {
   name: string;
   tier?: number;
   baseScore: number;
+  baseMajorThreshold: number;
+  baseSevereThreshold: number;
   features: FeatureDisplay[];
 }
 

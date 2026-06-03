@@ -21,6 +21,8 @@ const armor: ArmorDisplay = {
   inventoryEntryId: 2,
   name: 'Chainmail',
   baseScore: 5,
+  baseMajorThreshold: 0,
+  baseSevereThreshold: 0,
   features: [],
 };
 
