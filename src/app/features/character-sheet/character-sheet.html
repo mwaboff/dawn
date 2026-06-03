@@ -198,6 +198,9 @@
                 @if (sheet.activePrimaryWeapon.damage) {
                   <span class="equip-stat">{{ sheet.activePrimaryWeapon.damage }}</span>
                 }
+                @if (sheet.activePrimaryWeapon.trait) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.trait }}</span>
+                }
                 @if (sheet.activePrimaryWeapon.range) {
                   <span class="equip-stat">{{ sheet.activePrimaryWeapon.range }}</span>
                 }
@@ -263,6 +266,9 @@
                 @if (sheet.activeSecondaryWeapon.damage) {
                   <span class="equip-stat">{{ sheet.activeSecondaryWeapon.damage }}</span>
                 }
+                @if (sheet.activeSecondaryWeapon.trait) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.trait }}</span>
+                }
                 @if (sheet.activeSecondaryWeapon.range) {
                   <span class="equip-stat">{{ sheet.activeSecondaryWeapon.range }}</span>
                 }
@@ -304,8 +310,8 @@
               </div>
               <div class="equipment-card__stats">
                 <span class="equip-stat">Score: {{ sheet.activeArmor.baseScore }}</span>
-                <span class="equip-stat">Major: {{ sheet.majorDamageThreshold.modified }}+</span>
-                <span class="equip-stat">Severe: {{ sheet.severeDamageThreshold.modified }}+</span>
+                <span class="equip-stat">Major: {{ sheet.activeArmor.baseMajorThreshold }}</span>
+                <span class="equip-stat">Severe: {{ sheet.activeArmor.baseSevereThreshold }}</span>
               </div>
               @if (sheet.activeArmor.features.length > 0) {
                 <div class="equipment-card__features">

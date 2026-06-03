@@ -682,10 +682,93 @@ describe('mapToCharacterSheetView', () => {
       expect(result.hitPointMax.modifierSources).toEqual([]);
     });
 
-    it('maps armorScore using armorMax as base', () => {
+    it('armorScore is 0 when no armor equipped', () => {
       const result = mapToCharacterSheetView(makeSheet({ armorMax: 4 }));
 
-      expect(result.armorScore.base).toBe(4);
+      expect(result.armorScore.base).toBe(0);
+      expect(result.armorScore.modified).toBe(0);
+    });
+
+    it('armorScore uses equipped armor baseScore', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: { id: 1, name: 'Plate', baseScore: 5, features: [] },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.armorScore.base).toBe(5);
+    });
+
+    it('major/severe thresholds derive from level when no armor equipped', () => {
+      const result = mapToCharacterSheetView(makeSheet({ level: 3 }));
+
+      expect(result.majorDamageThreshold.base).toBe(3);
+      expect(result.majorDamageThreshold.modified).toBe(3);
+      expect(result.severeDamageThreshold.base).toBe(6);
+      expect(result.severeDamageThreshold.modified).toBe(6);
+    });
+
+    it('major/severe thresholds add level to equipped armor base thresholds', () => {
+      const sheet = makeSheet({
+        level: 3,
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: {
+            id: 1, name: 'Chainmail', baseScore: 4,
+            baseMajorThreshold: 7, baseSevereThreshold: 12,
+            features: [],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.majorDamageThreshold.modified).toBe(10);
+      expect(result.severeDamageThreshold.modified).toBe(15);
+    });
+
+    it('feature modifiers stack on top of the threshold base', () => {
+      const sheet = makeSheet({
+        level: 2,
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: {
+            id: 1, name: 'Reinforced Mail', baseScore: 3,
+            baseMajorThreshold: 6, baseSevereThreshold: 10,
+            features: [{
+              description: 'Sturdy',
+              modifiers: [{ target: 'MAJOR_DAMAGE_THRESHOLD', operation: 'ADD', value: 2 }],
+            }],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.majorDamageThreshold.base).toBe(8);
+      expect(result.majorDamageThreshold.modified).toBe(10);
+    });
+
+    it('ArmorDisplay carries the equipped armor base thresholds independent of level', () => {
+      const sheet = makeSheet({
+        level: 5,
+        inventoryArmors: [{
+          id: 200, armorId: 1, equipped: true,
+          armor: {
+            id: 1, name: 'Chainmail', baseScore: 4,
+            baseMajorThreshold: 7, baseSevereThreshold: 12,
+            features: [],
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activeArmor?.baseMajorThreshold).toBe(7);
+      expect(result.activeArmor?.baseSevereThreshold).toBe(12);
     });
 
     it('maps proficiency as a DisplayStat', () => {

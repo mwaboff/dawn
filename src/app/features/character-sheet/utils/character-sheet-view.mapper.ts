@@ -57,6 +57,16 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
   const proficiencyStat = applyModifiers(sheet.proficiency, modifiers, 'PROFICIENCY');
   const proficiency = proficiencyStat.modified;
 
+  const equippedArmor = (sheet.inventoryArmors ?? []).find(a => a.equipped)?.armor;
+  const level = sheet.level;
+  const majorBase = equippedArmor
+    ? (equippedArmor.baseMajorThreshold ?? 0) + level
+    : level;
+  const severeBase = equippedArmor
+    ? (equippedArmor.baseSevereThreshold ?? 0) + level
+    : level * 2;
+  const armorScoreBase = equippedArmor ? (equippedArmor.baseScore ?? 0) : 0;
+
   return {
     id: sheet.id,
     ownerId: sheet.ownerId,
@@ -68,9 +78,9 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     proficiency: proficiencyStat,
     evasion: applyModifiers(sheet.evasion, modifiers, 'EVASION'),
     hitPointMax: applyModifiers(sheet.hitPointMax, modifiers, 'HIT_POINT_MAX'),
-    armorScore: applyModifiers(sheet.armorMax, modifiers, 'ARMOR_SCORE'),
-    majorDamageThreshold: applyModifiers(sheet.majorDamageThreshold, modifiers, 'MAJOR_DAMAGE_THRESHOLD'),
-    severeDamageThreshold: applyModifiers(sheet.severeDamageThreshold, modifiers, 'SEVERE_DAMAGE_THRESHOLD'),
+    armorScore: applyModifiers(armorScoreBase, modifiers, 'ARMOR_SCORE'),
+    majorDamageThreshold: applyModifiers(majorBase, modifiers, 'MAJOR_DAMAGE_THRESHOLD'),
+    severeDamageThreshold: applyModifiers(severeBase, modifiers, 'SEVERE_DAMAGE_THRESHOLD'),
     hopeMax: applyModifiers(sheet.hopeMax, modifiers, 'HOPE_MAX'),
     stressMax: applyModifiers(sheet.stressMax, modifiers, 'STRESS_MAX'),
 
@@ -138,6 +148,8 @@ function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay 
     name: armor.name,
     tier: armor.tier,
     baseScore: armor.baseScore ?? 0,
+    baseMajorThreshold: armor.baseMajorThreshold ?? 0,
+    baseSevereThreshold: armor.baseSevereThreshold ?? 0,
     features: (armor.features ?? []).map(mapFeature),
   };
 }
@@ -283,6 +295,8 @@ function mapInventoryArmor(entry: InventoryArmorResponse): ArmorDisplay {
     inventoryEntryId: entry.id,
     name: '',
     baseScore: 0,
+    baseMajorThreshold: 0,
+    baseSevereThreshold: 0,
     features: [],
   };
 }

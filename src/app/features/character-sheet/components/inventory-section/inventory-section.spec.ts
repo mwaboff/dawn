@@ -115,7 +115,7 @@ describe('InventorySection', () => {
   });
 
   it('displays armor items when present', () => {
-    host.armors.set([{ id: 1, inventoryEntryId: 1, name: 'Chain Mail', baseScore: 4, features: [] }]);
+    host.armors.set([{ id: 1, inventoryEntryId: 1, name: 'Chain Mail', baseScore: 4, baseMajorThreshold: 0, baseSevereThreshold: 0, features: [] }]);
     fixture.detectChanges();
     const armorTab = el.querySelectorAll<HTMLButtonElement>('.inventory-tab')[1];
     armorTab.click();
