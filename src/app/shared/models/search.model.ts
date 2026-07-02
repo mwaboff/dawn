@@ -1,5 +1,5 @@
-import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
-import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
+import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
+import { AdversaryData } from '../components/adversary-card/adversary-card.model';
 
 export type SearchableEntityType =
   | 'DOMAIN'

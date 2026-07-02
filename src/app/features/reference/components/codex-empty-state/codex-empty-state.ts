@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
-import { SearchableEntityType, typeLabels } from '../../models/search.model';
+import { SearchableEntityType, typeLabels } from '../../../../shared/models/search.model';
 
 export type CodexEmptyVariant = 'search' | 'browse';
 

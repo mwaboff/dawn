@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { mapSearchResult } from './search-result.mapper';
 import { SearchResultResponse } from '../models/search.model';
-import { WeaponResponse } from '../../../shared/models/weapon-api.model';
-import { ArmorResponse } from '../../../shared/models/armor-api.model';
-import { LootApiResponse } from '../../../shared/models/loot-api.model';
-import { AdversaryApiResponse } from '../../../shared/models/adversary-api.model';
-import { ClassResponse } from '../../../shared/models/class-api.model';
-import { AncestryCardResponse } from '../../../shared/models/ancestry-api.model';
-import { CommunityCardResponse } from '../../../shared/models/community-api.model';
-import { DomainCardResponse } from '../../../shared/models/domain-card-api.model';
-import { SubclassCardResponse } from '../../../shared/models/subclass-api.model';
+import { WeaponResponse } from '../models/weapon-api.model';
+import { ArmorResponse } from '../models/armor-api.model';
+import { LootApiResponse } from '../models/loot-api.model';
+import { AdversaryApiResponse } from '../models/adversary-api.model';
+import { ClassResponse } from '../models/class-api.model';
+import { AncestryCardResponse } from '../models/ancestry-api.model';
+import { CommunityCardResponse } from '../models/community-api.model';
+import { DomainCardResponse } from '../models/domain-card-api.model';
+import { SubclassCardResponse } from '../models/subclass-api.model';
 
 function buildBase(overrides: Partial<SearchResultResponse> = {}): SearchResultResponse {
   return {

@@ -2,8 +2,8 @@ import { Component, ChangeDetectionStrategy, input, output, computed } from '@an
 import { UpperCasePipe } from '@angular/common';
 import { DaggerheartCard } from '../../../../shared/components/daggerheart-card/daggerheart-card';
 import { AdversaryCard } from '../../../../shared/components/adversary-card/adversary-card';
-import { MappedSearchResult } from '../../mappers/search-result.mapper';
-import { SearchableEntityType, typeLabels, typeGlyphs } from '../../models/search.model';
+import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
+import { SearchableEntityType, typeLabels, typeGlyphs } from '../../../../shared/models/search.model';
 
 @Component({
   selector: 'app-result-section',

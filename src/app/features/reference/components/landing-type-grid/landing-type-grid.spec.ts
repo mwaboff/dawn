@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { LandingTypeGrid } from './landing-type-grid';
-import { SearchableEntityType } from '../../models/search.model';
+import { SearchableEntityType } from '../../../../shared/models/search.model';
 
 @Component({
   template: `<app-landing-type-grid (typeSelect)="onTypeSelect($event)" />`,

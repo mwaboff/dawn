@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { WeaponService } from '../../../shared/services/weapon.service';
-import { ArmorService } from '../../../shared/services/armor.service';
-import { LootService } from '../../../shared/services/loot.service';
-import { AdversaryService } from '../../../shared/services/adversary.service';
-import { ClassService } from '../../../shared/services/class.service';
-import { AncestryService } from '../../../shared/services/ancestry.service';
-import { CommunityService } from '../../../shared/services/community.service';
-import { DomainService } from '../../../shared/services/domain.service';
-import { SubclassService } from '../../../shared/services/subclass.service';
-import { CompanionService } from '../../../shared/services/companion.service';
+import { WeaponService } from './weapon.service';
+import { ArmorService } from './armor.service';
+import { LootService } from './loot.service';
+import { AdversaryService } from './adversary.service';
+import { ClassService } from './class.service';
+import { AncestryService } from './ancestry.service';
+import { CommunityService } from './community.service';
+import { DomainService } from './domain.service';
+import { SubclassService } from './subclass.service';
+import { CompanionService } from './companion.service';
 import { BrowseResult, SearchableEntityType } from '../models/search.model';
 
 /** Entity types that have a per-type list endpoint available for browse mode. */

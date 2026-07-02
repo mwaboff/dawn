@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { SearchService } from './search.service';
-import { SearchResponse } from '../../features/reference/models/search.model';
+import { SearchResponse } from '../models/search.model';
 
 function buildSearchResponse(overrides: Partial<SearchResponse> = {}): SearchResponse {
   return {
