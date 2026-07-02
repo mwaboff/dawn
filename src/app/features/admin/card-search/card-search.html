@@ -2,9 +2,7 @@
   <div class="search-controls">
     <div class="category-bar">
       @for (cat of categories; track cat.id) {
-        <button
-          type="button"
-          class="category-pill"
+        <button type="button" class="category-pill"
           [class.category-pill--active]="activeCategory() === cat.id"
           (click)="onCategorySelected(cat.id)">
           {{ cat.label }}
@@ -14,21 +12,17 @@
 
     @if (activeCategory()) {
       <div class="search-input-wrapper">
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search by name..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-        />
+        <input type="text" class="search-input" placeholder="Search by name or text..."
+          [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
+        @if (isShortQuery()) {
+          <p class="search-hint" aria-live="polite">Keep typing… (3 characters minimum)</p>
+        }
       </div>
     }
   </div>
 
   @if (!activeCategory()) {
-    <div class="search-empty">
-      <p>Select a category above to browse cards.</p>
-    </div>
+    <div class="search-empty"><p>Select a category above to browse cards.</p></div>
   }
 
   @if (loading()) {
@@ -36,54 +30,39 @@
   }
 
   @if (error() && !loading()) {
-    <div class="search-error">
-      <p>Failed to load cards. Please try again.</p>
-    </div>
+    <div class="search-error"><p>Failed to load cards. Please try again.</p></div>
   }
 
-  @if (!loading() && !error() && isSubclassCategory() && filteredCards().length > 0) {
-    <app-subclass-path-selector
-      [cards]="filteredCards()"
-      [collapsibleFeatures]="true"
-      (cardSelected)="onSubclassCardSelected($event)"
-    />
+  @if (!loading() && !error() && isSubclassCategory() && cards().length > 0) {
+    <app-subclass-path-selector [cards]="cards()" [collapsibleFeatures]="true"
+      (cardSelected)="onSubclassCardSelected($event)" />
   }
 
-  @if (!loading() && !error() && isAdversaryCategory() && filteredAdversaries().length > 0) {
+  @if (!loading() && !error() && isAdversaryCategory() && adversaries().length > 0) {
     <div class="adversary-grid">
-      @for (adversary of filteredAdversaries(); track adversary.id) {
-        <div class="adversary-grid__item" role="button" tabindex="0" (click)="onAdversarySelected(adversary)" (keydown.enter)="onAdversarySelected(adversary)">
-          <app-adversary-card
-            [adversary]="adversary"
-            layout="wide"
-            [collapsibleFeatures]="true"
-          />
+      @for (adversary of adversaries(); track adversary.id) {
+        <div class="adversary-grid__item" role="button" tabindex="0"
+          (click)="onAdversarySelected(adversary)" (keydown.enter)="onAdversarySelected(adversary)">
+          <app-adversary-card [adversary]="adversary" layout="wide" [collapsibleFeatures]="true" />
         </div>
       }
     </div>
   }
 
-  @if (!loading() && !error() && !isSubclassCategory() && !isAdversaryCategory() && activeCategory() && filteredCards().length > 0) {
-    <app-card-selection-grid
-      [cards]="filteredCards()"
-      [loading]="false"
-      [error]="false"
-      [maxSelections]="1"
-      [layout]="'wide'"
-      [collapsibleFeatures]="true"
-      (cardSelected)="onCardSelected($event)"
-    />
+  @if (!loading() && !error() && !isSubclassCategory() && !isAdversaryCategory() && activeCategory() && cards().length > 0) {
+    <app-card-selection-grid [cards]="cards()" [loading]="false" [error]="false"
+      [maxSelections]="1" [layout]="'wide'" [collapsibleFeatures]="true"
+      (cardSelected)="onCardSelected($event)" />
   }
 
-  @if (!loading() && !error() && activeCategory() && filteredCards().length === 0 && filteredAdversaries().length === 0 && hasCards()) {
-    <div class="search-empty">
-      <p>No cards match your search.</p>
-    </div>
+  @if (!loading() && !error() && activeCategory() && hasResults()) {
+    <app-pagination-controls [currentPage]="currentPage()" [totalPages]="totalPages()"
+      (pageChanged)="onPageChanged($event)" />
   }
 
-  @if (!loading() && !error() && activeCategory() && !hasCards()) {
+  @if (!loading() && !error() && activeCategory() && !hasResults()) {
     <div class="search-empty">
-      <p>No cards found in this category.</p>
+      <p>{{ isSearchMode() ? 'No cards match your search.' : 'No cards found in this category.' }}</p>
     </div>
   }
 </div>

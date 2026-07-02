@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { TypeFacetTabs } from './type-facet-tabs';
-import { SearchableEntityType } from '../../models/search.model';
+import { SearchableEntityType } from '../../../../shared/models/search.model';
 
 @Component({
   template: `

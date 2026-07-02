@@ -5,7 +5,7 @@ import {
   output,
   computed,
 } from '@angular/core';
-import { SearchableEntityType, SearchFilters } from '../../models/search.model';
+import { SearchableEntityType, SearchFilters } from '../../../../shared/models/search.model';
 import { ViewMode } from '../../reference';
 
 export interface FilterOption {

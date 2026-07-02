@@ -58,6 +58,13 @@
   color: rgba(212, 160, 86, 0.4);
 }
 
+.search-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: rgba(212, 160, 86, 0.7);
+  font-family: var(--font-body);
+}
+
 .search-empty,
 .search-error {
   text-align: center;

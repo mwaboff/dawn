@@ -12,7 +12,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { SearchableEntityType, SearchFilters } from '../../models/search.model';
+import { SearchableEntityType, SearchFilters } from '../../../../shared/models/search.model';
 import { ViewMode } from '../../reference';
 import { FilterRail, FilterOption } from '../filter-rail/filter-rail';
 

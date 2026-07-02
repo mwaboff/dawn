@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { RefineSheet } from './refine-sheet';
 import { Component, signal } from '@angular/core';
-import { SearchFilters } from '../../models/search.model';
+import { SearchFilters } from '../../../../shared/models/search.model';
 
 /**
  * Host wrapper to supply inputs to RefineSheet.

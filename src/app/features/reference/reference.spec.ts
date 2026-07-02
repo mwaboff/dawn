@@ -9,8 +9,8 @@ import { SearchService } from '../../shared/services/search.service';
 import { DomainService } from '../../shared/services/domain.service';
 import { ExpansionService } from '../../shared/services/expansion.service';
 import { ClassService } from '../../shared/services/class.service';
-import { CodexBrowseService } from './services/codex-browse.service';
-import { SearchResponse } from './models/search.model';
+import { CodexBrowseService } from '../../shared/services/codex-browse.service';
+import { SearchResponse } from '../../shared/models/search.model';
 
 const MOCK_SEARCH_RESPONSE: SearchResponse = {
   results: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 20, query: 'test',

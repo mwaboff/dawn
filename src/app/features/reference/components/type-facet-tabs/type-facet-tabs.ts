@@ -8,7 +8,7 @@ import {
   ElementRef,
   ViewChild,
 } from '@angular/core';
-import { SearchableEntityType, typeLabels, typeGlyphs, BROWSABLE_TYPES } from '../../models/search.model';
+import { SearchableEntityType, typeLabels, typeGlyphs, BROWSABLE_TYPES } from '../../../../shared/models/search.model';
 
 export interface FacetTab {
   type: SearchableEntityType | null;

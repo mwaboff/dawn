@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { ResultSection } from './result-section';
-import { MappedSearchResult } from '../../mappers/search-result.mapper';
-import { SearchableEntityType } from '../../models/search.model';
+import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
+import { SearchableEntityType } from '../../../../shared/models/search.model';
 
 function makeCardResult(id: number, name = 'Test Card'): MappedSearchResult {
   return {

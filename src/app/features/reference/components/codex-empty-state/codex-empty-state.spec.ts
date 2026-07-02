@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { CodexEmptyState, CodexEmptyVariant } from './codex-empty-state';
-import { SearchableEntityType } from '../../models/search.model';
+import { SearchableEntityType } from '../../../../shared/models/search.model';
 
 @Component({
   imports: [CodexEmptyState],

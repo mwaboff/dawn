@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { FilterRail, FilterOption } from './filter-rail';
-import { SearchableEntityType, SearchFilters } from '../../models/search.model';
+import { SearchableEntityType, SearchFilters } from '../../../../shared/models/search.model';
 import { ViewMode } from '../../reference';
 
 @Component({
