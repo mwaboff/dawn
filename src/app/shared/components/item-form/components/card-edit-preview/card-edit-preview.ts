@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input } from '@angular/core';
-import { DaggerheartCard } from '../../../../../shared/components/daggerheart-card/daggerheart-card';
-import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { DaggerheartCard } from '../../../daggerheart-card/daggerheart-card';
+import { CardData } from '../../../daggerheart-card/daggerheart-card.model';
 
 @Component({
   selector: 'app-card-edit-preview',

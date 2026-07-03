@@ -13,6 +13,7 @@ export interface LootApiResponse {
   features?: LootFeature[];
   expansionId?: number;
   isOfficial?: boolean;
+  creatorId?: number | null;
 }
 
 export interface LootFilters {

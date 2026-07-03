@@ -34,6 +34,7 @@ export function mapLootToCardData(response: LootApiResponse): CardData {
       isConsumable: response.isConsumable,
       expansionId: response.expansionId,
       isOfficial: response.isOfficial,
+      creatorId: response.creatorId,
     },
   };
 }

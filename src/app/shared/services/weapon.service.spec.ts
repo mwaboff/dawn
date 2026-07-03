@@ -14,6 +14,7 @@ function buildWeaponResponse(overrides: Partial<WeaponResponse> = {}): WeaponRes
     expansionId: 1,
     tier: 1,
     isOfficial: true,
+    creatorId: null,
     isPrimary: true,
     trait: 'STRENGTH',
     range: 'MELEE',

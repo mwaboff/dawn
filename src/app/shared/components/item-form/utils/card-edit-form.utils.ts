@@ -1,6 +1,6 @@
-import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
-import { RawCardResponse } from '../../models/admin-api.model';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { CardData } from '../../../components/daggerheart-card/daggerheart-card.model';
+import { RawCardResponse } from '../../../../features/admin/models/admin-api.model';
 import { CardSchema, FieldDef } from '../schema/card-edit-schema.types';
 
 export const URL_REGEX = /^(https?:\/\/.+)$/;
@@ -77,7 +77,7 @@ function coerceNumberValue(value: unknown): number | null {
 
 export function buildFormFromSchema(
   schema: CardSchema,
-  raw: RawCardResponse,
+  raw: RawCardResponse | null,
   fb: FormBuilder,
 ): FormGroup {
   const controls: Record<string, FormControl> = {};
@@ -88,9 +88,9 @@ export function buildFormFromSchema(
     let initialValue: unknown;
 
     if (field.kind === 'entityMulti') {
-      initialValue = readPath(raw, path) ?? [];
+      initialValue = (raw ? readPath(raw, path) : undefined) ?? [];
     } else {
-      initialValue = readPath(raw, path) ?? null;
+      initialValue = (raw ? readPath(raw, path) : undefined) ?? null;
     }
 
     if (field.kind === 'entity' || field.kind === 'entityMulti') {
@@ -103,13 +103,19 @@ export function buildFormFromSchema(
   return fb.group(controls);
 }
 
-export function buildPayloadFromSchema(
-  schema: CardSchema,
-  form: FormGroup,
-  extras?: Record<string, unknown>,
-): Record<string, unknown> {
-  const allFields = getAllFields(schema);
+function fieldValue(field: FieldDef, control: AbstractControl): unknown {
+  const value = control.value;
+  if (field.kind === 'number') return coerceNumberValue(value);
+  if (field.kind !== 'entity' && field.kind !== 'entityMulti' && field.kind !== 'checkbox' && value === '') {
+    return field.required ? value : null;
+  }
+  return value;
+}
 
+function buildEditPayload(
+  allFields: FieldDef[],
+  form: FormGroup,
+): Record<string, unknown> {
   const dirtyGroups = new Set<string>();
   for (const field of allFields) {
     const path = fieldPath(field);
@@ -138,6 +144,38 @@ export function buildPayloadFromSchema(
     const value = field.kind === 'number' ? coerceNumberValue(control.value) : control.value;
     setPath(payload, path, value);
   }
+
+  return payload;
+}
+
+function buildCreatePayload(
+  allFields: FieldDef[],
+  form: FormGroup,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  for (const field of allFields) {
+    const path = fieldPath(field);
+    const control = form.get(field.name);
+    if (!control) continue;
+
+    setPath(payload, path, fieldValue(field, control));
+  }
+
+  return payload;
+}
+
+export function buildPayloadFromSchema(
+  schema: CardSchema,
+  form: FormGroup,
+  mode: 'create' | 'edit' = 'edit',
+  extras?: Record<string, unknown>,
+): Record<string, unknown> {
+  const allFields = getAllFields(schema);
+
+  const payload = mode === 'create'
+    ? buildCreatePayload(allFields, form)
+    : buildEditPayload(allFields, form);
 
   if (extras) {
     for (const [key, value] of Object.entries(extras)) {
@@ -184,7 +222,7 @@ export function applyBackendErrors(
 export function buildPreviewCard(
   schema: CardSchema,
   formValue: Record<string, unknown>,
-  raw: RawCardResponse,
+  raw: RawCardResponse | null,
   features: unknown[],
 ): CardData {
   const cardFeatures = (features as Record<string, unknown>[]).map(f => ({
@@ -196,10 +234,10 @@ export function buildPreviewCard(
   }));
 
   return {
-    id: raw.id,
+    id: raw?.id ?? 0,
     name: (formValue['name'] as string) ?? '',
     description: (formValue['description'] as string) ?? '',
-    cardType: raw['cardType'] as CardData['cardType'] ?? 'domain',
+    cardType: (raw?.['cardType'] as CardData['cardType']) ?? (schema.cardType as CardData['cardType']) ?? 'domain',
     subtitle: schema.previewSubtitle?.(formValue),
     tags: schema.previewTags(formValue),
     features: cardFeatures.length > 0 ? cardFeatures : undefined,

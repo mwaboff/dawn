@@ -75,6 +75,12 @@ const TRAIT_OPTIONS: FilterOption[] = [
   { value: 'KNOWLEDGE', label: 'Knowledge' },
 ];
 
+const VISIBILITY_OPTIONS: FilterOption[] = [
+  { value: '', label: 'All' },
+  { value: 'true', label: 'Official' },
+  { value: 'false', label: 'Custom' },
+];
+
 const ADVERSARY_TYPE_OPTIONS: FilterOption[] = [
   { value: '', label: 'Any Type' },
   { value: 'STANDARD', label: 'Standard' },
@@ -88,7 +94,7 @@ const ADVERSARY_TYPE_OPTIONS: FilterOption[] = [
 
 const UNIVERSAL_FILTERS: FilterControl[] = [
   { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
-  { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+  { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
 ];
 
 const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
@@ -97,47 +103,47 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
     { kind: 'select', key: 'trait', label: 'Trait', options: TRAIT_OPTIONS },
     { kind: 'select', key: 'range', label: 'Range', options: RANGE_OPTIONS },
     { kind: 'select', key: 'burden', label: 'Burden', options: BURDEN_OPTIONS },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   ARMOR: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
     { kind: 'select', key: 'burden', label: 'Burden', options: BURDEN_OPTIONS },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   ADVERSARY: [
     { kind: 'select', key: 'adversaryType', label: 'Adversary Type', options: ADVERSARY_TYPE_OPTIONS },
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   LOOT: [
     { kind: 'checkbox', key: 'isConsumable', label: 'Consumables only' },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   CLASS: [
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   ANCESTRY_CARD: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   COMMUNITY_CARD: [
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   DOMAIN: [
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   DOMAIN_CARD: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
     { kind: 'select', key: 'level', label: 'Level', options: LEVEL_OPTIONS },
     { kind: 'select', key: 'associatedDomainId', label: 'Domain', options: [{ value: '', label: 'Any Domain' }] },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   SUBCLASS_CARD: [
     { kind: 'select', key: 'associatedClassId', label: 'Class', options: [{ value: '', label: 'Any Class' }] },
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
   COMPANION: [
-    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+    { kind: 'select', key: 'isOfficial', label: 'Visibility', options: VISIBILITY_OPTIONS },
   ],
 };
 
@@ -175,7 +181,7 @@ export class FilterRail {
       }
     }
     if (!expansionInjected) {
-      const officialIdx = controls.findIndex(c => c.kind === 'checkbox' && c.key === 'isOfficial');
+      const officialIdx = controls.findIndex(c => c.kind === 'select' && c.key === 'isOfficial');
       const expansion = this.buildExpansionControl();
       if (officialIdx >= 0) {
         controls.splice(officialIdx, 0, expansion);
@@ -209,6 +215,8 @@ export class FilterRail {
     const updated = { ...this.filters() };
     if (!value) {
       delete updated[key];
+    } else if (value === 'true' || value === 'false') {
+      (updated as Record<string, unknown>)[key] = value === 'true';
     } else {
       const numeric = Number(value);
       (updated as Record<string, unknown>)[key] = Number.isNaN(numeric) ? value : numeric;

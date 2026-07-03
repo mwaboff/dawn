@@ -13,6 +13,7 @@ function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorRespon
     expansionId: 1,
     tier: 1,
     isOfficial: true,
+    creatorId: null,
     baseMajorThreshold: 7,
     baseSevereThreshold: 13,
     baseScore: 2,

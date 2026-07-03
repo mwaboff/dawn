@@ -9,6 +9,7 @@ function buildWeaponResponse(overrides: Partial<WeaponResponse> = {}): WeaponRes
     expansionId: 1,
     tier: 1,
     isOfficial: true,
+    creatorId: null,
     isPrimary: true,
     trait: 'AGILITY',
     range: 'FAR',
@@ -287,6 +288,20 @@ describe('mapWeaponResponseToCardData', () => {
     const result = mapWeaponResponseToCardData(response);
 
     expect(result.metadata!['modifiers']).toEqual([]);
+  });
+
+  it('should store creatorId in metadata', () => {
+    const response = buildWeaponResponse({ creatorId: 7 });
+    const result = mapWeaponResponseToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBe(7);
+  });
+
+  it('should store null creatorId in metadata for official items', () => {
+    const response = buildWeaponResponse({ creatorId: null });
+    const result = mapWeaponResponseToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBeNull();
   });
 
   it('should handle null diceCount in damage', () => {

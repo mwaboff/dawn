@@ -21,6 +21,8 @@ export type SearchableEntityType =
   | 'QUESTION'
   | 'CARD_COST_TAG';
 
+export type ItemVisibilityFilter = 'all' | 'official' | 'custom';
+
 export interface SearchParams {
   q: string;
   types?: SearchableEntityType[];

@@ -3,6 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+/**
+ * Also used outside /admin: the public create-item flow (create-item feature)
+ * calls createCard to submit user-generated weapons, armor, and loot.
+ */
 @Injectable({ providedIn: 'root' })
 export class AdminCardService {
   private readonly http = inject(HttpClient);
@@ -42,6 +46,12 @@ export class AdminCardService {
 
   updateCard(cardType: string, id: number, body: unknown): Observable<unknown> {
     return this.http.put(`${this.getEndpoint(cardType)}/${id}`, body, {
+      withCredentials: true,
+    });
+  }
+
+  createCard(cardType: string, body: unknown): Observable<unknown> {
+    return this.http.post(this.getEndpoint(cardType), body, {
       withCredentials: true,
     });
   }

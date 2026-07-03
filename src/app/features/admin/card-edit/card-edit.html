@@ -14,28 +14,22 @@
     <div class="card-edit-loading">Loading card data...</div>
   }
 
-  @if (!loading() && rawCard() && schema()) {
+  @if (!loading() && rawCard()) {
     <div class="card-edit-content">
-      <form [formGroup]="cardForm" class="card-edit-form">
-        @for (section of schema()!.sections; track section.title) {
-          <section class="panel">
-            <h3 class="panel__title">{{ section.title }}</h3>
-            <div class="panel__grid">
-              @for (field of section.fields; track field.name) {
-                <app-card-edit-field
-                  [field]="field"
-                  [control]="getControl(field.name)"
-                  [submitted]="submitted()"
-                  [dependsOnControl]="getDependsOnControl(field)"
-                  (createRequested)="openAddExpansionDialog()"
-                />
-              }
-            </div>
-          </section>
-        }
-      </form>
+      <app-item-form
+        [cardType]="cardType()"
+        [mode]="'edit'"
+        [initialData]="rawCard()"
+        [saving]="saving()"
+        [submitted]="submitted()"
+        [showIsOfficialField]="true"
+        [extraFeatures]="previewFeatures()"
+        (formChanged)="bumpFormVersion()"
+        #itemFormRef
+      />
 
       <app-card-edit-features
+        class="features-section"
         [features]="rawFeatures()"
         [saving]="saving()"
         [groupByType]="cardType() === 'class'"
@@ -45,15 +39,6 @@
         (deleteFeature)="onDeleteFeature($event)"
         #featuresRef
       />
-
-      <app-card-edit-preview [card]="previewCard()" />
     </div>
-  }
-
-  @if (addExpansionOpen()) {
-    <app-add-expansion-dialog
-      (created)="onAddExpansionCreated($event)"
-      (cancelled)="closeAddExpansionDialog()"
-    />
   }
 </div>

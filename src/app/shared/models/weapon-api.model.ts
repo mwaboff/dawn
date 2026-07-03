@@ -44,6 +44,7 @@ export interface WeaponResponse {
   expansion?: { id: number; name: string; isPublished: boolean };
   tier: number;
   isOfficial: boolean;
+  creatorId: number | null;
   isPrimary: boolean;
   trait: WeaponTrait;
   range: WeaponRange;

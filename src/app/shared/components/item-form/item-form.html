@@ -1,0 +1,31 @@
+<div class="item-form" [class.item-form--saving]="saving()">
+  <form [formGroup]="cardForm" class="item-form__fields">
+    @for (section of visibleSections(); track section.title) {
+      <section class="panel">
+        <h3 class="panel__title">{{ section.title }}</h3>
+        <div class="panel__grid">
+          @for (field of section.fields; track field.name) {
+            <app-card-edit-field
+              [field]="field"
+              [control]="getControl(field.name)"
+              [submitted]="submitted()"
+              [dependsOnControl]="getDependsOnControl(field)"
+              (createRequested)="openAddExpansionDialog()"
+            />
+          }
+        </div>
+      </section>
+    }
+  </form>
+
+  <div class="item-form__preview">
+    <app-card-edit-preview [card]="previewCard()" />
+  </div>
+</div>
+
+@if (addExpansionOpen()) {
+  <app-add-expansion-dialog
+    (created)="onAddExpansionCreated($event)"
+    (cancelled)="closeAddExpansionDialog()"
+  />
+}

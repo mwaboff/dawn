@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
-import { ExpansionService } from '../../../../shared/services/expansion.service';
-import { DomainService } from '../../../../shared/services/domain.service';
-import { ClassService } from '../../../../shared/services/class.service';
-import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
-import { FeatureLookupService } from '../../../../shared/services/feature-lookup.service';
-import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
+import { ExpansionService } from '../../../services/expansion.service';
+import { DomainService } from '../../../services/domain.service';
+import { ClassService } from '../../../services/class.service';
+import { SubclassPathService } from '../../../services/subclass-path.service';
+import { FeatureLookupService } from '../../../services/feature-lookup.service';
+import { CostTagLookupService } from '../../../services/cost-tag-lookup.service';
 import { LookupKey, LookupOption } from '../schema/card-edit-schema.types';
 
 interface LookupParams {

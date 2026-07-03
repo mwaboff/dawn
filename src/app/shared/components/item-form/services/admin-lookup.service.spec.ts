@@ -2,12 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { AdminLookupService } from './admin-lookup.service';
-import { ExpansionService } from '../../../../shared/services/expansion.service';
-import { DomainService } from '../../../../shared/services/domain.service';
-import { ClassService } from '../../../../shared/services/class.service';
-import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
-import { FeatureLookupService } from '../../../../shared/services/feature-lookup.service';
-import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
+import { ExpansionService } from '../../../services/expansion.service';
+import { DomainService } from '../../../services/domain.service';
+import { ClassService } from '../../../services/class.service';
+import { SubclassPathService } from '../../../services/subclass-path.service';
+import { FeatureLookupService } from '../../../services/feature-lookup.service';
+import { CostTagLookupService } from '../../../services/cost-tag-lookup.service';
 import { LookupOption } from '../schema/card-edit-schema.types';
 
 const makeOptions = (...labels: string[]): LookupOption[] =>

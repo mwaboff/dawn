@@ -131,3 +131,24 @@ Verify: `npm run lint`, `npm run test:only -- 'src/app/features/character-sheet/
    - Same user sees an Edit button on their item; another USER does not; a MODERATOR does. Editing an official item as USER/MODERATOR → 403.
    - Character sheet → add item panel → search finds the custom item only after unchecking "Official items only".
    - Admin portal → All/Official/Custom dropdown filters correctly; admin can edit and soft-delete the custom item.
+
+---
+
+# Part C — Scope additions (user request, 2026-07-02)
+
+### A6. Backend creator filter (core repo)
+- `creatorId` optional param on SearchController/SearchService/SearchIndexRepository (nullable CAST idiom, main + count queries).
+- `creatorId` optional param on getAllWeapons/getAllArmors/getAllLoot (controller → service → repository, existing idiom).
+- Integration tests for both. No new user-search endpoint.
+
+### B7. Creator filter on resources page (link-driven chip — user decision)
+- Add `creatorId?: number` to `SearchFilters`; thread through search/browse (spread already handles it) and to Weapon/Armor/Loot service option interfaces + HttpParams building (both normal and Raw variants).
+- No picker UI in the rail: creator filter is set via URL (filters already round-trip as JSON query param). When `creatorId` is active, filter-rail shows a "Creator: <name>" chip with a clear (×) button (resolve name via UserService.getUser; fall back to "User #id").
+- Entry points that set the filter: profile page "View all in codex" per item roster (B8), and custom item cards may link creator later.
+
+### B8. Profile page: created-items roster
+- New child component `features/profile/components/item-roster/` following RosterList/CampaignRoster patterns (same roster-entry/roster-info/roster-arrow classes, warm tavern style).
+- Data: Weapon/Armor/Loot list endpoints with `creatorId={viewedUserId}` (+`isOfficial=false` implicit — creator implies custom).
+- Rows expandable in place (chevron) to show details/features (tier, damage/thresholds, description, feature list).
+- Per-row Edit button, shown when `viewer.id === creatorId || authService.isPrivileged()`, styled consistently with profile roster affordances (cf. inline-delete-confirm placement); navigates to `create-item/:itemType/:id` edit route (B5).
+- "View all in codex" link per section → `/reference` with creatorId filter in URL (B7).

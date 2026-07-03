@@ -204,6 +204,67 @@ describe('CardSearch', () => {
     });
   });
 
+  describe('visibility filter', () => {
+    it('browses with isOfficial=true when Official is selected', () => {
+      fixture.detectChanges();
+      component.onCategorySelected('weapon');
+      fixture.detectChanges();
+      (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
+
+      component.onVisibilityChange('official');
+      fixture.detectChanges();
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', { isOfficial: true }, 0);
+    });
+
+    it('browses with isOfficial=false when Custom is selected', () => {
+      fixture.detectChanges();
+      component.onCategorySelected('weapon');
+      fixture.detectChanges();
+      (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
+
+      component.onVisibilityChange('custom');
+      fixture.detectChanges();
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', { isOfficial: false }, 0);
+    });
+
+    it('browses with no isOfficial filter when All is selected', () => {
+      fixture.detectChanges();
+      component.onCategorySelected('weapon');
+      fixture.detectChanges();
+      component.onVisibilityChange('official');
+      fixture.detectChanges();
+      (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
+
+      component.onVisibilityChange('all');
+      fixture.detectChanges();
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0);
+    });
+
+    it('passes isOfficial through to search when a visibility filter is active during search mode', () => {
+      vi.useFakeTimers();
+      fixture.detectChanges();
+      component.onCategorySelected('weapon');
+      fixture.detectChanges();
+      component.onVisibilityChange('custom');
+      component.onSearchChange('sword');
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+
+      expect(searchService.search).toHaveBeenCalledWith({ q: 'sword', types: ['WEAPON'], page: 0, isOfficial: false });
+    });
+
+    it('resets visibility filter to all on category switch', () => {
+      fixture.detectChanges();
+      component.onCategorySelected('weapon');
+      component.onVisibilityChange('official');
+      fixture.detectChanges();
+
+      component.onCategorySelected('armor');
+      fixture.detectChanges();
+      expect(component.visibilityFilter()).toBe('all');
+    });
+  });
+
   describe('render paths', () => {
     it('renders adversary cards for the adversary category', () => {
       vi.spyOn(browseService, 'browse').mockReturnValue(of({ cards: [], adversaries: mockAdversaries, currentPage: 0, totalPages: 1, totalElements: 1 }));

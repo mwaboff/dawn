@@ -100,4 +100,18 @@ describe('mapLootToCardData', () => {
 
     expect(result.metadata!['isConsumable']).toBe(true);
   });
+
+  it('should store creatorId in metadata', () => {
+    const response = buildLootResponse({ creatorId: 7 });
+    const result = mapLootToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBe(7);
+  });
+
+  it('should store null creatorId in metadata for official items', () => {
+    const response = buildLootResponse({ creatorId: null });
+    const result = mapLootToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBeNull();
+  });
 });

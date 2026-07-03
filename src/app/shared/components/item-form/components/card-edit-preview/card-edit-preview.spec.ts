@@ -3,7 +3,7 @@ import { Component, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CardEditPreview } from './card-edit-preview';
-import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { CardData } from '../../../daggerheart-card/daggerheart-card.model';
 
 const MOCK_CARD: CardData = {
   id: 1,

@@ -9,6 +9,7 @@ function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorRespon
     expansionId: 1,
     tier: 1,
     isOfficial: true,
+    creatorId: null,
     baseScore: 5,
     baseMajorThreshold: 7,
     baseSevereThreshold: 13,
@@ -218,6 +219,20 @@ describe('mapArmorResponseToCardData', () => {
     const result = mapArmorResponseToCardData(response);
 
     expect(result.metadata!['modifiers']).toEqual([]);
+  });
+
+  it('should store creatorId in metadata', () => {
+    const response = buildArmorResponse({ creatorId: 7 });
+    const result = mapArmorResponseToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBe(7);
+  });
+
+  it('should store null creatorId in metadata for official items', () => {
+    const response = buildArmorResponse({ creatorId: null });
+    const result = mapArmorResponseToCardData(response);
+
+    expect(result.metadata!['creatorId']).toBeNull();
   });
 
   it('should set subtitle to Armor', () => {

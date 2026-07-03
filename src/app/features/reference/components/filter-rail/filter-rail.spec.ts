@@ -52,7 +52,7 @@ describe('FilterRail', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Tier');
-    expect(el.textContent).toContain('Official content only');
+    expect(el.textContent).toContain('Visibility');
   });
 
   it('always renders the Expansion select with All Expansions option', () => {
@@ -143,27 +143,47 @@ describe('FilterRail', () => {
     expect(host.lastFilters).toEqual({});
   });
 
-  it('emits updated filters on checkbox change', () => {
+  it('emits boolean true isOfficial filter when Official is selected', () => {
     host.activeType.set(null);
     fixture.detectChanges();
 
-    const checkbox = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLInputElement;
-    checkbox.checked = true;
-    checkbox.dispatchEvent(new Event('change'));
+    const select = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLSelectElement;
+    select.value = 'true';
+    select.dispatchEvent(new Event('change'));
 
     expect(host.lastFilters).toEqual({ isOfficial: true });
   });
 
-  it('removes filter key when checkbox is unchecked', () => {
+  it('emits boolean false isOfficial filter when Custom is selected', () => {
+    host.activeType.set(null);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLSelectElement;
+    select.value = 'false';
+    select.dispatchEvent(new Event('change'));
+
+    expect(host.lastFilters).toEqual({ isOfficial: false });
+  });
+
+  it('removes filter key when Visibility select is cleared back to All', () => {
     host.activeType.set(null);
     host.filters.set({ isOfficial: true });
     fixture.detectChanges();
 
-    const checkbox = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLInputElement;
-    checkbox.checked = false;
-    checkbox.dispatchEvent(new Event('change'));
+    const select = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLSelectElement;
+    select.value = '';
+    select.dispatchEvent(new Event('change'));
 
     expect(host.lastFilters).toEqual({});
+  });
+
+  it('round-trips isOfficial=false through getSelectValue as the Custom option', () => {
+    host.activeType.set(null);
+    host.filters.set({ isOfficial: false });
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#filter-isOfficial') as HTMLSelectElement;
+    expect(select.value).toBe('false');
   });
 
   it('does not show clear button when no active filters', () => {
@@ -245,7 +265,7 @@ describe('FilterRail', () => {
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
       expect(el.textContent).toContain('Tier');
-      expect(el.textContent).toContain('Official content only');
+      expect(el.textContent).toContain('Visibility');
     });
 
     it('shows only "Any Domain" option when domainOptions input is empty', () => {

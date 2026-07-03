@@ -9,7 +9,7 @@ import {
   positiveValidator,
 } from './card-edit-form.utils';
 import { CardSchema } from '../schema/card-edit-schema.types';
-import { RawCardResponse } from '../../models/admin-api.model';
+import { RawCardResponse } from '../../../../features/admin/models/admin-api.model';
 import { FormControl } from '@angular/forms';
 
 const domainCardSchema: CardSchema = {

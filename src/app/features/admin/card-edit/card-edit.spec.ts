@@ -7,9 +7,10 @@ import { Router } from '@angular/router';
 import { CardEdit } from './card-edit';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
 import { FeatureEditService } from '../../../shared/services/feature-edit.service';
-import { AdminLookupService } from './services/admin-lookup.service';
+import { AdminLookupService } from '../../../shared/components/item-form/services/admin-lookup.service';
 import { RawFeatureResponse } from '../models/admin-api.model';
-import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
+import { CARD_EDIT_SCHEMAS } from '../../../shared/components/item-form/schema/card-edit-schema';
+import { ItemForm } from '../../../shared/components/item-form/item-form';
 import { By } from '@angular/platform-browser';
 
 const DOMAIN_CARD_RAW = {
@@ -100,6 +101,10 @@ describe('CardEdit — schema-driven orchestrator', () => {
   let adminCardService: AdminCardService;
   let adminLookupService: AdminLookupService;
 
+  function getItemForm(): ItemForm {
+    return fixture.debugElement.query(By.directive(ItemForm)).componentInstance;
+  }
+
   async function setup(cardType = 'class', raw: unknown = CLASS_CARD_RAW) {
     await TestBed.configureTestingModule({
       imports: [CardEdit],
@@ -143,12 +148,12 @@ describe('CardEdit — schema-driven orchestrator', () => {
       expect(adminCardService.getCard).toHaveBeenCalledWith('domainCard', 1, 'features,costTags,modifiers,expansion');
     });
 
-    it('populates form with all domainCard schema fields', async () => {
+    it('populates the item-form with all domainCard schema fields', async () => {
       await setup('domainCard', DOMAIN_CARD_RAW);
       const schema = CARD_EDIT_SCHEMAS['domainCard'];
       const allFields = schema.sections.flatMap(s => s.fields);
       for (const field of allFields) {
-        expect(component.cardForm.get(field.name)).toBeTruthy();
+        expect(getItemForm().cardForm.get(field.name)).toBeTruthy();
       }
     });
 
@@ -157,11 +162,16 @@ describe('CardEdit — schema-driven orchestrator', () => {
       expect(component.rawCard()?.name).toBe('Test Card');
     });
 
-    it('renders preview card after load', async () => {
+    it('renders an item-form in edit mode with the card data', async () => {
       await setup();
-      const preview = component.previewCard();
-      expect(preview).toBeTruthy();
-      expect(preview!.name).toBe('Test Card');
+      const itemForm = getItemForm();
+      expect(itemForm.mode()).toBe('edit');
+      expect(itemForm.previewCard()?.name).toBe('Test Card');
+    });
+
+    it('shows the isOfficial field in admin', async () => {
+      await setup();
+      expect(getItemForm().showIsOfficialField()).toBe(true);
     });
 
     it('sets loading false after card loads', async () => {
@@ -178,15 +188,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
 
     it('hasPendingChanges is true after form edit', async () => {
       await setup();
-      component.cardForm.get('name')?.setValue('Changed');
-      component.cardForm.get('name')?.markAsDirty();
-      expect(component.hasPendingChanges()).toBe(true);
-    });
-
-    it('hasPendingChanges is true when form is dirty', async () => {
-      await setup();
-      component.cardForm.get('name')?.setValue('Changed');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('Changed');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       expect(component.hasPendingChanges()).toBe(true);
     });
 
@@ -195,8 +198,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
       vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
       vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(CLASS_CARD_RAW));
 
-      component.cardForm.get('name')?.setValue('Changed');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('Changed');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       component.onSave();
 
       await fixture.whenStable();
@@ -217,8 +220,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
 
     it('save button is enabled after dirty change', async () => {
       await setup();
-      component.cardForm.get('name')?.setValue('Changed');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('Changed');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       fixture.detectChanges();
       const btn = fixture.debugElement.query(By.css('button[class*="btn--primary"]'));
       expect(btn?.nativeElement.disabled).toBe(false);
@@ -226,16 +229,18 @@ describe('CardEdit — schema-driven orchestrator', () => {
   });
 
   describe('onSave — success', () => {
-    it('calls updateCard with schema-driven payload', async () => {
+    it('calls updateCard with schema-driven, dirty-diff payload', async () => {
       await setup();
       const updateSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
       vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(CLASS_CARD_RAW));
 
-      component.cardForm.get('name')?.setValue('Updated');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('Updated');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       component.onSave();
 
       expect(updateSpy).toHaveBeenCalledWith('class', 1, expect.objectContaining({ name: 'Updated' }));
+      const [, , body] = updateSpy.mock.calls[0];
+      expect(Object.keys(body as Record<string, unknown>)).toEqual(['name']);
     });
 
     it('does not call updateCard when form is clean', async () => {
@@ -258,11 +263,11 @@ describe('CardEdit — schema-driven orchestrator', () => {
         }))
       );
 
-      component.cardForm.get('name')?.setValue('X');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('X');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       component.onSave();
 
-      expect(component.cardForm.get('name')?.errors).toEqual({ backend: 'Name is too long' });
+      expect(getItemForm().cardForm.get('name')?.errors).toEqual({ backend: 'Name is too long' });
       expect(component.error()).toBe('');
     });
   });
@@ -276,8 +281,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
         }))
       );
 
-      component.cardForm.get('name')?.setValue('X');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('X');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       component.onSave();
 
       expect(component.error()).toBe('Unexpected server error');
@@ -287,8 +292,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
       await setup();
       vi.spyOn(adminCardService, 'updateCard').mockReturnValue(throwError(() => ({})));
 
-      component.cardForm.get('name')?.setValue('X');
-      component.cardForm.get('name')?.markAsDirty();
+      getItemForm().cardForm.get('name')?.setValue('X');
+      getItemForm().cardForm.get('name')?.markAsDirty();
       component.onSave();
 
       expect(component.error()).toBe('Save failed. Please try again.');
@@ -304,7 +309,7 @@ describe('CardEdit — schema-driven orchestrator', () => {
       const raw = { id: 1, cardType, name: 'Smoke Test', features: [], [firstField.name]: '' };
       await setup(cardType, raw);
       expect(component).toBeTruthy();
-      expect(component.cardForm.get(firstField.name)).toBeTruthy();
+      expect(getItemForm().cardForm.get(firstField.name)).toBeTruthy();
     });
   });
 
@@ -518,33 +523,36 @@ describe('CardEdit — schema-driven orchestrator', () => {
     });
   });
 
-  describe('AddExpansionDialog interaction', () => {
-    it('opens dialog on openAddExpansionDialog()', async () => {
+  describe('AddExpansionDialog interaction (delegated to ItemForm)', () => {
+    it('opens dialog on the item-form openAddExpansionDialog()', async () => {
       await setup();
-      expect(component.addExpansionOpen()).toBe(false);
-      component.openAddExpansionDialog();
-      expect(component.addExpansionOpen()).toBe(true);
+      const itemForm = getItemForm();
+      expect(itemForm.addExpansionOpen()).toBe(false);
+      itemForm.openAddExpansionDialog();
+      expect(itemForm.addExpansionOpen()).toBe(true);
     });
 
     it('closes dialog on closeAddExpansionDialog()', async () => {
       await setup();
-      component.openAddExpansionDialog();
-      component.closeAddExpansionDialog();
-      expect(component.addExpansionOpen()).toBe(false);
+      const itemForm = getItemForm();
+      itemForm.openAddExpansionDialog();
+      itemForm.closeAddExpansionDialog();
+      expect(itemForm.addExpansionOpen()).toBe(false);
     });
 
     it('onAddExpansionCreated patches expansionId, marks dirty, invalidates lookup, closes dialog', async () => {
       await setup();
-      component.openAddExpansionDialog();
+      const itemForm = getItemForm();
+      itemForm.openAddExpansionDialog();
 
       const invalidateSpy = vi.spyOn(adminLookupService, 'invalidate');
 
-      component.onAddExpansionCreated({ id: 99, name: 'New Expansion' });
+      itemForm.onAddExpansionCreated({ id: 99, name: 'New Expansion' });
 
-      expect(component.cardForm.get('expansionId')?.value).toBe(99);
-      expect(component.cardForm.get('expansionId')?.dirty).toBe(true);
+      expect(itemForm.cardForm.get('expansionId')?.value).toBe(99);
+      expect(itemForm.cardForm.get('expansionId')?.dirty).toBe(true);
       expect(invalidateSpy).toHaveBeenCalledWith('expansions');
-      expect(component.addExpansionOpen()).toBe(false);
+      expect(itemForm.addExpansionOpen()).toBe(false);
     });
   });
 });

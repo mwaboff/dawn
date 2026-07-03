@@ -14,7 +14,7 @@ import { AdversaryCard } from '../../../shared/components/adversary-card/adversa
 import { PaginationControls } from '../../../shared/components/pagination-controls/pagination-controls';
 import { SearchService } from '../../../shared/services/search.service';
 import { CodexBrowseService, BrowsableType } from '../../../shared/services/codex-browse.service';
-import { BrowseResult } from '../../../shared/models/search.model';
+import { BrowseResult, ItemVisibilityFilter } from '../../../shared/models/search.model';
 import { MappedSearchResult, mapSearchResult } from '../../../shared/mappers/search-result.mapper';
 
 const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType }[] = [
@@ -49,6 +49,7 @@ export class CardSearch {
   readonly categories = ADMIN_CATEGORIES;
   readonly activeCategory = signal<string | null>(null);
   readonly searchQuery = signal('');
+  readonly visibilityFilter = signal<ItemVisibilityFilter>('all');
   readonly currentPage = signal(0);
   readonly loading = signal(false);
   readonly error = signal(false);
@@ -77,6 +78,12 @@ export class CardSearch {
   readonly hasResults = computed(() => this.cards().length > 0 || this.adversaries().length > 0);
   readonly isAdversaryCategory = computed(() => this.activeCategory() === 'adversary');
   readonly isSubclassCategory = computed(() => this.activeCategory() === 'subclass');
+  readonly isOfficialFilter = computed<boolean | undefined>(() => {
+    const visibility = this.visibilityFilter();
+    if (visibility === 'official') return true;
+    if (visibility === 'custom') return false;
+    return undefined;
+  });
 
   private readonly searchInput$ = new Subject<string>();
 
@@ -88,6 +95,7 @@ export class CardSearch {
       const type = this.activeType();
       const q = this.searchQuery().trim();
       const page = this.currentPage();
+      this.isOfficialFilter(); // track visibility changes so the effect re-runs
       if (!type) return;
       if (!q) { this.executeBrowse(type, page); return; }
       this.searchInput$.next(q);
@@ -97,6 +105,7 @@ export class CardSearch {
   onCategorySelected(categoryId: string): void {
     this.searchQuery.set('');
     this.currentPage.set(0);
+    this.visibilityFilter.set('all');
     this.browseResult.set(null);
     this.searchResults.set([]);
     this.activeCategory.set(categoryId);
@@ -105,6 +114,11 @@ export class CardSearch {
   onSearchChange(value: string): void {
     this.currentPage.set(0);
     this.searchQuery.set(value);
+  }
+
+  onVisibilityChange(value: ItemVisibilityFilter): void {
+    this.currentPage.set(0);
+    this.visibilityFilter.set(value);
   }
 
   onPageChanged(page: number): void {
@@ -134,7 +148,7 @@ export class CardSearch {
     this.loading.set(true);
     this.error.set(false);
     this.searchService
-      .search({ q, types: [type], page: this.currentPage() })
+      .search({ q, types: [type], page: this.currentPage(), isOfficial: this.isOfficialFilter() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => {
@@ -149,7 +163,9 @@ export class CardSearch {
   private executeBrowse(type: BrowsableType, page: number): void {
     this.loading.set(true);
     this.error.set(false);
-    this.browseService.browse(type, {}, page)
+    const isOfficial = this.isOfficialFilter();
+    const filters = isOfficial === undefined ? {} : { isOfficial };
+    this.browseService.browse(type, filters, page)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => { this.browseResult.set(res); this.loading.set(false); },

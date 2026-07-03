@@ -37,6 +37,35 @@
   max-width: 400px;
 }
 
+.visibility-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.visibility-label {
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.visibility-select {
+  padding: 0.5rem 0.75rem;
+  background: rgba(26, 20, 18, 0.8);
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  border-radius: 4px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+}
+
+.visibility-select:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 160, 86, 0.2);
+}
+
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem;

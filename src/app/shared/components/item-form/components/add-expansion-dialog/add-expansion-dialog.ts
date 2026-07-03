@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, output, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ExpansionService } from '../../../../../shared/services/expansion.service';
-import { ExpansionOption } from '../../../../../shared/models/expansion-api.model';
+import { ExpansionService } from '../../../../services/expansion.service';
+import { ExpansionOption } from '../../../../models/expansion-api.model';
 
 @Component({
   selector: 'app-add-expansion-dialog',

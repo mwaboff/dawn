@@ -18,6 +18,15 @@
           <p class="search-hint" aria-live="polite">Keep typing… (3 characters minimum)</p>
         }
       </div>
+      <div class="visibility-wrapper">
+        <label class="visibility-label" for="visibility-filter">Visibility</label>
+        <select id="visibility-filter" class="visibility-select"
+          [ngModel]="visibilityFilter()" (ngModelChange)="onVisibilityChange($event)">
+          <option value="all">All</option>
+          <option value="official">Official</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
     }
   </div>
 

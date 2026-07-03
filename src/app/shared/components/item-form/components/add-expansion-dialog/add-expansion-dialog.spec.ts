@@ -3,8 +3,8 @@ import { of, throwError, Subject } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AddExpansionDialog } from './add-expansion-dialog';
-import { ExpansionService } from '../../../../../shared/services/expansion.service';
-import { ExpansionOption } from '../../../../../shared/models/expansion-api.model';
+import { ExpansionService } from '../../../../services/expansion.service';
+import { ExpansionOption } from '../../../../models/expansion-api.model';
 
 interface MockExpansionService {
   createExpansion: ReturnType<typeof vi.fn>;

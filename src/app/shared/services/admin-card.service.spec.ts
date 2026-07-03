@@ -59,6 +59,17 @@ describe('AdminCardService', () => {
     });
   });
 
+  describe('createCard', () => {
+    it('should POST to create endpoint', () => {
+      const body = { name: 'New Weapon' };
+      service.createCard('weapon', body).subscribe();
+      const req = httpMock.expectOne('http://localhost:8080/api/dh/weapons');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual(body);
+      req.flush({ id: 1, name: 'New Weapon' });
+    });
+  });
+
   describe('bulkCreate', () => {
     it('should POST to bulk endpoint', () => {
       const items = [{ name: 'A' }, { name: 'B' }];

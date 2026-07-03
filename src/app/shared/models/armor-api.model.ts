@@ -30,6 +30,7 @@ export interface ArmorResponse {
   expansion?: { id: number; name: string; isPublished: boolean };
   tier: number;
   isOfficial: boolean;
+  creatorId: number | null;
   baseMajorThreshold: number;
   baseSevereThreshold: number;
   baseScore: number;
