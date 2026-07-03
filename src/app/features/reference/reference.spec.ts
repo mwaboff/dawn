@@ -813,6 +813,43 @@ describe('Reference — URL hydration with pre-set query params', () => {
     const c = buildHydrationTestBed({ filters: 'not-valid-json' });
     expect(c.filters()).toEqual({ isOfficial: true });
   });
+
+  it('does not merge the default isOfficial filter when arriving via a creatorId URL link', () => {
+    const c = buildHydrationTestBed({ type: 'WEAPON', filters: JSON.stringify({ creatorId: 5 }) });
+    expect(c.filters()).toEqual({ creatorId: 5 });
+  });
+});
+
+describe('Reference — creatorId link-driven filtering', () => {
+  it('browses with only creatorId (no isOfficial) when arriving via a creator profile link', () => {
+    const searchSpy = { search: vi.fn().mockReturnValue(of(MOCK_SEARCH_RESPONSE)) };
+    const browseSpy = { browse: vi.fn().mockReturnValue(of(MOCK_BROWSE_RESULT)) };
+    const domainSpy = { getDomainsPaginated: vi.fn().mockReturnValue(of(MOCK_DOMAIN_LIST)) };
+    const expansionSpy = { getExpansions: vi.fn().mockReturnValue(of([])) };
+    const classSpy = { getClassOptions: vi.fn().mockReturnValue(of([])) };
+    const queryParams = { type: 'WEAPON', filters: JSON.stringify({ creatorId: 5 }) };
+
+    TestBed.configureTestingModule({
+      imports: [Reference],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: SearchService, useValue: searchSpy },
+        { provide: CodexBrowseService, useValue: browseSpy },
+        { provide: DomainService, useValue: domainSpy },
+        { provide: ExpansionService, useValue: expansionSpy },
+        { provide: ClassService, useValue: classSpy },
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParams } } },
+      ],
+    });
+
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const f = TestBed.createComponent(Reference);
+    f.detectChanges();
+
+    expect(browseSpy.browse).toHaveBeenCalledWith('WEAPON', { creatorId: 5 }, 0);
+  });
 });
 
 describe('Reference — refine sheet integration', () => {

@@ -4,8 +4,14 @@ import {
   input,
   output,
   computed,
+  inject,
+  signal,
+  effect,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SearchableEntityType, SearchFilters } from '../../../../shared/models/search.model';
+import { UserService } from '../../../../shared/services/user.service';
 import { ViewMode } from '../../reference';
 
 export interface FilterOption {
@@ -154,6 +160,9 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterRail {
+  private readonly userService = inject(UserService);
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly activeType = input<SearchableEntityType | null>(null);
   readonly filters = input<SearchFilters>({});
   readonly viewMode = input<ViewMode>('landing');
@@ -162,6 +171,41 @@ export class FilterRail {
   readonly expansionOptions = input<FilterOption[]>([]);
 
   readonly filtersChange = output<SearchFilters>();
+
+  private readonly creatorUsername = signal<string | null>(null);
+  private lastResolvedCreatorId: number | null = null;
+
+  readonly creatorChipLabel = computed<string | null>(() => {
+    const creatorId = this.filters().creatorId;
+    if (creatorId == null) return null;
+    return this.creatorUsername() ?? `User #${creatorId}`;
+  });
+
+  constructor() {
+    effect(() => {
+      const creatorId = this.filters().creatorId;
+      if (creatorId == null) {
+        this.lastResolvedCreatorId = null;
+        this.creatorUsername.set(null);
+        return;
+      }
+      if (creatorId === this.lastResolvedCreatorId) return;
+      this.lastResolvedCreatorId = creatorId;
+      this.creatorUsername.set(null);
+      this.userService.getUser(creatorId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: user => this.creatorUsername.set(user.username),
+          error: () => this.creatorUsername.set(null),
+        });
+    });
+  }
+
+  onClearCreator(): void {
+    const updated = { ...this.filters() };
+    delete updated.creatorId;
+    this.filtersChange.emit(updated);
+  }
 
   readonly activeControls = computed<FilterControl[]>(() => {
     const type = this.activeType();

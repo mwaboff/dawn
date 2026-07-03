@@ -60,6 +60,7 @@ export class CodexBrowseService {
           burden: filters['burden'] as string | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
+          creatorId: filters['creatorId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'ARMOR':
@@ -69,6 +70,7 @@ export class CodexBrowseService {
           burden: filters['burden'] as string | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
+          creatorId: filters['creatorId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'LOOT':
@@ -78,6 +80,7 @@ export class CodexBrowseService {
           isConsumable: filters['isConsumable'] as boolean | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
+          creatorId: filters['creatorId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'ADVERSARY':

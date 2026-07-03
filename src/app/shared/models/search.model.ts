@@ -40,6 +40,7 @@ export interface SearchParams {
   range?: string;
   burden?: string;
   isConsumable?: boolean;
+  creatorId?: number;
   page?: number;
   size?: number;
 }
@@ -76,6 +77,7 @@ export interface SearchFilters {
   range?: string;
   burden?: string;
   isConsumable?: boolean;
+  creatorId?: number;
 }
 
 export interface BrowseResult {

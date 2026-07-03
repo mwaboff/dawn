@@ -6,6 +6,20 @@
     }
   </header>
 
+  @if (creatorChipLabel(); as creatorLabel) {
+    <div class="creator-chip">
+      <span>Creator: {{ creatorLabel }}</span>
+      <button
+        type="button"
+        class="creator-chip-clear"
+        aria-label="Clear creator filter"
+        (click)="onClearCreator()"
+      >
+        ×
+      </button>
+    </div>
+  }
+
   <div class="controls">
     @for (control of activeControls(); track control.key) {
       @if (isSelectFilter(control)) {

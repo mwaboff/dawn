@@ -104,6 +104,30 @@ describe('CodexBrowseService', () => {
     );
   });
 
+  it('should forward creatorId to WeaponService.getWeapons', () => {
+    service.browse('WEAPON', { creatorId: 7 }, 0).subscribe();
+
+    expect(weaponSpy.getWeapons).toHaveBeenCalledWith(
+      expect.objectContaining({ creatorId: 7 }),
+    );
+  });
+
+  it('should forward creatorId to ArmorService.getArmors', () => {
+    service.browse('ARMOR', { creatorId: 7 }, 0).subscribe();
+
+    expect(armorSpy.getArmors).toHaveBeenCalledWith(
+      expect.objectContaining({ creatorId: 7 }),
+    );
+  });
+
+  it('should forward creatorId to LootService.getLoot', () => {
+    service.browse('LOOT', { creatorId: 7 }, 0).subscribe();
+
+    expect(lootSpy.getLoot).toHaveBeenCalledWith(
+      expect.objectContaining({ creatorId: 7 }),
+    );
+  });
+
   it('should dispatch ADVERSARY to AdversaryService.getAdversaries', () => {
     service.browse('ADVERSARY', { adversaryType: 'BOSS', tier: 3 }, 0).subscribe();
 

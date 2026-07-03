@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
+import { of, throwError, Subject } from 'rxjs';
+import { vi } from 'vitest';
 import { FilterRail, FilterOption } from './filter-rail';
 import { SearchableEntityType, SearchFilters } from '../../../../shared/models/search.model';
+import { UserService } from '../../../../shared/services/user.service';
+import { UserResponse } from '../../../../core/models/auth.model';
 import { ViewMode } from '../../reference';
 
 @Component({
@@ -32,10 +36,14 @@ class TestHost {
 describe('FilterRail', () => {
   let fixture: ComponentFixture<TestHost>;
   let host: TestHost;
+  let userServiceSpy: { getUser: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    userServiceSpy = { getUser: vi.fn().mockReturnValue(of({ id: 1, username: 'testuser' } as UserResponse)) };
+
     await TestBed.configureTestingModule({
       imports: [TestHost],
+      providers: [{ provide: UserService, useValue: userServiceSpy }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHost);
@@ -360,6 +368,56 @@ describe('FilterRail', () => {
       host.activeType.set('WEAPON');
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('#filter-level')).toBeNull();
+    });
+  });
+
+  describe('creator chip', () => {
+    it('does not render the creator chip when creatorId is not set', () => {
+      host.filters.set({});
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.creator-chip')).toBeNull();
+    });
+
+    it('renders the creator chip with the resolved username when creatorId is set', async () => {
+      host.filters.set({ creatorId: 42 });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(userServiceSpy.getUser).toHaveBeenCalledWith(42);
+      const chip = fixture.nativeElement.querySelector('.creator-chip');
+      expect(chip?.textContent).toContain('Creator: testuser');
+    });
+
+    it('falls back to "User #<id>" while the username is still loading', () => {
+      const pending$ = new Subject<UserResponse>();
+      userServiceSpy.getUser.mockReturnValue(pending$.asObservable());
+      host.filters.set({ creatorId: 99 });
+      fixture.detectChanges();
+
+      const chip = fixture.nativeElement.querySelector('.creator-chip');
+      expect(chip?.textContent).toContain('Creator: User #99');
+    });
+
+    it('falls back to "User #<id>" when the username lookup fails', async () => {
+      userServiceSpy.getUser.mockReturnValue(throwError(() => new Error('not found')));
+      host.filters.set({ creatorId: 99 });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const chip = fixture.nativeElement.querySelector('.creator-chip');
+      expect(chip?.textContent).toContain('Creator: User #99');
+    });
+
+    it('clears only the creatorId filter when the × button is clicked, preserving other filters', () => {
+      host.filters.set({ creatorId: 42, tier: 2 });
+      fixture.detectChanges();
+
+      const clearBtn = fixture.nativeElement.querySelector('.creator-chip-clear') as HTMLButtonElement;
+      clearBtn.click();
+
+      expect(host.lastFilters).toEqual({ tier: 2 });
     });
   });
 });

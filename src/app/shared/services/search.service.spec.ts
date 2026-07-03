@@ -183,6 +183,14 @@ describe('SearchService', () => {
     req.flush(buildSearchResponse());
   });
 
+  it('should send creatorId filter', () => {
+    service.search({ q: 'sword', creatorId: 42 }).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl);
+    expect(req.request.params.get('creatorId')).toBe('42');
+    req.flush(buildSearchResponse());
+  });
+
   it('should not include optional filter params when not provided', () => {
     service.search({ q: 'sword' }).subscribe();
 
@@ -190,7 +198,7 @@ describe('SearchService', () => {
     const optionalParams = [
       'types', 'tier', 'expansionId', 'isOfficial', 'cardType', 'featureType',
       'adversaryType', 'domainCardType', 'associatedDomainId', 'trait', 'range',
-      'burden', 'isConsumable',
+      'burden', 'isConsumable', 'creatorId',
     ];
     for (const param of optionalParams) {
       expect(req.request.params.has(param), `should not have param: ${param}`).toBe(false);

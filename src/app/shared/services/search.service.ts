@@ -79,6 +79,9 @@ export class SearchService {
     if (params.isConsumable != null) {
       httpParams = httpParams.set('isConsumable', String(params.isConsumable));
     }
+    if (params.creatorId != null) {
+      httpParams = httpParams.set('creatorId', String(params.creatorId));
+    }
 
     return this.http.get<SearchResponse>(this.baseUrl, {
       params: httpParams,
