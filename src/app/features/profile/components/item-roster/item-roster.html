@@ -1,0 +1,110 @@
+<section class="roster item-roster">
+  @if (loading()) {
+    <div class="roster-loading">
+      @for (i of [1, 2]; track i) {
+        <div class="roster-skeleton"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="roster-message">
+      <p>Something went wrong loading created items.</p>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="roster-empty">
+      <p class="roster-empty-text">No created items yet</p>
+    </div>
+  } @else {
+    @for (group of groups(); track group.itemType) {
+      <div class="item-roster-group">
+        <h3 class="item-roster-group-title">{{ group.label }}</h3>
+        <ol class="roster-list">
+          @for (item of group.items; track item.id) {
+            <li class="item-roster-item">
+              <div
+                class="roster-entry item-roster-entry-header"
+                role="button"
+                tabindex="0"
+                [attr.aria-expanded]="isExpanded(item)"
+                (click)="toggleExpanded(item)"
+                (keydown.enter)="toggleExpanded(item)"
+                (keydown.space)="toggleExpanded(item)"
+              >
+                <div class="roster-info">
+                  <div class="roster-name-row">
+                    <span class="roster-character-name">{{ item.name }}</span>
+                    <span class="item-roster-badge">{{ typeBadge(item.itemType) }}</span>
+                  </div>
+                  @if (item.tier !== undefined) {
+                    <p class="roster-class">Tier {{ item.tier }}</p>
+                  }
+                </div>
+                @if (canEdit()) {
+                  <button
+                    type="button"
+                    class="item-roster-edit-btn"
+                    [attr.aria-label]="'Edit ' + item.name"
+                    (click)="onEditClick($event, item)"
+                  >
+                    Edit
+                  </button>
+                }
+                <svg
+                  class="roster-arrow item-roster-chevron"
+                  [class.item-roster-chevron--expanded]="isExpanded(item)"
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </div>
+              @if (isExpanded(item)) {
+                <div class="item-roster-detail">
+                  @switch (item.itemType) {
+                    @case ('weapon') {
+                      <dl class="item-roster-detail-grid">
+                        <div><dt>Trait</dt><dd>{{ item.trait }}</dd></div>
+                        <div><dt>Range</dt><dd>{{ item.range }}</dd></div>
+                        <div><dt>Burden</dt><dd>{{ item.burden }}</dd></div>
+                        <div><dt>Damage</dt><dd>{{ item.damageNotation }}</dd></div>
+                      </dl>
+                    }
+                    @case ('armor') {
+                      <dl class="item-roster-detail-grid">
+                        <div><dt>Armor Score</dt><dd>{{ item.baseScore }}</dd></div>
+                        <div><dt>Major Threshold</dt><dd>{{ item.baseMajorThreshold }}</dd></div>
+                        <div><dt>Severe Threshold</dt><dd>{{ item.baseSevereThreshold }}</dd></div>
+                      </dl>
+                    }
+                    @case ('loot') {
+                      @if (item.description) {
+                        <p class="item-roster-description">{{ item.description }}</p>
+                      }
+                      <dl class="item-roster-detail-grid">
+                        <div><dt>Consumable</dt><dd>{{ item.isConsumable ? 'Yes' : 'No' }}</dd></div>
+                      </dl>
+                    }
+                  }
+                  @if (item.features && item.features.length > 0) {
+                    <ul class="item-roster-feature-list">
+                      @for (feature of item.features; track feature.name) {
+                        <li class="item-roster-feature">
+                          <span class="item-roster-feature-name">{{ feature.name }}</span>
+                          @if (feature.description) {
+                            <span class="item-roster-feature-description">{{ feature.description }}</span>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ol>
+      </div>
+    }
+    <div class="roster-footer">
+      <a routerLink="/reference" [queryParams]="codexQueryParams()" class="roster-add-link">View All in Codex</a>
+    </div>
+  }
+</section>

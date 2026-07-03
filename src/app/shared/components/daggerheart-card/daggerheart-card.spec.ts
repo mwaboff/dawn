@@ -40,7 +40,9 @@ const MOCK_CARD_WITH_FEATURES: CardData = {
       [disabled]="disabled()"
       [layout]="layout()"
       [collapsibleFeatures]="collapsibleFeatures()"
+      [showEditAffordance]="showEditAffordance()"
       (cardClicked)="onClicked($event)"
+      (editClicked)="onEdited($event)"
     />
   `,
 })
@@ -50,9 +52,14 @@ class TestHost {
   disabled = signal(false);
   layout = signal<'default' | 'wide'>('default');
   collapsibleFeatures = signal(false);
+  showEditAffordance = signal(false);
   clickedCard: CardData | null = null;
+  editedCard: CardData | null = null;
   onClicked(card: CardData): void {
     this.clickedCard = card;
+  }
+  onEdited(card: CardData): void {
+    this.editedCard = card;
   }
 }
 
@@ -276,6 +283,42 @@ describe('DaggerheartCard', () => {
       const card = fixture.nativeElement.querySelector('.card') as HTMLElement;
       const computedStyle = getComputedStyle(card);
       expect(computedStyle.overflow).not.toBe('clip');
+    });
+  });
+
+  describe('Edit Affordance', () => {
+    it('does not render the edit button by default', () => {
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeFalsy();
+    });
+
+    it('renders the edit button when showEditAffordance is true', () => {
+      host.showEditAffordance.set(true);
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeTruthy();
+      expect(btn.getAttribute('aria-label')).toBe('Edit Bard');
+    });
+
+    it('emits editClicked with the card on button click', () => {
+      host.showEditAffordance.set(true);
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      btn.click();
+
+      expect(host.editedCard).toEqual(MOCK_CARD);
+    });
+
+    it('does not trigger cardClicked (selection) when the edit button is clicked', () => {
+      host.showEditAffordance.set(true);
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      btn.click();
+
+      expect(host.clickedCard).toBeNull();
     });
   });
 

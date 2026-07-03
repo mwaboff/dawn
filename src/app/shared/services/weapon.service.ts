@@ -17,6 +17,7 @@ export interface WeaponOptions {
   burden?: string;
   isOfficial?: boolean;
   expansionId?: number;
+  creatorId?: number;
 }
 
 export interface PaginatedWeapons {
@@ -32,7 +33,7 @@ export class WeaponService {
   private readonly baseUrl = `${environment.apiUrl}/dh/weapons`;
 
   getWeapons(options: WeaponOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId, creatorId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -62,6 +63,9 @@ export class WeaponService {
     }
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);
+    }
+    if (creatorId !== undefined) {
+      params = params.set('creatorId', creatorId);
     }
 
     return this.http
@@ -75,7 +79,7 @@ export class WeaponService {
   }
 
   getWeaponsRaw(options: WeaponOptions = {}): Observable<PaginatedWeapons> {
-    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId, creatorId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -105,6 +109,9 @@ export class WeaponService {
     }
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);
+    }
+    if (creatorId !== undefined) {
+      params = params.set('creatorId', creatorId);
     }
 
     return this.http

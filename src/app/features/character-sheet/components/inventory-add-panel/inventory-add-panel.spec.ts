@@ -1,11 +1,12 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InventoryAddPanel } from './inventory-add-panel';
 import { WeaponService } from '../../../../shared/services/weapon.service';
 import { ArmorService } from '../../../../shared/services/armor.service';
 import { LootService } from '../../../../shared/services/loot.service';
+import { SearchService } from '../../../../shared/services/search.service';
 
 @Component({
   template: `
@@ -27,11 +28,13 @@ describe('InventoryAddPanel', () => {
   let mockWeaponService: { getWeaponsRaw: ReturnType<typeof vi.fn> };
   let mockArmorService: { getArmorsRaw: ReturnType<typeof vi.fn> };
   let mockLootService: { getLootRaw: ReturnType<typeof vi.fn> };
+  let mockSearchService: { search: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     mockWeaponService = { getWeaponsRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
     mockArmorService = { getArmorsRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
     mockLootService = { getLootRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
+    mockSearchService = { search: vi.fn().mockReturnValue(of({ results: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 20, query: '' })) };
 
     TestBed.configureTestingModule({
       imports: [TestHost],
@@ -39,6 +42,7 @@ describe('InventoryAddPanel', () => {
         { provide: WeaponService, useValue: mockWeaponService },
         { provide: ArmorService, useValue: mockArmorService },
         { provide: LootService, useValue: mockLootService },
+        { provide: SearchService, useValue: mockSearchService },
       ],
     });
     fixture = TestBed.createComponent(TestHost);
@@ -97,7 +101,7 @@ describe('InventoryAddPanel', () => {
 
     el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
 
-    expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL' });
+    expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL', isOfficial: true });
   });
 
   it('calls armorService when load button clicked for armor type', () => {
@@ -107,7 +111,7 @@ describe('InventoryAddPanel', () => {
 
     el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
 
-    expect(mockArmorService.getArmorsRaw).toHaveBeenCalledWith({ size: 50 });
+    expect(mockArmorService.getArmorsRaw).toHaveBeenCalledWith({ size: 50, isOfficial: true });
   });
 
   it('calls lootService when load button clicked for loot type', () => {
@@ -117,7 +121,7 @@ describe('InventoryAddPanel', () => {
 
     el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
 
-    expect(mockLootService.getLootRaw).toHaveBeenCalledWith({});
+    expect(mockLootService.getLootRaw).toHaveBeenCalledWith({ isOfficial: true });
   });
 
   it('shows error state when weapon load fails', () => {
@@ -309,7 +313,7 @@ describe('InventoryAddPanel', () => {
     magicBtn.click();
     fixture.detectChanges();
 
-    expect(mockWeaponService.getWeaponsRaw).toHaveBeenLastCalledWith({ size: 50, damageType: 'MAGIC' });
+    expect(mockWeaponService.getWeaponsRaw).toHaveBeenLastCalledWith({ size: 50, damageType: 'MAGIC', isOfficial: true });
   });
 
   it('does not fetch weapons when damage filter clicked before items loaded', () => {
@@ -340,5 +344,130 @@ describe('InventoryAddPanel', () => {
 
     expect(el.querySelector('.add-panel__item-name')).toBeNull();
     expect(el.querySelector('.add-panel__load-btn')?.textContent?.trim()).toBe('Browse Armor');
+  });
+
+  it('renders the official-only checkbox checked by default', () => {
+    host.open.set(true);
+    fixture.detectChanges();
+
+    const checkbox = el.querySelector<HTMLInputElement>('.add-panel__official-toggle input[type="checkbox"]');
+    expect(checkbox?.checked).toBe(true);
+  });
+
+  it('passes isOfficial undefined once the official-only checkbox is unchecked after a list is loaded', () => {
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+    fixture.detectChanges();
+
+    const checkbox = el.querySelector<HTMLInputElement>('.add-panel__official-toggle input[type="checkbox"]')!;
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(mockWeaponService.getWeaponsRaw).toHaveBeenLastCalledWith({ size: 50, damageType: 'PHYSICAL', isOfficial: undefined });
+  });
+
+  it('does not fetch when the official-only checkbox changes before any list has loaded', () => {
+    host.itemType.set('weapon');
+    host.open.set(true);
+    fixture.detectChanges();
+
+    const checkbox = el.querySelector<HTMLInputElement>('.add-panel__official-toggle input[type="checkbox"]')!;
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(mockWeaponService.getWeaponsRaw).not.toHaveBeenCalled();
+  });
+
+  describe('search debounce', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('falls back to list loading when the typed query is under 3 characters', () => {
+      vi.useFakeTimers();
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      const input = el.querySelector<HTMLInputElement>('.add-panel__search-input')!;
+      input.value = 'ax';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      fixture.detectChanges();
+
+      expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL', isOfficial: true });
+      expect(mockSearchService.search).not.toHaveBeenCalled();
+    });
+
+    it('does not call SearchService before the 250ms debounce elapses', () => {
+      vi.useFakeTimers();
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      const input = el.querySelector<HTMLInputElement>('.add-panel__search-input')!;
+      input.value = 'axe';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      vi.advanceTimersByTime(100);
+
+      expect(mockSearchService.search).not.toHaveBeenCalled();
+    });
+
+    it('triggers a debounced search once the typed query reaches 3 characters', () => {
+      vi.useFakeTimers();
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      const input = el.querySelector<HTMLInputElement>('.add-panel__search-input')!;
+      input.value = 'axe';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      fixture.detectChanges();
+
+      expect(mockSearchService.search).toHaveBeenCalledWith({ q: 'axe', types: ['WEAPON'], isOfficial: true });
+      expect(mockWeaponService.getWeaponsRaw).not.toHaveBeenCalled();
+    });
+
+    it('renders search results and allows adding one', () => {
+      vi.useFakeTimers();
+      const weapon = { id: 7, name: 'Searched Sword', tier: 1, damage: { notation: '1d6' }, features: [] };
+      mockSearchService.search.mockReturnValue(of({
+        results: [{ type: 'WEAPON', id: 7, name: 'Searched Sword', relevanceScore: 1, expandedEntity: weapon }],
+        totalElements: 1,
+        totalPages: 1,
+        currentPage: 0,
+        pageSize: 20,
+        query: 'sword',
+      }));
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      const input = el.querySelector<HTMLInputElement>('.add-panel__search-input')!;
+      input.value = 'sword';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      vi.advanceTimersByTime(250);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.add-panel__item-name')?.textContent?.trim()).toBe('Searched Sword');
+
+      const addedSpy = vi.fn();
+      const panel = fixture.debugElement.children[0].componentInstance as InventoryAddPanel;
+      panel.itemAdded.subscribe(addedSpy);
+
+      el.querySelector<HTMLButtonElement>('.add-panel__item-btn')!.click();
+
+      expect(addedSpy).toHaveBeenCalledWith(weapon);
+    });
   });
 });

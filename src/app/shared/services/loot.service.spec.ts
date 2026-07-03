@@ -77,6 +77,28 @@ describe('LootService', () => {
     const req = httpTesting.expectOne(r => r.url === baseUrl);
     expect(req.request.params.has('tier')).toBe(false);
     expect(req.request.params.has('isConsumable')).toBe(false);
+    expect(req.request.params.has('size')).toBe(false);
+    expect(req.request.params.has('creatorId')).toBe(false);
+    req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should include size and creatorId params when provided', () => {
+    service.getLoot({ size: 100, creatorId: 42 }).subscribe();
+
+    const req = httpTesting.expectOne(
+      r => r.url === baseUrl && r.params.get('size') === '100' && r.params.get('creatorId') === '42',
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should include size and creatorId params on getLootRaw when provided', () => {
+    service.getLootRaw({ size: 100, creatorId: 42 }).subscribe();
+
+    const req = httpTesting.expectOne(
+      r => r.url === baseUrl && r.params.get('size') === '100' && r.params.get('creatorId') === '42',
+    );
+    expect(req.request.method).toBe('GET');
     req.flush(buildPaginatedResponse([]));
   });
 

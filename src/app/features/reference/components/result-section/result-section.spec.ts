@@ -1,17 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ResultSection } from './result-section';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { SearchableEntityType } from '../../../../shared/models/search.model';
+import { AuthService } from '../../../../core/services/auth.service';
+import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
-function makeCardResult(id: number, name = 'Test Card'): MappedSearchResult {
+function makeCardResult(id: number, name = 'Test Card', overrides: Partial<CardData> = {}): MappedSearchResult {
   return {
     type: 'WEAPON',
     id,
     name,
     relevanceScore: 1.0,
-    card: { id, name, description: 'desc', cardType: 'class' },
+    card: { id, name, description: 'desc', cardType: 'class', ...overrides },
   };
 }
 
@@ -39,6 +41,7 @@ function makeAdversaryResult(id: number, name = 'Test Adversary'): MappedSearchR
       [showViewAll]="showViewAll"
       [showBadges]="showBadges"
       (viewAll)="onViewAll($event)"
+      (editItem)="onEditItem($event)"
     />
   `,
   imports: [ResultSection],
@@ -50,19 +53,34 @@ class HostComponent {
   showViewAll = false;
   showBadges = false;
   lastViewAll: SearchableEntityType | null = null;
+  lastEditedCard: CardData | null = null;
 
   onViewAll(t: SearchableEntityType): void {
     this.lastViewAll = t;
+  }
+
+  onEditItem(card: CardData): void {
+    this.lastEditedCard = card;
   }
 }
 
 describe('ResultSection', () => {
   let fixture: ComponentFixture<HostComponent>;
   let host: HostComponent;
+  let currentUserId = signal<number | null>(null);
+  let isPrivileged = signal(false);
 
   beforeEach(async () => {
+    currentUserId = signal<number | null>(null);
+    isPrivileged = signal(false);
+    const authServiceStub = {
+      user: () => (currentUserId() != null ? { id: currentUserId() } : null),
+      isPrivileged: () => isPrivileged(),
+    };
+
     await TestBed.configureTestingModule({
       imports: [HostComponent],
+      providers: [{ provide: AuthService, useValue: authServiceStub }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HostComponent);
@@ -206,5 +224,62 @@ describe('ResultSection', () => {
     const count = fixture.nativeElement.querySelector('.section-count');
     expect(count.textContent).toContain('match');
     expect(count.textContent).not.toContain('matches');
+  });
+
+  describe('edit affordance', () => {
+    it('shows the edit button when the viewer is the creator of a custom item', () => {
+      currentUserId.set(42);
+      host.results = [makeCardResult(1, 'Longsword', { cardType: 'weapon', metadata: { isOfficial: false, creatorId: 42 } })];
+      host.totalCount = 1;
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeTruthy();
+    });
+
+    it('hides the edit button when the viewer is not the creator', () => {
+      currentUserId.set(99);
+      host.results = [makeCardResult(1, 'Longsword', { cardType: 'weapon', metadata: { isOfficial: false, creatorId: 42 } })];
+      host.totalCount = 1;
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeFalsy();
+    });
+
+    it('shows the edit button for a moderator regardless of ownership', () => {
+      currentUserId.set(99);
+      isPrivileged.set(true);
+      host.results = [makeCardResult(1, 'Longsword', { cardType: 'weapon', metadata: { isOfficial: false, creatorId: 42 } })];
+      host.totalCount = 1;
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeTruthy();
+    });
+
+    it('never shows the edit button on official items', () => {
+      currentUserId.set(42);
+      isPrivileged.set(true);
+      host.results = [makeCardResult(1, 'Longsword', { cardType: 'weapon', metadata: { isOfficial: true, creatorId: 42 } })];
+      host.totalCount = 1;
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      expect(btn).toBeFalsy();
+    });
+
+    it('emits editItem when the edit button is clicked', () => {
+      currentUserId.set(42);
+      const card = makeCardResult(1, 'Longsword', { cardType: 'weapon', metadata: { isOfficial: false, creatorId: 42 } }).card!;
+      host.results = [{ type: 'WEAPON', id: 1, name: 'Longsword', relevanceScore: 1, card }];
+      host.totalCount = 1;
+      fixture.detectChanges();
+
+      const btn = fixture.nativeElement.querySelector('.card__edit-btn');
+      btn.click();
+
+      expect(host.lastEditedCard).toEqual(card);
+    });
   });
 });

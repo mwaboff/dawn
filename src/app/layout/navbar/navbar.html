@@ -31,6 +31,9 @@
               <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCharacter()">
                 + Character
               </button>
+              <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateItem()">
+                + Item
+              </button>
               <button type="button" class="nav-dropdown-item" role="menuitem" (click)="onCreateCampaign()">
                 + Campaign
               </button>
@@ -84,6 +87,7 @@
           <a routerLink="/admin" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Admin</a>
         }
         <button type="button" class="nav-mobile-item" role="menuitem" (click)="onCreateCharacter()">+ Character</button>
+        <button type="button" class="nav-mobile-item" role="menuitem" (click)="onCreateItem()">+ Item</button>
         <button type="button" class="nav-mobile-item" role="menuitem" (click)="onCreateCampaign()">+ Campaign</button>
         <div class="nav-mobile-divider"></div>
         <a routerLink="/profile" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Profile</a>

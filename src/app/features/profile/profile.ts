@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { UserResponse } from '../../core/models/auth.model';
@@ -9,17 +9,23 @@ import { UserService } from '../../shared/services/user.service';
 import { CampaignService } from '../../shared/services/campaign.service';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
 import { isAtLeast } from '../../shared/models/role.model';
+import { WeaponService } from '../../shared/services/weapon.service';
+import { ArmorService } from '../../shared/services/armor.service';
+import { LootService } from '../../shared/services/loot.service';
 import { CharacterSummary } from './models/profile.model';
 import { mapToSummary } from './models/profile.mapper';
+import { CreatedItemSummary, CreatedItemType } from './models/created-item.model';
+import { mapArmorToItemSummary, mapLootToItemSummary, mapWeaponToItemSummary } from './models/created-item.mapper';
 import { RosterList } from './components/roster-list/roster-list';
 import { CampaignRoster } from './components/campaign-roster/campaign-roster';
+import { ItemRoster } from './components/item-roster/item-roster';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RosterList, CampaignRoster, RouterLink],
+  imports: [RosterList, CampaignRoster, ItemRoster, RouterLink],
 })
 export class Profile implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -28,6 +34,9 @@ export class Profile implements OnInit {
   private readonly userService = inject(UserService);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly campaignService = inject(CampaignService);
+  private readonly weaponService = inject(WeaponService);
+  private readonly armorService = inject(ArmorService);
+  private readonly lootService = inject(LootService);
 
   private readonly rosterList = viewChild(RosterList);
   private readonly campaignRoster = viewChild(CampaignRoster);
@@ -41,6 +50,9 @@ export class Profile implements OnInit {
   readonly campaigns = signal<CampaignResponse[]>([]);
   readonly campaignsLoading = signal(true);
   readonly campaignsError = signal(false);
+  readonly createdItems = signal<CreatedItemSummary[]>([]);
+  readonly createdItemsLoading = signal(true);
+  readonly createdItemsError = signal(false);
   readonly isOwnProfile = computed(() => {
     const current = this.authService.user();
     const viewed = this.profileUser();
@@ -60,6 +72,8 @@ export class Profile implements OnInit {
     if (this.isOwnProfile()) return true;
     return isAtLeast(current.role, 'ADMIN');
   });
+
+  readonly canEditItems = computed(() => this.isOwnProfile() || this.authService.isPrivileged());
 
   readonly avatarError = signal(false);
 
@@ -83,6 +97,7 @@ export class Profile implements OnInit {
         this.profileLoading.set(false);
         this.charactersLoading.set(false);
         this.campaignsLoading.set(false);
+        this.createdItemsLoading.set(false);
         return;
       }
 
@@ -96,6 +111,7 @@ export class Profile implements OnInit {
         this.loadProfileUser(id);
         this.loadCharacters(id);
       }
+      this.loadCreatedItems(id);
     } else {
       const currentUser = this.authService.user();
       if (!currentUser) {
@@ -106,6 +122,7 @@ export class Profile implements OnInit {
       this.profileLoading.set(false);
       this.loadCharacters(currentUser.id);
       this.loadCampaignsIfAllowed(currentUser.id);
+      this.loadCreatedItems(currentUser.id);
     }
   }
 
@@ -127,6 +144,10 @@ export class Profile implements OnInit {
 
   onCreateCampaign(): void {
     this.router.navigate(['/campaigns/create']);
+  }
+
+  onEditItem({ itemType, id }: { itemType: CreatedItemType; id: number }): void {
+    this.router.navigate(['/create-item', itemType, id]);
   }
 
   onDeleteCharacter(id: number): void {
@@ -202,6 +223,27 @@ export class Profile implements OnInit {
         this.campaigns.set(response.content);
       }
       this.campaignsLoading.set(false);
+    });
+  }
+
+  private loadCreatedItems(creatorId: number): void {
+    forkJoin({
+      weapons: this.weaponService.getWeaponsRaw({ creatorId, size: 100 }),
+      armors: this.armorService.getArmorsRaw({ creatorId, size: 100 }),
+      loot: this.lootService.getLootRaw({ creatorId, size: 100 }),
+    }).pipe(
+      map(({ weapons, armors, loot }) => [
+        ...weapons.items.map(mapWeaponToItemSummary),
+        ...armors.items.map(mapArmorToItemSummary),
+        ...loot.items.map(mapLootToItemSummary),
+      ]),
+      catchError(() => {
+        this.createdItemsError.set(true);
+        return of([]);
+      }),
+    ).subscribe((items) => {
+      this.createdItems.set(items);
+      this.createdItemsLoading.set(false);
     });
   }
 

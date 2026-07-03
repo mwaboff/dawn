@@ -36,6 +36,12 @@ export class LootService {
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
     }
+    if (filters.size !== undefined) {
+      params = params.set('size', filters.size);
+    }
+    if (filters.creatorId !== undefined) {
+      params = params.set('creatorId', filters.creatorId);
+    }
 
     return this.http
       .get<PaginatedResponse<LootApiResponse>>(this.baseUrl, { params, withCredentials: true })
@@ -64,6 +70,12 @@ export class LootService {
     }
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
+    }
+    if (filters.size !== undefined) {
+      params = params.set('size', filters.size);
+    }
+    if (filters.creatorId !== undefined) {
+      params = params.set('creatorId', filters.creatorId);
     }
 
     return this.http

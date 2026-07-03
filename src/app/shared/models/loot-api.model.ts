@@ -22,4 +22,6 @@ export interface LootFilters {
   expansionId?: number;
   isOfficial?: boolean;
   page?: number;
+  size?: number;
+  creatorId?: number;
 }

@@ -1,0 +1,18 @@
+<div class="type-selector" role="radiogroup" aria-label="Item type">
+  @for (option of options; track option.type; let i = $index) {
+    <button
+      type="button"
+      class="type-card"
+      id="item-type-option-{{ option.type }}"
+      role="radio"
+      [attr.aria-checked]="false"
+      [attr.tabindex]="i === focusedIndex() ? 0 : -1"
+      (click)="select(option.type)"
+      (keydown)="onKeydown($event, i)"
+    >
+      <span class="type-card-glyph" aria-hidden="true">{{ option.glyph }}</span>
+      <span class="type-card-label">{{ option.label }}</span>
+      <span class="type-card-description">{{ option.description }}</span>
+    </button>
+  }
+</div>

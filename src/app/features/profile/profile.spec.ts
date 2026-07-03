@@ -5,6 +5,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { vi } from 'vitest';
 import { Profile } from './profile';
 import { AuthService, UserResponse } from '../../core/services/auth.service';
+import { isAtLeast } from '../../shared/models/role.model';
 
 const mockUser: UserResponse = {
   id: 42,
@@ -86,6 +87,7 @@ describe('Profile', () => {
 
     const authService = TestBed.inject(AuthService);
     vi.spyOn(authService, 'user').mockReturnValue(user);
+    vi.spyOn(authService, 'isPrivileged').mockReturnValue(!!user && isAtLeast(user.role, 'MODERATOR'));
 
     fixture = TestBed.createComponent(Profile);
     component = fixture.componentInstance;
@@ -97,14 +99,22 @@ describe('Profile', () => {
     httpMock.verify();
   });
 
+  function flushItemRequests(weaponData: unknown[] = [], armorData: unknown[] = [], lootData: unknown[] = []) {
+    httpMock.expectOne(r => r.url.includes('/dh/weapons')).flush(wrapPaged(weaponData));
+    httpMock.expectOne(r => r.url.includes('/dh/armors')).flush(wrapPaged(armorData));
+    httpMock.expectOne(r => r.url.includes('/dh/loot')).flush(wrapPaged(lootData));
+  }
+
   function flushOwnProfileRequests(sheetData: unknown[] = [], campaignData: unknown[] = []) {
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
     httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged(campaignData));
+    flushItemRequests();
   }
 
   function flushOtherProfileRequests(userData: UserResponse = mockOtherUser, sheetData: unknown[] = []) {
     httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(userData);
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
+    flushItemRequests();
   }
 
 
@@ -149,6 +159,7 @@ describe('Profile', () => {
       expect(req.request.params.get('expand')).toBe('subclassCards');
       req.flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
     });
 
     it('should render the roster-list child component', () => {
@@ -174,6 +185,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
         .flush(null, { status: 403, statusText: 'Forbidden' });
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
       fixture.detectChanges();
       expect(component.charactersError()).toBe(false);
       expect(component.characters().length).toBe(0);
@@ -185,6 +197,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
         .flush(null, { status: 500, statusText: 'Server Error' });
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
       fixture.detectChanges();
       expect(component.charactersError()).toBe(true);
     });
@@ -228,6 +241,7 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+      flushItemRequests();
     });
 
     it('should render CampaignRoster component', () => {
@@ -244,6 +258,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns'))
         .flush(null, { status: 500, statusText: 'Server Error' });
+      flushItemRequests();
       fixture.detectChanges();
       expect(component.campaignsError()).toBe(true);
     });
@@ -272,6 +287,7 @@ describe('Profile', () => {
       httpMock.expectNone(r => r.url.includes('/users/42') && !r.url.includes('/campaigns') && !r.url.includes('/character-sheets'));
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
 
       expect(component.profileUser()).toEqual(mockUser);
       expect(component.isOwnProfile()).toBe(true);
@@ -284,6 +300,7 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+      flushItemRequests();
     });
   });
 
@@ -296,6 +313,7 @@ describe('Profile', () => {
       expect(req.request.method).toBe('GET');
       req.flush(mockOtherUser);
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      flushItemRequests();
     });
 
     it('should display the other user username', () => {
@@ -334,6 +352,7 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/99/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+      flushItemRequests();
     });
 
     it('should map character sheets to summaries', () => {
@@ -361,6 +380,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns'))
         .flush(null, { status: 404, statusText: 'Not Found' });
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      flushItemRequests();
       fixture.detectChanges();
 
       const el = fixture.nativeElement as HTMLElement;
@@ -373,6 +393,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns'))
         .flush(null, { status: 500, statusText: 'Server Error' });
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      flushItemRequests();
       fixture.detectChanges();
 
       const el = fixture.nativeElement as HTMLElement;
@@ -402,6 +423,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/99/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
       expect(component.canDeleteItems()).toBe(true);
     });
 
@@ -502,6 +524,100 @@ describe('Profile', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.querySelector('.profile-avatar')).toBeFalsy();
       expect(el.querySelector('.profile-sigil svg')).toBeTruthy();
+    });
+  });
+
+  describe('created items', () => {
+    it('should render the item-roster child component', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('app-item-roster')).toBeTruthy();
+    });
+
+    it('should request weapons, armors, and loot filtered by creatorId', () => {
+      setup('99');
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+
+      const weaponReq = httpMock.expectOne(r => r.url.includes('/dh/weapons'));
+      expect(weaponReq.request.params.get('creatorId')).toBe('99');
+      weaponReq.flush(wrapPaged([]));
+      const armorReq = httpMock.expectOne(r => r.url.includes('/dh/armors'));
+      expect(armorReq.request.params.get('creatorId')).toBe('99');
+      armorReq.flush(wrapPaged([]));
+      const lootReq = httpMock.expectOne(r => r.url.includes('/dh/loot'));
+      expect(lootReq.request.params.get('creatorId')).toBe('99');
+      lootReq.flush(wrapPaged([]));
+    });
+
+    it('should map fetched items into the unified created-items list', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/weapons')).flush(wrapPaged([
+        { id: 1, name: 'Custom Blade', tier: 1, trait: 'STRENGTH', range: 'MELEE', burden: 'ONE_HANDED', damage: { notation: '1d8' } },
+      ]));
+      httpMock.expectOne(r => r.url.includes('/dh/armors')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/loot')).flush(wrapPaged([]));
+
+      expect(component.createdItems().length).toBe(1);
+      expect(component.createdItems()[0]).toEqual({
+        id: 1, itemType: 'weapon', name: 'Custom Blade', tier: 1,
+        trait: 'STRENGTH', range: 'MELEE', burden: 'ONE_HANDED', damageNotation: '1d8',
+        features: undefined,
+      });
+    });
+
+    it('should set createdItemsError on failure', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/weapons'))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      httpMock.match(() => true).forEach(req => {
+        if (!req.cancelled) req.flush(wrapPaged([]));
+      });
+
+      expect(component.createdItemsError()).toBe(true);
+      expect(component.createdItems()).toEqual([]);
+    });
+
+    it('should navigate to the create-item edit route on editItem', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onEditItem({ itemType: 'weapon', id: 3 });
+      expect(navigateSpy).toHaveBeenCalledWith(['/create-item', 'weapon', 3]);
+    });
+  });
+
+  describe('canEditItems', () => {
+    it('should be true for own profile', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      expect(component.canEditItems()).toBe(true);
+    });
+
+    it('should be true for a privileged (moderator+) viewer on another profile', () => {
+      setup('99', mockAdminUser);
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/99/campaigns')).flush(wrapPaged([]));
+      flushItemRequests();
+      expect(component.canEditItems()).toBe(true);
+    });
+
+    it('should be false for a non-privileged viewer on another profile', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      expect(component.canEditItems()).toBe(false);
     });
   });
 

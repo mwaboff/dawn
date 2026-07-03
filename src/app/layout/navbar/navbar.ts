@@ -93,6 +93,12 @@ export class Navbar {
     this.router.navigate(['/create-character']);
   }
 
+  onCreateItem(): void {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/create-item']);
+  }
+
   onCreateCampaign(): void {
     this.closeDropdown();
     this.closeMobileMenu();

@@ -224,7 +224,7 @@ describe('Navbar', () => {
       expect(component.isDropdownOpen()).toBe(false);
     });
 
-    it('should show + Character and + Campaign in dropdown when open', () => {
+    it('should show + Character, + Item, and + Campaign in dropdown when open', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
       fixture.detectChanges();
       component.isDropdownOpen.set(true);
@@ -234,7 +234,18 @@ describe('Navbar', () => {
       const items = compiled.querySelectorAll('.nav-dropdown-item');
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('+ Character');
+      expect(texts).toContain('+ Item');
       expect(texts).toContain('+ Campaign');
+    });
+
+    it('should navigate to create-item and close dropdown when onCreateItem is called', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.isDropdownOpen.set(true);
+
+      component.onCreateItem();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/create-item']);
+      expect(component.isDropdownOpen()).toBe(false);
     });
 
     it('should render plus button when logged in', () => {
@@ -313,6 +324,7 @@ describe('Navbar', () => {
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('Reference');
       expect(texts).toContain('+ Character');
+      expect(texts).toContain('+ Item');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('Profile');
       expect(texts).toContain('Logout');
@@ -347,6 +359,13 @@ describe('Navbar', () => {
       vi.spyOn(router, 'navigate');
       component.isMobileMenuOpen.set(true);
       component.onCreateCampaign();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when onCreateItem is called', () => {
+      vi.spyOn(router, 'navigate');
+      component.isMobileMenuOpen.set(true);
+      component.onCreateItem();
       expect(component.isMobileMenuOpen()).toBe(false);
     });
   });

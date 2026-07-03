@@ -5,6 +5,25 @@
       <button class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
     </div>
 
+    <div class="add-panel__search">
+      <input
+        type="search"
+        class="add-panel__search-input"
+        placeholder="Search items…"
+        aria-label="Search items"
+        [value]="searchQuery()"
+        (input)="onSearchQueryChange($any($event.target).value)"
+      />
+      <label class="add-panel__official-toggle">
+        <input
+          type="checkbox"
+          [checked]="officialOnly()"
+          (change)="onOfficialOnlyChange($any($event.target).checked)"
+        />
+        Official items only
+      </label>
+    </div>
+
     @if (itemType() === 'weapon') {
       <div class="add-panel__filters" role="radiogroup" aria-label="Weapon damage type">
         <button
@@ -28,7 +47,7 @@
 
     @if (!loading() && !loadError() && shouldShowBrowsePrompt()) {
       <div class="add-panel__prompt">
-        <button class="add-panel__load-btn" (click)="loadItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
+        <button class="add-panel__load-btn" (click)="fetchItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
       </div>
     }
 
@@ -41,7 +60,7 @@
     }
 
     @if (loadError()) {
-      <p class="add-panel__error">Failed to load items. <button class="add-panel__retry" (click)="loadItems()">Retry</button></p>
+      <p class="add-panel__error">Failed to load items. <button class="add-panel__retry" (click)="fetchItems()">Retry</button></p>
     }
 
     @if (itemType() === 'weapon' && weaponItems().length > 0) {

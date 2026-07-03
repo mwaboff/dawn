@@ -88,6 +88,22 @@ describe('ArmorService', () => {
     req.flush(buildPaginatedResponse([]));
   });
 
+  it('should include creatorId param when provided', () => {
+    service.getArmors({ creatorId: 42 }).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl && r.params.get('creatorId') === '42');
+    expect(req.request.method).toBe('GET');
+    req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should include creatorId param on getArmorsRaw when provided', () => {
+    service.getArmorsRaw({ creatorId: 42 }).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl && r.params.get('creatorId') === '42');
+    expect(req.request.method).toBe('GET');
+    req.flush(buildPaginatedResponse([]));
+  });
+
   it('should map response to PaginatedCards with cards and pagination metadata', () => {
     const mockResponse: PaginatedResponse<ArmorResponse> = {
       content: [

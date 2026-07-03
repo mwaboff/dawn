@@ -17,7 +17,9 @@ export class DaggerheartCard {
   readonly disabled = input<boolean>(false);
   readonly layout = input<'default' | 'wide'>('default');
   readonly collapsibleFeatures = input<boolean>(false);
+  readonly showEditAffordance = input<boolean>(false);
   readonly cardClicked = output<CardData>();
+  readonly editClicked = output<CardData>();
 
   private readonly featuresExpanded = signal(false);
 
@@ -28,6 +30,11 @@ export class DaggerheartCard {
   onCardClick(): void {
     if (this.disabled()) return;
     this.cardClicked.emit(this.card());
+  }
+
+  onEditClick(event: Event): void {
+    event.stopPropagation();
+    this.editClicked.emit(this.card());
   }
 
   onKeydown(event: KeyboardEvent): void {

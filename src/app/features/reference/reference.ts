@@ -22,6 +22,8 @@ import { DaggerheartCard } from '../../shared/components/daggerheart-card/dagger
 import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
 import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
+import { canEditCustomItem } from '../../shared/utils/card-permissions.utils';
+import { AuthService } from '../../core/services/auth.service';
 
 export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
 
@@ -55,6 +57,7 @@ export class Reference implements OnInit {
   private readonly domainService = inject(DomainService);
   private readonly expansionService = inject(ExpansionService);
   private readonly classService = inject(ClassService);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly query = signal('');
@@ -257,6 +260,14 @@ export class Reference implements OnInit {
 
   typeLabelFor(type: SearchableEntityType): string {
     return typeLabels[type] ?? type;
+  }
+
+  showEditAffordanceFor(card: CardData): boolean {
+    return canEditCustomItem(card, this.authService.user()?.id, this.authService.isPrivileged());
+  }
+
+  onEditItem(card: CardData): void {
+    this.router.navigate(['/create-item', card.cardType, card.id]);
   }
 
   private runSearch(q: string): void {

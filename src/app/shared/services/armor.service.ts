@@ -13,6 +13,7 @@ export interface ArmorOptions {
   burden?: string;
   isOfficial?: boolean;
   expansionId?: number;
+  creatorId?: number;
 }
 
 export interface PaginatedArmors {
@@ -28,7 +29,7 @@ export class ArmorService {
   private readonly baseUrl = `${environment.apiUrl}/dh/armors`;
 
   getArmors(options: ArmorOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, tier, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, tier, burden, isOfficial, expansionId, creatorId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -46,6 +47,9 @@ export class ArmorService {
     }
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);
+    }
+    if (creatorId !== undefined) {
+      params = params.set('creatorId', creatorId);
     }
 
     return this.http
@@ -59,7 +63,7 @@ export class ArmorService {
   }
 
   getArmorsRaw(options: ArmorOptions = {}): Observable<PaginatedArmors> {
-    const { page = 0, size = 20, tier, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, tier, burden, isOfficial, expansionId, creatorId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -77,6 +81,9 @@ export class ArmorService {
     }
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);
+    }
+    if (creatorId !== undefined) {
+      params = params.set('creatorId', creatorId);
     }
 
     return this.http

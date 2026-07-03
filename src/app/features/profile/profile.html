@@ -80,5 +80,20 @@
         (deleteCampaign)="onDeleteCampaign($event)"
       />
     }
+
+    <div class="profile-divider">
+      <div class="profile-divider-line"></div>
+      <span class="profile-divider-label">Created Items</span>
+      <div class="profile-divider-line"></div>
+    </div>
+
+    <app-item-roster
+      [items]="createdItems()"
+      [loading]="createdItemsLoading()"
+      [error]="createdItemsError()"
+      [canEdit]="canEditItems()"
+      [creatorId]="user.id"
+      (editItem)="onEditItem($event)"
+    />
   }
 </div>

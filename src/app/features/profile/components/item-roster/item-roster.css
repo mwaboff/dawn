@@ -1,0 +1,115 @@
+:host { display: block; }
+
+.item-roster-group + .item-roster-group { margin-top: 1.5rem; }
+
+.item-roster-group-title {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(245, 230, 211, 0.4);
+  margin-bottom: 0.5rem;
+}
+
+.item-roster-item:not(:last-child) { border-bottom: 1px solid rgba(245, 230, 211, 0.06); }
+
+.item-roster-entry-header { cursor: pointer; }
+
+.item-roster-badge {
+  font-size: 0.6875rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  border-radius: 2px;
+  padding: 0.0625rem 0.4375rem;
+  flex-shrink: 0;
+}
+
+.item-roster-edit-btn {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: transparent;
+  border: 1px solid rgba(212, 160, 86, 0.35);
+  border-radius: 3px;
+  padding: 0.3125rem 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.item-roster-edit-btn:hover { background: rgba(212, 160, 86, 0.1); border-color: var(--color-accent); }
+.item-roster-edit-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.item-roster-chevron { transition: transform 0.2s ease; opacity: 0.4; }
+.item-roster-chevron--expanded { transform: rotate(180deg); opacity: 0.8; }
+
+.item-roster-detail {
+  padding: 0 1.25rem 1.125rem 1.25rem;
+  background: rgba(245, 230, 211, 0.02);
+}
+
+.item-roster-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.item-roster-detail-grid dt {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 230, 211, 0.4);
+  margin-bottom: 0.125rem;
+}
+
+.item-roster-detail-grid dd {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-parchment);
+}
+
+.item-roster-description {
+  font-size: 0.875rem;
+  color: rgba(245, 230, 211, 0.7);
+  font-style: italic;
+  margin: 0 0 0.875rem 0;
+}
+
+.item-roster-feature-list {
+  list-style: none;
+  margin: 0.875rem 0 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid rgba(245, 230, 211, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.item-roster-feature-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.item-roster-feature-description {
+  display: block;
+  font-size: 0.8125rem;
+  color: rgba(245, 230, 211, 0.6);
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 640px) {
+  .item-roster-detail { padding: 0 1rem 1rem 1rem; }
+}

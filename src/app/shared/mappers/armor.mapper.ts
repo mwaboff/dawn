@@ -37,6 +37,7 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
       baseSevereThreshold: response.baseSevereThreshold,
       tier: response.tier,
       modifiers,
+      isOfficial: response.isOfficial,
       creatorId: response.creatorId,
     },
   };

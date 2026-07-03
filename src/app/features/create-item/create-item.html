@@ -1,0 +1,62 @@
+<div class="create-item-container">
+  <div class="grain-overlay page-grain" aria-hidden="true"></div>
+
+  <main class="content-area" role="main">
+    <div class="parchment-container">
+      @if (loading()) {
+        <div class="create-item-loading">Loading item...</div>
+      } @else if (success()) {
+        <div class="success-state">
+          <h2 class="success-title">Item created!</h2>
+          <p class="success-message">
+            Your custom item has been saved and is now visible to everyone.
+          </p>
+          <div class="success-actions">
+            <button type="button" class="btn btn--primary" (click)="onViewInReference()">
+              View in Reference
+            </button>
+            <button type="button" class="btn btn--secondary" (click)="onCreateAnother()">
+              Create another
+            </button>
+          </div>
+        </div>
+      } @else {
+        <h1 class="create-item-title">{{ isEditMode() ? 'Edit Item' : 'Create Item' }}</h1>
+
+        @if (error()) {
+          <div class="create-item-error" role="alert">{{ error() }}</div>
+        }
+
+        @if (step() === 'type') {
+          <app-item-type-selector (typeSelected)="onTypeSelected($event)" />
+        } @else if (itemType()) {
+          <app-item-form
+            [cardType]="itemType()!"
+            [mode]="isEditMode() ? 'edit' : 'create'"
+            [initialData]="initialData()"
+            [saving]="saving()"
+            [submitted]="submitted()"
+            [showIsOfficialField]="showIsOfficialField()"
+            (saved)="onFormSaved($event)"
+            #itemFormRef
+          />
+
+          <div class="create-item-actions">
+            @if (!isEditMode()) {
+              <button type="button" class="btn btn--secondary" [disabled]="saving()" (click)="onBackToType()">
+                Back
+              </button>
+            }
+            <button type="button" class="btn btn--primary" [disabled]="saving()" (click)="onSave()">
+              @if (saving()) {
+                Saving...
+              } @else {
+                Save Item
+              }
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </main>
+</div>

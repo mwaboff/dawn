@@ -1,0 +1,53 @@
+:host {
+  display: block;
+}
+
+.type-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1.75rem 1.25rem;
+  background: linear-gradient(170deg, #faf7f2 0%, #f5ede0 100%);
+  border: 1px solid #c9a87c;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+
+.type-card:hover,
+.type-card:focus-visible {
+  border-color: var(--color-accent, #d4a056);
+  box-shadow: 0 4px 14px rgba(212, 160, 86, 0.25);
+  transform: translateY(-2px);
+}
+
+.type-card:focus-visible {
+  outline: 2px solid var(--color-accent, #d4a056);
+  outline-offset: 2px;
+}
+
+.type-card-glyph {
+  font-size: 2rem;
+  color: var(--color-accent, #d4a056);
+}
+
+.type-card-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #3a2c22;
+}
+
+.type-card-description {
+  font-size: 0.875rem;
+  color: #7a5c46;
+}

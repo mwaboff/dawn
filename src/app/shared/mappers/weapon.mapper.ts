@@ -51,6 +51,7 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
       tier: response.tier,
       damage: response.damage,
       modifiers,
+      isOfficial: response.isOfficial,
       creatorId: response.creatorId,
     },
   };
