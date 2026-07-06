@@ -43,7 +43,7 @@
     "@angular/cli": "^21.1.2",
     "@angular/compiler-cli": "^21.1.0",
     "@tailwindcss/postcss": "^4.1.12",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.4",
     "angular-eslint": "21.2.0",
     "eslint": "^9.39.2",
     "jsdom": "^27.1.0",
