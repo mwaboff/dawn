@@ -254,6 +254,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
             options: [
               { value: 'PHYSICAL', label: 'Physical' },
               { value: 'MAGIC', label: 'Magic' },
+              { value: 'PHYSICAL_AND_MAGIC', label: 'Physical or Magic' },
             ],
           },
         ],
@@ -398,6 +399,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
             name: 'damageDamageType', label: 'Damage type', kind: 'enum', path: ['damage', 'damageType'], column: 2, options: [
               { value: 'PHYSICAL', label: 'Physical' },
               { value: 'MAGIC', label: 'Magic' },
+              { value: 'PHYSICAL_AND_MAGIC', label: 'Physical or Magic' },
             ],
           },
         ],

@@ -11,7 +11,7 @@ export interface WeaponOptions {
   size?: number;
   isPrimary?: boolean;
   tier?: number;
-  damageType?: 'PHYSICAL' | 'MAGIC';
+  damageType?: 'PHYSICAL' | 'MAGIC' | 'PHYSICAL_AND_MAGIC';
   trait?: string;
   range?: string;
   burden?: string;

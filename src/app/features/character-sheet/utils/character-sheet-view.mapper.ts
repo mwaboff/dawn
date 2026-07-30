@@ -35,12 +35,29 @@ function formatEnumLabel(s: string): string {
   return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
 }
 
+/**
+ * Formats the short damage-type abbreviation. `PHYSICAL_AND_MAGIC` is a per-attack either/or
+ * choice (e.g. Shadowblade's "Otherworldly" feature), so it is shown as "Phy/Mag" — never
+ * combined damage.
+ */
+function formatDamageTypeAbbreviation(damageType: string | undefined | null): string {
+  switch (damageType?.toUpperCase()) {
+    case 'PHYSICAL':
+      return 'Phy';
+    case 'PHYSICAL_AND_MAGIC':
+      return 'Phy/Mag';
+    case 'MAGIC':
+    default:
+      return 'Mag';
+  }
+}
+
 function formatDamage(damage: DamageRollResponse | undefined | null, proficiency: number): string {
   if (!damage) return '';
   const count = damage.diceCount ?? proficiency;
   const die = damage.diceType.toLowerCase();
   const mod = damage.modifier;
-  const type = damage.damageType?.toUpperCase() === 'PHYSICAL' ? 'Phy' : 'Mag';
+  const type = formatDamageTypeAbbreviation(damage.damageType);
   const modStr = mod > 0 ? `+${mod}` : mod < 0 ? `${mod}` : '';
   return `${count}${die}${modStr} ${type}`;
 }
