@@ -13,22 +13,29 @@ import { CompanionService } from './companion.service';
 import { FeatureLookupService } from './feature-lookup.service';
 import { BrowseResult, SearchableEntityType } from '../models/search.model';
 
-/** Entity types that have a per-type list endpoint available for browse mode. */
-export type BrowsableType = Extract<
-  SearchableEntityType,
-  | 'WEAPON'
-  | 'ARMOR'
-  | 'LOOT'
-  | 'ADVERSARY'
-  | 'CLASS'
-  | 'ANCESTRY_CARD'
-  | 'COMMUNITY_CARD'
-  | 'DOMAIN_CARD'
-  | 'DOMAIN'
-  | 'SUBCLASS_CARD'
-  | 'COMPANION'
-  | 'FEATURE'
->;
+/**
+ * Entity types that have a per-type list endpoint available for browse mode, backing
+ * `browse()`'s exhaustive switch below.
+ *
+ * This array is the single source of truth: `BrowsableType` is derived from it (not declared
+ * independently), and `isBrowsableType()` is generated from the same array. A caller that
+ * narrows a `SearchableEntityType` via `isBrowsableType()` gets a value the compiler accepts
+ * for `browse()` -- there is no way for the two to drift out of sync, unlike the previous
+ * design where an unchecked `as BrowsableType` cast (e.g. `reference.ts`) could hand `browse()`
+ * a type its switch had no case for, falling through to `undefined` and crashing the caller's
+ * `.pipe()` call. See `SUPPORTED_BROWSE_TYPES` usage in `reference.ts` for the fix on that side.
+ */
+export const SUPPORTED_BROWSE_TYPES = [
+  'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'CLASS', 'ANCESTRY_CARD',
+  'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE',
+] as const satisfies readonly SearchableEntityType[];
+
+export type BrowsableType = typeof SUPPORTED_BROWSE_TYPES[number];
+
+/** Type guard narrowing a `SearchableEntityType` to `BrowsableType`, backed by the same array `browse()`'s switch handles. */
+export function isBrowsableType(type: SearchableEntityType): type is BrowsableType {
+  return (SUPPORTED_BROWSE_TYPES as readonly SearchableEntityType[]).includes(type);
+}
 
 export type BrowseFilters = Record<string, unknown>;
 

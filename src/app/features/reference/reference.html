@@ -65,7 +65,7 @@
                 [type]="section.type"
                 [results]="section.results"
                 [totalCount]="section.totalCount"
-                [showViewAll]="true"
+                [showViewAll]="isSectionBrowsable(section.type)"
                 (viewAll)="onViewAll($event)"
               />
             }

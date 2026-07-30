@@ -6,7 +6,7 @@ import { SearchService } from '../../shared/services/search.service';
 import { DomainService } from '../../shared/services/domain.service';
 import { ExpansionService } from '../../shared/services/expansion.service';
 import { ClassService } from '../../shared/services/class.service';
-import { CodexBrowseService, BrowsableType } from '../../shared/services/codex-browse.service';
+import { CodexBrowseService, BrowsableType, isBrowsableType } from '../../shared/services/codex-browse.service';
 import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from '../../shared/models/search.model';
 import { MappedSearchResult, mapSearchResult } from '../../shared/mappers/search-result.mapper';
 import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
@@ -155,7 +155,23 @@ export class Reference implements OnInit {
       const filters = this.filters();
       const page = this.currentPage();
       if (mode === 'landing') { this.results.set([]); this.browseResult.set(null); return; }
-      if (mode === 'focusedBrowse') { this.executeBrowse(type as BrowsableType, filters, page); return; }
+      if (mode === 'focusedBrowse') {
+        // `type` is guaranteed non-null here (focusedBrowse only occurs when activeType is set,
+        // per the viewMode computed above), but it may still be a SearchableEntityType with no
+        // browse endpoint -- e.g. reached via a hand-crafted `?type=QUESTION` URL rather than a
+        // "View all" click, since the template only offers "View all" for genuinely browsable
+        // types (see reference.html). Guard rather than cast: an unchecked `as BrowsableType`
+        // here previously let an unsupported type reach CodexBrowseService.browse(), whose
+        // switch has no case for it, returning undefined and crashing on `.pipe()`.
+        if (type && isBrowsableType(type)) {
+          this.executeBrowse(type, filters, page);
+        } else {
+          this.browseResult.set(null);
+          this.loading.set(false);
+          this.error.set(true);
+        }
+        return;
+      }
       this.searchInput$.next(q);
     });
   }
@@ -253,6 +269,16 @@ export class Reference implements OnInit {
     this.activeType.set(null);
     this.currentPage.set(0);
     this.syncUrl();
+  }
+
+  /**
+   * Whether a mixed-search section's type can actually be browsed via "View all". Six
+   * `SearchableEntityType`s (`SUBCLASS_PATH`, `EXPANSION`, `BEASTFORM`, `ENCOUNTER`,
+   * `QUESTION`, `CARD_COST_TAG`) are indexed and searchable but have no per-type browse
+   * endpoint wired into `CodexBrowseService`, so "View all" must not be offered for them.
+   */
+  isSectionBrowsable(type: SearchableEntityType): boolean {
+    return isBrowsableType(type);
   }
 
   typeLabelFor(type: SearchableEntityType): string {

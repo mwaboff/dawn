@@ -229,6 +229,64 @@ describe('Reference', () => {
     });
   });
 
+  describe('unbrowsable types (QUESTION/SUBCLASS_PATH/EXPANSION/BEASTFORM/ENCOUNTER/CARD_COST_TAG)', () => {
+    // These six SearchableEntityTypes are indexed/searchable but have no per-type browse
+    // endpoint in CodexBrowseService. Reaching focusedBrowse mode with one of them (e.g. via
+    // "View all" on a mixed-search section, or a hand-crafted `?type=QUESTION` URL) previously
+    // cast unconditionally to BrowsableType and called browseService.browse(), whose switch has
+    // no matching case -- falling through to `undefined` and throwing on `.pipe()`.
+    it('does not call CodexBrowseService.browse for a type with no browse endpoint', () => {
+      component.activeType.set('QUESTION');
+      fixture.detectChanges();
+      expect(browseSpy.browse).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when activeType is set to an unbrowsable type', () => {
+      expect(() => {
+        component.activeType.set('QUESTION');
+        fixture.detectChanges();
+      }).not.toThrow();
+    });
+
+    it('sets the error state instead of crashing for an unbrowsable type', () => {
+      component.activeType.set('QUESTION');
+      fixture.detectChanges();
+      expect(component.error()).toBe(true);
+      expect(component.browseResult()).toBeNull();
+    });
+
+    it('reaches the same guarded path via onViewAll (simulating a "View all" click)', () => {
+      component.onViewAll('QUESTION');
+      fixture.detectChanges();
+      expect(browseSpy.browse).not.toHaveBeenCalled();
+      expect(component.error()).toBe(true);
+    });
+
+    it.each(['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'CARD_COST_TAG'] as const)(
+      'does not call browse or throw for %s',
+      (type) => {
+        expect(() => {
+          component.activeType.set(type);
+          fixture.detectChanges();
+        }).not.toThrow();
+        expect(browseSpy.browse).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('isSectionBrowsable', () => {
+    it('returns true for a type with a real browse endpoint', () => {
+      expect(component.isSectionBrowsable('WEAPON')).toBe(true);
+    });
+
+    it.each(['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const)(
+      'returns false for %s so "View all" is not offered in the template',
+      (type) => {
+        expect(component.isSectionBrowsable(type)).toBe(false);
+      },
+    );
+  });
+
   describe('landing state', () => {
     it('clears results signal when returning to landing', () => {
       component.query.set('sword');
