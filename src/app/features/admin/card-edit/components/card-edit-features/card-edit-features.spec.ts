@@ -560,12 +560,12 @@ describe('CardEditFeatures', () => {
       hostFixture.detectChanges();
     });
 
-    it('renders a select with all 8 FeatureType options when a feature is expanded', () => {
+    it('renders a select with all 11 FeatureType options when a feature is expanded', () => {
       const header = hostFixture.nativeElement.querySelector('.feature-header');
       header.click();
       hostFixture.detectChanges();
       const options = hostFixture.nativeElement.querySelectorAll('.form-select option');
-      expect(options.length).toBe(8);
+      expect(options.length).toBe(11);
     });
 
     it('renders human-readable labels for feature types', () => {

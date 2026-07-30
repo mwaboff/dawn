@@ -7,7 +7,10 @@ import {
 } from './feature-type.model';
 
 describe('FEATURE_TYPE_LABELS', () => {
-  const allTypes: FeatureType[] = ['HOPE', 'ANCESTRY', 'CLASS', 'COMMUNITY', 'DOMAIN', 'ITEM', 'SUBCLASS', 'OTHER'];
+  const allTypes: FeatureType[] = [
+    'HOPE', 'ANCESTRY', 'CLASS', 'COMMUNITY', 'DOMAIN', 'ITEM', 'SUBCLASS', 'OTHER',
+    'TRANSFORMATION', 'ENVIRONMENT', 'CAMPAIGN_FRAME',
+  ];
 
   it('has a label for every FeatureType enum value', () => {
     for (const type of allTypes) {
@@ -54,6 +57,24 @@ describe('defaultFeatureTypeForCard', () => {
     expect(defaultFeatureTypeForCard('adversary')).toBe('OTHER');
     expect(defaultFeatureTypeForCard('companion')).toBe('OTHER');
     expect(defaultFeatureTypeForCard('not-a-real-type')).toBe('OTHER');
+  });
+
+  it('maps transformationCard to TRANSFORMATION', () => {
+    expect(defaultFeatureTypeForCard('transformationCard')).toBe('TRANSFORMATION');
+  });
+
+  it('maps environment to ENVIRONMENT', () => {
+    expect(defaultFeatureTypeForCard('environment')).toBe('ENVIRONMENT');
+  });
+
+  it('maps martialStance / beastform / condition to OTHER (no dedicated FeatureType value)', () => {
+    expect(defaultFeatureTypeForCard('martialStance')).toBe('OTHER');
+    expect(defaultFeatureTypeForCard('beastform')).toBe('OTHER');
+    expect(defaultFeatureTypeForCard('condition')).toBe('OTHER');
+  });
+
+  it('has no entry for expansion (an Expansion has no attachable features)', () => {
+    expect(DEFAULT_FEATURE_TYPE_FOR_CARD['expansion']).toBeUndefined();
   });
 });
 

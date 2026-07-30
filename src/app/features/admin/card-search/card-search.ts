@@ -17,7 +17,7 @@ import { CodexBrowseService, BrowsableType } from '../../../shared/services/code
 import { BrowseResult } from '../../../shared/models/search.model';
 import { MappedSearchResult, mapSearchResult } from '../../../shared/mappers/search-result.mapper';
 
-const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType }[] = [
+export const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType }[] = [
   { id: 'domain', label: 'Domains', type: 'DOMAIN' },
   { id: 'class', label: 'Classes', type: 'CLASS' },
   { id: 'subclass', label: 'Subclasses', type: 'SUBCLASS_CARD' },
