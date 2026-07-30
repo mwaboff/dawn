@@ -86,12 +86,25 @@ const ADVERSARY_TYPE_OPTIONS: FilterOption[] = [
   { value: 'SOLO', label: 'Solo' },
 ];
 
+const ENVIRONMENT_TYPE_OPTIONS: FilterOption[] = [
+  { value: '', label: 'Any Type' },
+  { value: 'EXPLORATION', label: 'Exploration' },
+  { value: 'TRAVERSAL', label: 'Traversal' },
+  { value: 'EVENT', label: 'Event' },
+  { value: 'SOCIAL', label: 'Social' },
+];
+
 const UNIVERSAL_FILTERS: FilterControl[] = [
   { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
   { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
 ];
 
-const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
+/**
+ * Exported (not just module-private) so a registration-completeness spec can assert every
+ * browsable/searchable type has a filter set defined here, without duplicating this map.
+ * See `codex-registration.spec.ts`.
+ */
+export const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
   WEAPON: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
     { kind: 'select', key: 'trait', label: 'Trait', options: TRAIT_OPTIONS },
@@ -137,6 +150,11 @@ const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>> = {
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
   COMPANION: [
+    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+  ],
+  ENVIRONMENT: [
+    { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
+    { kind: 'select', key: 'environmentType', label: 'Environment Type', options: ENVIRONMENT_TYPE_OPTIONS },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
 };

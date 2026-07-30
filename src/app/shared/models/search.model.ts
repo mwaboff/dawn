@@ -13,6 +13,7 @@ export type SearchableEntityType =
   | 'ARMOR'
   | 'LOOT'
   | 'ADVERSARY'
+  | 'ENVIRONMENT'
   | 'COMPANION'
   | 'BEASTFORM'
   | 'ENCOUNTER'
@@ -38,6 +39,7 @@ export interface SearchParams {
   range?: string;
   burden?: string;
   isConsumable?: boolean;
+  environmentType?: string;
   page?: number;
   size?: number;
 }
@@ -74,6 +76,7 @@ export interface SearchFilters {
   range?: string;
   burden?: string;
   isConsumable?: boolean;
+  environmentType?: string;
 }
 
 export interface BrowseResult {
@@ -89,6 +92,7 @@ export const typeLabels: Partial<Record<SearchableEntityType, string>> = {
   ARMOR: 'Armor',
   LOOT: 'Loot',
   ADVERSARY: 'Adversaries',
+  ENVIRONMENT: 'Environments',
   FEATURE: 'Features',
   CLASS: 'Classes',
   SUBCLASS_CARD: 'Subclasses',
@@ -110,6 +114,7 @@ export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
   ARMOR: '⛨',
   LOOT: '◈',
   ADVERSARY: '☗',
+  ENVIRONMENT: '⛰',
   FEATURE: '✦',
   CLASS: '⚜',
   SUBCLASS_CARD: '✺',
@@ -137,5 +142,6 @@ export const BROWSABLE_TYPES: SearchableEntityType[] = [
   'ARMOR',
   'LOOT',
   'ADVERSARY',
+  'ENVIRONMENT',
   'COMPANION',
 ];
