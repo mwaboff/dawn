@@ -11,7 +11,7 @@ interface UploadResult {
   fieldErrors?: BulkFieldError[];
 }
 
-const CARD_TYPE_OPTIONS = [
+export const CARD_TYPE_OPTIONS = [
   { value: 'class', label: 'Classes' },
   { value: 'subclass', label: 'Subclasses' },
   { value: 'ancestry', label: 'Ancestries' },
@@ -28,6 +28,15 @@ const CARD_TYPE_OPTIONS = [
   { value: 'adversary', label: 'Adversaries' },
   { value: 'feature', label: 'Features' },
   { value: 'question', label: 'Questions' },
+  { value: 'transformationCard', label: 'Transformation Cards' },
+  { value: 'environment', label: 'Environments' },
+  { value: 'martialStance', label: 'Martial Stances' },
+  { value: 'beastform', label: 'Beastforms' },
+  { value: 'condition', label: 'Conditions' },
+  // 'expansion' intentionally omitted: ExpansionController only exposes a plain
+  // @PostMapping create, no '/bulk' endpoint. AdminCardService.bulkCreate() appends
+  // '/bulk' to the ENDPOINT_MAP path, so a bulk 'expansion' option would 404 on every
+  // upload attempt.
 ];
 
 @Component({

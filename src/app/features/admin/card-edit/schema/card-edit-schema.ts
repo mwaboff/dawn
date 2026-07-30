@@ -564,7 +564,6 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
               { value: 'CLOSE', label: 'Close' },
               { value: 'FAR', label: 'Far' },
               { value: 'VERY_FAR', label: 'Very far' },
-              { value: 'OUT_OF_RANGE', label: 'Out of range' },
             ],
           },
           { name: 'attackTrait', label: 'Attack trait', kind: 'enum', required: true, column: 2, options: TRAIT_OPTIONS },

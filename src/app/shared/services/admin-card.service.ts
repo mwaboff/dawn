@@ -22,6 +22,12 @@ export class AdminCardService {
     'adversary': '/dh/adversaries',
     'feature': '/dh/features',
     'question': '/dh/questions',
+    transformationCard: '/dh/transformation-cards',
+    environment: '/dh/environments',
+    martialStance: '/dh/martial-stances',
+    beastform: '/dh/beastforms',
+    condition: '/dh/conditions',
+    expansion: '/dh/expansions',
   };
 
   private getEndpoint(cardType: string): string {
