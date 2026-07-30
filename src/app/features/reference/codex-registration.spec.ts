@@ -14,8 +14,22 @@ import { DomainService } from '../../shared/services/domain.service';
 import { SubclassService } from '../../shared/services/subclass.service';
 import { CompanionService } from '../../shared/services/companion.service';
 import { FeatureLookupService } from '../../shared/services/feature-lookup.service';
-import { BROWSABLE_TYPES, typeLabels } from '../../shared/models/search.model';
+import { BROWSABLE_TYPES, SearchableEntityType, isSearchableType, typeLabels } from '../../shared/models/search.model';
 import { TYPE_FILTERS } from './components/filter-rail/filter-rail';
+
+/**
+ * Mirrors `com.aboff.core.model.enums.SearchableEntityType` -- the backend's registered
+ * full-text search types. Keep this list in sync with that enum. If a frontend
+ * `SearchableEntityType` reaches `SearchService` (i.e. `isSearchableType()` returns true for
+ * it) without a matching entry here, the backend has no registration for it and `/api/search`
+ * returns HTTP 400 -- exactly the bug `COMPANION` shipped with (see dawn PR fixing
+ * "phantom Companion full-text search registration").
+ */
+const BACKEND_SEARCHABLE_TYPES = [
+  'DOMAIN', 'CLASS', 'FEATURE', 'ANCESTRY_CARD', 'COMMUNITY_CARD', 'SUBCLASS_CARD',
+  'DOMAIN_CARD', 'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'BEASTFORM', 'ENCOUNTER',
+  'EXPANSION', 'SUBCLASS_PATH', 'QUESTION', 'CARD_COST_TAG', 'ENVIRONMENT',
+] as const satisfies readonly SearchableEntityType[];
 
 /**
  * Guards against the exact silent-omission failure the HF-36a packet was written to fix:
@@ -25,6 +39,22 @@ import { TYPE_FILTERS } from './components/filter-rail/filter-rail';
  * on all three fronts.
  */
 describe('codex type registration completeness', () => {
+  it('every type reachable via full-text search is registered on the backend', () => {
+    // `typeLabels` is keyed by every SearchableEntityType member (there is no runtime array
+    // for the frontend union type), so its keys are the full type universe to check.
+    const allFrontendTypes = Object.keys(typeLabels) as SearchableEntityType[];
+    const searchReachableTypes = allFrontendTypes.filter(isSearchableType);
+    for (const type of searchReachableTypes) {
+      expect(
+        BACKEND_SEARCHABLE_TYPES as readonly SearchableEntityType[],
+        `${type} can reach SearchService (isSearchableType() is true) but has no backend ` +
+          `SearchableEntityType registration -- add it to SEARCH_UNSUPPORTED_TYPES in ` +
+          `search.model.ts if it isn't actually indexed, or to BACKEND_SEARCHABLE_TYPES ` +
+          `above once backend indexing is confirmed`,
+      ).toContain(type);
+    }
+  });
+
   it('every BROWSABLE_TYPES member has a typeLabel', () => {
     for (const type of BROWSABLE_TYPES) {
       expect(typeLabels[type], `typeLabels is missing an entry for ${type}`).toBeDefined();

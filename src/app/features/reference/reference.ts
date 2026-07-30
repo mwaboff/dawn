@@ -7,7 +7,7 @@ import { DomainService } from '../../shared/services/domain.service';
 import { ExpansionService } from '../../shared/services/expansion.service';
 import { ClassService } from '../../shared/services/class.service';
 import { CodexBrowseService, BrowsableType, isBrowsableType } from '../../shared/services/codex-browse.service';
-import { BrowseResult, SearchFilters, SearchableEntityType, typeLabels } from '../../shared/models/search.model';
+import { BrowseResult, SearchFilters, SearchableEntityType, isSearchableType, typeLabels } from '../../shared/models/search.model';
 import { MappedSearchResult, mapSearchResult } from '../../shared/mappers/search-result.mapper';
 import { CodexSearchBar } from './components/codex-search-bar/codex-search-bar';
 import { TypeFacetTabs } from './components/type-facet-tabs/type-facet-tabs';
@@ -76,6 +76,11 @@ export class Reference implements OnInit {
     const t = this.activeType();
     if (!q && !t) return 'landing';
     if (!q) return 'focusedBrowse';
+    // A type with no backend search-index registration (e.g. COMPANION) can only ever be
+    // browsed, never full-text searched -- typing a query while it's focused must not
+    // promote to focusedSearch, or SearchService gets called with a `types` value the
+    // backend's enum doesn't recognize and returns HTTP 400.
+    if (t && !isSearchableType(t)) return 'focusedBrowse';
     return t ? 'focusedSearch' : 'mixedSearch';
   });
 
