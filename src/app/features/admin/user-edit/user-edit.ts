@@ -204,10 +204,12 @@ export class UserEdit implements OnInit {
     this.saving.set(false);
     const errorBody = (err as { error?: unknown })?.error;
     const banner = applyBackendErrors(this.form, errorBody);
-    const hasFieldErrors =
-      errorBody && typeof errorBody === 'object' &&
-      Array.isArray((errorBody as Record<string, unknown>)['errors']) &&
-      ((errorBody as Record<string, unknown>)['errors'] as unknown[]).length > 0;
+    const fieldErrors = errorBody && typeof errorBody === 'object'
+      ? (errorBody as Record<string, unknown>)['fieldErrors']
+      : undefined;
+    const hasFieldErrors = !!(
+      fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length > 0
+    );
     this.error.set(banner ?? (hasFieldErrors ? '' : fallback));
   }
 

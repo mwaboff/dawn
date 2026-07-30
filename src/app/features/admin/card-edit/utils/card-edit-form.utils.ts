@@ -148,9 +148,41 @@ export function buildPayloadFromSchema(
   return payload;
 }
 
+/**
+ * Applies backend validation errors to the card-edit form, returning a banner message when
+ * something couldn't be attached to a specific field control (or null when field-level errors
+ * were fully applied and no separate banner is needed).
+ *
+ * The backend's only validation error DTO is `ValidationErrorResponse { fieldErrors: Record<
+ * string, string> }` (from `GlobalExceptionHandler`) -- there is no `{ errors: [{field,
+ * defaultMessage}] }` shape anywhere in this backend; the previous implementation of this
+ * function parsed a shape nothing ever sends, so single-record validation failures always fell
+ * through to the generic `err.message` fallback (which `ValidationErrorResponse` also doesn't
+ * have) and ultimately the hardcoded "Save failed" banner in `card-edit.ts`, regardless of
+ * which field actually failed.
+ *
+ * For a single-record `@Valid @RequestBody CreateXRequest` (not a `List<T>`), Spring's bean
+ * validation reports the bare field name for top-level fields (e.g. "name", "featureType") and
+ * a dot-joined path for nested/embedded fields (e.g. "damage.notation" for a weapon's embedded
+ * DamageRoll) -- confirmed by reading `GlobalExceptionHandler.handleValidationErrors()`, which
+ * uses `FieldError#getField()` directly with no index prefix (the "list[N]." / "[N]." prefixes
+ * only appear for bulk `List<T>` bodies -- see `parseBulkFieldErrors` in `bulk-upload.utils.ts`).
+ * That backend path doesn't necessarily match the form control's name, since some schema fields
+ * declare an explicit `path` distinct from their control `name` (e.g. control `damageNotation`
+ * maps to backend path `damage.notation`) -- so a `schema` is used, when available, to resolve
+ * backend path -> control name correctly rather than assuming they're the same string.
+ *
+ * `schema` is optional because this function is also reused by `UserEdit` and
+ * `SubclassPathEdit`'s per-level forms; `UserEdit` builds its `FormGroup` by hand with no
+ * `CardSchema` at all (flat field names, no nested/embedded paths), so without a schema this
+ * falls back to treating the backend key as the control name directly -- correct for a flat
+ * form, and the same behavior as before for any single-level field even when a schema *is*
+ * supplied.
+ */
 export function applyBackendErrors(
   form: FormGroup,
   errorResponse: unknown,
+  schema?: CardSchema,
 ): string | null {
   if (!errorResponse || typeof errorResponse !== 'object') {
     return null;
@@ -158,19 +190,30 @@ export function applyBackendErrors(
 
   const err = errorResponse as Record<string, unknown>;
 
-  const errors = err['errors'];
-  if (Array.isArray(errors) && errors.length > 0) {
-    for (const fieldError of errors) {
-      if (fieldError && typeof fieldError === 'object') {
-        const fe = fieldError as Record<string, unknown>;
-        const field = fe['field'] as string | undefined;
-        const message = fe['defaultMessage'] as string | undefined;
-        if (field) {
-          form.get(field)?.setErrors({ backend: message ?? 'Invalid value' });
+  const fieldErrors = err['fieldErrors'];
+  if (fieldErrors && typeof fieldErrors === 'object' && !Array.isArray(fieldErrors)) {
+    const entries = Object.entries(fieldErrors as Record<string, string>);
+    if (entries.length > 0) {
+      const pathToFieldName = new Map<string, string>();
+      if (schema) {
+        for (const field of getAllFields(schema)) {
+          pathToFieldName.set(fieldPath(field).join('.'), field.name);
         }
       }
+
+      const unmatched: string[] = [];
+      for (const [path, message] of entries) {
+        const fieldName = pathToFieldName.get(path) ?? path;
+        const control = form.get(fieldName);
+        if (control) {
+          control.setErrors({ backend: message ?? 'Invalid value' });
+        } else {
+          unmatched.push(`${path}: ${message}`);
+        }
+      }
+
+      return unmatched.length > 0 ? unmatched.join('; ') : null;
     }
-    return null;
   }
 
   const message = err['message'];
