@@ -30,24 +30,24 @@ describe('LandingTypeGrid', () => {
     expect(fixture.nativeElement.querySelector('app-landing-type-grid')).toBeTruthy();
   });
 
-  it('renders 11 type cards', () => {
+  it('renders 12 type cards', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card');
-    expect(cards.length).toBe(11);
+    expect(cards.length).toBe(12);
   });
 
   it('renders a glyph for each card', () => {
     const glyphs = fixture.nativeElement.querySelectorAll('.type-glyph');
-    expect(glyphs.length).toBe(11);
+    expect(glyphs.length).toBe(12);
   });
 
   it('renders a label for each card', () => {
     const labels = fixture.nativeElement.querySelectorAll('.type-label');
-    expect(labels.length).toBe(11);
+    expect(labels.length).toBe(12);
   });
 
   it('renders a tagline for each card', () => {
     const taglines = fixture.nativeElement.querySelectorAll('.type-tagline');
-    expect(taglines.length).toBe(11);
+    expect(taglines.length).toBe(12);
   });
 
   it('emits WEAPON when Weapons card is clicked', () => {
@@ -62,6 +62,13 @@ describe('LandingTypeGrid', () => {
     const adversaryCard = Array.from(cards).find(c => c.textContent?.includes('Adversaries'));
     adversaryCard?.click();
     expect(host.lastSelectedType).toBe('ADVERSARY');
+  });
+
+  it('emits ENVIRONMENT when Environments card is clicked', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
+    const environmentCard = Array.from(cards).find(c => c.textContent?.includes('Environments'));
+    environmentCard?.click();
+    expect(host.lastSelectedType).toBe('ENVIRONMENT');
   });
 
   it('emits ARMOR when Armor card is clicked', () => {
@@ -93,6 +100,11 @@ describe('LandingTypeGrid', () => {
   it('includes Adversaries tagline', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Creatures and foes the GM can unleash');
+  });
+
+  it('includes Environments tagline', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Scenes and settings the GM can bring to life');
   });
 
   it('does not render a Features card', () => {

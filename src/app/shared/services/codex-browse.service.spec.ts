@@ -6,6 +6,7 @@ import { WeaponService } from './weapon.service';
 import { ArmorService } from './armor.service';
 import { LootService } from './loot.service';
 import { AdversaryService } from './adversary.service';
+import { EnvironmentService } from './environment.service';
 import { ClassService } from './class.service';
 import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
@@ -41,6 +42,7 @@ describe('CodexBrowseService', () => {
   let armorSpy: { getArmors: ReturnType<typeof vi.fn> };
   let lootSpy: { getLoot: ReturnType<typeof vi.fn> };
   let adversarySpy: { getAdversaries: ReturnType<typeof vi.fn> };
+  let environmentSpy: { getEnvironmentsPaginated: ReturnType<typeof vi.fn> };
   let classSpy: { getClassesPaginated: ReturnType<typeof vi.fn> };
   let ancestrySpy: { getAncestriesPaginated: ReturnType<typeof vi.fn> };
   let communitySpy: { getCommunitiesPaginated: ReturnType<typeof vi.fn> };
@@ -54,6 +56,7 @@ describe('CodexBrowseService', () => {
     armorSpy = { getArmors: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     lootSpy = { getLoot: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     adversarySpy = { getAdversaries: vi.fn().mockReturnValue(of(buildPaginatedAdversaries())) };
+    environmentSpy = { getEnvironmentsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     classSpy = { getClassesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     ancestrySpy = { getAncestriesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     communitySpy = { getCommunitiesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
@@ -72,6 +75,7 @@ describe('CodexBrowseService', () => {
         { provide: ArmorService, useValue: armorSpy },
         { provide: LootService, useValue: lootSpy },
         { provide: AdversaryService, useValue: adversarySpy },
+        { provide: EnvironmentService, useValue: environmentSpy },
         { provide: ClassService, useValue: classSpy },
         { provide: AncestryService, useValue: ancestrySpy },
         { provide: CommunityService, useValue: communitySpy },
@@ -113,6 +117,14 @@ describe('CodexBrowseService', () => {
 
     expect(adversarySpy.getAdversaries).toHaveBeenCalledWith(
       expect.objectContaining({ adversaryType: 'BOSS', tier: 3 }),
+    );
+  });
+
+  it('should dispatch ENVIRONMENT to EnvironmentService.getEnvironmentsPaginated with correct filters', () => {
+    service.browse('ENVIRONMENT', { tier: 2, environmentType: 'SOCIAL', isOfficial: true }, 0).subscribe();
+
+    expect(environmentSpy.getEnvironmentsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 0, tier: 2, environmentType: 'SOCIAL', isOfficial: true }),
     );
   });
 

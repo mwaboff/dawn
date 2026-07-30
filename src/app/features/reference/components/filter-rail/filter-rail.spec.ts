@@ -98,6 +98,14 @@ describe('FilterRail', () => {
     expect(el.textContent).toContain('Adversary Type');
   });
 
+  it('renders environment-specific filters when activeType is ENVIRONMENT', () => {
+    host.activeType.set('ENVIRONMENT');
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Environment Type');
+    expect(el.textContent).toContain('Tier');
+  });
+
   it('renders consumable checkbox for LOOT type', () => {
     host.activeType.set('LOOT');
     fixture.detectChanges();

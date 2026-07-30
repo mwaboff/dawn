@@ -4,6 +4,7 @@ import { WeaponService } from './weapon.service';
 import { ArmorService } from './armor.service';
 import { LootService } from './loot.service';
 import { AdversaryService } from './adversary.service';
+import { EnvironmentService } from './environment.service';
 import { ClassService } from './class.service';
 import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
@@ -26,7 +27,7 @@ import { BrowseResult, SearchableEntityType } from '../models/search.model';
  * `.pipe()` call. See `SUPPORTED_BROWSE_TYPES` usage in `reference.ts` for the fix on that side.
  */
 export const SUPPORTED_BROWSE_TYPES = [
-  'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'CLASS', 'ANCESTRY_CARD',
+  'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'ENVIRONMENT', 'CLASS', 'ANCESTRY_CARD',
   'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE',
 ] as const satisfies readonly SearchableEntityType[];
 
@@ -51,6 +52,7 @@ export class CodexBrowseService {
   private readonly armorService = inject(ArmorService);
   private readonly lootService = inject(LootService);
   private readonly adversaryService = inject(AdversaryService);
+  private readonly environmentService = inject(EnvironmentService);
   private readonly classService = inject(ClassService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
@@ -104,6 +106,15 @@ export class CodexBrowseService {
           totalPages: r.totalPages,
           totalElements: r.totalElements,
         })));
+
+      case 'ENVIRONMENT':
+        return this.environmentService.getEnvironmentsPaginated({
+          page,
+          tier: filters['tier'] as number | undefined,
+          environmentType: filters['environmentType'] as string | undefined,
+          isOfficial: filters['isOfficial'] as boolean | undefined,
+          expansionId: filters['expansionId'] as number | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'CLASS':
         return this.classService.getClassesPaginated({

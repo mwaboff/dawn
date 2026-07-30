@@ -19,6 +19,7 @@ const TYPE_TAGLINES: Partial<Record<SearchableEntityType, string>> = {
   ARMOR: 'Shields and plate that stand between you and ruin.',
   LOOT: 'Treasures, relics, and curiosities found along the way.',
   ADVERSARY: 'Creatures and foes the GM can unleash.',
+  ENVIRONMENT: 'Scenes and settings the GM can bring to life.',
   COMPANION: 'Loyal beasts and bonded allies at your side.',
 };
 
