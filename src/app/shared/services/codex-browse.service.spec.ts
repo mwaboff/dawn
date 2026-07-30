@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { CodexBrowseService } from './codex-browse.service';
+import { CodexBrowseService, isBrowsableType, SUPPORTED_BROWSE_TYPES } from './codex-browse.service';
 import { WeaponService } from './weapon.service';
 import { ArmorService } from './armor.service';
 import { LootService } from './loot.service';
@@ -232,5 +232,20 @@ describe('CodexBrowseService', () => {
     service.browse('ARMOR', {}, 5).subscribe();
 
     expect(armorSpy.getArmors).toHaveBeenCalledWith(expect.objectContaining({ page: 5 }));
+  });
+});
+
+describe('isBrowsableType', () => {
+  it('should return true for every type browse() actually handles', () => {
+    for (const type of SUPPORTED_BROWSE_TYPES) {
+      expect(isBrowsableType(type)).toBe(true);
+    }
+  });
+
+  it('should return false for the six indexed-but-unbrowsable types (no per-type browse endpoint)', () => {
+    const unbrowsable = ['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const;
+    for (const type of unbrowsable) {
+      expect(isBrowsableType(type)).toBe(false);
+    }
   });
 });
