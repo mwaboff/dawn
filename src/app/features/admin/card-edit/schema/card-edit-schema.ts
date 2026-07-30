@@ -334,8 +334,9 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
         fields: [
           { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
-          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
-          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          // No `expansionId` or `isOfficial` fields here: Companion is user-owned per-character
+          // data cascaded from CharacterSheet, not catalogue content -- the entity has neither
+          // field. See `Companion.java` / `CreateCompanionRequest` / `UpdateCompanionRequest`.
         ],
       },
     ],
