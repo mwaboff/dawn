@@ -439,4 +439,226 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
       FEATURE_TYPE_LABELS[v['featureType'] as keyof typeof FEATURE_TYPE_LABELS] ?? null,
     ].filter((t): t is string => !!t),
   },
+
+  transformationCard: {
+    cardType: 'transformationCard',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 'full' as const },
+        ],
+      },
+    ],
+    previewTags: () => [],
+  },
+
+  environment: {
+    cardType: 'environment',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'isPublic', label: 'Publicly visible', kind: 'checkbox' as const, column: 2 as const },
+        ],
+      },
+      {
+        title: 'Details',
+        fields: [
+          { name: 'tier', label: 'Tier', kind: 'number', required: true, min: 1, helpText: 'Power tier, 1-4.', column: 1 },
+          {
+            name: 'environmentType', label: 'Type', kind: 'enum', required: true, column: 2, options: [
+              { value: 'EXPLORATION', label: 'Exploration' },
+              { value: 'TRAVERSAL', label: 'Traversal' },
+              { value: 'EVENT', label: 'Event' },
+              { value: 'SOCIAL', label: 'Social' },
+            ],
+          },
+          { name: 'impulses', label: 'Impulses', kind: 'textarea', column: 'full' },
+          { name: 'potentialAdversaries', label: 'Potential adversaries', kind: 'textarea', column: 'full' },
+        ],
+      },
+      {
+        // Difficulty is a XOR on the backend (Environment / CreateEnvironmentRequest):
+        // exactly one of `difficulty` (numeric) or `difficultySpecial` (verbatim printed
+        // text, e.g. "Special (see 'Relative Strength')") must be set. The schema format
+        // has no way to express "exactly one of these two fields" or field-level XOR
+        // validation, so both are left optional here; the backend re-validates the XOR
+        // on save.
+        title: 'Difficulty (set exactly one of the two fields below)',
+        fields: [
+          { name: 'difficulty', label: 'Difficulty (numeric)', kind: 'number', min: 1, column: 1 },
+          { name: 'difficultySpecial', label: 'Difficulty (special text)', kind: 'text', maxLength: 255, column: 2 },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      v['environmentType'] as string | null,
+      v['tier'] != null ? `Tier ${v['tier']}` : null,
+      v['difficulty'] != null ? `Difficulty ${v['difficulty']}` : (v['difficultySpecial'] ? `Difficulty: ${v['difficultySpecial']}` : null),
+    ].filter((t): t is string => !!t),
+  },
+
+  martialStance: {
+    cardType: 'martialStance',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+        ],
+      },
+      {
+        title: 'Details',
+        fields: [
+          { name: 'tier', label: 'Tier', kind: 'number', required: true, min: 1, helpText: 'Gates which stances a character can know, 1-4.', column: 1 },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      v['tier'] != null ? `Tier ${v['tier']}` : null,
+    ].filter((t): t is string => !!t),
+  },
+
+  beastform: {
+    cardType: 'beastform',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'example', label: 'Example', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'advantages', label: 'Advantages', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'isPublic', label: 'Publicly visible', kind: 'checkbox' as const, column: 2 as const },
+        ],
+      },
+      {
+        title: 'Trait modifiers',
+        fields: [
+          { name: 'agilityModifier', label: 'Agility modifier', kind: 'number', column: 1 },
+          { name: 'strengthModifier', label: 'Strength modifier', kind: 'number', column: 2 },
+          { name: 'finesseModifier', label: 'Finesse modifier', kind: 'number', column: 1 },
+          { name: 'instinctModifier', label: 'Instinct modifier', kind: 'number', column: 2 },
+          { name: 'presenceModifier', label: 'Presence modifier', kind: 'number', column: 1 },
+          { name: 'knowledgeModifier', label: 'Knowledge modifier', kind: 'number', column: 2 },
+        ],
+      },
+      {
+        title: 'Attack',
+        fields: [
+          {
+            name: 'attackRange', label: 'Attack range', kind: 'enum', required: true, column: 1, options: [
+              { value: 'MELEE', label: 'Melee' },
+              { value: 'VERY_CLOSE', label: 'Very close' },
+              { value: 'CLOSE', label: 'Close' },
+              { value: 'FAR', label: 'Far' },
+              { value: 'VERY_FAR', label: 'Very far' },
+              { value: 'OUT_OF_RANGE', label: 'Out of range' },
+            ],
+          },
+          { name: 'attackTrait', label: 'Attack trait', kind: 'enum', required: true, column: 2, options: TRAIT_OPTIONS },
+        ],
+      },
+      {
+        title: 'Damage',
+        fields: [
+          {
+            name: 'damageDiceCount',
+            label: 'Dice count',
+            kind: 'number',
+            path: ['damage', 'diceCount'],
+            helpText: 'Leave empty to use character proficiency.',
+            column: 1,
+          },
+          {
+            name: 'damageDiceType',
+            label: 'Dice type',
+            kind: 'enum',
+            required: true,
+            path: ['damage', 'diceType'],
+            column: 2,
+            options: [
+              { value: 'D4', label: 'd4' },
+              { value: 'D6', label: 'd6' },
+              { value: 'D8', label: 'd8' },
+              { value: 'D10', label: 'd10' },
+              { value: 'D12', label: 'd12' },
+              { value: 'D20', label: 'd20' },
+            ],
+          },
+          {
+            name: 'damageModifier',
+            label: 'Modifier',
+            kind: 'number',
+            path: ['damage', 'modifier'],
+            helpText: 'Flat bonus added to the damage roll. May be negative.',
+            column: 1,
+          },
+          {
+            name: 'damageDamageType',
+            label: 'Damage type',
+            kind: 'enum',
+            required: true,
+            path: ['damage', 'damageType'],
+            column: 2,
+            options: [
+              { value: 'PHYSICAL', label: 'Physical' },
+              { value: 'MAGIC', label: 'Magic' },
+              { value: 'PHYSICAL_AND_MAGIC', label: 'Physical or Magic' },
+            ],
+          },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      v['attackTrait'] as string | null,
+      v['attackRange'] as string | null,
+    ].filter((t): t is string => !!t),
+  },
+
+  condition: {
+    cardType: 'condition',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
+          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+        ],
+      },
+    ],
+    previewTags: () => [],
+  },
+
+  // An Expansion IS the expansion -- it has no expansionId of its own, so this
+  // intentionally does not reuse BASICS_FIELDS_FULL (which includes an
+  // expansionId lookup field).
+  expansion: {
+    cardType: 'expansion',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 255, column: 'full' as const },
+          { name: 'isPublished', label: 'Published', kind: 'checkbox' as const, column: 'full' as const },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      v['isPublished'] ? 'Published' : 'Unpublished',
+    ],
+  },
 };
