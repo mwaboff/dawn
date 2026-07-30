@@ -77,6 +77,13 @@ describe('CardSearch', () => {
     expect(pillLabels).toContain('Features');
   });
 
+  it('should include an Environments category among the pills', () => {
+    fixture.detectChanges();
+    const pillLabels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
+      .map((el) => (el as HTMLElement).textContent?.trim());
+    expect(pillLabels).toContain('Environments');
+  });
+
   it('should show empty message when no category selected', () => {
     fixture.detectChanges();
     const emptyMessage = fixture.nativeElement.querySelector('.search-empty');
