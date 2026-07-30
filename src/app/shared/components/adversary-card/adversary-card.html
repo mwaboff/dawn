@@ -32,29 +32,23 @@
             <span class="adversary-card__stat-value">{{ adversary().evasion }}</span>
           </div>
         }
-        @if (adversary().difficulty !== undefined) {
-          <div class="adversary-card__stat">
-            <span class="adversary-card__stat-label">Difficulty</span>
-            <span class="adversary-card__stat-value">{{ adversary().difficulty }}</span>
-          </div>
-        }
+        <div class="adversary-card__stat">
+          <span class="adversary-card__stat-label">Difficulty</span>
+          <span class="adversary-card__stat-value">{{ adversary().difficulty ?? '—' }}</span>
+        </div>
       </div>
     }
 
     @if (adversary().majorThreshold !== undefined || adversary().severeThreshold !== undefined) {
       <div class="adversary-card__thresholds">
-        @if (adversary().majorThreshold !== undefined) {
-          <div class="adversary-card__threshold">
-            <span class="adversary-card__threshold-label">Major</span>
-            <span class="adversary-card__threshold-value">{{ adversary().majorThreshold }}</span>
-          </div>
-        }
-        @if (adversary().severeThreshold !== undefined) {
-          <div class="adversary-card__threshold">
-            <span class="adversary-card__threshold-label">Severe</span>
-            <span class="adversary-card__threshold-value">{{ adversary().severeThreshold }}</span>
-          </div>
-        }
+        <div class="adversary-card__threshold">
+          <span class="adversary-card__threshold-label">Major</span>
+          <span class="adversary-card__threshold-value">{{ adversary().majorThreshold ?? '—' }}</span>
+        </div>
+        <div class="adversary-card__threshold">
+          <span class="adversary-card__threshold-label">Severe</span>
+          <span class="adversary-card__threshold-value">{{ adversary().severeThreshold ?? '—' }}</span>
+        </div>
       </div>
     }
 
