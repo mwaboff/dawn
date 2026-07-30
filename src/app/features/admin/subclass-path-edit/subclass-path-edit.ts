@@ -197,8 +197,13 @@ export class SubclassPathEdit implements OnInit {
         },
         error: (err) => {
           const errorBody = err?.error;
-          const banner = applyBackendErrors(entry.form, errorBody);
-          const hasFieldErrors = errorBody && Array.isArray(errorBody['errors']) && errorBody['errors'].length > 0;
+          const banner = applyBackendErrors(entry.form, errorBody, this.schema());
+          const hasFieldErrors = !!(
+            errorBody
+            && errorBody['fieldErrors']
+            && typeof errorBody['fieldErrors'] === 'object'
+            && Object.keys(errorBody['fieldErrors']).length > 0
+          );
           this.updateLevel(level, {
             saving: false,
             error: banner ?? (hasFieldErrors ? '' : 'Save failed. Please try again.'),

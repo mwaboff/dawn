@@ -169,8 +169,13 @@ export class CardEdit implements OnInit {
         error: (err) => {
           this.saving.set(false);
           const errorBody = err?.error;
-          const banner = applyBackendErrors(this.cardForm, errorBody);
-          const hasFieldErrors = errorBody && Array.isArray(errorBody['errors']) && errorBody['errors'].length > 0;
+          const banner = applyBackendErrors(this.cardForm, errorBody, this.schema());
+          const hasFieldErrors = !!(
+            errorBody
+            && errorBody['fieldErrors']
+            && typeof errorBody['fieldErrors'] === 'object'
+            && Object.keys(errorBody['fieldErrors']).length > 0
+          );
           this.error.set(banner ?? (hasFieldErrors ? '' : 'Save failed. Please try again.'));
         },
       });

@@ -297,6 +297,24 @@ describe('nested path support', () => {
   });
 });
 
+// Mirrors the shape of a real schema field whose backend path differs from its control name
+// (e.g. weapon.damageNotation -> backend path "damage.notation"), so path-to-control-name
+// resolution is exercised the same way it would be for a real nested/embedded field.
+const pathDifferingSchema: CardSchema = {
+  cardType: 'weapon',
+  sections: [
+    {
+      title: 'Basics',
+      fields: [
+        { name: 'name', label: 'Name', kind: 'text', required: true, column: 'full' },
+        { name: 'damageNotation', label: 'Damage notation', kind: 'text', path: ['damage', 'notation'], column: 1 },
+        { name: 'damageDamageType', label: 'Damage type', kind: 'enum', path: ['damage', 'damageType'], column: 2, options: [] },
+      ],
+    },
+  ],
+  previewTags: () => [],
+};
+
 describe('applyBackendErrors', () => {
   let fb: FormBuilder;
 
@@ -304,49 +322,78 @@ describe('applyBackendErrors', () => {
     fb = new FormBuilder();
   });
 
-  it('sets backend error on the named field and returns null', () => {
+  // The backend's only validation error DTO is ValidationErrorResponse.fieldErrors, a
+  // Record<string, string> keyed by bare field name (single-record @Valid, confirmed by
+  // reading GlobalExceptionHandler.handleValidationErrors -- no "{errors: [...]}" shape is
+  // ever sent). These tests exercise that real shape.
+
+  it('sets backend error on the named field (bare field name) and returns null', () => {
     const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
-    const errorResponse = {
-      errors: [{ field: 'name', defaultMessage: 'Name is too long' }],
-    };
-    const result = applyBackendErrors(form, errorResponse);
+    const errorResponse = { fieldErrors: { name: 'Name is too long' } };
+    const result = applyBackendErrors(form, errorResponse, domainCardSchema);
     expect(result).toBeNull();
     expect(form.get('name')?.getError('backend')).toBe('Name is too long');
   });
 
-  it('returns null when all errors are field-scoped', () => {
+  it('returns null when all field errors resolve to a control', () => {
     const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
-    const errorResponse = {
-      errors: [
-        { field: 'name', defaultMessage: 'Required' },
-        { field: 'level', defaultMessage: 'Must be positive' },
-      ],
-    };
-    const result = applyBackendErrors(form, errorResponse);
+    const errorResponse = { fieldErrors: { name: 'Required', level: 'Must be positive' } };
+    const result = applyBackendErrors(form, errorResponse, domainCardSchema);
     expect(result).toBeNull();
     expect(form.get('name')?.getError('backend')).toBe('Required');
     expect(form.get('level')?.getError('backend')).toBe('Must be positive');
   });
 
-  it('returns banner message when error has top-level message only', () => {
+  it('resolves a dot-joined backend path to the control whose schema field declares that path', () => {
+    const rawWeapon: RawCardResponse = {
+      id: 1, name: 'Shortsword', expansionId: 1, cardType: 'weapon',
+      damage: { notation: '2d6', damageType: 'PHYSICAL' },
+    };
+    const form = buildFormFromSchema(pathDifferingSchema, rawWeapon, fb);
+    const errorResponse = { fieldErrors: { 'damage.notation': 'Invalid damage notation' } };
+    const result = applyBackendErrors(form, errorResponse, pathDifferingSchema);
+    expect(result).toBeNull();
+    // The control is named "damageNotation", not "damage.notation" -- resolution must go
+    // through the schema's declared path, not assume the backend key matches the control name.
+    expect(form.get('damageNotation')?.getError('backend')).toBe('Invalid damage notation');
+  });
+
+  it('returns a banner listing unmatched field errors when a key resolves to no control', () => {
+    const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
+    const errorResponse = { fieldErrors: { requests: 'must not be empty' } };
+    const result = applyBackendErrors(form, errorResponse, domainCardSchema);
+    expect(result).toContain('requests');
+    expect(result).toContain('must not be empty');
+  });
+
+  it('returns banner message when error has top-level message only (non-validation ErrorResponse)', () => {
     const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
     const errorResponse = { message: 'Internal server error' };
-    const result = applyBackendErrors(form, errorResponse);
+    const result = applyBackendErrors(form, errorResponse, domainCardSchema);
     expect(result).toBe('Internal server error');
   });
 
   it('returns null for null error response', () => {
     const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
-    const result = applyBackendErrors(form, null);
+    const result = applyBackendErrors(form, null, domainCardSchema);
     expect(result).toBeNull();
   });
 
-  it('ignores field error if field does not exist on form', () => {
+  it('does not throw when fieldErrors is an empty object', () => {
     const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
-    const errorResponse = {
-      errors: [{ field: 'nonExistentField', defaultMessage: 'Error' }],
-    };
-    expect(() => applyBackendErrors(form, errorResponse)).not.toThrow();
+    const errorResponse = { fieldErrors: {} };
+    expect(() => applyBackendErrors(form, errorResponse, domainCardSchema)).not.toThrow();
+    expect(applyBackendErrors(form, errorResponse, domainCardSchema)).toBeNull();
+  });
+
+  it('ignores the legacy {errors: [...]} shape entirely, since the backend never sends it', () => {
+    const form = buildFormFromSchema(domainCardSchema, rawCard, fb);
+    const errorResponse = { errors: [{ field: 'name', defaultMessage: 'Name is too long' }] };
+    const result = applyBackendErrors(form, errorResponse, domainCardSchema);
+    // No fieldErrors key present, so this falls through to the message fallback (also absent)
+    // and returns null -- it must NOT set a backend error from the legacy shape.
+    expect(result).toBeNull();
+    expect(form.get('name')?.hasError('backend')).toBe(false);
   });
 });
 

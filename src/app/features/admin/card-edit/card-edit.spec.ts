@@ -248,7 +248,27 @@ describe('CardEdit — schema-driven orchestrator', () => {
   });
 
   describe('onSave — backend 400 with field errors', () => {
-    it('applies inline error to the named field', async () => {
+    it('applies inline error to the named field using the real ValidationErrorResponse.fieldErrors shape', async () => {
+      await setup();
+      vi.spyOn(adminCardService, 'updateCard').mockReturnValue(
+        throwError(() => ({
+          error: {
+            status: 400,
+            error: 'Validation Failed',
+            fieldErrors: { name: 'Name is too long' },
+          },
+        }))
+      );
+
+      component.cardForm.get('name')?.setValue('X');
+      component.cardForm.get('name')?.markAsDirty();
+      component.onSave();
+
+      expect(component.cardForm.get('name')?.errors).toEqual({ backend: 'Name is too long' });
+      expect(component.error()).toBe('');
+    });
+
+    it('shows fallback banner (not a crash) for the legacy {errors: [...]} shape, since the backend never actually sends it', async () => {
       await setup();
       vi.spyOn(adminCardService, 'updateCard').mockReturnValue(
         throwError(() => ({
@@ -262,8 +282,8 @@ describe('CardEdit — schema-driven orchestrator', () => {
       component.cardForm.get('name')?.markAsDirty();
       component.onSave();
 
-      expect(component.cardForm.get('name')?.errors).toEqual({ backend: 'Name is too long' });
-      expect(component.error()).toBe('');
+      expect(component.cardForm.get('name')?.hasError('backend')).toBe(false);
+      expect(component.error()).toBe('Save failed. Please try again.');
     });
   });
 
