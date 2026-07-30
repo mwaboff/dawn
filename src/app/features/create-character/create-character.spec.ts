@@ -665,6 +665,29 @@ describe('CreateCharacter', () => {
       expect(component.ancestryCardsLoading()).toBe(false);
     });
 
+    it('should not truncate the full catalog (24 ancestries: 18 core + 6 Hope & Fear)', () => {
+      const fullCatalog = Array.from({ length: 24 }, (_, i) =>
+        buildAncestryCardResponse({ id: 300 + i, name: `Ancestry ${i + 1}` }),
+      );
+
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+
+      const req = httpTesting.expectOne(r => r.url.includes('/dh/cards/ancestry'));
+      expect(req.request.params.get('size')).toBe('100');
+      req.flush({
+        content: fullCatalog,
+        currentPage: 0,
+        pageSize: 100,
+        totalElements: fullCatalog.length,
+        totalPages: 1,
+      });
+      fixture.detectChanges();
+
+      expect(component.ancestryCards().length).toBe(24);
+    });
+
     it('should show loading state while ancestry cards are loading', () => {
       fixture.detectChanges();
       flushClassCards();

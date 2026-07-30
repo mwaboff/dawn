@@ -52,11 +52,36 @@ describe('AncestryService', () => {
     const req = httpTesting.expectOne(
       r => r.url === baseUrl &&
         r.params.get('page') === '0' &&
-        r.params.get('size') === '20' &&
+        r.params.get('size') === '100' &&
         r.params.get('expand') === 'expansion,features,costTags,modifiers',
     );
     expect(req.request.method).toBe('GET');
     req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should fetch ancestries with page=0 and size=100 to cover the full catalog in one page', () => {
+    service.getAncestries().subscribe();
+
+    const req = httpTesting.expectOne(
+      r => r.url === baseUrl &&
+        r.params.get('page') === '0' &&
+        r.params.get('size') === '100',
+    );
+    req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should not truncate when the catalog exceeds the old 20-item page size', () => {
+    const twentyFourAncestries = Array.from({ length: 24 }, (_, i) =>
+      buildAncestryCardResponse({ id: i + 1, name: `Ancestry ${i + 1}` }),
+    );
+
+    let result: CardData[] | undefined;
+    service.getAncestries().subscribe(data => (result = data));
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl);
+    req.flush(buildPaginatedResponse(twentyFourAncestries));
+
+    expect(result).toHaveLength(24);
   });
 
   it('should call correct URL with custom page and size', () => {

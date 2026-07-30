@@ -19,7 +19,14 @@ export class AncestryService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/cards/ancestry`;
 
-  getAncestries(page = 0, size = 20): Observable<CardData[]> {
+  /**
+   * Fetches the full ancestry catalog in a single page for use in contexts (e.g. character
+   * creation) that expect the complete list rather than genuine pagination. `size` defaults
+   * to 100 -- the same convention `ClassService.getClasses()` uses -- so the full catalog
+   * (24 ancestries across core + Hope & Fear today) fits in one page with headroom for growth,
+   * rather than silently truncating at a page size sized to fit only the current count.
+   */
+  getAncestries(page = 0, size = 100): Observable<CardData[]> {
     const params = new HttpParams()
       .set('page', page)
       .set('size', size)
