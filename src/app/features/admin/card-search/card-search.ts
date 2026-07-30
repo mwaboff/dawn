@@ -28,6 +28,7 @@ export const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType 
   { id: 'armor', label: 'Armor', type: 'ARMOR' },
   { id: 'loot', label: 'Loot', type: 'LOOT' },
   { id: 'adversary', label: 'Adversaries', type: 'ADVERSARY' },
+  { id: 'environment', label: 'Environments', type: 'ENVIRONMENT' },
   { id: 'companion', label: 'Companions', type: 'COMPANION' },
   { id: 'feature', label: 'Features', type: 'FEATURE' },
 ];
