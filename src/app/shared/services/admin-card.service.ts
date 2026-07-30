@@ -21,6 +21,7 @@ export class AdminCardService {
     'subclassPath': '/dh/subclass-paths',
     'adversary': '/dh/adversaries',
     'feature': '/dh/features',
+    'question': '/dh/questions',
   };
 
   private getEndpoint(cardType: string): string {

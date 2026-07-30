@@ -104,6 +104,7 @@ describe('AdminCardService', () => {
         'subclassPath': '/dh/subclass-paths',
         'adversary': '/dh/adversaries',
         'feature': '/dh/features',
+        'question': '/dh/questions',
       };
 
       for (const [type, endpoint] of Object.entries(expectedMappings)) {

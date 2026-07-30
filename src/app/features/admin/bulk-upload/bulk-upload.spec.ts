@@ -29,6 +29,19 @@ describe('BulkUpload', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('card type options', () => {
+    it('should include question and feature as uploadable types', () => {
+      const values = component.cardTypeOptions.map(o => o.value);
+      expect(values).toContain('question');
+      expect(values).toContain('feature');
+    });
+
+    it('should not offer companion (no bulk endpoint exists)', () => {
+      const values = component.cardTypeOptions.map(o => o.value);
+      expect(values).not.toContain('companion');
+    });
+  });
+
   describe('validation', () => {
     it('should show error for empty input', () => {
       component.selectedType.set('class');
@@ -137,6 +150,78 @@ describe('BulkUpload', () => {
 
       expect(component.uploadResult()?.success).toBe(false);
       expect(component.uploadResult()?.error).toBe('Bad request');
+    });
+
+    it('should surface field-level validation errors keyed as "list[N].field" instead of a generic message', () => {
+      vi.spyOn(adminCardService, 'bulkCreate').mockReturnValue(
+        throwError(() => ({
+          error: {
+            status: 400,
+            error: 'Validation Failed',
+            fieldErrors: {
+              'list[2].name': 'must not be blank',
+              'list[47].expansionId': 'Expansion ID is required',
+            },
+          },
+        }))
+      );
+      component.selectedType.set('adversary');
+      component.jsonInput.set('[{ "name": "A" }, { "name": "B" }, { "name": "" }]');
+      component.onValidate();
+      component.onUpload();
+
+      const result = component.uploadResult();
+      expect(result?.success).toBe(false);
+      expect(result?.fieldErrors).toHaveLength(2);
+      expect(result?.fieldErrors?.[0]).toEqual({ recordIndex: 2, field: 'name', message: 'must not be blank' });
+      expect(result?.fieldErrors?.[1]).toEqual({ recordIndex: 47, field: 'expansionId', message: 'Expansion ID is required' });
+    });
+
+    it('should surface field-level validation errors keyed as "[N].field" (the alternate backend handler shape)', () => {
+      vi.spyOn(adminCardService, 'bulkCreate').mockReturnValue(
+        throwError(() => ({
+          error: {
+            status: 400,
+            error: 'Validation Failed',
+            fieldErrors: { '[0].questionType': 'Question type is required' },
+          },
+        }))
+      );
+      component.selectedType.set('question');
+      component.jsonInput.set('[{ "questionText": "Why?" }]');
+      component.onValidate();
+      component.onUpload();
+
+      const result = component.uploadResult();
+      expect(result?.fieldErrors).toEqual([{ recordIndex: 0, field: 'questionType', message: 'Question type is required' }]);
+    });
+
+    it('should fall back to the generic message when fieldErrors is absent', () => {
+      vi.spyOn(adminCardService, 'bulkCreate').mockReturnValue(
+        throwError(() => ({ error: { message: 'Server exploded' } }))
+      );
+      component.selectedType.set('class');
+      component.jsonInput.set('[{ "name": "A" }]');
+      component.onValidate();
+      component.onUpload();
+
+      const result = component.uploadResult();
+      expect(result?.fieldErrors).toBeUndefined();
+      expect(result?.error).toBe('Server exploded');
+    });
+
+    it('should fall back to the generic message when fieldErrors is an empty object', () => {
+      vi.spyOn(adminCardService, 'bulkCreate').mockReturnValue(
+        throwError(() => ({ error: { message: 'Odd empty case', fieldErrors: {} } }))
+      );
+      component.selectedType.set('class');
+      component.jsonInput.set('[{ "name": "A" }]');
+      component.onValidate();
+      component.onUpload();
+
+      const result = component.uploadResult();
+      expect(result?.fieldErrors).toBeUndefined();
+      expect(result?.error).toBe('Odd empty case');
     });
   });
 

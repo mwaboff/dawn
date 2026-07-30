@@ -2,11 +2,13 @@ import { Component, ChangeDetectionStrategy, signal, computed, inject, DestroyRe
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
+import { BulkFieldError, parseBulkFieldErrors } from './bulk-upload.utils';
 
 interface UploadResult {
   success: boolean;
   count?: number;
   error?: string;
+  fieldErrors?: BulkFieldError[];
 }
 
 const CARD_TYPE_OPTIONS = [
@@ -19,10 +21,13 @@ const CARD_TYPE_OPTIONS = [
   { value: 'weapon', label: 'Weapons' },
   { value: 'armor', label: 'Armor' },
   { value: 'loot', label: 'Loot' },
-  { value: 'companion', label: 'Companions' },
+  // 'companion' intentionally omitted: Companion has no bulk endpoint (character-owned
+  // content, not catalog content) and by design none is planned. Offering it here would
+  // silently fail on every upload attempt.
   { value: 'subclassPath', label: 'Subclass Paths' },
   { value: 'adversary', label: 'Adversaries' },
   { value: 'feature', label: 'Features' },
+  { value: 'question', label: 'Questions' },
 ];
 
 @Component({
@@ -98,6 +103,17 @@ export class BulkUpload {
         },
         error: (err) => {
           this.uploading.set(false);
+
+          const backendFieldErrors = err?.error?.fieldErrors as Record<string, string> | undefined;
+          if (backendFieldErrors && Object.keys(backendFieldErrors).length > 0) {
+            this.uploadResult.set({
+              success: false,
+              error: err?.error?.error || 'Validation failed.',
+              fieldErrors: parseBulkFieldErrors(backendFieldErrors),
+            });
+            return;
+          }
+
           this.uploadResult.set({
             success: false,
             error: err?.error?.message || err?.message || 'Upload failed. Please try again.',
