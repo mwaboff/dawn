@@ -12,6 +12,7 @@ import { CommunityService } from './community.service';
 import { DomainService } from './domain.service';
 import { SubclassService } from './subclass.service';
 import { CompanionService } from './companion.service';
+import { FeatureLookupService } from './feature-lookup.service';
 import { BrowseResult } from '../models/search.model';
 import { PaginatedCards } from '../models/api.model';
 
@@ -46,6 +47,7 @@ describe('CodexBrowseService', () => {
   let domainSpy: { getDomainCardsBrowse: ReturnType<typeof vi.fn>; getDomainsPaginated: ReturnType<typeof vi.fn> };
   let subclassSpy: { getSubclassesPaginated: ReturnType<typeof vi.fn> };
   let companionSpy: { getCompanionsPaginated: ReturnType<typeof vi.fn> };
+  let featureSpy: { getFeaturesPaginated: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     weaponSpy = { getWeapons: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
@@ -61,6 +63,7 @@ describe('CodexBrowseService', () => {
     };
     subclassSpy = { getSubclassesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     companionSpy = { getCompanionsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
+    featureSpy = { getFeaturesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
 
     TestBed.configureTestingModule({
       providers: [
@@ -75,6 +78,7 @@ describe('CodexBrowseService', () => {
         { provide: DomainService, useValue: domainSpy },
         { provide: SubclassService, useValue: subclassSpy },
         { provide: CompanionService, useValue: companionSpy },
+        { provide: FeatureLookupService, useValue: featureSpy },
       ],
     });
     service = TestBed.inject(CodexBrowseService);
@@ -168,6 +172,28 @@ describe('CodexBrowseService', () => {
     service.browse('COMPANION', {}, 0).subscribe();
 
     expect(companionSpy.getCompanionsPaginated).toHaveBeenCalled();
+  });
+
+  it('should dispatch FEATURE to FeatureLookupService.getFeaturesPaginated with correct filters', () => {
+    service.browse('FEATURE', { expansionId: 4, featureType: 'OTHER' }, 1).subscribe();
+
+    expect(featureSpy.getFeaturesPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 1, expansionId: 4, featureType: 'OTHER' }),
+    );
+  });
+
+  it('should return BrowseResult with cards and empty adversaries for FEATURE, including unattached rows', () => {
+    const mockCards = [
+      { id: 1, name: 'Shadowblighted', description: 'You may add this to any adversary.', cardType: 'feature' as const },
+    ];
+    featureSpy.getFeaturesPaginated.mockReturnValue(of({ cards: mockCards, currentPage: 0, totalPages: 1, totalElements: 1 }));
+
+    let result: BrowseResult | undefined;
+    service.browse('FEATURE', {}, 0).subscribe(r => (result = r));
+
+    expect(result).toBeDefined();
+    expect(result!.cards).toEqual(mockCards);
+    expect(result!.adversaries).toEqual([]);
   });
 
   it('should return BrowseResult with cards and empty adversaries for WEAPON', () => {

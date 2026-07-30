@@ -10,6 +10,7 @@ import { CommunityService } from './community.service';
 import { DomainService } from './domain.service';
 import { SubclassService } from './subclass.service';
 import { CompanionService } from './companion.service';
+import { FeatureLookupService } from './feature-lookup.service';
 import { BrowseResult, SearchableEntityType } from '../models/search.model';
 
 /** Entity types that have a per-type list endpoint available for browse mode. */
@@ -26,6 +27,7 @@ export type BrowsableType = Extract<
   | 'DOMAIN'
   | 'SUBCLASS_CARD'
   | 'COMPANION'
+  | 'FEATURE'
 >;
 
 export type BrowseFilters = Record<string, unknown>;
@@ -48,6 +50,7 @@ export class CodexBrowseService {
   private readonly domainService = inject(DomainService);
   private readonly subclassService = inject(SubclassService);
   private readonly companionService = inject(CompanionService);
+  private readonly featureLookupService = inject(FeatureLookupService);
 
   browse(type: BrowsableType, filters: BrowseFilters, page: number): Observable<BrowseResult> {
     switch (type) {
@@ -143,6 +146,13 @@ export class CodexBrowseService {
         return this.companionService.getCompanionsPaginated({ page }).pipe(
           map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)),
         );
+
+      case 'FEATURE':
+        return this.featureLookupService.getFeaturesPaginated({
+          page,
+          expansionId: filters['expansionId'] as number | undefined,
+          featureType: filters['featureType'] as string | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
     }
   }
 }

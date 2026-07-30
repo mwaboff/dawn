@@ -29,6 +29,7 @@ const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType }[] = [
   { id: 'loot', label: 'Loot', type: 'LOOT' },
   { id: 'adversary', label: 'Adversaries', type: 'ADVERSARY' },
   { id: 'companion', label: 'Companions', type: 'COMPANION' },
+  { id: 'feature', label: 'Features', type: 'FEATURE' },
 ];
 
 const MIN_QUERY_LENGTH = 3;

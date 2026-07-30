@@ -10,7 +10,8 @@ export type CardType =
   | 'armor'
   | 'loot'
   | 'companion'
-  | 'subclassPath';
+  | 'subclassPath'
+  | 'feature';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -25,6 +26,7 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   loot: 'Loot',
   companion: 'Companion',
   subclassPath: 'Subclass Path',
+  feature: 'Feature',
 };
 
 export interface CardFeature {

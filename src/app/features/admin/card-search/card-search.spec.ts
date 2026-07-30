@@ -70,6 +70,13 @@ describe('CardSearch', () => {
     expect(pills.length).toBeGreaterThan(0);
   });
 
+  it('should include a Features category among the pills', () => {
+    fixture.detectChanges();
+    const pillLabels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
+      .map((el) => (el as HTMLElement).textContent?.trim());
+    expect(pillLabels).toContain('Features');
+  });
+
   it('should show empty message when no category selected', () => {
     fixture.detectChanges();
     const emptyMessage = fixture.nativeElement.querySelector('.search-empty');
@@ -105,6 +112,23 @@ describe('CardSearch', () => {
       fixture.detectChanges();
       const pagination = fixture.nativeElement.querySelector('app-pagination-controls');
       expect(pagination).toBeTruthy();
+    });
+
+    it('calls browse with type FEATURE on the feature category, including unattached feature rows', () => {
+      const featureCards: CardData[] = [
+        { id: 100, name: 'Shadowblighted', description: 'You may add this to any adversary.', cardType: 'feature' },
+        { id: 101, name: 'Terranamancer', description: 'You may add this to any adversary.', cardType: 'feature' },
+      ];
+      vi.spyOn(browseService, 'browse').mockReturnValue(of({ cards: featureCards, adversaries: [], currentPage: 0, totalPages: 1, totalElements: 2 }));
+      fixture.detectChanges();
+      component.onCategorySelected('feature');
+      fixture.detectChanges();
+
+      expect(browseService.browse).toHaveBeenCalledWith('FEATURE', {}, 0);
+      const grid = fixture.nativeElement.querySelector('app-card-selection-grid');
+      expect(grid).toBeTruthy();
+      const cards = fixture.nativeElement.querySelectorAll('app-daggerheart-card');
+      expect(cards.length).toBe(2);
     });
   });
 
@@ -244,6 +268,12 @@ describe('CardSearch', () => {
     it('navigates to the adversary detail route on adversary selection', () => {
       component.onAdversarySelected(mockAdversaries[0]);
       expect(router.navigate).toHaveBeenCalledWith(['/admin/cards', 'adversary', 10]);
+    });
+
+    it('navigates to the feature detail route on feature selection, making an unattached feature discoverable', () => {
+      component.activeCategory.set('feature');
+      component.onCardSelected({ id: 200, name: 'Shadowblighted', description: '', cardType: 'feature' });
+      expect(router.navigate).toHaveBeenCalledWith(['/admin/cards', 'feature', 200]);
     });
   });
 

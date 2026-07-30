@@ -1,4 +1,8 @@
 import { CardSchema } from './card-edit-schema.types';
+import { FEATURE_TYPE_LABELS } from '../../../../shared/models/feature-type.model';
+
+const FEATURE_TYPE_OPTIONS = (Object.keys(FEATURE_TYPE_LABELS) as (keyof typeof FEATURE_TYPE_LABELS)[])
+  .map(value => ({ value, label: FEATURE_TYPE_LABELS[value] }));
 
 const TRAIT_OPTIONS = [
   { value: 'AGILITY', label: 'Agility' },
@@ -415,6 +419,24 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
       v['adversaryType'] as string | null,
       v['tier'] != null ? `Tier ${v['tier']}` : null,
       v['difficulty'] != null ? `Difficulty ${v['difficulty']}` : null,
+    ].filter((t): t is string => !!t),
+  },
+
+  feature: {
+    cardType: 'feature',
+    sections: [
+      {
+        title: 'Basics',
+        fields: [
+          { name: 'name', label: 'Name', kind: 'text', required: true, maxLength: 200, column: 'full' },
+          { name: 'description', label: 'Description', kind: 'textarea', column: 'full' },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity', lookup: 'expansions', required: true, allowCreate: true, column: 1 },
+          { name: 'featureType', label: 'Feature type', kind: 'enum', required: true, column: 2, options: FEATURE_TYPE_OPTIONS },
+        ],
+      },
+    ],
+    previewTags: (v) => [
+      FEATURE_TYPE_LABELS[v['featureType'] as keyof typeof FEATURE_TYPE_LABELS] ?? null,
     ].filter((t): t is string => !!t),
   },
 };
