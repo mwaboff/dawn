@@ -46,7 +46,20 @@
         @if (result.success) {
           Successfully uploaded {{ result.count }} item{{ result.count === 1 ? '' : 's' }}.
         } @else {
-          Upload failed: {{ result.error }}
+          <p>Upload failed: {{ result.error }}</p>
+          @if (result.fieldErrors?.length) {
+            <ul class="field-error-list">
+              @for (fe of result.fieldErrors; track $index) {
+                <li>
+                  @if (fe.recordIndex !== null) {
+                    <strong>Record {{ fe.recordIndex + 1 }}</strong> — {{ fe.field }}: {{ fe.message }}
+                  } @else {
+                    <strong>{{ fe.field }}</strong>: {{ fe.message }}
+                  }
+                </li>
+              }
+            </ul>
+          }
         }
       </div>
     }

@@ -84,3 +84,14 @@
   border: 1px solid rgba(40, 167, 69, 0.4);
   color: #8fd4a4;
 }
+
+.field-error-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.field-error-list li {
+  margin-bottom: 0.35rem;
+}
