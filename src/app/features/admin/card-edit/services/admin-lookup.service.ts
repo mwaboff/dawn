@@ -77,6 +77,10 @@ export class AdminLookupService {
         return this.featureLookupService.list({ featureType: 'COMMUNITY' });
       case 'subclassFeatures':
         return this.featureLookupService.list({ featureType: 'SUBCLASS' });
+      case 'beastformFeatures':
+        return this.featureLookupService.list({ featureType: 'BEASTFORM' });
+      case 'martialStanceFeatures':
+        return this.featureLookupService.list({ featureType: 'MARTIAL_STANCE' });
       case 'costTags':
         return this.costTagLookupService.list();
     }

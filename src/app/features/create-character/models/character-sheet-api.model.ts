@@ -274,9 +274,25 @@ export interface CharacterSheetResponse {
   experienceIds: number[];
   createdAt: string;
   lastModifiedAt: string;
+  /** @deprecated Only the first of `classIds`. Use `classIds` -- a character can be multiclassed. */
   classId?: number;
+  /** @deprecated Only the first of `classNames`. Use `classNames`. */
   className?: string;
+  /** @deprecated Only the first of `classes`. Use `classes`. */
   class?: ClassCardResponse;
+  /**
+   * Every class the character has, deduped across all subclass cards, ordered by class id
+   * ascending. The server always sets it (as `[]` when the character has no subclass cards), but
+   * it stays optional here so pre-existing fixtures and older responses still typecheck.
+   */
+  classIds?: number[];
+  /** Names parallel to `classIds`, same order. */
+  classNames?: string[];
+  /**
+   * Populated when `expand=class` is requested and the character has at least one class; each
+   * entry carries `classFeatures` when a `features` (or `classFeatures`) expand is also present.
+   */
+  classes?: ClassCardResponse[];
   experiences?: ExperienceResponse[];
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];

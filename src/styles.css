@@ -22,6 +22,25 @@
   --color-text-darker: #0a0807;
   --color-wood: #3a2817;
 
+  /* Card type accents. Single source of truth: the wide cards on the codex and the grouped
+     sections on the character sheet both read these, so a type looks the same wherever it appears.
+     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). */
+  --color-card-class: #d4a056;
+  --color-card-subclass: #b87fd4;
+  --color-card-subclassPath: #56b4c7;
+  --color-card-heritage: #d45656;
+  --color-card-ancestry: #d4c256;
+  --color-card-community: #56d478;
+  --color-card-domain: #d48056;
+  --color-card-domainCard: #d4569a;
+  --color-card-weapon: #c75050;
+  --color-card-armor: #5080c7;
+  --color-card-loot: #c7a850;
+  --color-card-companion: #6bad56;
+  --color-card-beastform: #3fae8f;
+  --color-card-environment: #7a6fd4;
+  --color-card-feature: #a89684;
+
   /* Typography */
   --font-display: 'Cinzel', serif;
   --font-body: 'Lora', serif;

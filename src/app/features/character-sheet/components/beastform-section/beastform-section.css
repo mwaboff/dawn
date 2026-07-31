@@ -1,0 +1,51 @@
+/* The gap between groups lives on the host, not on .card-group: inside this component the group is
+   always the last child, so a `.card-group:last-child { margin-bottom: 0 }` rule would zero it out
+   and let the next group's heading crowd the card. */
+:host { display: block; margin-bottom: 1.25rem; }
+:host(:last-child) { margin-bottom: 0; }
+
+/* Mirrors the .card-group / .expandable-card vocabulary in character-sheet-layout.css and
+   character-sheet-panels.css so this sits as a peer of the Class/Subclass/Domain groups. The teal
+   accent comes from the global --color-card-beastform token in styles.css. */
+.card-group__heading-row { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .5rem; padding-bottom: .35rem; border-bottom: 1px solid rgba(212,160,86,.15); }
+.card-group__heading { font-family: var(--font-display); font-size: .875rem; text-transform: uppercase; letter-spacing: .2em; margin: 0; }
+.card-group__heading--beastform { color: var(--color-card-beastform); }
+.card-group__list { display: flex; flex-direction: column; gap: .5rem; }
+
+.expandable-card { background: rgba(26,20,15,.7); border: 1px solid rgba(212,160,86,.1); border-left: 3px solid; border-radius: 0 6px 6px 0; overflow: hidden; }
+.expandable-card--beastform { border-left-color: var(--color-card-beastform); }
+/* Each form is a card inside the lazily-loaded "Beastform Options" card, so it steps down a shade
+   rather than repeating the outer card's weight. */
+.expandable-card--nested { background: rgba(26,20,15,.5); border-left-color: color-mix(in srgb, var(--color-card-beastform) 55%, transparent); }
+.expandable-card--nested .expandable-card__name { font-size: .8rem; }
+.expandable-card--nested .expandable-card__header { padding: .45rem .6rem; }
+.expandable-card--nested .expandable-card__body { padding: .55rem .6rem .75rem; gap: .7rem; }
+.expandable-card__header { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .6rem .75rem; background: none; border: none; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.expandable-card__header:hover { background: rgba(212,160,86,.04); }
+.expandable-card__header:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.expandable-card__chevron { font-size: .75rem; color: rgba(212,160,86,.65); transition: transform .2s; flex-shrink: 0; }
+.expandable-card__chevron--open { transform: rotate(90deg); }
+.expandable-card__name { font-family: var(--font-display); font-size: .9rem; font-weight: 700; color: var(--color-parchment); text-transform: uppercase; letter-spacing: .06em; margin: 0; flex: 1; }
+.expandable-card__meta { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.expandable-card__meta-badge { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: rgba(212,160,86,.75); border: 1px solid rgba(212,160,86,.2); border-radius: 2px; padding: .1rem .3rem; }
+.expandable-card__meta-badge--beastform { color: var(--color-card-beastform); border-color: color-mix(in srgb, var(--color-card-beastform) 35%, transparent); }
+.expandable-card__stats { font-family: var(--font-body); font-size: .8rem; color: rgba(212,160,86,.8); }
+.expandable-card__body { padding: .65rem .75rem .9rem; border-top: 1px solid rgba(212,160,86,.08); display: flex; flex-direction: column; gap: .5rem; }
+
+.feature-row__name { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-accent); margin-bottom: .25rem; }
+.feature-row__description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+
+.beastform__status { font-family: var(--font-body); font-size: .85rem; color: rgba(212,192,160,.7); margin: 0 0 .5rem; }
+.beastform__status--error { color: #d47f7f; }
+.beastform__retry { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-accent); background: none; border: 1px solid rgba(212,160,86,.3); border-radius: 2px; padding: .1rem .4rem; cursor: pointer; }
+.beastform__retry:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.beastform__attack { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.85); margin: 0; }
+
+@media (max-width: 768px) {
+  .expandable-card__header { flex-wrap: wrap; }
+  .expandable-card__meta { flex-basis: 100%; padding-left: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-card__chevron { transition: none; }
+}

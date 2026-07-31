@@ -11,6 +11,26 @@ export class BeastformService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/beastforms`;
 
+  /**
+   * Fetches the full beastform catalog as raw responses in a single page, for callers that need
+   * the stat fields (trait modifiers, evasion, attack) rather than `CardData`.
+   *
+   * `BeastformController`'s GET exposes no `tier` filter param (see `BeastformFilters`), so any
+   * tier narrowing has to happen client-side on this list. `size` defaults to 100 -- the same
+   * convention `AncestryService.getAncestries()` uses -- so the 24 official beastforms fit in one
+   * page with headroom for expansions, rather than silently truncating at the current count.
+   */
+  getAllBeastforms(size = 100): Observable<BeastformResponse[]> {
+    const params = new HttpParams()
+      .set('page', 0)
+      .set('size', size)
+      .set('expand', 'features');
+
+    return this.http
+      .get<PaginatedResponse<BeastformResponse>>(this.baseUrl, { params, withCredentials: true })
+      .pipe(map(response => response.content));
+  }
+
   getBeastformsPaginated(options: BeastformFilters = {}): Observable<PaginatedCards> {
     const { page = 0, size = 20, expansionId, isOfficial, isPublic } = options;
 

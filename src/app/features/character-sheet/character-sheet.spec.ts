@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
+import { BeastformSection } from './components/beastform-section/beastform-section';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
+import { CharacterSheetResponse, ClassCardResponse } from '../create-character/models/character-sheet-api.model';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 const mockResponse: CharacterSheetResponse = {
   id: 1,
@@ -70,6 +74,8 @@ describe('CharacterSheet', () => {
       imports: [CharacterSheet],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: CharacterSheetService, useValue: mockService },
         { provide: AuthService, useValue: mockAuthService },
         {
@@ -1767,6 +1773,65 @@ describe('CharacterSheet', () => {
         expect(fixture.nativeElement.querySelector('app-saving-spinner')).toBeNull();
         expect(fixture.nativeElement.querySelector('.notes-status')).toBeNull();
       });
+    });
+  });
+
+  describe('beastform section gating', () => {
+    function druidClass(id = 3): ClassCardResponse {
+      return {
+        id,
+        name: 'Druid',
+        classFeatures: [{ id: 1, name: 'Beastform', description: 'Transform.' }],
+      };
+    }
+
+    function wizardClass(id = 1): ClassCardResponse {
+      return {
+        id,
+        name: 'Wizard',
+        classFeatures: [{ id: 2, name: 'Prestidigitation', description: 'Minor magic.' }],
+      };
+    }
+
+    function createWithClasses(classes: ClassCardResponse[] | undefined, level = 5) {
+      createComponent('1', of({ ...mockResponse, level, classes }));
+      fixture.detectChanges();
+    }
+
+    it('hides the section when no class has the Beastform feature', () => {
+      createWithClasses([wizardClass()]);
+
+      expect(component.showBeastforms()).toBe(false);
+      expect(fixture.nativeElement.querySelector('app-beastform-section')).toBeNull();
+    });
+
+    it('hides the section when the response carries no classes array', () => {
+      createWithClasses(undefined);
+
+      expect(component.showBeastforms()).toBe(false);
+      expect(fixture.nativeElement.querySelector('app-beastform-section')).toBeNull();
+    });
+
+    it('shows the section for a single-class Druid', () => {
+      createWithClasses([druidClass()]);
+
+      expect(component.showBeastforms()).toBe(true);
+      expect(fixture.nativeElement.querySelector('app-beastform-section')).not.toBeNull();
+    });
+
+    it('shows the section for a multiclass character where Druid is not first', () => {
+      createWithClasses([wizardClass(1), druidClass(3)]);
+
+      expect(component.showBeastforms()).toBe(true);
+      expect(fixture.nativeElement.querySelector('app-beastform-section')).not.toBeNull();
+    });
+
+    it('passes the full character level to the child, so multiclass gets the level-7 tier', () => {
+      createWithClasses([wizardClass(1), druidClass(3)], 7);
+
+      const child = fixture.debugElement.query(By.directive(BeastformSection));
+      expect(child.componentInstance.characterLevel()).toBe(7);
+      expect(child.componentInstance.tier()).toBe(3);
     });
   });
 });

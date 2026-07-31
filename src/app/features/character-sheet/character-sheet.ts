@@ -9,6 +9,8 @@ import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spi
 import { isAtLeast } from '../../shared/models/role.model';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
+import { hasBeastformFeature } from './utils/beastform-access.utils';
+import { BeastformSection } from './components/beastform-section/beastform-section';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
@@ -36,7 +38,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, BeastformSection],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -111,6 +113,14 @@ export class CharacterSheet implements OnInit {
     const sheet = this.characterSheet();
     return this.isOwner() && sheet !== null && sheet.level >= 10;
   });
+
+  /**
+   * Beastform is a class feature, not a per-character unlock, so the reference section shows
+   * whenever ANY of the character's classes grants it. Scanning `classes` rather than the
+   * deprecated singular `class` is what makes this multiclass-safe, and keying off the feature
+   * name rather than "Druid" is what makes it work for homebrew/expansion classes.
+   */
+  readonly showBeastforms = computed(() => hasBeastformFeature(this.rawSheet()?.classes));
 
   private readonly weaponEquipConstraints = computed(() => {
     const raw = this.rawSheet();

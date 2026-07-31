@@ -1,15 +1,27 @@
-.card--type-class { --ca: #d4a056; --cd: rgba(212,160,86,.3); --cg: rgba(212,160,86,.15); }
-.card--type-subclass { --ca: #b87fd4; --cd: rgba(184,127,212,.3); --cg: rgba(184,127,212,.15); }
-.card--type-heritage { --ca: #d45656; --cd: rgba(212,86,86,.3); --cg: rgba(212,86,86,.15); }
-.card--type-community { --ca: #56d478; --cd: rgba(86,212,120,.3); --cg: rgba(86,212,120,.15); }
-.card--type-ancestry { --ca: #d4c256; --cd: rgba(212,194,86,.3); --cg: rgba(212,194,86,.15); }
-.card--type-domain { --ca: #d48056; --cd: rgba(212,128,86,.3); --cg: rgba(212,128,86,.15); }
-.card--type-domainCard { --ca: #d4569a; --cd: rgba(212,86,154,.3); --cg: rgba(212,86,154,.15); }
-.card--type-weapon { --ca: #c75050; --cd: rgba(199,80,80,.3); --cg: rgba(199,80,80,.15); }
-.card--type-armor { --ca: #5080c7; --cd: rgba(80,128,199,.3); --cg: rgba(80,128,199,.15); }
-.card--type-loot { --ca: #c7a850; --cd: rgba(199,168,80,.3); --cg: rgba(199,168,80,.15); }
-.card--type-companion { --ca: #6bad56; --cd: rgba(107,173,86,.3); --cg: rgba(107,173,86,.15); }
-.card--type-subclassPath { --ca: #56b4c7; --cd: rgba(86,180,199,.3); --cg: rgba(86,180,199,.15); }
+/* Each type sets only its accent; the border and glow tints are derived so a colour is defined in
+   exactly one place. The accents themselves live in styles.css as --color-card-* tokens, shared
+   with the character sheet's grouped sections. A card type with no rule here renders with the
+   inherited parchment text and no accent, which is what left beastforms looking white. */
+.card--type-class { --ca: var(--color-card-class); }
+.card--type-subclass { --ca: var(--color-card-subclass); }
+.card--type-subclassPath { --ca: var(--color-card-subclassPath); }
+.card--type-heritage { --ca: var(--color-card-heritage); }
+.card--type-ancestry { --ca: var(--color-card-ancestry); }
+.card--type-community { --ca: var(--color-card-community); }
+.card--type-domain { --ca: var(--color-card-domain); }
+.card--type-domainCard { --ca: var(--color-card-domainCard); }
+.card--type-weapon { --ca: var(--color-card-weapon); }
+.card--type-armor { --ca: var(--color-card-armor); }
+.card--type-loot { --ca: var(--color-card-loot); }
+.card--type-companion { --ca: var(--color-card-companion); }
+.card--type-beastform { --ca: var(--color-card-beastform); }
+.card--type-environment { --ca: var(--color-card-environment); }
+.card--type-feature { --ca: var(--color-card-feature); }
+
+.card {
+  --cd: color-mix(in srgb, var(--ca) 30%, transparent);
+  --cg: color-mix(in srgb, var(--ca) 15%, transparent);
+}
 
 .card--selected::after {
   content: '\2713'; position: absolute; top: .5rem; right: .5rem;

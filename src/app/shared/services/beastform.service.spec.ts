@@ -117,6 +117,59 @@ describe('BeastformService', () => {
     expect(result!.totalElements).toBe(25);
   });
 
+  describe('getAllBeastforms', () => {
+    it('should request one large page with the features expand', () => {
+      service.getAllBeastforms().subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.params.get('page')).toBe('0');
+      expect(req.request.params.get('size')).toBe('100');
+      expect(req.request.params.get('expand')).toBe('features');
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('should honour an explicit page size', () => {
+      service.getAllBeastforms(250).subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.params.get('size')).toBe('250');
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('should send no tier param, since the backend GET does not support one', () => {
+      service.getAllBeastforms().subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.params.has('tier')).toBe(false);
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('should return the raw responses with stat fields intact', () => {
+      let result: BeastformResponse[] | undefined;
+      service.getAllBeastforms().subscribe(r => (result = r));
+
+      httpTesting
+        .expectOne(r => r.url === baseUrl)
+        .flush(buildPaginatedResponse([buildBeastformResponse({ tier: 2, evasion: 3, agilityModifier: 1 })]));
+
+      expect(result).toHaveLength(1);
+      expect(result![0].tier).toBe(2);
+      expect(result![0].evasion).toBe(3);
+      expect(result![0].agilityModifier).toBe(1);
+    });
+
+    it('should propagate HTTP errors', () => {
+      let error: HttpErrorResponse | undefined;
+      service.getAllBeastforms().subscribe({ error: e => (error = e) });
+
+      httpTesting
+        .expectOne(r => r.url === baseUrl)
+        .flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+
+      expect(error?.status).toBe(500);
+    });
+  });
+
   it('should propagate HTTP errors', () => {
     let error: HttpErrorResponse | undefined;
     service.getBeastformsPaginated().subscribe({ error: e => (error = e) });

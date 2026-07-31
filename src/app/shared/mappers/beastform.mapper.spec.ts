@@ -197,4 +197,31 @@ describe('mapBeastformToCardData', () => {
     expect(result.metadata!['tier']).toBe(2);
     expect(result.metadata!['isOfficial']).toBe(false);
   });
+
+  it('should copy every trait modifier into metadata', () => {
+    const response = buildBeastformResponse({
+      agilityModifier: 1,
+      strengthModifier: 2,
+      finesseModifier: -1,
+      instinctModifier: 0,
+      presenceModifier: 3,
+      knowledgeModifier: 4,
+    });
+    const result = mapBeastformToCardData(response);
+
+    expect(result.metadata!['agilityModifier']).toBe(1);
+    expect(result.metadata!['strengthModifier']).toBe(2);
+    expect(result.metadata!['finesseModifier']).toBe(-1);
+    expect(result.metadata!['instinctModifier']).toBe(0);
+    expect(result.metadata!['presenceModifier']).toBe(3);
+    expect(result.metadata!['knowledgeModifier']).toBe(4);
+  });
+
+  it('should leave trait modifiers undefined in metadata for a stat-less card', () => {
+    const result = mapBeastformToCardData(buildStatlessBeastformResponse());
+
+    expect(result.metadata!['agilityModifier']).toBeUndefined();
+    expect(result.metadata!['knowledgeModifier']).toBeUndefined();
+    expect(result.metadata!['evasion']).toBeUndefined();
+  });
 });
