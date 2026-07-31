@@ -23,6 +23,7 @@ export interface DomainBrowseOptions {
   page?: number;
   size?: number;
   expansionId?: number;
+  isOfficial?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -139,7 +140,7 @@ export class DomainService {
   }
 
   getDomainsPaginated(options: DomainBrowseOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, expansionId } = options;
+    const { page = 0, size = 20, expansionId, isOfficial } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -148,6 +149,9 @@ export class DomainService {
 
     if (expansionId !== undefined) {
       params = params.set('expansionId', expansionId);
+    }
+    if (isOfficial !== undefined) {
+      params = params.set('isOfficial', isOfficial);
     }
 
     return this.http
