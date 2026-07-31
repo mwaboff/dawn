@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
+import { BeastformSection } from './components/beastform-section/beastform-section';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetResponse, ClassCardResponse } from '../create-character/models/character-sheet-api.model';
@@ -1827,7 +1829,9 @@ describe('CharacterSheet', () => {
     it('passes the full character level to the child, so multiclass gets the level-7 tier', () => {
       createWithClasses([wizardClass(1), druidClass(3)], 7);
 
-      expect(fixture.nativeElement.textContent).toContain('Tier 3');
+      const child = fixture.debugElement.query(By.directive(BeastformSection));
+      expect(child.componentInstance.characterLevel()).toBe(7);
+      expect(child.componentInstance.tier()).toBe(3);
     });
   });
 });

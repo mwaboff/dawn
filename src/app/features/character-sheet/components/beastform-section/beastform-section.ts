@@ -17,17 +17,13 @@ export interface BeastformFeatureView {
 export interface BeastformView {
   id: number;
   name: string;
+  tier: number;
   /** Compact collapsed-row summary, e.g. `Agility +1 · Ev +2 · d6 phy`. Null for stat-less cards. */
   statLine: string | null;
   /** Expanded attack line, e.g. `Melee · Instinct · d6 phy`. Null for stat-less cards. */
   attackLine: string | null;
   advantages: string | null;
   features: BeastformFeatureView[];
-}
-
-export interface BeastformTierGroup {
-  tier: number;
-  forms: BeastformView[];
 }
 
 const DAMAGE_TYPE_LABELS: Record<BeastformDamageType, string> = {
@@ -98,6 +94,7 @@ function toBeastformView(form: BeastformResponse): BeastformView {
   return {
     id: form.id,
     name: form.name,
+    tier: form.tier as number,
     statLine: statParts.length > 0 ? statParts.join(' · ') : null,
     attackLine: attackParts.length > 0 ? attackParts.join(' · ') : null,
     advantages: form.advantages?.trim() ? form.advantages : null,
@@ -143,21 +140,12 @@ export class BeastformSection {
 
   readonly availableCount = computed(() => this.accessibleForms().length);
 
-  readonly tierGroups = computed<BeastformTierGroup[]>(() => {
-    const byTier = new Map<number, BeastformView[]>();
-    for (const form of this.accessibleForms()) {
-      const tier = form.tier as number;
-      const group = byTier.get(tier) ?? [];
-      group.push(toBeastformView(form));
-      byTier.set(tier, group);
-    }
-    return [...byTier.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([tier, forms]) => ({
-        tier,
-        forms: forms.sort((a, b) => a.name.localeCompare(b.name)),
-      }));
-  });
+  /** Flat list in the sheet's card-group order: lowest tier first, alphabetical within a tier. */
+  readonly beastforms = computed<BeastformView[]>(() =>
+    this.accessibleForms()
+      .map(toBeastformView)
+      .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name)),
+  );
 
   readonly isEmpty = computed(() => this.loaded() && this.availableCount() === 0);
 
@@ -165,7 +153,7 @@ export class BeastformSection {
     return this.expandedFormIds().has(id);
   }
 
-  /** Lazy load: nothing is fetched until the player first opens the section. */
+  /** Lazy load: nothing is fetched until the player first opens the Beastform Options card. */
   toggleSection(): void {
     const nowExpanded = !this.expanded();
     this.expanded.set(nowExpanded);

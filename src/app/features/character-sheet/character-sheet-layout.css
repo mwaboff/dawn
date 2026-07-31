@@ -64,7 +64,6 @@
 .gold-btn--subtract:hover { border-color: rgba(160,50,50,.5); background: rgba(160,50,50,.12); color: var(--color-damage-severe); }
 
 .inventory-section { margin-bottom: 1.5rem; }
-.beastform-section { margin-bottom: 1.5rem; }
 .inventory-section__title { font-size: .8rem; text-transform: uppercase; letter-spacing: .25em; color: var(--ca); margin: 0 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid var(--cb); }
 .inventory-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(212,160,86,.15); margin-bottom: .75rem; }
 .inventory-tab { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.5); background: none; border: none; border-bottom: 2px solid transparent; padding: .4rem .75rem .35rem; cursor: pointer; transition: color .15s, border-color .15s; display: flex; align-items: center; gap: .35rem; }

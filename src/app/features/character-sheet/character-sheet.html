@@ -547,6 +547,10 @@
         </div>
       }
 
+      @if (showBeastforms()) {
+        <app-beastform-section [characterLevel]="sheet.level" />
+      }
+
       @if (sheet.equippedDomainCards.length > 0) {
         <div class="card-group">
           <div class="card-group__heading-row">
@@ -611,12 +615,6 @@
         </div>
       }
     </section>
-
-    @if (showBeastforms()) {
-      <section class="beastform-section" aria-label="Beastforms">
-        <app-beastform-section [characterLevel]="sheet.level" />
-      </section>
-    }
 
     <section class="inventory-section" aria-label="Inventory">
       <app-inventory-section

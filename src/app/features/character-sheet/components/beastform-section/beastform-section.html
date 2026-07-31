@@ -1,94 +1,79 @@
-<div class="beastform">
-  <button
-    type="button"
-    class="beastform__header"
-    (click)="toggleSection()"
-    [attr.aria-expanded]="expanded()"
-    aria-controls="beastform-body"
-  >
-    <span class="beastform__chevron" [class.beastform__chevron--open]="expanded()" aria-hidden="true">&#9654;</span>
-    <h2 class="beastform__title">Beastforms</h2>
-    <span class="beastform__summary">
-      Tier {{ tier() }}
-      @if (availableCount() > 0) {
-        <span aria-hidden="true">·</span> {{ availableCount() }} available
-      }
-    </span>
-  </button>
+<div class="card-group">
+  <div class="card-group__heading-row">
+    <h3 class="card-group__heading card-group__heading--beastform">Beastforms</h3>
+  </div>
 
-  @if (expanded()) {
-    <div class="beastform__body" id="beastform-body">
-      @if (loading()) {
-        <p class="beastform__status">Loading beastforms...</p>
-      }
+  <div class="card-group__list">
+    <div class="expandable-card expandable-card--beastform">
+      <button type="button" class="expandable-card__header" (click)="toggleSection()"
+              [attr.aria-expanded]="expanded()"
+              aria-controls="beastform-body">
+        <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="expanded()" aria-hidden="true">&#9654;</span>
+        <h4 class="expandable-card__name">Beastform Options</h4>
+        <div class="expandable-card__meta">
+          @if (availableCount() > 0) {
+            <span class="expandable-card__meta-badge expandable-card__meta-badge--beastform">{{ availableCount() }} available</span>
+          }
+        </div>
+      </button>
 
-      @if (loadError()) {
-        <p class="beastform__status beastform__status--error">
-          Failed to load beastforms.
-          <button type="button" class="beastform__retry" (click)="loadForms()">Retry</button>
-        </p>
-      }
+      @if (expanded()) {
+        <div class="expandable-card__body" id="beastform-body">
+          @if (loading()) {
+            <p class="beastform__status">Loading beastforms...</p>
+          }
 
-      @if (isEmpty() && !loadError()) {
-        <p class="beastform__status">No beastform options available at your tier.</p>
-      }
+          @if (loadError()) {
+            <p class="beastform__status beastform__status--error">
+              Failed to load beastforms.
+              <button type="button" class="beastform__retry" (click)="loadForms()">Retry</button>
+            </p>
+          }
 
-      @for (group of tierGroups(); track group.tier) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading">Tier {{ group.tier }}</h3>
-            <span class="card-group__count">{{ group.forms.length }}</span>
-          </div>
-          <div class="card-group__list">
-            @for (form of group.forms; track form.id) {
-              <div class="expandable-card">
-                <button
-                  type="button"
-                  class="expandable-card__header"
-                  (click)="toggleForm(form.id)"
-                  [attr.aria-expanded]="isFormExpanded(form.id)"
-                  [attr.aria-controls]="'beastform-body-' + form.id"
-                >
-                  <span
-                    class="expandable-card__chevron"
-                    [class.expandable-card__chevron--open]="isFormExpanded(form.id)"
-                    aria-hidden="true"
-                  >&#9654;</span>
-                  <h4 class="expandable-card__name">{{ form.name }}</h4>
+          @if (isEmpty() && !loadError()) {
+            <p class="beastform__status">No beastform options available at your tier.</p>
+          }
+
+          @for (form of beastforms(); track form.id) {
+            <div class="expandable-card expandable-card--beastform expandable-card--nested">
+              <button type="button" class="expandable-card__header" (click)="toggleForm(form.id)"
+                      [attr.aria-expanded]="isFormExpanded(form.id)"
+                      [attr.aria-controls]="'beastform-body-' + form.id">
+                <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isFormExpanded(form.id)" aria-hidden="true">&#9654;</span>
+                <h5 class="expandable-card__name">{{ form.name }}</h5>
+                <div class="expandable-card__meta">
                   @if (form.statLine) {
                     <span class="expandable-card__stats">{{ form.statLine }}</span>
                   }
-                </button>
+                  <span class="expandable-card__meta-badge expandable-card__meta-badge--beastform">Tier {{ form.tier }}</span>
+                </div>
+              </button>
 
-                @if (isFormExpanded(form.id)) {
-                  <div class="expandable-card__body" [id]="'beastform-body-' + form.id">
-                    @if (form.attackLine) {
-                      <p class="beastform__attack">
-                        {{ form.attackLine }}
-                        <span class="beastform__attack-note">(Proficiency dice)</span>
-                      </p>
-                    }
-                    @if (form.advantages) {
-                      <p class="beastform__advantages">
-                        <strong class="feature-row__name">Gain advantage on</strong>
-                        <span [innerHTML]="form.advantages | formatText"></span>
-                      </p>
-                    }
-                    @for (feature of form.features; track feature.id) {
-                      <div>
-                        @if (feature.name) {
-                          <strong class="feature-row__name">{{ feature.name }}</strong>
-                        }
-                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            }
-          </div>
+              @if (isFormExpanded(form.id)) {
+                <div class="expandable-card__body" [id]="'beastform-body-' + form.id">
+                  @if (form.attackLine) {
+                    <p class="beastform__attack">{{ form.attackLine }}</p>
+                  }
+                  @if (form.advantages) {
+                    <div>
+                      <strong class="feature-row__name">Gain advantage on</strong>
+                      <p class="feature-row__description" [innerHTML]="form.advantages | formatText"></p>
+                    </div>
+                  }
+                  @for (feature of form.features; track feature.id) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>
-  }
+  </div>
 </div>

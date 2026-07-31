@@ -65,7 +65,8 @@ describe('BeastformSection', () => {
     fixture.detectChanges();
   }
 
-  function expandAndFlush(forms: BeastformResponse[]): void {
+  function setUpAndFlush(level: number, forms: BeastformResponse[]): void {
+    setUp(level);
     component.toggleSection();
     fixture.detectChanges();
     httpTesting.expectOne(r => r.url === baseUrl).flush(buildPage(forms));
@@ -104,16 +105,10 @@ describe('BeastformSection', () => {
         expect(component.tier()).toBe(expectedTier);
       });
     }
-
-    it('should show the tier in the collapsed header', () => {
-      setUp(7);
-
-      expect(text()).toContain('Tier 3');
-    });
   });
 
   describe('lazy loading', () => {
-    it('should issue no HTTP request before the section is expanded', () => {
+    it('should issue no HTTP request before the options card is expanded', () => {
       setUp(5);
 
       httpTesting.expectNone(() => true);
@@ -140,9 +135,8 @@ describe('BeastformSection', () => {
       req.flush(buildPage([]));
     });
 
-    it('should not refetch when the section is collapsed and expanded again', () => {
-      setUp(5);
-      expandAndFlush([buildBeastform()]);
+    it('should not refetch when the options card is collapsed and expanded again', () => {
+      setUpAndFlush(5, [buildBeastform()]);
 
       component.toggleSection();
       component.toggleSection();
@@ -153,22 +147,20 @@ describe('BeastformSection', () => {
 
   describe('tier filtering', () => {
     it('should list only forms at or below the character tier', () => {
-      setUp(4);
-      expandAndFlush([
+      setUpAndFlush(4, [
         buildBeastform({ id: 1, name: 'Agile Scout', tier: 1 }),
         buildBeastform({ id: 2, name: 'Armored Sentry', tier: 2 }),
         buildBeastform({ id: 3, name: 'Great Predator', tier: 3 }),
       ]);
 
-      expect(component.tierGroups().flatMap(g => g.forms).map(f => f.name)).toEqual([
+      expect(component.beastforms().map(f => f.name)).toEqual([
         'Agile Scout',
         'Armored Sentry',
       ]);
     });
 
     it('should report the accessible count, not the catalog size', () => {
-      setUp(1);
-      expandAndFlush([
+      setUpAndFlush(1, [
         buildBeastform({ id: 1, tier: 1 }),
         buildBeastform({ id: 2, tier: 2 }),
         buildBeastform({ id: 3, tier: 4 }),
@@ -177,20 +169,27 @@ describe('BeastformSection', () => {
       expect(component.availableCount()).toBe(1);
     });
 
-    it('should group forms by tier in ascending order', () => {
-      setUp(10);
-      expandAndFlush([
+    it('should order forms by tier ascending', () => {
+      setUpAndFlush(10, [
         buildBeastform({ id: 3, tier: 3 }),
         buildBeastform({ id: 1, tier: 1 }),
         buildBeastform({ id: 2, tier: 2 }),
       ]);
 
-      expect(component.tierGroups().map(g => g.tier)).toEqual([1, 2, 3]);
+      expect(component.beastforms().map(f => f.tier)).toEqual([1, 2, 3]);
+    });
+
+    it('should order forms alphabetically within a tier', () => {
+      setUpAndFlush(10, [
+        buildBeastform({ id: 2, name: 'Zealous Guardian', tier: 1 }),
+        buildBeastform({ id: 1, name: 'Agile Scout', tier: 1 }),
+      ]);
+
+      expect(component.beastforms().map(f => f.name)).toEqual(['Agile Scout', 'Zealous Guardian']);
     });
 
     it('should exclude forms that carry no tier at all', () => {
-      setUp(10);
-      expandAndFlush([buildBeastform({ id: 9, name: 'Untiered', tier: undefined })]);
+      setUpAndFlush(10, [buildBeastform({ id: 9, name: 'Untiered', tier: undefined })]);
 
       expect(component.availableCount()).toBe(0);
     });
@@ -198,57 +197,50 @@ describe('BeastformSection', () => {
 
   describe('stat line', () => {
     it('should combine trait bonus, evasion and damage', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform()]);
+      setUpAndFlush(1, [buildBeastform()]);
 
-      expect(component.tierGroups()[0].forms[0].statLine).toBe('Agility +1 · Ev +2 · d4 phy');
+      expect(component.beastforms()[0].statLine).toBe('Agility +1 · Ev +2 · d4 phy');
     });
 
     it('should prefer the server-provided damage notation when present', () => {
-      setUp(1);
-      expandAndFlush([
+      setUpAndFlush(1, [
         buildBeastform({ damage: { diceType: 'D6', damageType: 'PHYSICAL', notation: '1d6 phy' } }),
       ]);
 
-      expect(component.tierGroups()[0].forms[0].statLine).toContain('1d6 phy');
+      expect(component.beastforms()[0].statLine).toContain('1d6 phy');
     });
 
     it('should render a damage modifier when there is no notation', () => {
-      setUp(1);
-      expandAndFlush([
+      setUpAndFlush(1, [
         buildBeastform({ damage: { diceType: 'D8', modifier: 2, damageType: 'PHYSICAL' } }),
       ]);
 
-      expect(component.tierGroups()[0].forms[0].statLine).toContain('d8+2 phy');
+      expect(component.beastforms()[0].statLine).toContain('d8+2 phy');
     });
 
     it('should skip trait modifiers that are zero', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform({ agilityModifier: 0, strengthModifier: 1 })]);
+      setUpAndFlush(1, [buildBeastform({ agilityModifier: 0, strengthModifier: 1 })]);
 
-      expect(component.tierGroups()[0].forms[0].statLine).toContain('Strength +1');
-      expect(component.tierGroups()[0].forms[0].statLine).not.toContain('Agility');
+      expect(component.beastforms()[0].statLine).toContain('Strength +1');
+      expect(component.beastforms()[0].statLine).not.toContain('Agility');
     });
   });
 
   describe('stat-less "Evolved" cards', () => {
     it('should produce a null stat line rather than "undefined"', () => {
-      setUp(5);
-      expandAndFlush([buildStatlessBeastform()]);
+      setUpAndFlush(5, [buildStatlessBeastform()]);
 
-      expect(component.tierGroups()[0].forms[0].statLine).toBeNull();
+      expect(component.beastforms()[0].statLine).toBeNull();
     });
 
     it('should produce a null attack line', () => {
-      setUp(5);
-      expandAndFlush([buildStatlessBeastform()]);
+      setUpAndFlush(5, [buildStatlessBeastform()]);
 
-      expect(component.tierGroups()[0].forms[0].attackLine).toBeNull();
+      expect(component.beastforms()[0].attackLine).toBeNull();
     });
 
     it('should render without printing "undefined" when expanded', () => {
-      setUp(5);
-      expandAndFlush([buildStatlessBeastform()]);
+      setUpAndFlush(5, [buildStatlessBeastform()]);
 
       component.toggleForm(17);
       fixture.detectChanges();
@@ -258,8 +250,7 @@ describe('BeastformSection', () => {
     });
 
     it('should still show the feature text when expanded', () => {
-      setUp(5);
-      expandAndFlush([buildStatlessBeastform()]);
+      setUpAndFlush(5, [buildStatlessBeastform()]);
 
       component.toggleForm(17);
       fixture.detectChanges();
@@ -269,8 +260,7 @@ describe('BeastformSection', () => {
     });
 
     it('should list the tier 4 Mythic Beast for a level 10 character', () => {
-      setUp(10);
-      expandAndFlush([buildStatlessBeastform({ id: 24, name: 'Mythic Beast', tier: 4 })]);
+      setUpAndFlush(10, [buildStatlessBeastform({ id: 24, name: 'Mythic Beast', tier: 4 })]);
 
       expect(component.availableCount()).toBe(1);
     });
@@ -316,8 +306,7 @@ describe('BeastformSection', () => {
     });
 
     it('should show an empty message when no form is at or below the tier', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform({ tier: 4 })]);
+      setUpAndFlush(1, [buildBeastform({ tier: 4 })]);
 
       expect(text()).toContain('No beastform options available at your tier.');
     });
@@ -331,27 +320,23 @@ describe('BeastformSection', () => {
 
   describe('per-form expansion', () => {
     it('should start with every form collapsed', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform()]);
+      setUpAndFlush(1, [buildBeastform()]);
 
       expect(component.isFormExpanded(1)).toBe(false);
     });
 
     it('should show the attack line and advantages once a form is expanded', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform()]);
+      setUpAndFlush(1, [buildBeastform()]);
 
       component.toggleForm(1);
       fixture.detectChanges();
 
       expect(text()).toContain('Melee · Agility · d4 phy');
-      expect(text()).toContain('Proficiency dice');
       expect(text()).toContain('climb, locate, protect');
     });
 
     it('should collapse a form again on a second toggle', () => {
-      setUp(1);
-      expandAndFlush([buildBeastform()]);
+      setUpAndFlush(1, [buildBeastform()]);
 
       component.toggleForm(1);
       component.toggleForm(1);
