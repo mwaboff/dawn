@@ -99,6 +99,23 @@ describe('CampaignGmScreen', () => {
     expect(el.querySelector('.gm-grid app-fear-counter-panel')).toBeNull();
   });
 
+  it('should offer the dice roller to a game master but not on an access-denied screen', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+    expect(el.querySelector('app-dice-roller')).toBeTruthy();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 99, username: 'player', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+    fixture.detectChanges();
+    expect(el.querySelector('app-dice-roller')).toBeNull();
+  });
+
   it('should show access-denied for a non-game-master, non-admin user', () => {
     setup();
     const authService = TestBed.inject(AuthService);

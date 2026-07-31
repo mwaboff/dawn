@@ -27,6 +27,6 @@
   }
 </span>
 
-@if (saving()) {
-  <app-saving-spinner />
-}
+<span class="fear__save" aria-hidden="true">
+  <span class="fear__save-dot" [class.is-saving]="saving()"></span>
+</span>

@@ -7,7 +7,17 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
     category: 'Rolls & Resolution',
     colSpan: 2,
     defaultOrder: 10,
-    keywords: ['crit', 'critical', 'duality dice', 'hope die', 'fear die', 'outcome', 'stakes'],
+    keywords: [
+      'crit',
+      'critical',
+      'duality dice',
+      'hope die',
+      'fear die',
+      'outcome',
+      'stakes',
+      'example',
+      'trait outcome',
+    ],
     body: {
       kind: 'static',
       blocks: [
@@ -37,20 +47,32 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
           entries: [
             {
               key: 'Critical Success',
-              value: 'They get what they want and a little extra, then gain a Hope and clear a Stress.',
+              value: 'They get what they want and a little extra. They gain a Hope and clear a Stress.',
+              example:
+                'You pick the lock in silence — and spot the ledger inside, open to the name you came for.',
             },
-            { key: 'Success with Hope', value: 'They get what they want, then gain a Hope.' },
+            {
+              key: 'Success with Hope',
+              value: 'They get what they want. They gain a Hope.',
+              example: 'You talk your way past the guard, and they let slip when the shift changes.',
+            },
             {
               key: 'Success with Fear',
-              value: 'They get what they want, but it comes with a cost or consequence. The GM gains a Fear.',
+              value:
+                'They get what they want, but it comes with a cost or consequence. The GM gains a Fear.',
+              example: 'You stay hidden, but leave a footprint the next patrol will find.',
             },
             {
               key: 'Failure with Hope',
-              value: 'They probably don’t get what they want, and there is a consequence, but they gain a Hope.',
+              value:
+                'They probably don’t get what they want, and there is a consequence, but they gain a Hope.',
+              example: 'The ward holds against you — but its sigils tell you who set it.',
             },
             {
               key: 'Failure with Fear',
               value: 'They don’t get what they want, and things go very badly. The GM gains a Fear.',
+              example:
+                'You misread the ritual text, and something on the other side of it notices you.',
             },
           ],
         },

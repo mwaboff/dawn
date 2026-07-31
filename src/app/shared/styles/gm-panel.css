@@ -117,17 +117,32 @@
 .gm-panel__list { padding-left: 1.15rem; display: flex; flex-direction: column; gap: .3rem; }
 .gm-panel__list li::marker { color: rgba(212, 160, 86, .75); }
 
-.gm-panel__kv { display: flex; flex-direction: column; gap: .4rem; }
-.gm-panel__kv-row { display: flex; gap: .6rem; align-items: baseline; }
-/* Body face, not display small caps: these are data labels the reader scans, not panel chrome. */
+/* Stacked, not two columns. Side-by-side made every row's key a different width, so nothing
+   lined up and it read as a broken table -- and in a 300px column it left the values wrapping in
+   a ragged strip. A bold label with its text beneath is what these pairs actually are. */
+.gm-panel__kv { display: flex; flex-direction: column; gap: .7rem; }
+.gm-panel__kv-row { display: block; }
+
 .gm-panel__kv-key {
-  flex: 0 0 auto;
+  display: block;
+  margin-bottom: .1rem;
   font-family: var(--font-body);
   font-size: .9375rem;
   font-weight: 600;
   color: var(--gm-parchment);
 }
-.gm-panel__kv-value { flex: 1; min-width: 0; }
+
+.gm-panel__kv-value { display: block; }
+
+/* A worked example under the rule it illustrates. Indented and italic so it reads as an aside. */
+.gm-panel__kv-example {
+  display: block;
+  margin-top: .25rem;
+  padding-left: .65rem;
+  border-left: 2px solid rgba(212, 160, 86, .3);
+  font-style: italic;
+  color: var(--gm-dim);
+}
 
 /* Tables scroll inside the panel rather than forcing the page to scroll horizontally. */
 .gm-panel__table-wrap { overflow-x: auto; }

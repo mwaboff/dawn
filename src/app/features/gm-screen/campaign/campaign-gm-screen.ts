@@ -8,6 +8,7 @@ import { CampaignResponse } from '../../../shared/models/campaign-api.model';
 import { GmPanelGrid } from '../components/gm-panel-grid/gm-panel-grid';
 import { STATIC_GM_PANELS } from '../content/panel-registry';
 import { CAMPAIGN_GM_PANELS } from './campaign-panels';
+import { DiceRoller } from '../../../shared/components/dice-roller/dice-roller';
 import { GmScreenContext } from './gm-screen-context.service';
 import { FearCounterPanel } from './panels/fear-counter-panel/fear-counter-panel';
 
@@ -16,7 +17,7 @@ import { FearCounterPanel } from './panels/fear-counter-panel/fear-counter-panel
   templateUrl: './campaign-gm-screen.html',
   styleUrl: './campaign-gm-screen.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, GmPanelGrid, FearCounterPanel],
+  imports: [RouterLink, GmPanelGrid, FearCounterPanel, DiceRoller],
   host: { class: 'gm-screen-shell' },
   // Component-scoped so each campaign page gets its own context; the public
   // /gm-screen page never provides this token at all.

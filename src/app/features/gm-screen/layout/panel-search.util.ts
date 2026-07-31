@@ -16,7 +16,10 @@ function collectBlockText(block: GmContentBlock, into: string[]): void {
       into.push(...block.items);
       break;
     case 'keyValue':
-      for (const entry of block.entries) into.push(entry.key, entry.value);
+      for (const entry of block.entries) {
+        into.push(entry.key, entry.value);
+        if (entry.example) into.push(entry.example);
+      }
       break;
     case 'table':
       into.push(...block.headers);

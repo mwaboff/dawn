@@ -49,7 +49,11 @@ export const PANEL_CATEGORY_ORDER: readonly PanelCategory[] = [
 export type GmContentBlock =
   | { kind: 'text'; paragraphs: readonly string[] }
   | { kind: 'list'; ordered?: boolean; items: readonly string[] }
-  | { kind: 'keyValue'; entries: readonly { key: string; value: string }[] }
+  | {
+      kind: 'keyValue';
+      /** `example` renders as an indented aside under `value` -- a worked case, not more rule. */
+      entries: readonly { key: string; value: string; example?: string }[];
+    }
   | { kind: 'table'; headers: readonly string[]; rows: readonly (readonly string[])[]; dense?: boolean }
   | { kind: 'steps'; items: readonly { label: string; detail?: string }[] }
   | { kind: 'callout'; tone: 'hope' | 'fear' | 'neutral'; text: string };

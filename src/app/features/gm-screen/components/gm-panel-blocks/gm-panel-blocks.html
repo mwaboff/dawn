@@ -25,7 +25,12 @@
         @for (entry of block.entries; track $index) {
           <div class="gm-panel__kv-row">
             <dt class="gm-panel__kv-key">{{ entry.key }}</dt>
-            <dd class="gm-panel__kv-value">{{ entry.value }}</dd>
+            <dd class="gm-panel__kv-value">
+              {{ entry.value }}
+              @if (entry.example) {
+                <span class="gm-panel__kv-example">{{ entry.example }}</span>
+              }
+            </dd>
           </div>
         }
       </dl>

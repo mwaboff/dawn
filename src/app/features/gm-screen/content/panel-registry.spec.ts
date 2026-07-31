@@ -26,7 +26,6 @@ const EXPECTED_IDS = [
   'battle-guide',
   'improvised-adversaries',
   'success-with-fear',
-  'trait-outcome-examples',
   'example-gm-moves',
   'gm-principles',
   'gold',

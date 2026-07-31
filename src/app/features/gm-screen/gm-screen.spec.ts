@@ -32,6 +32,12 @@ describe('GmScreen', () => {
     expect(grid.componentInstance.panels()).toEqual(STATIC_GM_PANELS);
   });
 
+  it('should offer the floating dice roller', () => {
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('app-dice-roller')).toBeTruthy();
+  });
+
   it('should use a stable storage key for the panel grid', () => {
     fixture.detectChanges();
     const grid = fixture.debugElement.query(el => el.componentInstance instanceof GmPanelGrid);

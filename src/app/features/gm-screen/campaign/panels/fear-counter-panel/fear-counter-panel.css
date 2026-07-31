@@ -71,6 +71,36 @@
   gap: 3px;
 }
 
+/* The save indicator holds its own space whether or not a save is in flight. The shared
+   SavingSpinner is inserted and removed from the flow, which shoved the whole sticky bar sideways
+   on every tap -- and Fear gets tapped constantly. */
+.fear__save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 10px;
+  width: 10px;
+}
+
+.fear__save-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8b7ee8;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+
+.fear__save-dot.is-saving {
+  opacity: 1;
+  animation: fearSavePulse 1s ease-in-out infinite;
+}
+
+@keyframes fearSavePulse {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
+
 .fear__pip {
   width: 6px;
   height: 16px;
@@ -87,5 +117,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .fear__step,
-  .fear__pip { transition: none; }
+  .fear__pip,
+  .fear__save-dot { transition: none; }
+
+  .fear__save-dot.is-saving { animation: none; }
 }
