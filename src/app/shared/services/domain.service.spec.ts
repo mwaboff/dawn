@@ -187,6 +187,45 @@ describe('DomainService', () => {
     });
   });
 
+  describe('getDomainsPaginated', () => {
+    it('forwards expansionId as a query param when provided', () => {
+      service.getDomainsPaginated({ expansionId: 7 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.get('expansionId')).toBe('7');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('omits the expansionId query param when not provided', () => {
+      service.getDomainsPaginated({ page: 1 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.has('expansionId')).toBe(false);
+      expect(req.request.params.get('page')).toBe('1');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('supports the unfiltered dropdown call with page 0 and size 100', () => {
+      service.getDomainsPaginated({ page: 0, size: 100 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.get('page')).toBe('0');
+      expect(req.request.params.get('size')).toBe('100');
+      expect(req.request.params.get('expand')).toBe('expansion');
+      expect(req.request.params.has('expansionId')).toBe(false);
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('defaults to page 0 and size 20 when called with no options', () => {
+      service.getDomainsPaginated().subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.get('page')).toBe('0');
+      expect(req.request.params.get('size')).toBe('20');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+  });
+
   describe('getDomainOptions', () => {
     it('should fetch domains with page=0 and size=100', () => {
       service.getDomainOptions().subscribe();

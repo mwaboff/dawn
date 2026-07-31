@@ -786,7 +786,7 @@ describe('Reference', () => {
 
   describe('domain options loading', () => {
     it('calls DomainService.getDomainsPaginated on init', () => {
-      expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(0, 100);
+      expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith({ page: 0, size: 100 });
     });
 
     it('populates domainOptions signal with loaded domains', () => {

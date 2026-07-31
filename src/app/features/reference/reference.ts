@@ -215,7 +215,7 @@ export class Reference implements OnInit {
   }
 
   private loadDomainOptions(): void {
-    this.domainService.getDomainsPaginated(0, 100)
+    this.domainService.getDomainsPaginated({ page: 0, size: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => this.domainOptions.set(

@@ -181,7 +181,23 @@ describe('CodexBrowseService', () => {
   it('should dispatch DOMAIN to DomainService.getDomainsPaginated', () => {
     service.browse('DOMAIN', {}, 2).subscribe();
 
-    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(2);
+    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(expect.objectContaining({ page: 2 }));
+  });
+
+  it('should forward the expansion filter to DomainService.getDomainsPaginated', () => {
+    service.browse('DOMAIN', { expansionId: 7 }, 0).subscribe();
+
+    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 0, expansionId: 7 }),
+    );
+  });
+
+  it('should leave expansionId undefined for DOMAIN when no expansion is selected', () => {
+    service.browse('DOMAIN', {}, 0).subscribe();
+
+    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ expansionId: undefined }),
+    );
   });
 
   it('should dispatch SUBCLASS_CARD to SubclassService.getSubclassesPaginated', () => {
