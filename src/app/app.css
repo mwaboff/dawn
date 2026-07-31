@@ -1,9 +1,4 @@
+/* Single source of truth for the navbar offset is `--nav-height` in styles.css. */
 .page-content {
-  padding-top: 4.5rem;
-}
-
-@media (max-width: 768px) {
-  .page-content {
-    padding-top: 4rem;
-  }
+  padding-top: var(--nav-height);
 }

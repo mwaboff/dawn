@@ -4,6 +4,7 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
   {
     id: 'action-roll-results',
     title: 'Action Roll Results',
+    category: 'Rolls & Resolution',
     colSpan: 2,
     defaultOrder: 10,
     keywords: ['crit', 'critical', 'duality dice', 'hope die', 'fear die', 'outcome', 'stakes'],
@@ -64,6 +65,7 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
   {
     id: 'difficulty',
     title: 'Difficulty Ladder',
+    category: 'Rolls & Resolution',
     colSpan: 1,
     defaultOrder: 20,
     keywords: ['dc', 'target number', 'trait roll', 'very easy', 'nearly impossible'],
@@ -95,6 +97,7 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
   {
     id: 'range',
     title: 'Range',
+    category: 'Rolls & Resolution',
     colSpan: 1,
     defaultOrder: 30,
     keywords: ['melee', 'very close', 'close', 'far', 'very far', 'distance', 'movement', 'feet'],
@@ -117,8 +120,10 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
   {
     id: 'advantage',
     title: 'Advantage & Disadvantage',
+    category: 'Rolls & Resolution',
     colSpan: 1,
     defaultOrder: 40,
+    defaultCollapsed: true,
     keywords: ['d6', 'advantage die', 'disadvantage die', 'stack', 'cancel', 'd20'],
     body: {
       kind: 'static',

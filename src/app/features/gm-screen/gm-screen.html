@@ -1,7 +1,13 @@
-<div class="gm-screen-page">
+<div class="gm-screen-body">
+  <div class="grain-overlay gm-screen-grain"></div>
+
   <header class="gm-screen-header">
+    <p class="gm-screen-eyebrow">Quick reference</p>
     <h1 class="gm-screen-title">GM Screen</h1>
-    <p class="gm-screen-subtitle">Quick reference for running the table -- rolls, conditions, and GM moves.</p>
+    <p class="gm-screen-subtitle">
+      Rolls, conditions and GM moves for running the table. Drag a panel by its grip to rearrange
+      the board; your layout is remembered on this device.
+    </p>
   </header>
 
   <app-gm-panel-grid [panels]="staticPanels" storageKey="gm-screen" />

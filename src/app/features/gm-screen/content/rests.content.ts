@@ -4,8 +4,10 @@ export const REST_PANELS: readonly GmPanelDef[] = [
   {
     id: 'rests',
     title: 'Short Rest & Long Rest',
+    category: 'Downtime',
     colSpan: 2,
     defaultOrder: 140,
+    defaultCollapsed: true,
     keywords: ['downtime', 'recover', 'heal', 'healing', 'loadout', 'vault', 'domain cards', 'project', 'countdown'],
     body: {
       kind: 'static',

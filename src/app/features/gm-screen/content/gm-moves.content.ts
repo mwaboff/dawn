@@ -4,8 +4,10 @@ export const GM_MOVES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'spotlight',
     title: 'Spotlighting Adversaries',
+    category: 'Combat',
     colSpan: 1,
     defaultOrder: 120,
+    defaultCollapsed: true,
     keywords: ['turn', 'initiative', 'action tracker', 'spend fear', 'monster turn'],
     body: {
       kind: 'static',
@@ -34,6 +36,7 @@ export const GM_MOVES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'gm-moves-triggers',
     title: 'When to Make a GM Move',
+    category: 'GM Moves',
     colSpan: 1,
     defaultOrder: 130,
     keywords: ['trigger', 'gm turn', 'golden opportunity', 'when do I go'],
@@ -65,8 +68,10 @@ export const GM_MOVES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'example-gm-moves',
     title: 'Example GM Moves',
-    colSpan: 2,
+    category: 'GM Moves',
+    colSpan: 1,
     defaultOrder: 210,
+    defaultCollapsed: true,
     keywords: ['soft move', 'hard move', 'consequence', 'complication', 'inspiration'],
     body: {
       kind: 'static',
@@ -138,8 +143,10 @@ export const GM_MOVES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'gm-principles',
     title: 'GM Principles & Best Practices',
+    category: 'GM Moves',
     colSpan: 1,
     defaultOrder: 220,
+    defaultCollapsed: true,
     keywords: ['agenda', 'advice', 'running the game', 'table'],
     body: {
       kind: 'static',

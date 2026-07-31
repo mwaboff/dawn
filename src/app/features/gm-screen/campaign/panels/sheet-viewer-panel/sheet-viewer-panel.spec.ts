@@ -8,7 +8,9 @@ import { CharacterSheetResponse } from '../../../../create-character/models/char
 import { GmScreenContext } from '../../gm-screen-context.service';
 import { SheetViewerPanel } from './sheet-viewer-panel';
 
-const SHEET_URL = 'http://localhost:8080/api/dh/character-sheets/42';
+const BASE_URL = 'http://localhost:8080/api/dh/character-sheets';
+const BRENNA_URL = `${BASE_URL}/42`;
+const MARROW_URL = `${BASE_URL}/43`;
 
 function campaign(): CampaignResponse {
   return {
@@ -33,10 +35,10 @@ function campaign(): CampaignResponse {
   };
 }
 
-function sheet(): CharacterSheetResponse {
+function sheet(id = 42, name = 'Brenna'): CharacterSheetResponse {
   return {
-    id: 42,
-    name: 'Brenna',
+    id,
+    name,
     level: 3,
     evasion: 11,
     armorMax: 6,
@@ -81,6 +83,13 @@ describe('SheetViewerPanel', () => {
   let component: SheetViewerPanel;
   let httpMock: HttpTestingController;
 
+  /** Answers the roster's initial fan-out so each test starts from loaded vitals. */
+  const flushAll = () => {
+    httpMock.expectOne(r => r.url === BRENNA_URL).flush(sheet());
+    httpMock.expectOne(r => r.url === MARROW_URL).flush(sheet(43, 'Old Marrow'));
+    fixture.detectChanges();
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [SheetViewerPanel],
@@ -97,67 +106,86 @@ describe('SheetViewerPanel', () => {
     httpMock.verify();
   });
 
-  it('lists player characters and NPCs as options', () => {
-    expect(component.playerOptions()).toEqual([{ id: 42, label: 'Brenna (Lv 3)' }]);
-    expect(component.npcOptions()).toEqual([{ id: 43, label: 'Old Marrow (Lv 1)' }]);
+  it('groups player characters and NPCs', () => {
+    flushAll();
+    expect(component.groups().map(g => g.label)).toEqual(['Player characters', 'NPCs']);
+    expect(component.groups()[0].members.map(m => m.name)).toEqual(['Brenna']);
   });
 
-  it('GETs the full sheet when a character is selected', () => {
-    component.onSelect('42');
-
-    const request = httpMock.expectOne(r => r.url === SHEET_URL);
-    expect(request.request.method).toBe('GET');
-    expect(request.request.params.get('expand')).toContain('inventoryWeapons');
-    request.flush(sheet());
-
-    expect(component.sheet()?.name).toBe('Brenna');
+  it('GETs every campaign character up front with the full expand set', () => {
+    const requests = httpMock.match(r => r.url.startsWith(BASE_URL));
+    expect(requests.map(r => r.request.url).sort()).toEqual([BRENNA_URL, MARROW_URL]);
+    expect(requests[0].request.params.get('expand')).toContain('inventoryWeapons');
+    requests[0].flush(sheet());
+    requests[1].flush(sheet(43, 'Old Marrow'));
   });
 
-  it('re-issues the GET when refresh is pressed', () => {
-    component.onSelect('42');
-    httpMock.expectOne(r => r.url === SHEET_URL).flush(sheet());
-
-    component.refresh();
-
-    httpMock.expectOne(r => r.url === SHEET_URL).flush(sheet());
+  it('shows each member with vitals on the roster row', () => {
+    flushAll();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Brenna');
+    expect(text).toContain('Old Marrow');
+    // Evasion, HP marked and Stress read straight off the row -- no expansion needed.
+    expect(text).toContain('11');
+    expect(text).toContain('2/7');
+    expect(text).toContain('1/6');
   });
 
-  it('does not fetch when refresh is pressed with nothing selected', () => {
-    component.refresh();
+  it('keeps the detail block collapsed until a row is opened', () => {
+    flushAll();
+    const detail = fixture.nativeElement.querySelector('#party-detail-42') as HTMLElement;
+    expect(detail.hidden).toBe(true);
 
+    fixture.nativeElement.querySelector('.party__row').click();
+    fixture.detectChanges();
+    expect(detail.hidden).toBe(false);
+    expect(component.isExpanded(42)).toBe(true);
+  });
+
+  it('opens one row at a time', () => {
+    flushAll();
+    component.toggle(42);
+    component.toggle(43);
+    expect(component.isExpanded(42)).toBe(false);
+    expect(component.isExpanded(43)).toBe(true);
+  });
+
+  it('does not refetch a sheet it already holds', () => {
+    flushAll();
+    fixture.detectChanges();
     httpMock.expectNone(() => true);
   });
 
-  it('clears the sheet when the empty option is chosen', () => {
-    component.onSelect('42');
-    httpMock.expectOne(r => r.url === SHEET_URL).flush(sheet());
-
-    component.onSelect('');
-
-    expect(component.sheet()).toBeNull();
-    expect(component.selectedId()).toBeNull();
+  it('refetches every sheet when refresh is pressed', () => {
+    flushAll();
+    component.refresh();
+    httpMock.expectOne(r => r.url === BRENNA_URL).flush(sheet());
+    httpMock.expectOne(r => r.url === MARROW_URL).flush(sheet(43, 'Old Marrow'));
   });
 
-  it('renders the stat block after a successful load', () => {
-    component.onSelect('42');
-    httpMock.expectOne(r => r.url === SHEET_URL).flush(sheet());
-    fixture.detectChanges();
-
-    const text: string = fixture.nativeElement.textContent;
-    expect(text).toContain('Brenna');
-    // Thresholds come from the mapper (level-derived with no armor equipped), not the raw payload.
-    expect(text).toContain('Major 3 / Severe 6');
-    expect(text).toContain('2 / 7 marked');
-  });
-
-  it('surfaces an error state when the sheet fails to load', () => {
-    component.onSelect('42');
+  it('marks only the failed member unavailable and leaves the rest usable', () => {
     httpMock
-      .expectOne(r => r.url === SHEET_URL)
+      .expectOne(r => r.url === BRENNA_URL)
       .flush('boom', { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne(r => r.url === MARROW_URL).flush(sheet(43, 'Old Marrow'));
     fixture.detectChanges();
 
-    expect(component.error()).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain('Could not load');
+    expect(component.hasFailed(42)).toBe(true);
+    expect(component.hasFailed(43)).toBe(false);
+    expect(component.sheetFor(43)?.name).toBe('Old Marrow');
+    expect(fixture.nativeElement.textContent).toContain('Vitals unavailable');
+  });
+
+  it('tells the GM when the campaign has no characters', () => {
+    flushAll();
+    TestBed.inject(GmScreenContext).setCampaign({
+      ...campaign(),
+      playerCharacters: [],
+      nonPlayerCharacters: [],
+    });
+    fixture.detectChanges();
+
+    expect(component.hasMembers()).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('No characters have joined');
   });
 });

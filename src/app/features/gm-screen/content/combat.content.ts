@@ -4,6 +4,7 @@ export const COMBAT_PANELS: readonly GmPanelDef[] = [
   {
     id: 'damage-thresholds',
     title: 'Damage, Thresholds & Armor',
+    category: 'Combat',
     colSpan: 2,
     defaultOrder: 50,
     keywords: [
@@ -66,8 +67,10 @@ export const COMBAT_PANELS: readonly GmPanelDef[] = [
   {
     id: 'attacks',
     title: 'Attack & Spellcast Rolls',
+    category: 'Rolls & Resolution',
     colSpan: 1,
     defaultOrder: 100,
+    defaultCollapsed: true,
     keywords: ['evasion', 'attack modifier', 'unarmed', 'throwing', 'spellcast trait', 'd20', 'duality dice'],
     body: {
       kind: 'static',
@@ -100,8 +103,10 @@ export const COMBAT_PANELS: readonly GmPanelDef[] = [
   {
     id: 'teamwork-rolls',
     title: 'Help, Group, Tag Team & Reaction Rolls',
-    colSpan: 2,
+    category: 'Rolls & Resolution',
+    colSpan: 1,
     defaultOrder: 110,
+    defaultCollapsed: true,
     keywords: ['assist', 'd6', 'advantage die', 'leader', 'nominate', '3 hope', 'reaction'],
     body: {
       kind: 'static',

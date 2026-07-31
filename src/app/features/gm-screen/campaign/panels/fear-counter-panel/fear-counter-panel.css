@@ -1,46 +1,91 @@
-:host { display: block; }
-
-.fear {
+/* Fear is pinned into the board's sticky bar rather than living in the scrolling grid: it changes
+   several times a scene, so it has to stay on screen. Laid out as a horizontal strip to suit. */
+:host {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: .5rem;
+  padding: .25rem .6rem .25rem .5rem;
+  border: 1px solid rgba(122, 111, 212, .45);
+  border-radius: .4rem;
+  background: rgba(122, 111, 212, .1);
+}
+
+.fear__label {
+  font-family: var(--font-display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #b5a9f5;
 }
 
 .fear__step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px touch target; the visual box is smaller than the hit area on purpose. */
   min-width: 44px;
   min-height: 44px;
-  border: 1px solid rgba(212, 160, 86, .35);
-  font-size: 1.5rem;
+  padding: 0;
+  background: rgba(122, 111, 212, .12);
+  border: 1px solid rgba(122, 111, 212, .5);
+  border-radius: 4px;
+  color: #c3b9f8;
+  font-family: var(--font-body);
+  font-size: 1.35rem;
   line-height: 1;
+  cursor: pointer;
+  transition: background-color .12s ease;
 }
+
+.fear__step:hover:not(:disabled) { background: rgba(122, 111, 212, .25); }
+.fear__step:focus-visible { outline: 2px solid #a89bef; outline-offset: 1px; }
+.fear__step:disabled { opacity: .45; cursor: default; }
 
 .fear__readout {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .1rem;
+  align-items: baseline;
+  gap: .2rem;
   margin: 0;
+  min-width: 3.25rem;
+  justify-content: center;
 }
 
 .fear__value {
   font-family: var(--font-display);
-  font-size: 2.75rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1;
-  color: #a89bef;
+  color: #b5a9f5;
+  font-variant-numeric: tabular-nums;
 }
 
 .fear__max {
-  font-family: var(--font-display);
-  font-size: .7rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: rgba(245, 230, 211, .55);
+  font-family: var(--font-body);
+  font-size: .8rem;
+  color: rgba(245, 230, 211, .68);
 }
 
-.fear__saving {
+.fear__pips {
   display: flex;
-  justify-content: center;
-  margin-top: .5rem;
+  gap: 3px;
+}
+
+.fear__pip {
+  width: 6px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid rgba(122, 111, 212, .45);
+  transition: background-color .12s ease;
+}
+
+.fear__pip--filled { background: #8b7ee8; border-color: #8b7ee8; }
+
+@media (max-width: 860px) {
+  .fear__pips { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fear__step,
+  .fear__pip { transition: none; }
 }

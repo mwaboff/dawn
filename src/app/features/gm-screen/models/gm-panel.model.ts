@@ -9,8 +9,37 @@ import { Type } from '@angular/core';
  * panels are all authored against it in parallel.
  */
 
-/** How many grid columns a panel occupies. Collapses to 1 below the mobile breakpoint via CSS. */
-export type PanelColSpan = 1 | 2;
+/**
+ * How many grid columns a panel occupies. Steps down as columns run out and collapses to 1 below
+ * the mobile breakpoint, all via CSS -- see `gm-panel-grid.css`.
+ */
+export type PanelColSpan = 1 | 2 | 3;
+
+/**
+ * The section a panel is filed under. Sections are rendered in `PANEL_CATEGORY_ORDER` order with a
+ * heading above each, and a panel can only be dragged within its own section -- grouping and free
+ * reordering cannot both be authoritative, and grouping is what makes 24 panels legible.
+ */
+export type PanelCategory =
+  | 'This Campaign'
+  | 'Rolls & Resolution'
+  | 'Combat'
+  | 'Conditions & Resources'
+  | 'GM Moves'
+  | 'Hazards & Death'
+  | 'Downtime'
+  | 'Tables';
+
+export const PANEL_CATEGORY_ORDER: readonly PanelCategory[] = [
+  'This Campaign',
+  'Rolls & Resolution',
+  'Combat',
+  'Conditions & Resources',
+  'GM Moves',
+  'Hazards & Death',
+  'Downtime',
+  'Tables',
+];
 
 /**
  * The renderable primitives a static reference panel is built from. Deliberately a small closed
@@ -40,6 +69,7 @@ export interface GmPanelDef {
   /** Stable identifier. Used as the localStorage order key and the panel's DOM id. Never rename. */
   readonly id: string;
   readonly title: string;
+  readonly category: PanelCategory;
   readonly colSpan: PanelColSpan;
   /**
    * Sort weight when the user has no stored order, and the anchor used to slot a newly shipped

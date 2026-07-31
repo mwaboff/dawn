@@ -1,4 +1,4 @@
-<div class="gm-screen">
+<div class="gm-screen-body">
   <div class="grain-overlay gm-screen-grain"></div>
 
   @if (loading()) {
@@ -27,11 +27,14 @@
       <p class="gm-screen-error-text">Only game masters can view this campaign's GM screen.</p>
     </div>
   } @else if (campaign(); as c) {
-    <div class="gm-screen-header">
+    <header class="gm-screen-header">
       <a class="gm-screen-back" [routerLink]="['/campaign', c.id]">&larr; Back to Campaign</a>
-      <h1 class="gm-screen-title">{{ c.name }} &mdash; GM Screen</h1>
-    </div>
+      <h1 class="gm-screen-title">{{ c.name }}</h1>
+      <p class="gm-screen-subtitle">GM screen &mdash; live table tools above the rules reference.</p>
+    </header>
 
-    <app-gm-panel-grid [panels]="panels()" storageKey="gm-screen-campaign" />
+    <app-gm-panel-grid [panels]="panels()" storageKey="gm-screen-campaign">
+      <app-fear-counter-panel gmBoardLead />
+    </app-gm-panel-grid>
   }
 </div>

@@ -25,6 +25,12 @@ export class FearCounterPanel {
   readonly fear = this.context.fear;
   readonly saving = computed(() => this.context.isSaving('fear'));
 
+  /**
+   * One entry per point of the pool, true where it is filled. The pips carry the reading at a
+   * glance from across the table; the numeral is the precise value.
+   */
+  readonly pips = computed(() => Array.from({ length: FEAR_MAX }, (_, i) => i < this.fear()));
+
   constructor() {
     this.initSavePipeline();
   }

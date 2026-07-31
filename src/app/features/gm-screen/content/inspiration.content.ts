@@ -9,8 +9,10 @@ export const INSPIRATION_PANELS: readonly GmPanelDef[] = [
   {
     id: 'success-with-fear',
     title: 'Handling Success with Fear',
-    colSpan: 2,
+    category: 'GM Moves',
+    colSpan: 1,
     defaultOrder: 190,
+    defaultCollapsed: true,
     keywords: ['cost', 'consequence', 'catch', 'complication', 'fear forward', 'countdown'],
     body: {
       kind: 'static',
@@ -62,8 +64,10 @@ export const INSPIRATION_PANELS: readonly GmPanelDef[] = [
   {
     id: 'trait-outcome-examples',
     title: 'Trait Outcome Examples',
+    category: 'Rolls & Resolution',
     colSpan: 2,
     defaultOrder: 200,
+    defaultCollapsed: true,
     keywords: ['finesse', 'instinct', 'presence', 'knowledge', 'critical success', 'failure with fear'],
     body: {
       kind: 'static',

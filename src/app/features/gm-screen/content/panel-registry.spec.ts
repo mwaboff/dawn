@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GmContentBlock } from '../models/gm-panel.model';
+import { GmContentBlock, PANEL_CATEGORY_ORDER } from '../models/gm-panel.model';
 import { STATIC_GM_PANELS } from './panel-registry';
 
 /**
@@ -70,10 +70,23 @@ describe('STATIC_GM_PANELS', () => {
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
   });
 
-  it('uses a column span of 1 or 2', () => {
+  it('uses a column span of 1, 2 or 3', () => {
     for (const panel of STATIC_GM_PANELS) {
-      expect([1, 2], panel.id).toContain(panel.colSpan);
+      expect([1, 2, 3], panel.id).toContain(panel.colSpan);
     }
+  });
+
+  it('files every panel under a known category, and never the campaign one', () => {
+    for (const panel of STATIC_GM_PANELS) {
+      expect(PANEL_CATEGORY_ORDER, panel.id).toContain(panel.category);
+      expect(panel.category, panel.id).not.toBe('This Campaign');
+    }
+  });
+
+  it('opens a small enough set by default to be scannable on arrival', () => {
+    const open = STATIC_GM_PANELS.filter(p => !p.defaultCollapsed);
+    expect(open.length).toBeLessThanOrEqual(8);
+    expect(open.length).toBeGreaterThan(0);
   });
 
   it('has a non-empty title', () => {

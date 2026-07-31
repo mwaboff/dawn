@@ -1,0 +1,57 @@
+<header class="gm-panel__head">
+  <span class="gm-panel__grip" cdkDragHandle aria-hidden="true">⠿</span>
+
+  <h3 class="gm-panel__heading">
+    <button
+      type="button"
+      class="gm-panel__toggle"
+      [attr.aria-expanded]="!collapsed()"
+      [attr.aria-controls]="bodyId()"
+      (click)="toggled.emit()"
+    >
+      <span
+        class="gm-panel__chevron"
+        [class.gm-panel__chevron--collapsed]="collapsed()"
+        aria-hidden="true"
+        >▾</span
+      >
+      <span class="gm-panel__title">{{ panel().title }}</span>
+    </button>
+  </h3>
+
+  <div class="gm-panel__head-actions">
+    <button
+      type="button"
+      class="gm-panel__btn"
+      [disabled]="isFirst()"
+      [attr.aria-label]="'Move ' + panel().title + ' panel earlier'"
+      (click)="moveUp.emit()"
+    >
+      <span aria-hidden="true">▲</span>
+    </button>
+    <button
+      type="button"
+      class="gm-panel__btn"
+      [disabled]="isLast()"
+      [attr.aria-label]="'Move ' + panel().title + ' panel later'"
+      (click)="moveDown.emit()"
+    >
+      <span aria-hidden="true">▼</span>
+    </button>
+  </div>
+</header>
+
+<div
+  class="gm-panel__body"
+  [id]="bodyId()"
+  [attr.hidden]="bodyHidden()"
+  (beforematch)="revealed.emit()"
+>
+  @if (panel().body; as body) {
+    @if (body.kind === 'static') {
+      <app-gm-panel-blocks [blocks]="body.blocks" />
+    } @else {
+      <ng-container *ngComponentOutlet="body.component" />
+    }
+  }
+</div>

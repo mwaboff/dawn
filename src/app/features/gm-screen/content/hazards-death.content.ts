@@ -4,8 +4,10 @@ export const HAZARDS_DEATH_PANELS: readonly GmPanelDef[] = [
   {
     id: 'environment-hazards',
     title: 'Cover, Darkness, Underwater & Falling',
+    category: 'Hazards & Death',
     colSpan: 1,
     defaultOrder: 150,
+    defaultCollapsed: true,
     keywords: [
       'line of sight',
       'obscured',
@@ -63,8 +65,10 @@ export const HAZARDS_DEATH_PANELS: readonly GmPanelDef[] = [
   {
     id: 'death-moves',
     title: 'Death Moves',
+    category: 'Hazards & Death',
     colSpan: 1,
     defaultOrder: 160,
+    defaultCollapsed: true,
     keywords: ['dying', 'dead', 'scar', 'unconscious', 'last hit point', 'retire', 'veil of death'],
     body: {
       kind: 'static',

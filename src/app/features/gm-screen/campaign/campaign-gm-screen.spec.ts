@@ -82,6 +82,23 @@ describe('CampaignGmScreen', () => {
     expect(grid.componentInstance.panels().length).toBe(CAMPAIGN_GM_PANELS.length + STATIC_GM_PANELS.length);
   });
 
+  it('should pin Fear into the board bar rather than the scrolling grid', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+
+    // Projected through the grid into the sticky bar, so it stays on screen while the board scrolls.
+    const fear = el.querySelector('app-gm-board-controls app-fear-counter-panel');
+    expect(fear).toBeTruthy();
+    expect(fear?.textContent).toContain('3');
+    expect(el.querySelector('.gm-grid app-fear-counter-panel')).toBeNull();
+  });
+
   it('should show access-denied for a non-game-master, non-admin user', () => {
     setup();
     const authService = TestBed.inject(AuthService);

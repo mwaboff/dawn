@@ -8,6 +8,7 @@ import { STATIC_GM_PANELS } from './content/panel-registry';
   styleUrl: './gm-screen.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [GmPanelGrid],
+  host: { class: 'gm-screen-shell' },
 })
 export class GmScreen {
   protected readonly staticPanels = STATIC_GM_PANELS;
