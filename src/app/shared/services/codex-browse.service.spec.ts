@@ -192,6 +192,22 @@ describe('CodexBrowseService', () => {
     );
   });
 
+  it('should forward the isOfficial filter to DomainService.getDomainsPaginated', () => {
+    service.browse('DOMAIN', { isOfficial: true }, 0).subscribe();
+
+    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 0, isOfficial: true }),
+    );
+  });
+
+  it('should leave isOfficial undefined for DOMAIN when the checkbox is unset', () => {
+    service.browse('DOMAIN', {}, 0).subscribe();
+
+    expect(domainSpy.getDomainsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ isOfficial: undefined }),
+    );
+  });
+
   it('should leave expansionId undefined for DOMAIN when no expansion is selected', () => {
     service.browse('DOMAIN', {}, 0).subscribe();
 

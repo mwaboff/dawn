@@ -205,6 +205,30 @@ describe('DomainService', () => {
       req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
     });
 
+    it('forwards isOfficial as a query param when true', () => {
+      service.getDomainsPaginated({ isOfficial: true }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.get('isOfficial')).toBe('true');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('forwards isOfficial as a query param when false', () => {
+      service.getDomainsPaginated({ isOfficial: false }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.get('isOfficial')).toBe('false');
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
+    it('omits the isOfficial query param when not provided', () => {
+      service.getDomainsPaginated({ page: 1 }).subscribe();
+
+      const req = httpMock.expectOne(r => r.url === DOMAINS_URL);
+      expect(req.request.params.has('isOfficial')).toBe(false);
+      req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
+    });
+
     it('supports the unfiltered dropdown call with page 0 and size 100', () => {
       service.getDomainsPaginated({ page: 0, size: 100 }).subscribe();
 
@@ -213,6 +237,7 @@ describe('DomainService', () => {
       expect(req.request.params.get('size')).toBe('100');
       expect(req.request.params.get('expand')).toBe('expansion');
       expect(req.request.params.has('expansionId')).toBe(false);
+      expect(req.request.params.has('isOfficial')).toBe(false);
       req.flush({ content: [], totalElements: 0, totalPages: 0, currentPage: 0 });
     });
 

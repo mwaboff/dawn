@@ -160,6 +160,7 @@ export class CodexBrowseService {
         return this.domainService.getDomainsPaginated({
           page,
           expansionId: filters['expansionId'] as number | undefined,
+          isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'SUBCLASS_CARD':
