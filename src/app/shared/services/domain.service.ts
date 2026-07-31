@@ -19,6 +19,12 @@ export interface DomainCardBrowseOptions {
   level?: number;
 }
 
+export interface DomainBrowseOptions {
+  page?: number;
+  size?: number;
+  expansionId?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DomainService {
   private readonly http = inject(HttpClient);
@@ -132,11 +138,17 @@ export class DomainService {
       })));
   }
 
-  getDomainsPaginated(page = 0, size = 20): Observable<PaginatedCards> {
-    const params = new HttpParams()
+  getDomainsPaginated(options: DomainBrowseOptions = {}): Observable<PaginatedCards> {
+    const { page = 0, size = 20, expansionId } = options;
+
+    let params = new HttpParams()
       .set('page', page)
       .set('size', size)
       .set('expand', 'expansion');
+
+    if (expansionId !== undefined) {
+      params = params.set('expansionId', expansionId);
+    }
 
     return this.http
       .get<PaginatedResponse<DomainResponse>>(this.domainsUrl, { params, withCredentials: true })

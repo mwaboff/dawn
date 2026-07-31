@@ -157,9 +157,10 @@ export class CodexBrowseService {
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'DOMAIN':
-        return this.domainService.getDomainsPaginated(page).pipe(
-          map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)),
-        );
+        return this.domainService.getDomainsPaginated({
+          page,
+          expansionId: filters['expansionId'] as number | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'SUBCLASS_CARD':
         return this.subclassService.getSubclassesPaginated({
