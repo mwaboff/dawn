@@ -157,6 +157,11 @@ export const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>
     { kind: 'select', key: 'environmentType', label: 'Environment Type', options: ENVIRONMENT_TYPE_OPTIONS },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
+  // No tier/attack filter here: BeastformController's GET only supports expansionId,
+  // isOfficial and isPublic server-side (no tier param yet -- see beastform-api.model.ts).
+  BEASTFORM: [
+    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+  ],
 };
 
 @Component({

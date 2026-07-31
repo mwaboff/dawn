@@ -106,6 +106,13 @@ describe('FilterRail', () => {
     expect(el.textContent).toContain('Tier');
   });
 
+  it('renders the official-content checkbox for BEASTFORM type', () => {
+    host.activeType.set('BEASTFORM');
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Official content only');
+  });
+
   it('renders consumable checkbox for LOOT type', () => {
     host.activeType.set('LOOT');
     fixture.detectChanges();

@@ -277,8 +277,8 @@ export class Reference implements OnInit {
   }
 
   /**
-   * Whether a mixed-search section's type can actually be browsed via "View all". Six
-   * `SearchableEntityType`s (`SUBCLASS_PATH`, `EXPANSION`, `BEASTFORM`, `ENCOUNTER`,
+   * Whether a mixed-search section's type can actually be browsed via "View all". Five
+   * `SearchableEntityType`s (`SUBCLASS_PATH`, `EXPANSION`, `ENCOUNTER`,
    * `QUESTION`, `CARD_COST_TAG`) are indexed and searchable but have no per-type browse
    * endpoint wired into `CodexBrowseService`, so "View all" must not be offered for them.
    */

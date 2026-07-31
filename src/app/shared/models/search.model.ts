@@ -20,7 +20,10 @@ export type SearchableEntityType =
   | 'EXPANSION'
   | 'SUBCLASS_PATH'
   | 'QUESTION'
-  | 'CARD_COST_TAG';
+  | 'CARD_COST_TAG'
+  | 'TRANSFORMATION_CARD'
+  | 'MARTIAL_STANCE'
+  | 'CONDITION';
 
 export interface SearchParams {
   q: string;
@@ -107,6 +110,9 @@ export const typeLabels: Partial<Record<SearchableEntityType, string>> = {
   ENCOUNTER: 'Encounters',
   QUESTION: 'Questions',
   CARD_COST_TAG: 'Cost Tags',
+  TRANSFORMATION_CARD: 'Transformation Cards',
+  MARTIAL_STANCE: 'Martial Stances',
+  CONDITION: 'Conditions',
 };
 
 export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
@@ -115,6 +121,7 @@ export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
   LOOT: '◈',
   ADVERSARY: '☗',
   ENVIRONMENT: '⛰',
+  BEASTFORM: '☾',
   FEATURE: '✦',
   CLASS: '⚜',
   SUBCLASS_CARD: '✺',
@@ -144,6 +151,7 @@ export const BROWSABLE_TYPES: SearchableEntityType[] = [
   'ADVERSARY',
   'ENVIRONMENT',
   'COMPANION',
+  'BEASTFORM',
 ];
 
 /**

@@ -89,7 +89,7 @@ describe('admin card type registration consistency', () => {
     expect('expansion' in DEFAULT_FEATURE_TYPE_FOR_CARD).toBe(false);
   });
 
-  it('has entries for all six newly-registered card types (transformationCard, environment, martialStance, beastform, condition)', () => {
+  it('has entries for all five newly-registered card types (transformationCard, environment, martialStance, beastform, condition)', () => {
     for (const cardType of ['transformationCard', 'environment', 'martialStance', 'beastform', 'condition']) {
       expect(cardType in DEFAULT_FEATURE_TYPE_FOR_CARD).toBe(true);
     }

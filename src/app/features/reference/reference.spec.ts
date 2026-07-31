@@ -229,8 +229,8 @@ describe('Reference', () => {
     });
   });
 
-  describe('unbrowsable types (QUESTION/SUBCLASS_PATH/EXPANSION/BEASTFORM/ENCOUNTER/CARD_COST_TAG)', () => {
-    // These six SearchableEntityTypes are indexed/searchable but have no per-type browse
+  describe('unbrowsable types (QUESTION/SUBCLASS_PATH/EXPANSION/ENCOUNTER/CARD_COST_TAG)', () => {
+    // These five SearchableEntityTypes are indexed/searchable but have no per-type browse
     // endpoint in CodexBrowseService. Reaching focusedBrowse mode with one of them (e.g. via
     // "View all" on a mixed-search section, or a hand-crafted `?type=QUESTION` URL) previously
     // cast unconditionally to BrowsableType and called browseService.browse(), whose switch has
@@ -262,7 +262,7 @@ describe('Reference', () => {
       expect(component.error()).toBe(true);
     });
 
-    it.each(['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'CARD_COST_TAG'] as const)(
+    it.each(['SUBCLASS_PATH', 'EXPANSION', 'ENCOUNTER', 'CARD_COST_TAG'] as const)(
       'does not call browse or throw for %s',
       (type) => {
         expect(() => {
@@ -306,7 +306,7 @@ describe('Reference', () => {
       expect(component.isSectionBrowsable('WEAPON')).toBe(true);
     });
 
-    it.each(['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const)(
+    it.each(['SUBCLASS_PATH', 'EXPANSION', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const)(
       'returns false for %s so "View all" is not offered in the template',
       (type) => {
         expect(component.isSectionBrowsable(type)).toBe(false);

@@ -119,13 +119,35 @@ describe('BulkUpload', () => {
 
   describe('upload', () => {
     it('should call bulkCreate on upload', () => {
+      // Realistic nested payload (lifted from hope_and_fear-import/json/07-weapons.json's
+      // "Katana") so a serialization bug that flattens/drops nested `damage`/`features`
+      // objects would fail this test.
+      const katana = {
+        name: 'Katana',
+        expansionId: 1,
+        tier: 1,
+        isOfficial: true,
+        isPrimary: true,
+        trait: 'AGILITY',
+        range: 'MELEE',
+        burden: 'TWO_HANDED',
+        damage: { diceType: 'D10', modifier: 3, damageType: 'PHYSICAL' },
+        features: [
+          {
+            name: 'Quick',
+            description: 'When you make an attack, you can mark a Stress to target another creature within range.',
+            featureType: 'ITEM',
+            expansionId: 1,
+          },
+        ],
+      };
       const bulkSpy = vi.spyOn(adminCardService, 'bulkCreate').mockReturnValue(of([]));
       component.selectedType.set('weapon');
-      component.jsonInput.set('[{ "name": "Sword" }]');
+      component.jsonInput.set(JSON.stringify([katana]));
       component.onValidate();
       component.onUpload();
 
-      expect(bulkSpy).toHaveBeenCalledWith('weapon', [{ name: 'Sword' }]);
+      expect(bulkSpy).toHaveBeenCalledWith('weapon', [katana]);
     });
 
     it('should show success result after upload', () => {

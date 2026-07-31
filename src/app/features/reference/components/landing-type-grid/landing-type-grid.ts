@@ -21,6 +21,7 @@ const TYPE_TAGLINES: Partial<Record<SearchableEntityType, string>> = {
   ADVERSARY: 'Creatures and foes the GM can unleash.',
   ENVIRONMENT: 'Scenes and settings the GM can bring to life.',
   COMPANION: 'Loyal beasts and bonded allies at your side.',
+  BEASTFORM: 'The creature shapes a Druid can become.',
 };
 
 @Component({

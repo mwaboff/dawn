@@ -12,7 +12,7 @@ export type DiceType = 'D4' | 'D6' | 'D8' | 'D10' | 'D12';
 export interface WeaponDamageResponse {
   diceCount: number | null;
   diceType: DiceType;
-  modifier: number;
+  modifier: number | null;
   damageType: DamageType;
   notation: string;
 }

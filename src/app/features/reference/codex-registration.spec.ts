@@ -7,6 +7,7 @@ import { ArmorService } from '../../shared/services/armor.service';
 import { LootService } from '../../shared/services/loot.service';
 import { AdversaryService } from '../../shared/services/adversary.service';
 import { EnvironmentService } from '../../shared/services/environment.service';
+import { BeastformService } from '../../shared/services/beastform.service';
 import { ClassService } from '../../shared/services/class.service';
 import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
@@ -19,17 +20,30 @@ import { TYPE_FILTERS } from './components/filter-rail/filter-rail';
 
 /**
  * Mirrors `com.aboff.core.model.enums.SearchableEntityType` -- the backend's registered
- * full-text search types. Keep this list in sync with that enum. If a frontend
- * `SearchableEntityType` reaches `SearchService` (i.e. `isSearchableType()` returns true for
- * it) without a matching entry here, the backend has no registration for it and `/api/search`
- * returns HTTP 400 -- exactly the bug `COMPANION` shipped with (see dawn PR fixing
- * "phantom Companion full-text search registration").
+ * full-text search types, in full (all 21 members, not just the ones the frontend already
+ * knows about). Keep this list in sync with that enum. It is the source of truth for both
+ * directions checked below:
+ *  - a frontend type reaching `SearchService` without a matching entry here would 400
+ *    (see `COMPANION`'s "phantom Companion full-text search registration" bug);
+ *  - a backend type with no frontend representation at all is an invisible gap -- the class
+ *    of drift that let `TRANSFORMATION_CARD`/`MARTIAL_STANCE`/`CONDITION` go unnoticed because
+ *    the old version of this list only asserted the frontend was a subset of it, never the
+ *    reverse.
  */
 const BACKEND_SEARCHABLE_TYPES = [
   'DOMAIN', 'CLASS', 'FEATURE', 'ANCESTRY_CARD', 'COMMUNITY_CARD', 'SUBCLASS_CARD',
   'DOMAIN_CARD', 'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'BEASTFORM', 'ENCOUNTER',
   'EXPANSION', 'SUBCLASS_PATH', 'QUESTION', 'CARD_COST_TAG', 'ENVIRONMENT',
+  'TRANSFORMATION_CARD', 'MARTIAL_STANCE', 'CONDITION',
 ] as const satisfies readonly SearchableEntityType[];
+
+/**
+ * Backend `SearchableEntityType` members with deliberately no frontend representation at all
+ * (not even a `typeLabels` entry) -- must name why. Empty today: every backend member is
+ * represented in `typeLabels`. Add an entry here (never silently drop it from the reverse
+ * check below) if a future backend type is intentionally not surfaced on the frontend yet.
+ */
+const BACKEND_TYPES_WITHOUT_FRONTEND_REPRESENTATION: readonly SearchableEntityType[] = [];
 
 /**
  * Guards against the exact silent-omission failure the HF-36a packet was written to fix:
@@ -39,10 +53,11 @@ const BACKEND_SEARCHABLE_TYPES = [
  * on all three fronts.
  */
 describe('codex type registration completeness', () => {
+  // `typeLabels` is keyed by every SearchableEntityType member (there is no runtime array
+  // for the frontend union type), so its keys are the full frontend type universe.
+  const allFrontendTypes = Object.keys(typeLabels) as SearchableEntityType[];
+
   it('every type reachable via full-text search is registered on the backend', () => {
-    // `typeLabels` is keyed by every SearchableEntityType member (there is no runtime array
-    // for the frontend union type), so its keys are the full type universe to check.
-    const allFrontendTypes = Object.keys(typeLabels) as SearchableEntityType[];
     const searchReachableTypes = allFrontendTypes.filter(isSearchableType);
     for (const type of searchReachableTypes) {
       expect(
@@ -51,6 +66,25 @@ describe('codex type registration completeness', () => {
           `SearchableEntityType registration -- add it to SEARCH_UNSUPPORTED_TYPES in ` +
           `search.model.ts if it isn't actually indexed, or to BACKEND_SEARCHABLE_TYPES ` +
           `above once backend indexing is confirmed`,
+      ).toContain(type);
+    }
+  });
+
+  it('every backend SearchableEntityType member has a frontend representation', () => {
+    // The reverse direction: a backend enum member the frontend union doesn't even know
+    // about (not present in `typeLabels`) is invisible everywhere on the frontend -- it
+    // can never be browsed, searched, or labeled. This is what would have caught
+    // TRANSFORMATION_CARD/MARTIAL_STANCE/CONDITION drifting out of `search.model.ts`.
+    for (const type of BACKEND_SEARCHABLE_TYPES) {
+      if (BACKEND_TYPES_WITHOUT_FRONTEND_REPRESENTATION.includes(type)) {
+        continue;
+      }
+      expect(
+        allFrontendTypes,
+        `${type} exists in the backend SearchableEntityType enum but has no frontend ` +
+          `representation (missing from the SearchableEntityType union / typeLabels in ` +
+          `search.model.ts) -- add it there, or to BACKEND_TYPES_WITHOUT_FRONTEND_REPRESENTATION ` +
+          `above with a reason if it is deliberately not surfaced yet`,
       ).toContain(type);
     }
   });
@@ -86,6 +120,7 @@ describe('codex type registration completeness', () => {
           { provide: LootService, useValue: { getLoot: vi.fn(cardResult) } },
           { provide: AdversaryService, useValue: { getAdversaries: vi.fn(adversaryResult) } },
           { provide: EnvironmentService, useValue: { getEnvironmentsPaginated: vi.fn(cardResult) } },
+          { provide: BeastformService, useValue: { getBeastformsPaginated: vi.fn(cardResult) } },
           { provide: ClassService, useValue: { getClassesPaginated: vi.fn(cardResult) } },
           { provide: AncestryService, useValue: { getAncestriesPaginated: vi.fn(cardResult) } },
           { provide: CommunityService, useValue: { getCommunitiesPaginated: vi.fn(cardResult) } },

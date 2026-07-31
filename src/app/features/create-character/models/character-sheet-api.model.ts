@@ -153,7 +153,7 @@ export interface InventoryLootResponse {
 export interface DamageRollResponse {
   diceCount: number | null;
   diceType: string;
-  modifier: number;
+  modifier: number | null;
   damageType: string;
   notation: string;
 }
