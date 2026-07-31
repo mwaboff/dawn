@@ -60,6 +60,7 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
     tags: [response.damage.notation, formattedRange, formattedBurden, formattedTrait],
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       isPrimary: response.isPrimary,
       burden: response.burden,
       damageType: response.damage.damageType,

@@ -65,6 +65,7 @@ export function mapDomainCardResponseToCardData(response: DomainCardResponse): C
     tags: buildTags(response),
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       domainName,
       domainId: response.associatedDomainId,
       type: response.type,

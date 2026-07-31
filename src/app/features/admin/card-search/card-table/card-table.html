@@ -1,0 +1,58 @@
+<div class="card-table-scroll">
+  <table class="card-table">
+    <colgroup>
+      <col style="width: 5rem" />
+      @if (showType()) {
+        <col style="width: 9rem" />
+      }
+      <col />
+      @for (col of columns(); track col.key) {
+        <col [style.width]="col.width" />
+      }
+    </colgroup>
+    <thead>
+      <tr>
+        <th scope="col" class="col--numeric" [attr.aria-sort]="ariaSort('id')">
+          <button type="button" class="col-sort" (click)="onSort('id')">
+            ID <span class="col-sort__arrow" aria-hidden="true">{{ sortIndicator('id') }}</span>
+          </button>
+        </th>
+        @if (showType()) {
+          <th scope="col" [attr.aria-sort]="ariaSort('typeLabel')">
+            <button type="button" class="col-sort" (click)="onSort('typeLabel')">
+              Type <span class="col-sort__arrow" aria-hidden="true">{{ sortIndicator('typeLabel') }}</span>
+            </button>
+          </th>
+        }
+        <th scope="col" [attr.aria-sort]="ariaSort('name')">
+          <button type="button" class="col-sort" (click)="onSort('name')">
+            Name <span class="col-sort__arrow" aria-hidden="true">{{ sortIndicator('name') }}</span>
+          </button>
+        </th>
+        @for (col of columns(); track col.key) {
+          <th scope="col" [class.col--numeric]="col.numeric" [attr.aria-sort]="ariaSort(col.key)">
+            <button type="button" class="col-sort" (click)="onSort(col.key)">
+              {{ col.label }} <span class="col-sort__arrow" aria-hidden="true">{{ sortIndicator(col.key) }}</span>
+            </button>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track trackRow($index, row)) {
+        <tr class="card-row">
+          <td class="col--numeric card-row__id">{{ row.id }}</td>
+          @if (showType()) {
+            <td class="card-row__type">{{ row.typeLabel }}</td>
+          }
+          <td class="card-row__name">
+            <a [routerLink]="row.link" class="card-row__link">{{ row.name }}</a>
+          </td>
+          @for (col of columns(); track col.key) {
+            <td [class.col--numeric]="col.numeric" [title]="row.cells[col.key]">{{ row.cells[col.key] }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

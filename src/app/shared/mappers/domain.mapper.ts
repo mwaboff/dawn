@@ -13,6 +13,7 @@ export function mapDomainToCardData(domain: DomainResponse): CardData {
     description: domain.description ?? '',
     cardType: 'domain',
     metadata: {
+      expansionId: domain.expansionId,
       iconUrl: domain.iconUrl,
       accentColor,
     },

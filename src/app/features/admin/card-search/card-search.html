@@ -1,66 +1,68 @@
 <div class="card-search">
-  <div class="search-controls">
-    <div class="category-bar">
-      @for (cat of categories; track cat.id) {
-        <button type="button" class="category-pill"
-          [class.category-pill--active]="activeCategory() === cat.id"
-          (click)="onCategorySelected(cat.id)">
-          {{ cat.label }}
-        </button>
-      }
-    </div>
-
-    @if (activeCategory()) {
-      <div class="search-input-wrapper">
-        <input type="text" class="search-input" placeholder="Search by name or text..."
-          [ngModel]="searchQuery()" (ngModelChange)="onSearchChange($event)" />
-        @if (isShortQuery()) {
-          <p class="search-hint" aria-live="polite">Keep typing… (3 characters minimum)</p>
-        }
-      </div>
+  <div class="category-bar">
+    <button type="button" class="category-pill"
+      [class.category-pill--active]="activeCategory() === allTypesId"
+      (click)="onCategorySelected(allTypesId)">
+      All Types
+    </button>
+    @for (cat of categories; track cat.id) {
+      <button type="button" class="category-pill"
+        [class.category-pill--active]="activeCategory() === cat.id"
+        (click)="onCategorySelected(cat.id)">
+        {{ cat.label }}
+      </button>
     }
   </div>
 
+  @if (activeCategory()) {
+    <div class="toolbar">
+      <input type="text" class="search-input" [placeholder]="isAllTypes() ? 'Search all card types…' : 'Search by name or text…'"
+        [ngModel]="queryValue()" (ngModelChange)="onSearchChange($event)" />
+
+      <label class="toolbar__field">
+        <span class="toolbar__label">Per page</span>
+        <select class="toolbar__select" [ngModel]="state().size" (ngModelChange)="onPageSizeChanged($event)">
+          @for (size of pageSizes; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+
+      <span class="toolbar__count" aria-live="polite">
+        @if (totalElements()) { {{ showingRange() }} }
+      </span>
+    </div>
+
+    @if (isShortQuery()) {
+      <p class="search-hint" aria-live="polite">Keep typing… ({{ minQueryLength }} characters minimum)</p>
+    }
+  }
+
   @if (!activeCategory()) {
-    <div class="search-empty"><p>Select a category above to browse cards.</p></div>
-  }
-
-  @if (loading()) {
-    <app-card-skeleton [count]="6" />
-  }
-
-  @if (error() && !loading()) {
-    <div class="search-error"><p>Failed to load cards. Please try again.</p></div>
-  }
-
-  @if (!loading() && !error() && isSubclassCategory() && cards().length > 0) {
-    <app-subclass-path-selector [cards]="cards()" [collapsibleFeatures]="true"
-      (cardSelected)="onSubclassCardSelected($event)" />
-  }
-
-  @if (!loading() && !error() && isAdversaryCategory() && adversaries().length > 0) {
-    <div class="adversary-grid">
-      @for (adversary of adversaries(); track adversary.id) {
-        <div class="adversary-grid__item" role="button" tabindex="0"
-          (click)="onAdversarySelected(adversary)" (keydown.enter)="onAdversarySelected(adversary)">
-          <app-adversary-card [adversary]="adversary" layout="wide" [collapsibleFeatures]="true" />
-        </div>
+    <div class="search-empty"><p>Select a category above to browse cards, or All Types to search everything.</p></div>
+  } @else if (needsQuery() && !isShortQuery()) {
+    <div class="search-empty"><p>Type at least {{ minQueryLength }} characters to search across every card type.</p></div>
+  } @else if (error()) {
+    <div class="search-error" role="alert"><p>Failed to load cards. Please try again.</p></div>
+  } @else if (loading()) {
+    <div class="table-skeleton" aria-busy="true">
+      @for (line of [1, 2, 3, 4, 5, 6, 7, 8]; track line) {
+        <div class="table-skeleton__row"></div>
       }
     </div>
-  }
+  } @else if (hasResults()) {
+    <app-card-table [rows]="rows()" [columns]="columns()" [sort]="state().sort" [showType]="isAllTypes()"
+      (sortChanged)="onSortChanged($event)" />
 
-  @if (!loading() && !error() && !isSubclassCategory() && !isAdversaryCategory() && activeCategory() && cards().length > 0) {
-    <app-card-selection-grid [cards]="cards()" [loading]="false" [error]="false"
-      [maxSelections]="1" [layout]="'wide'" [collapsibleFeatures]="true"
-      (cardSelected)="onCardSelected($event)" />
-  }
-
-  @if (!loading() && !error() && activeCategory() && hasResults()) {
-    <app-pagination-controls [currentPage]="currentPage()" [totalPages]="totalPages()"
-      (pageChanged)="onPageChanged($event)" />
-  }
-
-  @if (!loading() && !error() && activeCategory() && !hasResults()) {
+    <div class="table-footer">
+      <p class="table-footer__note">Sorting applies to the loaded page — the API paginates by ID.</p>
+      <div class="table-footer__pager">
+        <button type="button" class="page-btn" [disabled]="state().page === 0" (click)="onPageChanged(state().page - 1)">Prev</button>
+        <span class="page-status">Page {{ state().page + 1 }} of {{ totalPages() || 1 }}</span>
+        <button type="button" class="page-btn" [disabled]="state().page >= totalPages() - 1" (click)="onPageChanged(state().page + 1)">Next</button>
+      </div>
+    </div>
+  } @else {
     <div class="search-empty">
       <p>{{ isSearchMode() ? 'No cards match your search.' : 'No cards found in this category.' }}</p>
     </div>

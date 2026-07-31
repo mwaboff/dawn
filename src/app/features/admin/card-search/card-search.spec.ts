@@ -1,18 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { provideRouter, Router, ActivatedRoute, convertToParamMap, NavigationExtras, ParamMap } from '@angular/router';
+import { BehaviorSubject, of, throwError } from 'rxjs';
 import { CardSearch } from './card-search';
 import { CodexBrowseService } from '../../../shared/services/codex-browse.service';
+import { ExpansionService } from '../../../shared/services/expansion.service';
 import { SearchService } from '../../../shared/services/search.service';
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
 import { BrowseResult, SearchResponse } from '../../../shared/models/search.model';
+import { DEFAULT_PAGE_SIZE } from './card-table.model';
 
 const mockCards: CardData[] = [
-  { id: 1, name: 'Longsword', description: 'A blade', cardType: 'weapon' },
-  { id: 2, name: 'Dagger', description: 'A small blade', cardType: 'weapon' },
+  { id: 1, name: 'Longsword', description: 'A blade', cardType: 'weapon', metadata: { tier: 1, trait: 'AGILITY' } },
+  { id: 2, name: 'Dagger', description: 'A small blade', cardType: 'weapon', metadata: { tier: 2, trait: 'FINESSE' } },
 ];
 
 const mockAdversaries: AdversaryData[] = [
@@ -30,29 +32,59 @@ function mockSearchResponse(results: SearchResponse['results'] = []): SearchResp
 describe('CardSearch', () => {
   let component: CardSearch;
   let fixture: ComponentFixture<CardSearch>;
-  let router: Router;
   let browseService: CodexBrowseService;
   let searchService: SearchService;
+  let expansionService: ExpansionService;
+  let queryParams: Record<string, string>;
+  let queryParamMap$: BehaviorSubject<ParamMap>;
+
+  /** Mirrors the router's `queryParamsHandling: 'merge'` so state round-trips through the URL. */
+  function applyNavigation(extras?: NavigationExtras): void {
+    for (const [key, value] of Object.entries(extras?.queryParams ?? {})) {
+      if (value === null || value === undefined) delete queryParams[key];
+      else queryParams[key] = String(value);
+    }
+    queryParamMap$.next(convertToParamMap({ ...queryParams }));
+  }
+
+  function setParams(params: Record<string, string>): void {
+    queryParams = { ...params };
+    queryParamMap$.next(convertToParamMap({ ...queryParams }));
+    fixture.detectChanges();
+  }
 
   beforeEach(async () => {
+    queryParams = {};
+    queryParamMap$ = new BehaviorSubject<ParamMap>(convertToParamMap({}));
+
     await TestBed.configureTestingModule({
       imports: [CardSearch],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: ActivatedRoute, useValue: { queryParamMap: queryParamMap$.asObservable() } },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CardSearch);
-    component = fixture.componentInstance;
-    router = TestBed.inject(Router);
     browseService = TestBed.inject(CodexBrowseService);
     searchService = TestBed.inject(SearchService);
+    expansionService = TestBed.inject(ExpansionService);
+
+    // Stubbed before the component is created: the expansion lookup is kicked off
+    // in the constructor.
+    vi.spyOn(expansionService, 'getExpansions').mockReturnValue(
+      of([{ id: 1, name: 'Core Set' }, { id: 2, name: 'Hope & Fear' }]));
+
+    fixture = TestBed.createComponent(CardSearch);
+    component = fixture.componentInstance;
 
     vi.spyOn(browseService, 'browse').mockReturnValue(of(mockBrowseResult));
     vi.spyOn(searchService, 'search').mockReturnValue(of(mockSearchResponse()));
-    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockImplementation((_commands, extras) => {
+      applyNavigation(extras);
+      return Promise.resolve(true);
+    });
   });
 
   afterEach(() => {
@@ -64,257 +96,345 @@ describe('CardSearch', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should show category pills', () => {
-    fixture.detectChanges();
-    const pills = fixture.nativeElement.querySelectorAll('.category-pill');
-    expect(pills.length).toBeGreaterThan(0);
+  describe('category pills', () => {
+    it('renders a pill per category plus an All Types pill', () => {
+      fixture.detectChanges();
+      const labels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
+        .map(el => (el as HTMLElement).textContent?.trim());
+      expect(labels).toContain('All Types');
+      expect(labels).toContain('Features');
+      expect(labels).toContain('Environments');
+      expect(labels).toContain('Beastforms');
+    });
+
+    it('shows the empty message when no category is selected', () => {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.search-empty')?.textContent).toContain('Select a category');
+    });
   });
 
-  it('should include a Features category among the pills', () => {
-    fixture.detectChanges();
-    const pillLabels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
-      .map((el) => (el as HTMLElement).textContent?.trim());
-    expect(pillLabels).toContain('Features');
-  });
+  describe('URL-synced state', () => {
+    it('browses the category named in the type query param on load', () => {
+      setParams({ type: 'weapon' });
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0, DEFAULT_PAGE_SIZE);
+    });
 
-  it('should include an Environments category among the pills', () => {
-    fixture.detectChanges();
-    const pillLabels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
-      .map((el) => (el as HTMLElement).textContent?.trim());
-    expect(pillLabels).toContain('Environments');
-  });
+    it('restores page and size from the URL without user interaction', () => {
+      setParams({ type: 'weapon', page: '2', size: '100' });
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 2, 100);
+    });
 
-  it('should include a Beastforms category among the pills', () => {
-    fixture.detectChanges();
-    const pillLabels = Array.from(fixture.nativeElement.querySelectorAll('.category-pill'))
-      .map((el) => (el as HTMLElement).textContent?.trim());
-    expect(pillLabels).toContain('Beastforms');
-  });
+    it('falls back to defaults for a malformed URL', () => {
+      setParams({ type: 'not-a-category', page: 'abc', size: '7' });
+      expect(component.activeCategory()).toBeNull();
+      expect(component.state().page).toBe(0);
+      expect(component.state().size).toBe(DEFAULT_PAGE_SIZE);
+    });
 
-  it('should show empty message when no category selected', () => {
-    fixture.detectChanges();
-    const emptyMessage = fixture.nativeElement.querySelector('.search-empty');
-    expect(emptyMessage?.textContent).toContain('Select a category');
-  });
-
-  describe('browse mode', () => {
-    it('calls browse with empty filters (no isOfficial) on category select', () => {
+    it('writes the selected category into the URL', () => {
       fixture.detectChanges();
       component.onCategorySelected('weapon');
       fixture.detectChanges();
-      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0);
-      const grid = fixture.nativeElement.querySelector('app-card-selection-grid');
-      expect(grid).toBeTruthy();
+      expect(queryParams['type']).toBe('weapon');
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0, DEFAULT_PAGE_SIZE);
     });
 
-    it('re-browses on page change with the new page number', () => {
+    it('resets page, query and sort when the category changes', () => {
+      setParams({ type: 'weapon', page: '3', q: 'sword', sort: 'tier', dir: 'desc' });
+      component.onCategorySelected('armor');
       fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
-      (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
-      vi.spyOn(browseService, 'browse').mockReturnValue(of({ ...mockBrowseResult, currentPage: 1, totalPages: 3 }));
-
-      component.onPageChanged(1);
-      fixture.detectChanges();
-      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 1);
+      expect(queryParams).toEqual({ type: 'armor' });
     });
 
-    it('renders pagination controls when totalPages > 1', () => {
-      vi.spyOn(browseService, 'browse').mockReturnValue(of({ ...mockBrowseResult, totalPages: 3 }));
+    it('writes the page size into the URL', () => {
+      setParams({ type: 'weapon' });
+      component.onPageSizeChanged('100');
       fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
-      const pagination = fixture.nativeElement.querySelector('app-pagination-controls');
-      expect(pagination).toBeTruthy();
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0, 100);
+    });
+  });
+
+  describe('table rendering', () => {
+    it('renders one row per card with a routerLink anchor to the card editor', () => {
+      setParams({ type: 'weapon' });
+      const links = fixture.nativeElement.querySelectorAll('.card-row__link');
+      expect(links.length).toBe(2);
+      expect(links[0].getAttribute('href')).toBe('/admin/cards/weapon/1');
+      expect(links[0].textContent.trim()).toBe('Longsword');
     });
 
-    it('calls browse with type FEATURE on the feature category, including unattached feature rows', () => {
-      const featureCards: CardData[] = [
-        { id: 100, name: 'Shadowblighted', description: 'You may add this to any adversary.', cardType: 'feature' },
-        { id: 101, name: 'Terranamancer', description: 'You may add this to any adversary.', cardType: 'feature' },
+    it('renders type-specific columns for the active category', () => {
+      setParams({ type: 'weapon' });
+      const headers = Array.from(fixture.nativeElement.querySelectorAll('th'))
+        .map(el => (el as HTMLElement).textContent?.trim().replace(/\s*[▲▼]$/, ''));
+      expect(headers).toEqual(['ID', 'Name', 'Tier', 'Trait', 'Range', 'Burden', 'Damage', 'Expansion']);
+    });
+
+    it('renders adversary rows linking to the adversary editor', () => {
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ cards: [], adversaries: mockAdversaries, currentPage: 0, totalPages: 1, totalElements: 1 }));
+      setParams({ type: 'adversary' });
+      const link = fixture.nativeElement.querySelector('.card-row__link');
+      expect(link.getAttribute('href')).toBe('/admin/cards/adversary/10');
+    });
+
+    it('collapses the level cards of one subclass path into a single row', () => {
+      const subclassCards: CardData[] = ['FOUNDATION', 'SPECIALIZATION', 'MASTERY'].map((level, i) => ({
+        id: 100 + i, name: `Warden ${level}`, description: '', cardType: 'subclass' as const,
+        metadata: { subclassPathId: 42, subclassPathName: 'Warden of the Elements', level },
+      }));
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ ...mockBrowseResult, cards: subclassCards, totalElements: 3 }));
+      setParams({ type: 'subclass' });
+
+      const links = fixture.nativeElement.querySelectorAll('.card-row__link');
+      expect(links.length).toBe(1);
+      expect(links[0].getAttribute('href')).toBe('/admin/cards/subclass-path/42');
+      expect(links[0].textContent.trim()).toBe('Warden of the Elements');
+    });
+
+    it('notes the collapsed row count next to the item range', () => {
+      const subclassCards: CardData[] = ['FOUNDATION', 'MASTERY'].map((level, i) => ({
+        id: 100 + i, name: `Warden ${level}`, description: '', cardType: 'subclass' as const,
+        metadata: { subclassPathId: 42, subclassPathName: 'Warden', level },
+      }));
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ ...mockBrowseResult, cards: subclassCards, totalElements: 2 }));
+      setParams({ type: 'subclass' });
+      expect(fixture.nativeElement.querySelector('.toolbar__count').textContent).toContain('1–2 of 2 · 1 rows');
+    });
+
+    it('links subclass rows to their parent path editor', () => {
+      const subclassCards: CardData[] = [
+        { id: 5, name: 'Warden', description: '', cardType: 'subclass', metadata: { subclassPathId: 42 } },
       ];
-      vi.spyOn(browseService, 'browse').mockReturnValue(of({ cards: featureCards, adversaries: [], currentPage: 0, totalPages: 1, totalElements: 2 }));
-      fixture.detectChanges();
-      component.onCategorySelected('feature');
-      fixture.detectChanges();
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ ...mockBrowseResult, cards: subclassCards, totalElements: 1 }));
+      setParams({ type: 'subclass' });
+      expect(fixture.nativeElement.querySelector('.card-row__link').getAttribute('href'))
+        .toBe('/admin/cards/subclass-path/42');
+    });
 
-      expect(browseService.browse).toHaveBeenCalledWith('FEATURE', {}, 0);
-      const grid = fixture.nativeElement.querySelector('app-card-selection-grid');
-      expect(grid).toBeTruthy();
-      const cards = fixture.nativeElement.querySelectorAll('app-daggerheart-card');
-      expect(cards.length).toBe(2);
+    it('falls back to the card route when a subclass row has no path id', () => {
+      const subclassCards: CardData[] = [{ id: 5, name: 'Warden', description: '', cardType: 'subclass' }];
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ ...mockBrowseResult, cards: subclassCards, totalElements: 1 }));
+      setParams({ type: 'subclass' });
+      expect(fixture.nativeElement.querySelector('.card-row__link').getAttribute('href'))
+        .toBe('/admin/cards/subclass/5');
+    });
+
+    it('lists unattached features so they stay discoverable', () => {
+      const featureCards: CardData[] = [
+        { id: 100, name: 'Shadowblighted', description: 'Add to any adversary.', cardType: 'feature' },
+        { id: 101, name: 'Terranamancer', description: 'Add to any adversary.', cardType: 'feature' },
+      ];
+      vi.spyOn(browseService, 'browse').mockReturnValue(
+        of({ cards: featureCards, adversaries: [], currentPage: 0, totalPages: 1, totalElements: 2 }));
+      setParams({ type: 'feature' });
+      expect(browseService.browse).toHaveBeenCalledWith('FEATURE', {}, 0, DEFAULT_PAGE_SIZE);
+      expect(fixture.nativeElement.querySelectorAll('.card-row').length).toBe(2);
+    });
+
+    it('shows the result range', () => {
+      setParams({ type: 'weapon' });
+      expect(fixture.nativeElement.querySelector('.toolbar__count').textContent).toContain('1–2 of 2');
+    });
+  });
+
+  describe('expansion column', () => {
+    it('resolves the expansion name from the cached lookup', () => {
+      vi.spyOn(browseService, 'browse').mockReturnValue(of({
+        ...mockBrowseResult,
+        cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionId: 2 } }],
+        totalElements: 1,
+      }));
+      setParams({ type: 'weapon' });
+      const cells = Array.from(fixture.nativeElement.querySelectorAll('td'))
+        .map(el => (el as HTMLElement).textContent?.trim());
+      expect(cells).toContain('Hope & Fear');
+    });
+
+    it('prefers a name the API already sent over the lookup', () => {
+      vi.spyOn(browseService, 'browse').mockReturnValue(of({
+        ...mockBrowseResult,
+        cards: [{
+          id: 1, name: 'Warden', description: '', cardType: 'subclass' as const,
+          metadata: { expansionId: 1, expansionName: 'Void' },
+        }],
+        totalElements: 1,
+      }));
+      setParams({ type: 'subclass' });
+      const cells = Array.from(fixture.nativeElement.querySelectorAll('td'))
+        .map(el => (el as HTMLElement).textContent?.trim());
+      expect(cells).toContain('Void');
+    });
+
+    it('falls back to the raw id when the lookup fails', () => {
+      vi.spyOn(expansionService, 'getExpansions').mockReturnValue(throwError(() => new Error('down')));
+      vi.spyOn(browseService, 'browse').mockReturnValue(of({
+        ...mockBrowseResult,
+        cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionId: 9 } }],
+        totalElements: 1,
+      }));
+      const local = TestBed.createComponent(CardSearch);
+      queryParams = { type: 'weapon' };
+      queryParamMap$.next(convertToParamMap({ ...queryParams }));
+      local.detectChanges();
+      const cells = Array.from(local.nativeElement.querySelectorAll('td'))
+        .map(el => (el as HTMLElement).textContent?.trim());
+      expect(cells).toContain('#9');
+    });
+
+    it('leaves the cell blank when the entity has no expansion', () => {
+      vi.spyOn(browseService, 'browse').mockReturnValue(of({
+        ...mockBrowseResult,
+        cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon' }],
+        totalElements: 1,
+      }));
+      setParams({ type: 'weapon' });
+      const expansionCell = fixture.nativeElement.querySelectorAll('.card-row td');
+      expect(expansionCell[expansionCell.length - 1].textContent.trim()).toBe('');
+    });
+  });
+
+  describe('sorting', () => {
+    it('writes the sort column and ascending direction into the URL', () => {
+      setParams({ type: 'weapon' });
+      component.onSortChanged('name');
+      fixture.detectChanges();
+      expect(queryParams['sort']).toBe('name');
+      expect(queryParams['dir']).toBe('asc');
+    });
+
+    it('toggles to descending when the same column is clicked again', () => {
+      setParams({ type: 'weapon', sort: 'name', dir: 'asc' });
+      component.onSortChanged('name');
+      fixture.detectChanges();
+      expect(queryParams['dir']).toBe('desc');
+    });
+
+    it('reorders the rendered rows', () => {
+      setParams({ type: 'weapon', sort: 'name', dir: 'asc' });
+      const names = Array.from(fixture.nativeElement.querySelectorAll('.card-row__link'))
+        .map(el => (el as HTMLElement).textContent?.trim());
+      expect(names).toEqual(['Dagger', 'Longsword']);
+    });
+
+    it('does not refetch when only the sort changes', () => {
+      setParams({ type: 'weapon' });
+      (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
+      component.onSortChanged('name');
+      fixture.detectChanges();
+      expect(browseService.browse).not.toHaveBeenCalled();
     });
   });
 
   describe('search mode', () => {
-    it('dispatches a search call after the debounce with no isOfficial key', () => {
+    it('dispatches a search after the debounce with the active type and page size', () => {
       vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
+      setParams({ type: 'weapon' });
       component.onSearchChange('sword');
-      fixture.detectChanges();
       vi.advanceTimersByTime(250);
-
-      expect(searchService.search).toHaveBeenCalledWith({ q: 'sword', types: ['WEAPON'], page: 0 });
+      fixture.detectChanges();
+      expect(searchService.search).toHaveBeenCalledWith({
+        q: 'sword', types: ['WEAPON'], page: 0, size: DEFAULT_PAGE_SIZE,
+      });
     });
 
     it('does not search before the debounce elapses', () => {
       vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
+      setParams({ type: 'weapon' });
       (searchService.search as ReturnType<typeof vi.fn>).mockClear();
-
       component.onSearchChange('sword');
-      fixture.detectChanges();
       vi.advanceTimersByTime(100);
       expect(searchService.search).not.toHaveBeenCalled();
     });
 
-    it('does not search on a 1-2 char query, shows hint, and retains previous browse results', () => {
+    it('shows a hint and keeps browse results for a 1-2 char query', () => {
       vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
+      setParams({ type: 'weapon' });
       (searchService.search as ReturnType<typeof vi.fn>).mockClear();
       (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
 
       component.onSearchChange('sw');
-      fixture.detectChanges();
       vi.advanceTimersByTime(250);
+      fixture.detectChanges();
 
       expect(searchService.search).not.toHaveBeenCalled();
       expect(browseService.browse).not.toHaveBeenCalled();
-      const hint = fixture.nativeElement.querySelector('.search-hint');
-      expect(hint).toBeTruthy();
-      expect(component.cards()).toEqual(mockCards);
+      expect(fixture.nativeElement.querySelector('.search-hint')).toBeTruthy();
+      expect(component.rows().length).toBe(2);
     });
 
     it('re-runs browse when the query is cleared', () => {
       vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
-      component.onSearchChange('sword');
-      fixture.detectChanges();
-      vi.advanceTimersByTime(250);
+      setParams({ type: 'weapon', q: 'sword' });
       (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
-
       component.onSearchChange('');
+      vi.advanceTimersByTime(250);
       fixture.detectChanges();
-      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0);
+      expect(browseService.browse).toHaveBeenCalledWith('WEAPON', {}, 0, DEFAULT_PAGE_SIZE);
     });
 
-    it('paginates search results by calling search with the new page', () => {
+    it('resets to page 0 when a new query is typed', () => {
       vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
+      setParams({ type: 'weapon', page: '3' });
       component.onSearchChange('sword');
-      fixture.detectChanges();
       vi.advanceTimersByTime(250);
-      (searchService.search as ReturnType<typeof vi.fn>).mockClear();
-
-      component.onPageChanged(1);
       fixture.detectChanges();
-      vi.advanceTimersByTime(250);
-      expect(searchService.search).toHaveBeenCalledWith({ q: 'sword', types: ['WEAPON'], page: 1 });
+      expect(queryParams['page']).toBeUndefined();
     });
 
-    it('suppresses a stale debounced search when the category changes mid-debounce', () => {
-      vi.useFakeTimers();
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
-      component.onSearchChange('sword');
-      fixture.detectChanges();
-      vi.advanceTimersByTime(100);
-      (searchService.search as ReturnType<typeof vi.fn>).mockClear();
-
-      component.onCategorySelected('armor');
-      fixture.detectChanges();
-      vi.advanceTimersByTime(250);
-
-      expect(searchService.search).not.toHaveBeenCalled();
-      expect(component.searchQuery()).toBe('');
-      expect(component.currentPage()).toBe(0);
+    it('paginates search results', () => {
+      setParams({ type: 'weapon', q: 'sword', page: '1' });
+      expect(searchService.search).toHaveBeenCalledWith({
+        q: 'sword', types: ['WEAPON'], page: 1, size: DEFAULT_PAGE_SIZE,
+      });
     });
   });
 
-  describe('render paths', () => {
-    it('renders adversary cards for the adversary category', () => {
-      vi.spyOn(browseService, 'browse').mockReturnValue(of({ cards: [], adversaries: mockAdversaries, currentPage: 0, totalPages: 1, totalElements: 1 }));
-      fixture.detectChanges();
-      component.onCategorySelected('adversary');
-      fixture.detectChanges();
-      const adversaryCards = fixture.nativeElement.querySelectorAll('app-adversary-card');
-      expect(adversaryCards.length).toBe(1);
+  describe('cross-type search', () => {
+    it('prompts for a query instead of browsing when All Types is selected', () => {
+      setParams({ type: 'all' });
+      expect(browseService.browse).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.search-empty').textContent)
+        .toContain('at least 3 characters');
     });
 
-    it('renders the subclass path selector for the subclass category', () => {
-      vi.spyOn(browseService, 'browse').mockReturnValue(of({ ...mockBrowseResult, cards: mockCards }));
-      fixture.detectChanges();
-      component.onCategorySelected('subclass');
-      fixture.detectChanges();
-      const selector = fixture.nativeElement.querySelector('app-subclass-path-selector');
-      expect(selector).toBeTruthy();
+    it('searches every searchable type, excluding the unindexed COMPANION', () => {
+      setParams({ type: 'all', q: 'blade' });
+      const call = (searchService.search as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(call.types).toContain('WEAPON');
+      expect(call.types).toContain('ADVERSARY');
+      expect(call.types).not.toContain('COMPANION');
     });
 
-    it('navigates to the subclass path when a subclass card with metadata is selected', () => {
-      component.onSubclassCardSelected({ id: 1, name: 'Foo', description: '', cardType: 'subclass', metadata: { subclassPathId: 42 } });
-      expect(router.navigate).toHaveBeenCalledWith(['/admin/cards/subclass-path', 42]);
-    });
-
-    it('does not navigate when a subclass card has no subclassPathId metadata', () => {
-      component.onSubclassCardSelected({ id: 1, name: 'Foo', description: '', cardType: 'subclass' });
-      expect(router.navigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('navigation', () => {
-    it('navigates to the card detail route on card selection', () => {
-      component.activeCategory.set('weapon');
-      component.onCardSelected(mockCards[0]);
-      expect(router.navigate).toHaveBeenCalledWith(['/admin/cards', 'weapon', 1]);
-    });
-
-    it('navigates to the adversary detail route on adversary selection', () => {
-      component.onAdversarySelected(mockAdversaries[0]);
-      expect(router.navigate).toHaveBeenCalledWith(['/admin/cards', 'adversary', 10]);
-    });
-
-    it('navigates to the feature detail route on feature selection, making an unattached feature discoverable', () => {
-      component.activeCategory.set('feature');
-      component.onCardSelected({ id: 200, name: 'Shadowblighted', description: '', cardType: 'feature' });
-      expect(router.navigate).toHaveBeenCalledWith(['/admin/cards', 'feature', 200]);
+    it('renders a Type column with per-result routes', () => {
+      vi.spyOn(searchService, 'search').mockReturnValue(of(mockSearchResponse([
+        { type: 'WEAPON', id: 1, name: 'Longsword', relevanceScore: 1, expandedEntity: null },
+      ])));
+      setParams({ type: 'all', q: 'blade' });
+      const headers = Array.from(fixture.nativeElement.querySelectorAll('th'))
+        .map(el => (el as HTMLElement).textContent?.trim().replace(/\s*[▲▼]$/, ''));
+      expect(headers).toContain('Type');
+      expect(fixture.nativeElement.querySelector('.card-row__type').textContent.trim()).toBe('Weapons');
     });
   });
 
   describe('error handling', () => {
     it('sets error state when browse fails', () => {
       vi.spyOn(browseService, 'browse').mockReturnValue(throwError(() => new Error('fail')));
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
+      setParams({ type: 'weapon' });
       expect(component.error()).toBe(true);
-      const errorEl = fixture.nativeElement.querySelector('.search-error');
-      expect(errorEl?.textContent).toContain('Failed to load cards');
+      expect(fixture.nativeElement.querySelector('.search-error')?.textContent).toContain('Failed to load cards');
     });
 
     it('sets error state when search fails', () => {
-      vi.useFakeTimers();
       vi.spyOn(searchService, 'search').mockReturnValue(throwError(() => new Error('fail')));
-      fixture.detectChanges();
-      component.onCategorySelected('weapon');
-      fixture.detectChanges();
-      component.onSearchChange('sword');
-      fixture.detectChanges();
-      vi.advanceTimersByTime(250);
-      fixture.detectChanges();
+      setParams({ type: 'weapon', q: 'sword' });
       expect(component.error()).toBe(true);
-      const errorEl = fixture.nativeElement.querySelector('.search-error');
-      expect(errorEl?.textContent).toContain('Failed to load cards');
+      expect(fixture.nativeElement.querySelector('.search-error')?.textContent).toContain('Failed to load cards');
     });
   });
 });

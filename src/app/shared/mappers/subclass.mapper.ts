@@ -24,6 +24,8 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
     : undefined;
 
   const metadata: Record<string, unknown> = {
+    expansionId: response.expansionId,
+    expansionName: response.expansionName,
     subclassPathId: response.subclassPathId,
     subclassPathName: response.subclassPathName,
     associatedClassId: response.associatedClassId,

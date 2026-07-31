@@ -22,6 +22,7 @@ export function mapCommunityResponseToCardData(response: CommunityCardResponse):
     cardType: 'community',
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       features: response.features ?? [],
     },
   };

@@ -32,6 +32,7 @@ export function mapClassResponseToCardData(response: ClassResponse): CardData {
     tags: tags.length > 0 ? tags : undefined,
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       startingEvasion: response.startingEvasion,
       startingHitPoints: response.startingHitPoints,
     },

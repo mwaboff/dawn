@@ -17,5 +17,6 @@ export interface AdversaryData {
   attackRange?: string;
   damage?: { notation: string; damageType: string };
   motivesAndTactics?: string;
+  expansionId?: number;
   features?: CardFeature[];
 }

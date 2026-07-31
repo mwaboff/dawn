@@ -45,4 +45,5 @@ export interface AdversaryFilters {
   isOfficial?: boolean;
   expansionId?: number;
   page?: number;
+  size?: number;
 }

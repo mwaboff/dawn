@@ -40,6 +40,7 @@ export function mapBeastformToCardData(response: BeastformResponse): CardData {
     ].filter((t): t is string => !!t),
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       example: response.example,
       advantages: response.advantages,
       attackRange: response.attackRange,
