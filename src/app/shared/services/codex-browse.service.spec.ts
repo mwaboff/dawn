@@ -7,6 +7,7 @@ import { ArmorService } from './armor.service';
 import { LootService } from './loot.service';
 import { AdversaryService } from './adversary.service';
 import { EnvironmentService } from './environment.service';
+import { BeastformService } from './beastform.service';
 import { ClassService } from './class.service';
 import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
@@ -43,6 +44,7 @@ describe('CodexBrowseService', () => {
   let lootSpy: { getLoot: ReturnType<typeof vi.fn> };
   let adversarySpy: { getAdversaries: ReturnType<typeof vi.fn> };
   let environmentSpy: { getEnvironmentsPaginated: ReturnType<typeof vi.fn> };
+  let beastformSpy: { getBeastformsPaginated: ReturnType<typeof vi.fn> };
   let classSpy: { getClassesPaginated: ReturnType<typeof vi.fn> };
   let ancestrySpy: { getAncestriesPaginated: ReturnType<typeof vi.fn> };
   let communitySpy: { getCommunitiesPaginated: ReturnType<typeof vi.fn> };
@@ -57,6 +59,7 @@ describe('CodexBrowseService', () => {
     lootSpy = { getLoot: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     adversarySpy = { getAdversaries: vi.fn().mockReturnValue(of(buildPaginatedAdversaries())) };
     environmentSpy = { getEnvironmentsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
+    beastformSpy = { getBeastformsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     classSpy = { getClassesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     ancestrySpy = { getAncestriesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     communitySpy = { getCommunitiesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
@@ -76,6 +79,7 @@ describe('CodexBrowseService', () => {
         { provide: LootService, useValue: lootSpy },
         { provide: AdversaryService, useValue: adversarySpy },
         { provide: EnvironmentService, useValue: environmentSpy },
+        { provide: BeastformService, useValue: beastformSpy },
         { provide: ClassService, useValue: classSpy },
         { provide: AncestryService, useValue: ancestrySpy },
         { provide: CommunityService, useValue: communitySpy },
@@ -125,6 +129,14 @@ describe('CodexBrowseService', () => {
 
     expect(environmentSpy.getEnvironmentsPaginated).toHaveBeenCalledWith(
       expect.objectContaining({ page: 0, tier: 2, environmentType: 'SOCIAL', isOfficial: true }),
+    );
+  });
+
+  it('should dispatch BEASTFORM to BeastformService.getBeastformsPaginated with correct filters', () => {
+    service.browse('BEASTFORM', { isOfficial: true, expansionId: 3 }, 0).subscribe();
+
+    expect(beastformSpy.getBeastformsPaginated).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 0, isOfficial: true, expansionId: 3 }),
     );
   });
 
@@ -254,8 +266,8 @@ describe('isBrowsableType', () => {
     }
   });
 
-  it('should return false for the six indexed-but-unbrowsable types (no per-type browse endpoint)', () => {
-    const unbrowsable = ['SUBCLASS_PATH', 'EXPANSION', 'BEASTFORM', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const;
+  it('should return false for the five indexed-but-unbrowsable types (no per-type browse endpoint)', () => {
+    const unbrowsable = ['SUBCLASS_PATH', 'EXPANSION', 'ENCOUNTER', 'QUESTION', 'CARD_COST_TAG'] as const;
     for (const type of unbrowsable) {
       expect(isBrowsableType(type)).toBe(false);
     }

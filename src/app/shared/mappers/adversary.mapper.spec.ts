@@ -63,16 +63,29 @@ describe('mapAdversaryToAdversaryData', () => {
   });
 
   it('should map weapon info when present', () => {
+    // Real shape from GET /api/dh/adversaries?search=Bugboar (Acid Burrower): damage always
+    // carries diceCount/diceType/modifier alongside notation/damageType, not just the latter two.
     const response = buildAdversaryResponse({
       weaponName: 'Short Sword',
       attackRange: 'Melee',
-      damage: { notation: '1d8', damageType: 'PHYSICAL' },
+      damage: { diceCount: 1, diceType: 'D12', modifier: 2, damageType: 'PHYSICAL', notation: '1d12+2 phy' },
     });
     const result = mapAdversaryToAdversaryData(response);
 
     expect(result.weaponName).toBe('Short Sword');
     expect(result.attackRange).toBe('Melee');
-    expect(result.damage).toEqual({ notation: '1d8', damageType: 'PHYSICAL' });
+    expect(result.damage).toEqual({ diceCount: 1, diceType: 'D12', modifier: 2, damageType: 'PHYSICAL', notation: '1d12+2 phy' });
+  });
+
+  it('should map weapon info with null diceCount/modifier (flat-die attacks)', () => {
+    // Real shape confirmed via GET /api/dh/weapons?search=Katana: flat-die weapons like
+    // Broadsword ("d8 phy") send diceCount/modifier as null, not merely absent.
+    const response = buildAdversaryResponse({
+      damage: { diceCount: null, diceType: 'D8', modifier: null, damageType: 'PHYSICAL', notation: 'd8 phy' },
+    });
+    const result = mapAdversaryToAdversaryData(response);
+
+    expect(result.damage).toEqual({ diceCount: null, diceType: 'D8', modifier: null, damageType: 'PHYSICAL', notation: 'd8 phy' });
   });
 
   it('should map features when present', () => {

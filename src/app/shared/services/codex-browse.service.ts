@@ -5,6 +5,7 @@ import { ArmorService } from './armor.service';
 import { LootService } from './loot.service';
 import { AdversaryService } from './adversary.service';
 import { EnvironmentService } from './environment.service';
+import { BeastformService } from './beastform.service';
 import { ClassService } from './class.service';
 import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
@@ -28,7 +29,7 @@ import { BrowseResult, SearchableEntityType } from '../models/search.model';
  */
 export const SUPPORTED_BROWSE_TYPES = [
   'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'ENVIRONMENT', 'CLASS', 'ANCESTRY_CARD',
-  'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE',
+  'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE', 'BEASTFORM',
 ] as const satisfies readonly SearchableEntityType[];
 
 export type BrowsableType = typeof SUPPORTED_BROWSE_TYPES[number];
@@ -53,6 +54,7 @@ export class CodexBrowseService {
   private readonly lootService = inject(LootService);
   private readonly adversaryService = inject(AdversaryService);
   private readonly environmentService = inject(EnvironmentService);
+  private readonly beastformService = inject(BeastformService);
   private readonly classService = inject(ClassService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
@@ -112,6 +114,13 @@ export class CodexBrowseService {
           page,
           tier: filters['tier'] as number | undefined,
           environmentType: filters['environmentType'] as string | undefined,
+          isOfficial: filters['isOfficial'] as boolean | undefined,
+          expansionId: filters['expansionId'] as number | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
+
+      case 'BEASTFORM':
+        return this.beastformService.getBeastformsPaginated({
+          page,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));

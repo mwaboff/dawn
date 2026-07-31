@@ -545,6 +545,13 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
         ],
       },
       {
+        title: 'Stats',
+        fields: [
+          { name: 'tier', label: 'Tier', kind: 'number', required: true, min: 1, helpText: 'Power tier, 1-4.', column: 1 },
+          { name: 'evasion', label: 'Evasion', kind: 'number', column: 2 },
+        ],
+      },
+      {
         title: 'Trait modifiers',
         fields: [
           { name: 'agilityModifier', label: 'Agility modifier', kind: 'number', column: 1 },
@@ -622,6 +629,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
       },
     ],
     previewTags: (v) => [
+      v['tier'] != null ? `Tier ${v['tier']}` : null,
       v['attackTrait'] as string | null,
       v['attackRange'] as string | null,
     ].filter((t): t is string => !!t),

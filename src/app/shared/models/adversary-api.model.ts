@@ -3,6 +3,19 @@ export interface AdversaryFeature {
   description?: string;
 }
 
+/**
+ * Mirrors `AdversaryResponse.DamageRollResponse` (core). `diceCount`/`modifier` are
+ * nullable on the backend for flat-die attacks with no dice count or no modifier
+ * (e.g. Broadsword's `d8 phy`), not just optional.
+ */
+export interface AdversaryDamage {
+  diceCount?: number | null;
+  diceType?: string;
+  modifier?: number | null;
+  damageType: string;
+  notation: string;
+}
+
 export interface AdversaryApiResponse {
   id: number;
   name: string;
@@ -18,7 +31,7 @@ export interface AdversaryApiResponse {
   attackModifier?: number;
   weaponName?: string;
   attackRange?: string;
-  damage?: { notation: string; damageType: string };
+  damage?: AdversaryDamage;
   motivesAndTactics?: string;
   experiences?: string[];
   features?: AdversaryFeature[];

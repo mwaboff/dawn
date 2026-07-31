@@ -61,7 +61,44 @@ describe('AdminCardService', () => {
 
   describe('bulkCreate', () => {
     it('should POST to bulk endpoint', () => {
-      const items = [{ name: 'A' }, { name: 'B' }];
+      // Realistic nested-object payload (lifted from hope_and_fear-import/json/08-armor.json)
+      // so a serialization bug that flattens/drops nested `features` would fail this test.
+      const items = [
+        {
+          name: 'Mage Robes',
+          expansionId: 1,
+          tier: 1,
+          isOfficial: true,
+          baseMajorThreshold: 4,
+          baseSevereThreshold: 10,
+          baseScore: 2,
+          features: [
+            {
+              name: 'Enchanted',
+              description: 'Gain a bonus to your damage thresholds equal to your Spellcast trait.',
+              featureType: 'ITEM',
+              expansionId: 1,
+            },
+          ],
+        },
+        {
+          name: 'Scale Mail Armor',
+          expansionId: 1,
+          tier: 1,
+          isOfficial: true,
+          baseMajorThreshold: 7,
+          baseSevereThreshold: 14,
+          baseScore: 3,
+          features: [
+            {
+              name: 'Cumbersome',
+              description: '-1 to Finesse',
+              featureType: 'ITEM',
+              expansionId: 1,
+            },
+          ],
+        },
+      ];
       service.bulkCreate('armor', items).subscribe();
       const req = httpMock.expectOne('http://localhost:8080/api/dh/armors/bulk');
       expect(req.request.method).toBe('POST');

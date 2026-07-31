@@ -58,7 +58,7 @@ function formatDamage(damage: DamageRollResponse | undefined | null, proficiency
   const die = damage.diceType.toLowerCase();
   const mod = damage.modifier;
   const type = formatDamageTypeAbbreviation(damage.damageType);
-  const modStr = mod > 0 ? `+${mod}` : mod < 0 ? `${mod}` : '';
+  const modStr = mod && mod > 0 ? `+${mod}` : mod && mod < 0 ? `${mod}` : '';
   return `${count}${die}${modStr} ${type}`;
 }
 

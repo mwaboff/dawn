@@ -333,6 +333,23 @@ describe('mapToCharacterSheetView', () => {
       expect(result.activePrimaryWeapon?.damage).toBe('4d10+3 Phy');
     });
 
+    it('damage omits a modifier suffix when modifier is null (real flat-die weapons, e.g. Broadsword)', () => {
+      // Confirmed live via core-postgres-1: weapons.modifier is NULL for 13 real weapon rows.
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 11, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 11, name: 'Broadsword', features: [],
+            damage: { diceCount: 1, diceType: 'D8', modifier: null, damageType: 'PHYSICAL', notation: 'd8 phy' },
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.damage).toBe('1d8 Phy');
+    });
+
     it('isPrimary is mapped from the weapon when false', () => {
       const sheet = makeSheet({
         inventoryWeapons: [{

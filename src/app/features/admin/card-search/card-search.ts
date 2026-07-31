@@ -31,6 +31,7 @@ export const ADMIN_CATEGORIES: { id: string; label: string; type: BrowsableType 
   { id: 'environment', label: 'Environments', type: 'ENVIRONMENT' },
   { id: 'companion', label: 'Companions', type: 'COMPANION' },
   { id: 'feature', label: 'Features', type: 'FEATURE' },
+  { id: 'beastform', label: 'Beastforms', type: 'BEASTFORM' },
 ];
 
 const MIN_QUERY_LENGTH = 3;

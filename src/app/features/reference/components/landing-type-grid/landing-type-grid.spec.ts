@@ -30,24 +30,24 @@ describe('LandingTypeGrid', () => {
     expect(fixture.nativeElement.querySelector('app-landing-type-grid')).toBeTruthy();
   });
 
-  it('renders 12 type cards', () => {
+  it('renders 13 type cards', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card');
-    expect(cards.length).toBe(12);
+    expect(cards.length).toBe(13);
   });
 
   it('renders a glyph for each card', () => {
     const glyphs = fixture.nativeElement.querySelectorAll('.type-glyph');
-    expect(glyphs.length).toBe(12);
+    expect(glyphs.length).toBe(13);
   });
 
   it('renders a label for each card', () => {
     const labels = fixture.nativeElement.querySelectorAll('.type-label');
-    expect(labels.length).toBe(12);
+    expect(labels.length).toBe(13);
   });
 
   it('renders a tagline for each card', () => {
     const taglines = fixture.nativeElement.querySelectorAll('.type-tagline');
-    expect(taglines.length).toBe(12);
+    expect(taglines.length).toBe(13);
   });
 
   it('emits WEAPON when Weapons card is clicked', () => {
@@ -105,6 +105,13 @@ describe('LandingTypeGrid', () => {
   it('includes Environments tagline', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Scenes and settings the GM can bring to life');
+  });
+
+  it('emits BEASTFORM when Beastform card is clicked', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
+    const beastformCard = Array.from(cards).find(c => c.textContent?.includes('Beastform'));
+    beastformCard?.click();
+    expect(host.lastSelectedType).toBe('BEASTFORM');
   });
 
   it('does not render a Features card', () => {
