@@ -10,7 +10,7 @@ export const adminGuard: CanActivateFn = () => {
   return authService.checkSession().pipe(
     map(() => {
       if (authService.isAdmin()) return true;
-      router.navigate(['/']);
+      router.navigate(['/403']);
       return false;
     })
   );

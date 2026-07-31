@@ -1,0 +1,80 @@
+/* Filter bar and drag affordances. Split from gm-panel-grid.css so neither file approaches the
+   4kB per-component budget. */
+
+.gm-filter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem 1rem;
+  margin-bottom: 1rem;
+  padding: .6rem .75rem;
+  background: rgba(20, 15, 13, .94);
+  border: 1px solid rgba(212, 160, 86, .2);
+  border-radius: .5rem;
+  backdrop-filter: blur(6px);
+}
+
+.gm-filter-bar__field {
+  flex: 1 1 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.gm-filter-bar__label {
+  font-family: var(--font-display);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(212, 160, 86, .75);
+}
+
+.gm-filter-bar__input {
+  width: 100%;
+  padding: .45rem .6rem;
+  background: rgba(0, 0, 0, .3);
+  border: 1px solid rgba(212, 160, 86, .25);
+  border-radius: 4px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: .9rem;
+}
+
+.gm-filter-bar__input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.gm-filter-bar__actions { display: flex; gap: .4rem; }
+
+.gm-filter-bar__btn {
+  min-height: 44px;
+  padding: 0 .7rem;
+  background: rgba(212, 160, 86, .1);
+  border: 1px solid rgba(212, 160, 86, .3);
+  border-radius: 4px;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.gm-filter-bar__btn:hover { background: rgba(212, 160, 86, .18); }
+.gm-filter-bar__btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+/* Only the header drags, so a long table inside a panel stays scrollable on touch. */
+.gm-panel__head { touch-action: none; }
+.gm-panel[cdkDrag]:not(.cdk-drag-disabled) .gm-panel__head { cursor: grab; }
+
+/* CDK's translate animation reads as broken against 4px row spans. */
+.cdk-drag-animating,
+.cdk-drag-placeholder { transition: none; }
+
+.cdk-drag-placeholder { opacity: .25; }
+.cdk-drag-preview { box-shadow: 0 8px 24px rgba(0, 0, 0, .5); }

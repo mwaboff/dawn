@@ -1,0 +1,20 @@
+<section class="error-hero">
+  <div class="error-ornament error-ornament-tl"></div>
+  <div class="error-ornament error-ornament-tr"></div>
+  <div class="error-ornament error-ornament-bl"></div>
+  <div class="error-ornament error-ornament-br"></div>
+
+  <div class="grain-overlay error-grain"></div>
+  <div class="error-vignette"></div>
+
+  <div class="error-content">
+    @if (content().code) {
+      <span class="error-eyebrow">{{ content().code }}</span>
+    }
+    <h1 class="error-title">{{ content().title }}</h1>
+    <p class="error-message">{{ content().message }}</p>
+    <div class="error-cta">
+      <a class="btn btn--primary" routerLink="/">Return to Camp</a>
+    </div>
+  </div>
+</section>

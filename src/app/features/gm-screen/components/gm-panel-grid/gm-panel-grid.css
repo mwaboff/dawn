@@ -1,0 +1,35 @@
+/* Masonry substrate: tiny fixed rows the directive spans each panel across.
+   `grid-auto-flow: dense` is deliberately absent -- backfilling holes would reorder panels the
+   user placed by hand. Occasional gaps beside a wide panel are the accepted cost. */
+.gm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-auto-rows: 4px;
+  gap: 16px;
+}
+
+/* A class, never an inline `grid-column` binding: an inline style would outrank the media query
+   below and overflow narrow screens. */
+.gm-panel--wide {
+  grid-column: span 2;
+}
+
+.is-filtered-out {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .gm-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .gm-panel--wide {
+    grid-column: span 1;
+  }
+
+  /* Covers the frame where a stale inline span survives the breakpoint crossing. */
+  .gm-panel {
+    grid-row: auto !important;
+  }
+}

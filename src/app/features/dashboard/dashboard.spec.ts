@@ -42,16 +42,18 @@ function makeCampaign(overrides: {
   name?: string;
   lastModifiedAt?: string;
   createdAt?: string;
+  gameMasterIds?: number[];
 } = {}): CampaignResponse {
   return {
     id: overrides.id ?? 1,
     name: overrides.name ?? 'Campaign',
     creatorId: 1,
-    gameMasterIds: [],
+    gameMasterIds: overrides.gameMasterIds ?? [],
     playerIds: [],
     pendingCharacterSheetIds: [],
     playerCharacterIds: [],
     nonPlayerCharacterIds: [],
+    fear: 0,
     isEnded: false,
     createdAt: overrides.createdAt ?? '2025-01-01T00:00:00',
     lastModifiedAt: overrides.lastModifiedAt ?? '2025-01-01T00:00:00',
@@ -303,6 +305,23 @@ describe('Dashboard', () => {
     const el: HTMLElement = fixture.nativeElement;
     const link = el.querySelector('.dashboard-row--saga') as HTMLAnchorElement | null;
     expect(link?.getAttribute('href')).toBe('/campaign/7');
+  });
+
+  it('should show a GM Screen link for campaigns the user GMs', () => {
+    const campaigns = [makeCampaign({ id: 7, gameMasterIds: [1] })];
+    const { fixture } = setup({ campaignsResult: of(campaignsPage(campaigns)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('.dashboard-saga-gm-link') as HTMLAnchorElement | null;
+    expect(link?.getAttribute('href')).toBe('/campaign/7/gm-screen');
+  });
+
+  it('should NOT show a GM Screen link for campaigns the user does not GM', () => {
+    const campaigns = [makeCampaign({ id: 7, gameMasterIds: [99] })];
+    const { fixture } = setup({ campaignsResult: of(campaignsPage(campaigns)) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.dashboard-saga-gm-link')).toBeFalsy();
   });
 
   it('should link "+ Forge a hero" dashed row to /create-character', () => {

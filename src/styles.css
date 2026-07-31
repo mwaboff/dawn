@@ -8,6 +8,7 @@
 @import "./app/shared/styles/roster.css";
 @import "./app/shared/styles/inline-confirm.css";
 @import "./app/shared/styles/skeleton.css";
+@import "./app/shared/styles/gm-panel.css";
 
 :root {
   /* Warm Tavern Color Palette */

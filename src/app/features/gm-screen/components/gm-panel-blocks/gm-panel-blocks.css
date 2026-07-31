@@ -1,0 +1,6 @@
+/* Chrome lives in the global shared/styles/gm-panel.css. `display: contents` keeps the host
+   element out of the way so blocks are direct flex children of `.gm-panel__body` and inherit
+   its gap. */
+:host {
+  display: contents;
+}

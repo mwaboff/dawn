@@ -1,0 +1,26 @@
+<div class="fear">
+  <button
+    type="button"
+    class="gm-panel__btn fear__step"
+    [disabled]="fear() === 0"
+    (click)="adjust(-1)"
+    aria-label="Decrease Fear"
+  >&minus;</button>
+
+  <p class="fear__readout" aria-live="polite">
+    <span class="fear__value">{{ fear() }}</span>
+    <span class="fear__max">of {{ max }}</span>
+  </p>
+
+  <button
+    type="button"
+    class="gm-panel__btn fear__step"
+    [disabled]="fear() === max"
+    (click)="adjust(1)"
+    aria-label="Increase Fear"
+  >+</button>
+</div>
+
+@if (saving()) {
+  <div class="fear__saving"><app-saving-spinner /></div>
+}

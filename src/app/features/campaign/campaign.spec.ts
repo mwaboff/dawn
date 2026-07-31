@@ -23,6 +23,7 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     playerCharacterIds: [],
     playerCharacters: [],
     nonPlayerCharacterIds: [],
+    fear: 0,
     isEnded: false,
     createdAt: '2026-01-01T00:00:00',
     lastModifiedAt: '2026-01-01T00:00:00',
@@ -151,5 +152,42 @@ describe('Campaign', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('app-campaign-invite')).toBeTruthy();
+  });
+
+  it('should not show the GM Screen button for non-managers', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+
+    expect(el.querySelector('a.campaign-action-btn')).toBeFalsy();
+  });
+
+  it('should show the GM Screen button linking to the campaign gm-screen for game masters', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+
+    const link = el.querySelector('a.campaign-action-btn');
+    expect(link).toBeTruthy();
+    expect(link?.getAttribute('href')).toBe('/campaign/1/gm-screen');
+  });
+
+  it('should hide the GM Screen button once the campaign has ended, even for game masters', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign({ isEnded: true }));
+    fixture.detectChanges();
+
+    expect(el.querySelector('a.campaign-action-btn')).toBeFalsy();
   });
 });

@@ -59,7 +59,7 @@ describe('adminGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('should redirect non-admin users to home', async () => {
+  it('should redirect non-admin users to the 403 page', async () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
 
     const resultPromise = TestBed.runInInjectionContext(() => {
@@ -74,10 +74,10 @@ describe('adminGuard', () => {
 
     const result = await resultPromise;
     expect(result).toBe(false);
-    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/403']);
   });
 
-  it('should redirect unauthenticated users to home', async () => {
+  it('should redirect unauthenticated users to the 403 page', async () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
 
     const resultPromise = TestBed.runInInjectionContext(() => {
@@ -90,6 +90,6 @@ describe('adminGuard', () => {
 
     const result = await resultPromise;
     expect(result).toBe(false);
-    expect(navigateSpy).toHaveBeenCalledWith(['/']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/403']);
   });
 });

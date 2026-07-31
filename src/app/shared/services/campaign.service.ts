@@ -121,4 +121,18 @@ export class CampaignService {
       `${this.baseUrl}/${campaignId}/game-masters/${userId}`, { withCredentials: true }
     );
   }
+
+  /** GM-only. `fear` must be 0-12; the backend rejects anything outside that range. */
+  updateFear(id: number, fear: number): Observable<CampaignResponse> {
+    return this.http.patch<CampaignResponse>(
+      `${this.baseUrl}/${id}/fear`, { fear }, { withCredentials: true }
+    );
+  }
+
+  /** GM-only. Pass an empty string to clear; max 50,000 characters. */
+  updateGmNotes(id: number, gmNotes: string): Observable<CampaignResponse> {
+    return this.http.patch<CampaignResponse>(
+      `${this.baseUrl}/${id}/gm-notes`, { gmNotes }, { withCredentials: true }
+    );
+  }
 }
