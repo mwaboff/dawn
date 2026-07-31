@@ -1,0 +1,78 @@
+@for (block of blocks(); track $index) {
+  @switch (block.kind) {
+    @case ('text') {
+      @for (paragraph of block.paragraphs; track $index) {
+        <p>{{ paragraph }}</p>
+      }
+    }
+    @case ('list') {
+      @if (block.ordered) {
+        <ol class="gm-panel__list">
+          @for (item of block.items; track $index) {
+            <li>{{ item }}</li>
+          }
+        </ol>
+      } @else {
+        <ul class="gm-panel__list">
+          @for (item of block.items; track $index) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      }
+    }
+    @case ('keyValue') {
+      <dl class="gm-panel__kv">
+        @for (entry of block.entries; track $index) {
+          <div class="gm-panel__kv-row">
+            <dt class="gm-panel__kv-key">{{ entry.key }}</dt>
+            <dd class="gm-panel__kv-value">{{ entry.value }}</dd>
+          </div>
+        }
+      </dl>
+    }
+    @case ('table') {
+      <div class="gm-panel__table-wrap">
+        <table class="gm-panel__table" [class.gm-panel__table--dense]="block.dense">
+          <thead>
+            <tr>
+              @for (header of block.headers; track $index) {
+                <th scope="col">{{ header }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of block.rows; track $index) {
+              <tr>
+                @for (cell of row; track $index) {
+                  <td>{{ cell }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @case ('steps') {
+      <ol class="gm-panel__steps">
+        @for (step of block.items; track $index) {
+          <li>
+            <span class="gm-panel__step-label">{{ step.label }}</span>
+            @if (step.detail) {
+              <span class="gm-panel__step-detail">{{ step.detail }}</span>
+            }
+          </li>
+        }
+      </ol>
+    }
+    @case ('callout') {
+      <p
+        class="gm-panel__callout"
+        [class.gm-panel__callout--hope]="block.tone === 'hope'"
+        [class.gm-panel__callout--fear]="block.tone === 'fear'"
+        [class.gm-panel__callout--neutral]="block.tone === 'neutral'"
+      >
+        {{ block.text }}
+      </p>
+    }
+  }
+}

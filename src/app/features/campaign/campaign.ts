@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject, signal, computed } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { CampaignService } from '../../shared/services/campaign.service';
@@ -19,6 +19,7 @@ import { CampaignSheetPicker } from './components/campaign-sheet-picker/campaign
   styleUrl: './campaign.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    RouterLink,
     CampaignSummary,
     CampaignPlayerList,
     CampaignCharacterList,

@@ -1,0 +1,20 @@
+<label class="notes__label" for="gm-notes-textarea">Private to game masters</label>
+
+<textarea
+  id="gm-notes-textarea"
+  class="notes__input"
+  [rows]="rows()"
+  [attr.maxlength]="maxLength"
+  [value]="notes()"
+  (input)="onInput($any($event.target).value)"
+  placeholder="Session prep, secrets, NPC threads&hellip;"
+></textarea>
+
+<div class="notes__footer">
+  <span class="notes__count">{{ charCount() }} / {{ maxLength }}</span>
+  @if (saving()) {
+    <app-saving-spinner />
+  } @else if (savedAt()) {
+    <span class="notes__saved">Saved</span>
+  }
+</div>

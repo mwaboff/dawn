@@ -10,6 +10,7 @@ function makeCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespon
   return {
     id: 1,
     name: 'Dragon Slayers',
+    fear: 0,
     isEnded: false,
     creatorId: 10,
     creator: { id: 10, username: 'dungeon_master', email: 'dm@test.com', role: 'USER', createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00', usernameChosen: true },

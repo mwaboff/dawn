@@ -1,0 +1,98 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.error-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(180, 120, 50, 0.1), transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(150, 100, 40, 0.06), transparent 50%),
+    linear-gradient(175deg, #201710, #150f0a 50%, #0d0806);
+}
+
+.error-grain {
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+}
+
+.error-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(transparent 30%, rgba(10, 7, 5, 0.65));
+  pointer-events: none;
+}
+
+.error-ornament {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  opacity: 0.15;
+  background: radial-gradient(circle, rgba(212, 160, 86, 0.4), transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.error-ornament-tl { top: 0; left: 0; }
+.error-ornament-tr { top: 0; right: 0; }
+.error-ornament-bl { bottom: 0; left: 0; }
+.error-ornament-br { bottom: 0; right: 0; }
+
+.error-content {
+  position: relative;
+  z-index: 10;
+  padding: 2rem;
+  text-align: center;
+  max-width: 640px;
+}
+
+.error-eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-shadow: 0 0 60px rgba(212, 160, 86, 0.25);
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out 0.2s forwards;
+}
+
+.error-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-parchment);
+  margin-bottom: 1.25rem;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease-out 0.3s forwards;
+}
+
+.error-message {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  color: rgba(245, 230, 211, 0.6);
+  font-style: italic;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out 0.5s forwards;
+}
+
+.error-cta {
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out 0.7s forwards;
+}
+
+@media (max-width: 768px) {
+  .error-ornament { width: 100px; height: 100px; }
+}

@@ -1,0 +1,37 @@
+<div class="gm-screen">
+  <div class="grain-overlay gm-screen-grain"></div>
+
+  @if (loading()) {
+    <div class="gm-screen-loading">
+      <div class="gm-screen-skeleton gm-screen-skeleton-title"></div>
+      <div class="gm-screen-skeleton gm-screen-skeleton-body"></div>
+    </div>
+  } @else if (errorStatus() === 403) {
+    <div class="gm-screen-error">
+      <h1 class="gm-screen-error-title">Access Denied</h1>
+      <p class="gm-screen-error-text">You do not have permission to view this campaign.</p>
+    </div>
+  } @else if (errorStatus() === 404) {
+    <div class="gm-screen-error">
+      <h1 class="gm-screen-error-title">Campaign Not Found</h1>
+      <p class="gm-screen-error-text">This campaign may have been removed or does not exist.</p>
+    </div>
+  } @else if (errorStatus()) {
+    <div class="gm-screen-error">
+      <h1 class="gm-screen-error-title">Something Went Wrong</h1>
+      <p class="gm-screen-error-text">Failed to load this campaign. Please try again later.</p>
+    </div>
+  } @else if (!canManage()) {
+    <div class="gm-screen-error">
+      <h1 class="gm-screen-error-title">Access Denied</h1>
+      <p class="gm-screen-error-text">Only game masters can view this campaign's GM screen.</p>
+    </div>
+  } @else if (campaign(); as c) {
+    <div class="gm-screen-header">
+      <a class="gm-screen-back" [routerLink]="['/campaign', c.id]">&larr; Back to Campaign</a>
+      <h1 class="gm-screen-title">{{ c.name }} &mdash; GM Screen</h1>
+    </div>
+
+    <app-gm-panel-grid [panels]="panels()" storageKey="gm-screen-campaign" />
+  }
+</div>

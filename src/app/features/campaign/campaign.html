@@ -25,6 +25,14 @@
   } @else if (campaign(); as c) {
     <app-campaign-summary [campaign]="c" [canManage]="canManage()" (updated)="campaign.set($event)" />
 
+    @if (canManage() && !c.isEnded) {
+      <div class="campaign-action-row">
+        <a class="campaign-action-btn" [routerLink]="['/campaign', c.id, 'gm-screen']">
+          GM Screen
+        </a>
+      </div>
+    }
+
     @if (canManage() && hasPending()) {
       <div class="campaign-divider">
         <div class="campaign-divider-line"></div>

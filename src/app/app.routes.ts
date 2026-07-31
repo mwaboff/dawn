@@ -9,6 +9,10 @@ export const routes: Routes = [
     children: [
       { path: 'reference', loadComponent: () => import('./features/reference/reference').then(m => m.Reference) },
       {
+        path: 'gm-screen',
+        loadComponent: () => import('./features/gm-screen/gm-screen').then(m => m.GmScreen)
+      },
+      {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)
       },
@@ -61,6 +65,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/campaign-join/campaign-join').then(m => m.CampaignJoin)
       },
       {
+        // Must precede 'campaign/:id': Angular's leaf-route matcher requires a route to consume
+        // every remaining segment when it has no children, so 'campaign/:id' alone never matches
+        // a 3-segment URL -- but this order is verified by app.routes.spec.ts, not assumed.
+        path: 'campaign/:id/gm-screen',
+        loadComponent: () => import('./features/gm-screen/campaign/campaign-gm-screen').then(m => m.CampaignGmScreen)
+      },
+      {
         path: 'campaign/:id',
         loadComponent: () => import('./features/campaign/campaign').then(m => m.Campaign)
       },
@@ -72,6 +83,16 @@ export const routes: Routes = [
         path: 'admin',
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+      },
+      {
+        path: '403',
+        loadComponent: () => import('./shared/components/error-page/error-page').then(m => m.ErrorPage),
+        data: { status: 403 }
+      },
+      {
+        path: '**',
+        loadComponent: () => import('./shared/components/error-page/error-page').then(m => m.ErrorPage),
+        data: { status: 404 }
       }
     ]
   }

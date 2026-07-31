@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { routes } from './app.routes';
 import { authSessionGuard } from './core/guards/auth-session.guard';
 
@@ -46,5 +46,47 @@ describe('App Routes', () => {
       r => r.path === 'create-character'
     );
     expect(createCharRoute).toBeDefined();
+  });
+
+  it('should have gm-screen route as child', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const gmScreenRoute = guardedRoute?.children?.find(r => r.path === 'gm-screen');
+    expect(gmScreenRoute).toBeDefined();
+  });
+
+  it('should have campaign/:id/gm-screen route declared before campaign/:id', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const children = guardedRoute?.children ?? [];
+    const campaignGmScreenIdx = children.findIndex(r => r.path === 'campaign/:id/gm-screen');
+    const campaignIdx = children.findIndex(r => r.path === 'campaign/:id');
+    expect(campaignGmScreenIdx).toBeGreaterThanOrEqual(0);
+    expect(campaignIdx).toBeGreaterThanOrEqual(0);
+    expect(campaignGmScreenIdx).toBeLessThan(campaignIdx);
+  });
+
+  // authSessionGuard calls AuthService.checkSession() (a real HTTP GET) on every navigation --
+  // the request must be flushed or navigateByUrl() never settles and the test times out.
+  async function navigateAndFlushSession(router: Router, url: string): Promise<boolean> {
+    const httpMock = TestBed.inject(HttpTestingController);
+    const navPromise = router.navigateByUrl(url);
+    // The guard's HTTP call is issued asynchronously once the router starts processing the
+    // navigation, so a tick must pass before the request exists to flush.
+    await new Promise(resolve => setTimeout(resolve, 0));
+    httpMock.expectOne(r => r.url.includes('/auth/me')).flush(null);
+    return navPromise;
+  }
+
+  it('should resolve /campaign/5/gm-screen to the campaign gm-screen route, not campaign/:id', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/campaign/5/gm-screen');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('campaign/:id/gm-screen');
+  });
+
+  it('should still resolve /campaign/5 to the plain campaign route', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/campaign/5');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('campaign/:id');
   });
 });

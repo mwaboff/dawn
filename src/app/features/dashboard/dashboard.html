@@ -66,12 +66,17 @@
         } @else {
           <ol class="roster-list dashboard__list">
             @for (campaign of campaigns(); track campaign.id) {
-              <li>
+              <li class="dashboard-saga-row">
                 <a class="roster-entry dashboard-row dashboard-row--saga" [routerLink]="['/campaign', campaign.id]">
                   <div class="roster-info">
                     <span class="roster-character-name">{{ campaign.name }}</span>
                   </div>
                 </a>
+                @if (gmsCampaign(campaign)) {
+                  <a class="dashboard-saga-gm-link" [routerLink]="['/campaign', campaign.id, 'gm-screen']">
+                    GM Screen
+                  </a>
+                }
               </li>
             }
           </ol>

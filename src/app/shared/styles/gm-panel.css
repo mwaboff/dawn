@@ -1,0 +1,162 @@
+/* Global chrome for GM screen panels.
+ *
+ * This lives in shared/styles rather than a component stylesheet because campaign panel
+ * components are instantiated through NgComponentOutlet inside the grid: their own emulated
+ * encapsulation would not reach markup the grid owns, and the grid's would not reach theirs.
+ * A single global vocabulary keeps every panel visually identical regardless of who renders it.
+ *
+ * Layout (grid columns, masonry row spans, drag states) belongs to the grid component's own
+ * stylesheet. Only shared chrome lives here.
+ */
+
+.gm-panel {
+  /* Local aliases mirroring the character sheet, so panels read as part of the same surface. */
+  --gm-accent: var(--color-accent);
+  --gm-parchment: var(--color-parchment);
+  --gm-border: rgba(212, 160, 86, .2);
+  --gm-border-strong: rgba(212, 160, 86, .35);
+  --gm-muted: rgba(245, 230, 211, .72);
+
+  display: flex;
+  flex-direction: column;
+  background: rgba(26, 20, 18, .72);
+  border: 1px solid var(--gm-border);
+  border-radius: .5rem;
+  overflow: hidden;
+  /* Required by the masonry directive: without it the item stretches to fill its row span and
+     the measured height feeds back into the span it was computed from. */
+  align-self: start;
+}
+
+.gm-panel__head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem .75rem;
+  background: rgba(58, 40, 23, .35);
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.gm-panel__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gm-accent);
+}
+
+.gm-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: .15rem;
+  flex-shrink: 0;
+}
+
+.gm-panel__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px touch target; the visual box is smaller than the hit area on purpose. */
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: rgba(212, 160, 86, .7);
+  font: inherit;
+  font-size: .85rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color .12s, background-color .12s;
+}
+
+.gm-panel__btn:hover:not(:disabled) { color: var(--gm-accent); background: rgba(212, 160, 86, .1); }
+.gm-panel__btn:focus-visible { outline: 2px solid var(--gm-accent); outline-offset: -2px; }
+.gm-panel__btn:disabled { opacity: .3; cursor: default; }
+
+.gm-panel__chevron { transition: transform .18s; }
+.gm-panel__chevron--collapsed { transform: rotate(-90deg); }
+
+.gm-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  padding: .85rem .9rem 1rem;
+  font-family: var(--font-body);
+  font-size: .875rem;
+  line-height: 1.6;
+  color: var(--gm-muted);
+}
+
+/* `hidden="until-found"` is Chromium-only: there, find-in-page reveals collapsed content and
+   fires `beforematch`. Firefox and Safari fall back to plain `display: none`, so collapsed
+   panels are not find-in-page-able in those browsers. The in-app filter box is the portable
+   path. A polyfill is not possible -- find-in-page is not interceptable. */
+.gm-panel__body[hidden] { display: none; }
+
+.gm-panel__body > * { margin: 0; }
+
+.gm-panel__section-heading {
+  font-family: var(--font-display);
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(212, 160, 86, .8);
+}
+
+.gm-panel__list { padding-left: 1.15rem; display: flex; flex-direction: column; gap: .3rem; }
+.gm-panel__list li::marker { color: rgba(212, 160, 86, .6); }
+
+.gm-panel__kv { display: flex; flex-direction: column; gap: .35rem; }
+.gm-panel__kv-row { display: flex; gap: .6rem; align-items: baseline; }
+.gm-panel__kv-key {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gm-parchment);
+}
+.gm-panel__kv-value { flex: 1; min-width: 0; }
+
+/* Tables scroll inside the panel rather than forcing the page to scroll horizontally. */
+.gm-panel__table-wrap { overflow-x: auto; }
+.gm-panel__table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.gm-panel__table th,
+.gm-panel__table td { padding: .35rem .5rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(212, 160, 86, .1); }
+.gm-panel__table th {
+  font-family: var(--font-display);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(212, 160, 86, .85);
+  white-space: nowrap;
+}
+.gm-panel__table tr:last-child td { border-bottom: none; }
+.gm-panel__table--dense th,
+.gm-panel__table--dense td { padding: .2rem .4rem; font-size: .8rem; }
+
+.gm-panel__steps { display: flex; flex-direction: column; gap: .45rem; }
+.gm-panel__step-label { color: var(--gm-parchment); font-weight: 600; }
+.gm-panel__step-detail { display: block; }
+
+.gm-panel__callout {
+  padding: .5rem .65rem;
+  border-left: 3px solid rgba(212, 160, 86, .5);
+  border-radius: 0 4px 4px 0;
+  background: rgba(212, 160, 86, .06);
+  font-style: italic;
+}
+.gm-panel__callout--hope { border-left-color: var(--color-accent); background: rgba(212, 160, 86, .08); }
+.gm-panel__callout--fear { border-left-color: #7a6fd4; background: rgba(122, 111, 212, .1); }
+.gm-panel__callout--neutral { border-left-color: rgba(245, 230, 211, .35); background: rgba(245, 230, 211, .04); }
+
+@media (max-width: 700px) {
+  .gm-panel__body { font-size: .9rem; }
+}
