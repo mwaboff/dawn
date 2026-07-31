@@ -10,6 +10,8 @@ import { mapCommunityResponseToCardData } from './community.mapper';
 import { mapDomainCardResponseToCardData } from './domain-card.mapper';
 import { mapDomainToCardData } from './domain.mapper';
 import { mapSubclassResponseToCardData } from './subclass.mapper';
+import { mapEnvironmentToCardData } from './environment.mapper';
+import { mapBeastformToCardData } from './beastform.mapper';
 import { WeaponResponse } from '../models/weapon-api.model';
 import { ArmorResponse } from '../models/armor-api.model';
 import { LootApiResponse } from '../models/loot-api.model';
@@ -19,6 +21,8 @@ import { AncestryCardResponse } from '../models/ancestry-api.model';
 import { CommunityCardResponse } from '../models/community-api.model';
 import { DomainCardResponse, DomainResponse } from '../models/domain-card-api.model';
 import { SubclassCardResponse } from '../models/subclass-api.model';
+import { EnvironmentResponse } from '../models/environment-api.model';
+import { BeastformResponse } from '../models/beastform-api.model';
 import { SearchResultResponse, SearchableEntityType } from '../models/search.model';
 
 export interface MappedSearchResult {
@@ -33,8 +37,16 @@ export interface MappedSearchResult {
 /**
  * Dispatches a `SearchResultResponse` to the appropriate per-type mapper and
  * returns a unified `MappedSearchResult`. Results without a dedicated mapper
- * (e.g. FEATURE, BEASTFORM, EXPANSION, QUESTION) fall back to a minimal card
- * shape so the caller can still render them without crashing.
+ * (e.g. FEATURE, EXPANSION, QUESTION) fall back to a minimal card shape so the
+ * caller can still render them without crashing.
+ *
+ * The fallback is deliberately hard to notice in the UI -- it renders the right
+ * name with an empty body under a `cardType: 'class'` label, which reads as a
+ * styling bug rather than a missing case. ENVIRONMENT and BEASTFORM sat in it
+ * for exactly that reason: both are registered in `SearchableEntityType`,
+ * indexed by the backend, and returned with a fully-populated `expandedEntity`,
+ * but had no arm here. **Any type added to `BROWSABLE_TYPES` or the backend
+ * search registry needs a case below, not just a browse arm.**
  *
  * Note: FEATURE (class/subclass features) has no standalone card mapper —
  * it falls through to the fallback. A feature-specific renderer may be added
@@ -108,6 +120,18 @@ export function mapSearchResult(result: SearchResultResponse): MappedSearchResul
     case 'SUBCLASS_CARD':
       if (entity) {
         return { ...base, card: mapSubclassResponseToCardData(entity as SubclassCardResponse) };
+      }
+      return { ...base, card: buildFallbackCard(result) };
+
+    case 'ENVIRONMENT':
+      if (entity) {
+        return { ...base, card: mapEnvironmentToCardData(entity as EnvironmentResponse) };
+      }
+      return { ...base, card: buildFallbackCard(result) };
+
+    case 'BEASTFORM':
+      if (entity) {
+        return { ...base, card: mapBeastformToCardData(entity as BeastformResponse) };
       }
       return { ...base, card: buildFallbackCard(result) };
 

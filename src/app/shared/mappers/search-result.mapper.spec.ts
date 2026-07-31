@@ -10,6 +10,8 @@ import { AncestryCardResponse } from '../models/ancestry-api.model';
 import { CommunityCardResponse } from '../models/community-api.model';
 import { DomainCardResponse } from '../models/domain-card-api.model';
 import { SubclassCardResponse } from '../models/subclass-api.model';
+import { EnvironmentResponse } from '../models/environment-api.model';
+import { BeastformResponse } from '../models/beastform-api.model';
 
 function buildBase(overrides: Partial<SearchResultResponse> = {}): SearchResultResponse {
   return {
@@ -144,6 +146,44 @@ const subclassEntity: SubclassCardResponse = {
   lastModifiedAt: '2025-01-01T00:00:00Z',
 };
 
+const environmentEntity: EnvironmentResponse = {
+  id: 1,
+  name: 'Abandoned Grove',
+  tier: 1,
+  environmentType: 'EXPLORATION',
+  description: 'A former druidic grove lying fallow and fully reclaimed by nature.',
+  impulses: 'Draw in the curious, echo the past',
+  difficulty: 11,
+  potentialAdversaries: 'Beasts (Bear, Dire Wolf, Glass Snake)',
+  isOfficial: true,
+  isPublic: true,
+  expansionId: 1,
+  featureIds: [],
+  features: [],
+  createdAt: '2025-01-01T00:00:00Z',
+  lastModifiedAt: '2025-01-01T00:00:00Z',
+};
+
+const beastformEntity: BeastformResponse = {
+  id: 1,
+  name: 'Agile Scout',
+  example: 'Fox, Mouse, Weasel, etc.',
+  advantages: 'deceive, locate, sneak',
+  agilityModifier: 1,
+  evasion: 2,
+  tier: 1,
+  attackRange: 'MELEE',
+  attackTrait: 'AGILITY',
+  damage: { diceType: 'D4', damageType: 'PHYSICAL', notation: 'd4 phy' },
+  expansionId: 1,
+  isOfficial: true,
+  isPublic: true,
+  featureIds: [],
+  features: [],
+  createdAt: '2025-01-01T00:00:00Z',
+  lastModifiedAt: '2025-01-01T00:00:00Z',
+};
+
 describe('mapSearchResult', () => {
   it('should preserve base fields (type, id, name, relevanceScore) for all results', () => {
     const result = mapSearchResult(buildBase({ type: 'WEAPON', id: 42, name: 'Test', relevanceScore: 0.9 }));
@@ -256,11 +296,32 @@ describe('mapSearchResult', () => {
     expect(result.card!.id).toBe(20);
   });
 
-  it('should return a fallback card for BEASTFORM (unsupported expand)', () => {
+  it('should return a fallback card for BEASTFORM only when expandedEntity is null', () => {
     const result = mapSearchResult(buildBase({ type: 'BEASTFORM', id: 30, name: 'Wolf Form', expandedEntity: null }));
 
     expect(result.card).toBeDefined();
     expect(result.card!.name).toBe('Wolf Form');
+  });
+
+  it('should map BEASTFORM with expandedEntity via the beastform mapper, not the fallback', () => {
+    const result = mapSearchResult(buildBase({ type: 'BEASTFORM', id: 1, name: 'Agile Scout', expandedEntity: beastformEntity }));
+
+    expect(result.card!.cardType).toBe('beastform');
+    expect(result.card!.description).toBe('Fox, Mouse, Weasel, etc.');
+  });
+
+  it('should map ENVIRONMENT with expandedEntity via the environment mapper, not the fallback', () => {
+    const result = mapSearchResult(buildBase({ type: 'ENVIRONMENT', id: 1, name: 'Abandoned Grove', expandedEntity: environmentEntity }));
+
+    expect(result.card!.cardType).toBe('environment');
+    expect(result.card!.description).toBe('A former druidic grove lying fallow and fully reclaimed by nature.');
+  });
+
+  it('should return a fallback card for ENVIRONMENT only when expandedEntity is null', () => {
+    const result = mapSearchResult(buildBase({ type: 'ENVIRONMENT', id: 1, name: 'Abandoned Grove', expandedEntity: null }));
+
+    expect(result.card!.name).toBe('Abandoned Grove');
+    expect(result.card!.description).toBe('');
   });
 
   it('should return a fallback card for EXPANSION type', () => {

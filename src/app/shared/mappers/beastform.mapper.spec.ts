@@ -19,6 +19,61 @@ function buildBeastformResponse(overrides: Partial<BeastformResponse> = {}): Bea
   };
 }
 
+/**
+ * The "Evolved" meta-cards (Legendary Beast, Mythic Beast) print no stat line at all, so the
+ * backend returns them with attackTrait/attackRange/damage/evasion and every trait modifier
+ * absent. Fixtures that always populated those fields are why a `.split()` on undefined reached
+ * a real page. Shaped after the actual uploaded record (id 17).
+ */
+function buildStatlessBeastformResponse(overrides: Partial<BeastformResponse> = {}): BeastformResponse {
+  return {
+    id: 17,
+    name: 'Legendary Beast',
+    example: 'Upgraded Tier 1 Options',
+    tier: 3,
+    expansionId: 1,
+    isOfficial: true,
+    isPublic: true,
+    features: [{ id: 777, name: 'Evolved', description: 'Pick a Tier 1 Beastform option...' }],
+    createdAt: '2025-01-01T00:00:00Z',
+    lastModifiedAt: '2025-01-01T00:00:00Z',
+    ...overrides,
+  } as BeastformResponse;
+}
+
+describe('mapBeastformToCardData — stat-less "Evolved" cards', () => {
+  it('should not throw when attackTrait and attackRange are absent', () => {
+    expect(() => mapBeastformToCardData(buildStatlessBeastformResponse())).not.toThrow();
+  });
+
+  it('should leave subtitle undefined when attackTrait is absent', () => {
+    const result = mapBeastformToCardData(buildStatlessBeastformResponse());
+
+    expect(result.subtitle).toBeUndefined();
+  });
+
+  it('should omit the attackRange tag when attackRange is absent, keeping the Tier tag', () => {
+    const result = mapBeastformToCardData(buildStatlessBeastformResponse());
+
+    expect(result.tags).toEqual(['Tier 3']);
+  });
+
+  it('should still map name, example and features for a stat-less card', () => {
+    const result = mapBeastformToCardData(buildStatlessBeastformResponse());
+
+    expect(result.name).toBe('Legendary Beast');
+    expect(result.description).toBe('Upgraded Tier 1 Options');
+    expect(result.features).toHaveLength(1);
+  });
+
+  it('should not throw when damage is absent and tier is undefined', () => {
+    const response = buildStatlessBeastformResponse({ tier: undefined });
+
+    expect(() => mapBeastformToCardData(response)).not.toThrow();
+    expect(mapBeastformToCardData(response).subtitleSecondary).toBeUndefined();
+  });
+});
+
 describe('mapBeastformToCardData', () => {
   it('should map card id and name correctly', () => {
     const response = buildBeastformResponse({ id: 42, name: 'Nimble Grazer' });

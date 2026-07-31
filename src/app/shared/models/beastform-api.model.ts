@@ -34,9 +34,16 @@ export interface BeastformResponse {
   knowledgeModifier?: number;
   evasion?: number;
   tier?: number;
-  attackRange: BeastformRange;
-  attackTrait: BeastformTrait;
-  damage: BeastformDamageRollResponse;
+  /**
+   * Optional since the Beastform nullability migration: `attackRange`, `attackTrait`, `damage`,
+   * `evasion` and every trait modifier are nullable server-side. The "Evolved" meta-cards
+   * (Legendary Beast, Mythic Beast) print no stat line and arrive with all of them absent.
+   * Declaring these required made `formatTitleCase(response.attackTrait)` typecheck and then
+   * throw on real data -- keep them optional so the compiler enforces the guard.
+   */
+  attackRange?: BeastformRange;
+  attackTrait?: BeastformTrait;
+  damage?: BeastformDamageRollResponse;
   expansionId: number;
   expansion?: { id: number; name: string; isPublished: boolean };
   isOfficial: boolean;
