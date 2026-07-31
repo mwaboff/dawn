@@ -1,0 +1,44 @@
+:host { display: block; --color-card-beastform: #7fd4a8; }
+
+.beastform { background: rgba(26,20,15,.55); border: 1px solid rgba(212,160,86,.12); border-radius: 6px; overflow: hidden; }
+.beastform__header { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .7rem .9rem; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit; color: inherit; }
+.beastform__header:hover { background: rgba(212,160,86,.04); }
+.beastform__header:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.beastform__title { font-family: var(--font-display); font-size: .875rem; text-transform: uppercase; letter-spacing: .2em; color: var(--color-card-beastform); margin: 0; flex: 1; }
+.beastform__summary { font-family: var(--font-display); font-size: .75rem; letter-spacing: .06em; color: rgba(212,160,86,.55); }
+.beastform__body { padding: .75rem .9rem 1rem; border-top: 1px solid rgba(212,160,86,.08); }
+.beastform__status { font-family: var(--font-body); font-size: .85rem; color: rgba(212,192,160,.7); margin: 0; }
+.beastform__status--error { color: #d47f7f; }
+.beastform__retry { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-accent); background: none; border: 1px solid rgba(212,160,86,.3); border-radius: 2px; padding: .1rem .4rem; cursor: pointer; }
+.beastform__retry:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.beastform__attack { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.85); margin: 0; }
+.beastform__attack-note { color: rgba(212,160,86,.6); font-style: italic; }
+.beastform__advantages { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+
+.card-group { margin-bottom: 1.25rem; }
+.card-group:last-child { margin-bottom: 0; }
+.card-group__heading-row { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; padding-bottom: .35rem; border-bottom: 1px solid rgba(212,160,86,.15); }
+.card-group__heading { font-family: var(--font-display); font-size: .875rem; text-transform: uppercase; letter-spacing: .2em; color: var(--color-card-beastform); margin: 0; }
+.card-group__count { font-family: var(--font-display); font-size: .75rem; letter-spacing: .06em; color: rgba(212,160,86,.55); }
+.card-group__list { display: flex; flex-direction: column; gap: .5rem; }
+
+.expandable-card { background: rgba(26,20,15,.7); border: 1px solid rgba(212,160,86,.1); border-left: 3px solid var(--color-card-beastform); border-radius: 0 6px 6px 0; overflow: hidden; }
+.expandable-card__header { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .6rem .75rem; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit; color: inherit; }
+.expandable-card__header:hover { background: rgba(212,160,86,.04); }
+.expandable-card__header:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.beastform__chevron, .expandable-card__chevron { font-size: .75rem; color: rgba(212,160,86,.65); transition: transform .2s; flex-shrink: 0; }
+.beastform__chevron--open, .expandable-card__chevron--open { transform: rotate(90deg); }
+.expandable-card__name { font-family: var(--font-display); font-size: .9rem; font-weight: 700; color: var(--color-parchment); text-transform: uppercase; letter-spacing: .06em; margin: 0; flex: 1; }
+.expandable-card__stats { font-family: var(--font-body); font-size: .8rem; color: rgba(212,160,86,.8); text-align: right; }
+.expandable-card__body { padding: .65rem .75rem .9rem; border-top: 1px solid rgba(212,160,86,.08); display: flex; flex-direction: column; gap: .7rem; }
+.feature-row__name { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--color-accent); margin-bottom: .25rem; }
+.feature-row__description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+
+@media (max-width: 768px) {
+  .expandable-card__header { flex-wrap: wrap; }
+  .expandable-card__stats { flex-basis: 100%; text-align: left; padding-left: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beastform__chevron, .expandable-card__chevron { transition: none; }
+}

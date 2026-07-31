@@ -48,6 +48,12 @@ export function mapBeastformToCardData(response: BeastformResponse): CardData {
       damage: response.damage,
       evasion: response.evasion,
       tier: response.tier,
+      agilityModifier: response.agilityModifier,
+      strengthModifier: response.strengthModifier,
+      finesseModifier: response.finesseModifier,
+      instinctModifier: response.instinctModifier,
+      presenceModifier: response.presenceModifier,
+      knowledgeModifier: response.knowledgeModifier,
       isOfficial: response.isOfficial,
     },
   };
