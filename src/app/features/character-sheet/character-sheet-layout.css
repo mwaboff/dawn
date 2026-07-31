@@ -1,4 +1,6 @@
-:host { --color-card-subclass: #b87fd4; --color-card-ancestry: #d4c256; --color-card-community: #56d478; --color-card-domain: #d48056; --color-damage-minor: #6aad7a; --color-damage-major: #c8943c; --color-damage-severe: #c05050; }
+/* Card accents come from the global --color-card-* tokens in styles.css so the sheet and the
+   codex cards cannot drift apart. Only the damage-threshold colours are sheet-specific. */
+:host { --color-damage-minor: #6aad7a; --color-damage-major: #c8943c; --color-damage-severe: #c05050; }
 
 .traits-section { margin-bottom: 1.5rem; }
 .cards-section { margin-bottom: 1.5rem; }

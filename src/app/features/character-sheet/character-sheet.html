@@ -612,6 +612,12 @@
       }
     </section>
 
+    @if (showBeastforms()) {
+      <section class="beastform-section" aria-label="Beastforms">
+        <app-beastform-section [characterLevel]="sheet.level" />
+      </section>
+    }
+
     <section class="inventory-section" aria-label="Inventory">
       <app-inventory-section
         [weapons]="sheet.inventoryWeapons"
@@ -632,12 +638,6 @@
         (unequipArmor)="onUnequipArmor()"
         (dismissError)="onDismissInventoryError()" />
     </section>
-
-    @if (showBeastforms()) {
-      <section class="beastform-section" aria-label="Beastforms">
-        <app-beastform-section [characterLevel]="sheet.level" />
-      </section>
-    }
 
     @if (sheet.vaultDomainCards.length > 0) {
       <section class="vault-section" aria-label="Domain Card Vault">

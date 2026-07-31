@@ -1,4 +1,4 @@
-:host { display: block; --color-card-beastform: #7fd4a8; }
+:host { display: block; }
 
 .beastform { background: rgba(26,20,15,.55); border: 1px solid rgba(212,160,86,.12); border-radius: 6px; overflow: hidden; }
 .beastform__header { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .7rem .9rem; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit; color: inherit; }

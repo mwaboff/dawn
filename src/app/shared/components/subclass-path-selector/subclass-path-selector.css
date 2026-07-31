@@ -5,7 +5,7 @@
   --tab-color: #7a5c46;
   --tab-hover-color: #5c3a2e;
   --tab-hover-bg: rgba(184, 127, 212, 0.06);
-  --tab-active-color: #b87fd4;
+  --tab-active-color: var(--color-card-subclass);
   --tab-active-bg: #fff;
   --tab-active-border: rgba(184, 127, 212, 0.3);
   --tab-active-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
