@@ -1,0 +1,93 @@
+<div class="gm-filter-bar">
+  <label class="gm-filter-bar__field">
+    <span class="gm-filter-bar__label">Filter panels</span>
+    <input
+      type="search"
+      class="gm-filter-bar__input"
+      placeholder="Search rules, conditions, tables…"
+      [value]="filter()"
+      (input)="onFilterInput($event)"
+    />
+  </label>
+  <div class="gm-filter-bar__actions">
+    <button type="button" class="gm-filter-bar__btn" (click)="setAllCollapsed(false)">
+      Expand all
+    </button>
+    <button type="button" class="gm-filter-bar__btn" (click)="setAllCollapsed(true)">
+      Collapse all
+    </button>
+  </div>
+</div>
+
+<div
+  class="gm-grid"
+  appMasonryGrid
+  [disabled]="isNarrow()"
+  cdkDropList
+  cdkDropListOrientation="mixed"
+  (cdkDropListDropped)="onDrop($event)"
+>
+  @for (p of orderedPanels(); track p.id; let i = $index, first = $first, last = $last) {
+    <section
+      class="gm-panel"
+      [id]="p.id"
+      [class.gm-panel--wide]="p.colSpan === 2"
+      [class.is-filtered-out]="!matches(p)"
+      appMasonryItem
+      cdkDrag
+      [cdkDragDisabled]="isFiltering() || isNarrow()"
+    >
+      <header class="gm-panel__head" cdkDragHandle>
+        <button
+          type="button"
+          class="gm-panel__btn"
+          [attr.aria-expanded]="!isCollapsed(p)"
+          [attr.aria-controls]="p.id + '-body'"
+          [attr.aria-label]="(isCollapsed(p) ? 'Expand ' : 'Collapse ') + p.title + ' panel'"
+          (click)="toggleCollapsed(p)"
+        >
+          <span
+            class="gm-panel__chevron"
+            [class.gm-panel__chevron--collapsed]="isCollapsed(p)"
+            aria-hidden="true"
+            >▾</span
+          >
+        </button>
+        <h3 class="gm-panel__title">{{ p.title }}</h3>
+        <div class="gm-panel__head-actions">
+          <button
+            type="button"
+            class="gm-panel__btn"
+            [disabled]="first"
+            [attr.aria-label]="'Move ' + p.title + ' panel up'"
+            (click)="moveBy(i, -1)"
+          >
+            <span aria-hidden="true">▲</span>
+          </button>
+          <button
+            type="button"
+            class="gm-panel__btn"
+            [disabled]="last"
+            [attr.aria-label]="'Move ' + p.title + ' panel down'"
+            (click)="moveBy(i, 1)"
+          >
+            <span aria-hidden="true">▼</span>
+          </button>
+        </div>
+      </header>
+
+      <div
+        class="gm-panel__body"
+        [id]="p.id + '-body'"
+        [attr.hidden]="bodyHidden(p)"
+        (beforematch)="onBeforeMatch(p)"
+      >
+        @if (p.body.kind === 'static') {
+          <app-gm-panel-blocks [blocks]="p.body.blocks" />
+        } @else {
+          <ng-container *ngComponentOutlet="p.body.component" />
+        }
+      </div>
+    </section>
+  }
+</div>

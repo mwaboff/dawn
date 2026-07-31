@@ -42,6 +42,7 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     playerCharacterIds: [10],
     playerCharacters: [buildCharacter()],
     nonPlayerCharacterIds: [],
+    fear: 0,
     isEnded: false,
     createdAt: '',
     lastModifiedAt: '',

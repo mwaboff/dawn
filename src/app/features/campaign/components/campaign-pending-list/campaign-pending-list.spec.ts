@@ -28,6 +28,7 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     pendingCharacterSheets: [buildSheet()],
     playerCharacterIds: [],
     nonPlayerCharacterIds: [],
+    fear: 0,
     isEnded: false,
     createdAt: '',
     lastModifiedAt: '',

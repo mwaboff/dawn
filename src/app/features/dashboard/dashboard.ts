@@ -56,6 +56,11 @@ export class Dashboard implements OnInit {
     return classBorderColor(c.classEntries[0]?.className);
   }
 
+  gmsCampaign(c: CampaignResponse): boolean {
+    const userId = this.authService.user()?.id;
+    return userId != null && c.gameMasterIds.includes(userId);
+  }
+
   private loadCharacters(ownerId: number): void {
     this.userService.getUserCharacterSheets(ownerId, 0, 100, 'subclassCards').pipe(
       map(response => response.content.map(mapToSummary)),

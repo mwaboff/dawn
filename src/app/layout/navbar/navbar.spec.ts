@@ -183,6 +183,24 @@ describe('Navbar', () => {
     });
   });
 
+  describe('GM Screen link', () => {
+    it('should render GM Screen link when logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/gm-screen"]');
+      expect(links.length).toBeGreaterThan(0);
+    });
+
+    it('should render GM Screen link when logged out', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/gm-screen"]');
+      expect(links.length).toBeGreaterThan(0);
+    });
+  });
+
   describe('dropdown', () => {
     it('should start with dropdown closed', () => {
       fixture.detectChanges();
@@ -312,6 +330,7 @@ describe('Navbar', () => {
       const items = compiled.querySelectorAll('.nav-mobile-item');
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('Reference');
+      expect(texts).toContain('GM Screen');
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('Profile');
@@ -327,6 +346,7 @@ describe('Navbar', () => {
       const items = compiled.querySelectorAll('.nav-mobile-item');
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('Reference');
+      expect(texts).toContain('GM Screen');
       expect(texts).toContain('Sign In');
     });
 

@@ -17,6 +17,13 @@ export interface CampaignResponse {
   nonPlayerCharacterIds: number[];
   nonPlayerCharacters?: CampaignCharacterSheet[];
   characterSummaries?: CampaignCharacterSummary[];
+  /** Shared Fear pool, 0-12. Visible to every campaign member -- Fear is public at the table. */
+  fear: number;
+  /**
+   * GM-only session notes. The backend omits this key entirely for non-GMs, so absent means
+   * *either* empty *or* not permitted. Never infer permission from its presence.
+   */
+  gmNotes?: string;
   isEnded: boolean;
   endedAt?: string;
   createdAt: string;
