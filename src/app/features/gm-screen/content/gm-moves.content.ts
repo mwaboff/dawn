@@ -77,114 +77,24 @@ export const GM_MOVES_PANELS: readonly GmPanelDef[] = [
       kind: 'static',
       blocks: [
         {
-          kind: 'table',
-          headers: ['Move', 'Example'],
-          rows: [
-            [
-              'Show how the world reacts',
-              '"The kick shatters the door. Light spills in from the barracks as a half-dozen sleepy soldiers stumble to their feet, looking worried."',
-            ],
-            [
-              'Ask a question and build on the answer',
-              '"How is it that you notice the assassin lurking in the treetops?"',
-            ],
-            [
-              'Make an NPC act in accordance with their motive',
-              "When a scene includes characters other than the PCs, you can spotlight what these NPCs are doing in response to the PCs' actions. You might show a friendly NPC helping the party in a fight, a group of townsfolk taking cover, or an enemy moving positions. Make sure their actions always flow from their motive.",
-            ],
-            [
-              "Lean on the PCs' goals to drive them to action",
-              '"The governor\'s husband lies groggy on the altar as the cultists continue to chant. The ritual is coming to a climax earlier than expected. What do you do?"',
-            ],
-            [
-              'Signal an imminent off-screen threat',
-              '"You hear the crashing of falling trees and shattered branches as thundering steps approach. What do you do?"',
-            ],
-            [
-              'Reveal an unwelcome truth or unexpected danger',
-              '"He reaches into his cloak and produces the Orb of Vengeance as you realize that he was the necromancer the entire time."',
-            ],
-            [
-              'Force the group to split up',
-              '"The elementals are scattering—two heading for the town, three bearing down on the mill. What do you do?"',
-            ],
-            [
-              'Make a PC mark Stress as a consequence for their actions',
-              '"You can pull the baron to safety if you mark a Stress. Otherwise you can only get yourself out of the way. What do you do?"',
-            ],
-            ["Make a move the characters don't see", '"Everything is fine... for now."'],
-            [
-              'Show the collateral damage',
-              '"The minotaur barrels into the street, shattering a vegetable cart, sending cabbages flying and knocking the merchant into the wall."',
-            ],
-            ['Clear a temporary condition or effect', '"The guard cuts through the vines holding her in place."'],
-            ['Shift the environment', '"The rope bridge snaps, leaving you stranded."'],
-            [
-              'Spotlight an adversary',
-              '"As the skeleton guard shambles forward to strike you, you see the two others on their flank turn their attention toward you as well."',
-            ],
-            [
-              'Capture someone or something important',
-              '"The thief slides past you and jumps into the cart, grabbing the idol from the seat and stuffing it into their pouch."',
-            ],
-            [
-              "Use a PC's backstory against them",
-              '"Your mentor sighs, drawing their blade. \'I wish it hadn\'t come to this, child. But you still don\'t understand what sacrifices are required to maintain the peace.\'"',
-            ],
-            [
-              'Take away an opportunity permanently',
-              '"The door slams shut, cutting you off from the vault as the temple continues to collapse."',
-            ],
-          ],
-        },
-      ],
-    },
-  },
-  {
-    id: 'gm-principles',
-    title: 'GM Principles & Best Practices',
-    category: 'GM Moves',
-    colSpan: 1,
-    defaultOrder: 220,
-    defaultCollapsed: true,
-    keywords: ['agenda', 'advice', 'running the game', 'table'],
-    body: {
-      kind: 'static',
-      blocks: [
-        {
-          kind: 'text',
-          paragraphs: ['GM Principles'],
-        },
-        {
           kind: 'list',
           items: [
-            'Begin and end with the fiction',
-            'Collaborate at all times, especially during conflict',
-            'Fill the world with life, wonder, and danger',
-            'Ask questions and incorporate the answers',
-            'Make every roll important',
-            'Play to find out what happens',
-            'Hold on gently',
-          ],
-        },
-        {
-          kind: 'text',
-          paragraphs: ['GM Best Practices'],
-        },
-        {
-          kind: 'list',
-          items: [
-            'Cultivate a curious table',
-            "Gain your players' trust",
-            'Keep the story moving forward',
-            'Cut to the action',
-            'Help the players use the game',
-            'Create a meta conversation',
-            'Tell them what they would know',
-            'Ground the world in motive',
-            "Bring the game's mechanics to life",
-            'Reframe rather than reject',
-            'Work in moments and montages',
+            'Show how the world reacts',
+            'Ask a question and build on the answer',
+            'Make an NPC act in accordance with their motive',
+            "Lean on the PCs' goals to drive them to action",
+            'Signal an imminent off-screen threat',
+            'Reveal an unwelcome truth or unexpected danger',
+            'Force the group to split up',
+            'Make a PC mark Stress as a consequence for their actions',
+            "Make a move the characters don't see",
+            'Show the collateral damage',
+            'Clear a temporary condition or effect',
+            'Shift the environment',
+            'Spotlight an adversary',
+            'Capture someone or something important',
+            "Use a PC's backstory against them",
+            'Take away an opportunity permanently',
           ],
         },
       ],

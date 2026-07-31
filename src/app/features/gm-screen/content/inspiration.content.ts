@@ -1,27 +1,41 @@
 import { GmPanelDef } from '../models/gm-panel.model';
 
 /**
- * Table-facing inspiration prompts rather than hard rules: ways to spend a Success with Fear.
+ * Table-facing inspiration prompts rather than hard rules: ways to hand out a consequence.
+ *
+ * Scoped to success with Fear in the source material, but every entry reads the same on a failure
+ * with Hope — the other outcome where the PCs get a consequence — so the panel is titled for the
+ * job rather than the die result. It sits next to `action-roll-results` because that is the table
+ * you are looking at when you need it.
  *
  * The per-trait outcome examples that used to live here were four repetitions of the same three
- * outcomes. They now appear once, as the `example` line on each entry in `action-roll-results`.
+ * outcomes. They now appear once, in `roll-result-examples`.
  */
 export const INSPIRATION_PANELS: readonly GmPanelDef[] = [
   {
     id: 'success-with-fear',
-    title: 'Handling Success with Fear',
-    category: 'GM Moves',
+    title: 'Consequence Menu',
+    category: 'Rolls & Resolution',
     colSpan: 1,
-    defaultOrder: 190,
+    defaultOrder: 15,
     defaultCollapsed: true,
-    keywords: ['cost', 'consequence', 'catch', 'complication', 'fear forward', 'countdown'],
+    keywords: [
+      'cost',
+      'consequence',
+      'catch',
+      'complication',
+      'fear forward',
+      'countdown',
+      'success with fear',
+      'failure with hope',
+    ],
     body: {
       kind: 'static',
       blocks: [
         {
           kind: 'text',
           paragraphs: [
-            'They get what they want, but it comes with a cost or consequence. The GM gains a Fear.',
+            'Ways to charge for a success with Fear or a failure with Hope — the results where the PCs still owe you something.',
           ],
         },
         {

@@ -8,6 +8,7 @@ import { STATIC_GM_PANELS } from './panel-registry';
  */
 const EXPECTED_IDS = [
   'action-roll-results',
+  'roll-result-examples',
   'difficulty',
   'range',
   'advantage',
@@ -27,7 +28,6 @@ const EXPECTED_IDS = [
   'improvised-adversaries',
   'success-with-fear',
   'example-gm-moves',
-  'gm-principles',
   'gold',
   'random-tables',
 ];

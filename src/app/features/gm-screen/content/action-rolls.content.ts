@@ -14,72 +14,67 @@ export const ACTION_ROLL_PANELS: readonly GmPanelDef[] = [
       'hope die',
       'fear die',
       'outcome',
-      'stakes',
-      'example',
-      'trait outcome',
+      'consequence',
+      'gm turn',
     ],
     body: {
       kind: 'static',
       blocks: [
         {
-          kind: 'steps',
-          items: [
-            {
-              label: 'Call for a roll',
-              detail:
-                'Call for an action roll when a PC makes a move where the outcome is in question and the success or failure of that move is interesting to the story.',
-            },
-            { label: 'Set the stakes', detail: 'Establish the stakes of the roll with the player.' },
-            { label: 'Pick a trait and Difficulty', detail: 'Pick a character trait and decide on a Difficulty.' },
-            {
-              label: 'Add dice and modifiers',
-              detail: 'Add extra dice and modifiers, including Experiences, advantage, and disadvantage.',
-            },
-            {
-              label: 'Roll and resolve',
-              detail:
-                'Tell the player to roll the Duality Dice and resolve the situation based on the result of their roll.',
-            },
+          kind: 'callout',
+          tone: 'neutral',
+          text: 'The GM takes a turn on a success with Fear, a failure with Hope, and a failure with Fear.',
+        },
+        {
+          kind: 'table',
+          dense: true,
+          headers: ['Result', 'Outcome', 'Resource'],
+          rows: [
+            ['Critical Success', 'They get what they want and a little extra.', 'PC gains a Hope and clears a Stress.'],
+            ['Success with Hope', 'They get what they want.', 'PC gains a Hope.'],
+            ['Success with Fear', 'They get what they want, but it comes with a cost or consequence.', 'GM gains a Fear.'],
+            ['Failure with Hope', 'They probably don’t get what they want, and there is a consequence.', 'PC gains a Hope.'],
+            ['Failure with Fear', 'They don’t get what they want, and things go very badly.', 'GM gains a Fear.'],
           ],
         },
+      ],
+    },
+  },
+  {
+    id: 'roll-result-examples',
+    title: 'Roll Results in Play',
+    category: 'Rolls & Resolution',
+    colSpan: 1,
+    defaultOrder: 12,
+    defaultCollapsed: true,
+    keywords: ['example', 'worked example', 'narrate', 'describe', 'inspiration', 'how it sounds'],
+    body: {
+      kind: 'static',
+      blocks: [
         {
           kind: 'keyValue',
           entries: [
             {
               key: 'Critical Success',
-              value: 'They get what they want and a little extra. They gain a Hope and clear a Stress.',
-              example:
-                'You pick the lock in silence — and spot the ledger inside, open to the name you came for.',
+              value: 'You pick the lock in silence — and spot the ledger inside, open to the name you came for.',
             },
             {
               key: 'Success with Hope',
-              value: 'They get what they want. They gain a Hope.',
-              example: 'You talk your way past the guard, and they let slip when the shift changes.',
+              value: 'You talk your way past the guard, and they let slip when the shift changes.',
             },
             {
               key: 'Success with Fear',
-              value:
-                'They get what they want, but it comes with a cost or consequence. The GM gains a Fear.',
-              example: 'You stay hidden, but leave a footprint the next patrol will find.',
+              value: 'You stay hidden, but leave a footprint the next patrol will find.',
             },
             {
               key: 'Failure with Hope',
-              value:
-                'They probably don’t get what they want, and there is a consequence, but they gain a Hope.',
-              example: 'The ward holds against you — but its sigils tell you who set it.',
+              value: 'The ward holds against you — but its sigils tell you who set it.',
             },
             {
               key: 'Failure with Fear',
-              value: 'They don’t get what they want, and things go very badly. The GM gains a Fear.',
-              example:
-                'You misread the ritual text, and something on the other side of it notices you.',
+              value: 'You misread the ritual text, and something on the other side of it notices you.',
             },
           ],
-        },
-        {
-          kind: 'callout',
-          tone: 'neutral',
-          text: 'The GM takes a turn on a success with Fear, a failure with Hope, and a failure with Fear.',
         },
       ],
     },

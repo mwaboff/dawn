@@ -82,12 +82,6 @@ export const REST_PANELS: readonly GmPanelDef[] = [
             ],
           ],
         },
-        {
-          kind: 'text',
-          paragraphs: [
-            'Swapping domain cards outside a rest costs Stress equal to the card’s Recall Cost; swapping during a Short or Long Rest is free.',
-          ],
-        },
       ],
     },
   },

@@ -134,16 +134,6 @@
 
 .gm-panel__kv-value { display: block; }
 
-/* A worked example under the rule it illustrates. Indented and italic so it reads as an aside. */
-.gm-panel__kv-example {
-  display: block;
-  margin-top: .25rem;
-  padding-left: .65rem;
-  border-left: 2px solid rgba(212, 160, 86, .3);
-  font-style: italic;
-  color: var(--gm-dim);
-}
-
 /* Tables scroll inside the panel rather than forcing the page to scroll horizontally. */
 .gm-panel__table-wrap { overflow-x: auto; }
 .gm-panel__table { width: 100%; border-collapse: collapse; font-size: .9rem; }

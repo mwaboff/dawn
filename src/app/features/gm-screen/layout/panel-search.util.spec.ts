@@ -51,17 +51,6 @@ describe('panelSearchText', () => {
     }
   });
 
-  it('indexes the optional example on a key/value entry', () => {
-    const panel = staticPanel([
-      {
-        kind: 'keyValue',
-        entries: [{ key: 'Success with Fear', value: 'A cost', example: 'A telltale footprint' }],
-      },
-    ]);
-
-    expect(panelSearchText(panel)).toContain('telltale footprint');
-  });
-
   it('memoizes by panel identity', () => {
     const panel = staticPanel([{ kind: 'text', paragraphs: ['one'] }]);
     expect(panelSearchText(panel)).toBe(panelSearchText(panel));

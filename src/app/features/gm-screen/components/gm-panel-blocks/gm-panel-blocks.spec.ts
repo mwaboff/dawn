@@ -38,27 +38,6 @@ describe('GmPanelBlocks', () => {
     render([{ kind: 'keyValue', entries: [{ key: 'Melee', value: 'Very close' }] }]);
     expect(host.querySelector('.gm-panel__kv-key')?.textContent?.trim()).toBe('Melee');
     expect(host.querySelector('.gm-panel__kv-value')?.textContent?.trim()).toBe('Very close');
-    expect(host.querySelector('.gm-panel__kv-example')).toBeNull();
-  });
-
-  it('renders an optional worked example under the value it illustrates', () => {
-    render([
-      {
-        kind: 'keyValue',
-        entries: [
-          {
-            key: 'Success with Fear',
-            value: 'They get what they want, but it costs them.',
-            example: 'You stay hidden, but leave a footprint.',
-          },
-        ],
-      },
-    ]);
-
-    const example = host.querySelector('.gm-panel__kv-example');
-    expect(example?.textContent?.trim()).toBe('You stay hidden, but leave a footprint.');
-    // Nested inside the value so the pair stays one <dd>.
-    expect(host.querySelector('.gm-panel__kv-value')?.contains(example!)).toBe(true);
   });
 
   it('renders table headers and rows, and marks dense tables', () => {
