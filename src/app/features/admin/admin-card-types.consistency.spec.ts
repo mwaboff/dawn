@@ -106,6 +106,7 @@ describe('admin card type registration consistency', () => {
     const allFeatureTypes: FeatureType[] = [
       'HOPE', 'ANCESTRY', 'CLASS', 'COMMUNITY', 'DOMAIN', 'ITEM', 'SUBCLASS', 'OTHER',
       'TRANSFORMATION', 'ENVIRONMENT', 'CAMPAIGN_FRAME',
+      'BEASTFORM', 'MARTIAL_STANCE', 'ADVERSARY',
     ];
     for (const type of allFeatureTypes) {
       expect(FEATURE_TYPE_LABELS[type]).toBeTruthy();

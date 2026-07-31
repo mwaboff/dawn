@@ -10,12 +10,25 @@ describe('FEATURE_TYPE_LABELS', () => {
   const allTypes: FeatureType[] = [
     'HOPE', 'ANCESTRY', 'CLASS', 'COMMUNITY', 'DOMAIN', 'ITEM', 'SUBCLASS', 'OTHER',
     'TRANSFORMATION', 'ENVIRONMENT', 'CAMPAIGN_FRAME',
+    'BEASTFORM', 'MARTIAL_STANCE', 'ADVERSARY',
   ];
 
   it('has a label for every FeatureType enum value', () => {
     for (const type of allTypes) {
       expect(FEATURE_TYPE_LABELS[type]).toBeTruthy();
     }
+  });
+
+  it('labels BEASTFORM as Beastform', () => {
+    expect(FEATURE_TYPE_LABELS.BEASTFORM).toBe('Beastform');
+  });
+
+  it('labels MARTIAL_STANCE as Martial Stance', () => {
+    expect(FEATURE_TYPE_LABELS.MARTIAL_STANCE).toBe('Martial Stance');
+  });
+
+  it('labels ADVERSARY as Adversary', () => {
+    expect(FEATURE_TYPE_LABELS.ADVERSARY).toBe('Adversary');
   });
 
   it('labels are human-readable (first letter capitalized)', () => {
@@ -67,9 +80,15 @@ describe('defaultFeatureTypeForCard', () => {
     expect(defaultFeatureTypeForCard('environment')).toBe('ENVIRONMENT');
   });
 
-  it('maps martialStance / beastform / condition to OTHER (no dedicated FeatureType value)', () => {
-    expect(defaultFeatureTypeForCard('martialStance')).toBe('OTHER');
-    expect(defaultFeatureTypeForCard('beastform')).toBe('OTHER');
+  it('maps beastform to BEASTFORM', () => {
+    expect(defaultFeatureTypeForCard('beastform')).toBe('BEASTFORM');
+  });
+
+  it('maps martialStance to MARTIAL_STANCE', () => {
+    expect(defaultFeatureTypeForCard('martialStance')).toBe('MARTIAL_STANCE');
+  });
+
+  it('maps condition to OTHER (Condition has no features relationship, so no CONDITION value exists)', () => {
     expect(defaultFeatureTypeForCard('condition')).toBe('OTHER');
   });
 

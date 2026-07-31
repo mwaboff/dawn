@@ -125,6 +125,16 @@ describe('AdminLookupService', () => {
       service.list('subclassFeatures').subscribe();
       expect(featureSvc.list).toHaveBeenCalledWith({ featureType: 'SUBCLASS' });
     });
+
+    it('delegates beastformFeatures to FeatureLookupService with featureType BEASTFORM', () => {
+      service.list('beastformFeatures').subscribe();
+      expect(featureSvc.list).toHaveBeenCalledWith({ featureType: 'BEASTFORM' });
+    });
+
+    it('delegates martialStanceFeatures to FeatureLookupService with featureType MARTIAL_STANCE', () => {
+      service.list('martialStanceFeatures').subscribe();
+      expect(featureSvc.list).toHaveBeenCalledWith({ featureType: 'MARTIAL_STANCE' });
+    });
   });
 
   describe('costTags', () => {

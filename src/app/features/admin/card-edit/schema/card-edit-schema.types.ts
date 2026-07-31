@@ -19,6 +19,8 @@ export type LookupKey =
   | 'hopeFeatures'
   | 'communityFeatures'
   | 'subclassFeatures'
+  | 'beastformFeatures'
+  | 'martialStanceFeatures'
   | 'costTags';
 
 export interface LookupOption {
