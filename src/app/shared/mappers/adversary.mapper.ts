@@ -29,6 +29,7 @@ export function mapAdversaryToAdversaryData(response: AdversaryApiResponse): Adv
     attackRange: response.attackRange,
     damage: response.damage,
     motivesAndTactics: response.motivesAndTactics,
+    expansionId: response.expansionId,
     features: features?.length ? features : undefined,
   };
 }

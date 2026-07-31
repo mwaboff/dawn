@@ -1,0 +1,92 @@
+:host { display: block; }
+
+.card-table-scroll {
+  overflow-x: auto;
+  border: 1px solid rgba(212, 160, 86, 0.2);
+  border-radius: 4px;
+  background: rgba(26, 20, 18, 0.4);
+}
+
+.card-table {
+  width: 100%;
+  min-width: 44rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--color-parchment);
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  text-align: left;
+  background: rgba(26, 20, 18, 0.98);
+  border-bottom: 1px solid rgba(212, 160, 86, 0.3);
+}
+
+.col-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: inherit;
+  color: rgba(245, 230, 211, 0.6);
+}
+
+.col-sort:hover { color: var(--color-accent); }
+.col-sort:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.col-sort__arrow { color: var(--color-accent); font-size: 0.625rem; }
+
+.col--numeric { text-align: right; }
+.col--numeric .col-sort { justify-content: flex-end; }
+
+tbody td {
+  padding: 0.375rem 0.75rem;
+  border-bottom: 1px solid rgba(212, 160, 86, 0.08);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-row:hover td { background: rgba(212, 160, 86, 0.07); }
+.card-row:last-child td { border-bottom: none; }
+
+.card-row__id,
+.card-row__type {
+  color: rgba(245, 230, 211, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-row__name { padding: 0; }
+
+.card-row__link {
+  display: block;
+  padding: 0.375rem 0.75rem;
+  color: var(--color-parchment);
+  font-weight: 600;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-row__link:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.card-row__link:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}

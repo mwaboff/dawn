@@ -22,7 +22,7 @@ export class AdversaryService {
   getAdversaries(filters: AdversaryFilters = {}): Observable<PaginatedAdversaries> {
     let params = new HttpParams()
       .set('expand', 'features,experiences')
-      .set('size', '20');
+      .set('size', filters.size ?? 20);
 
     if (filters.tier !== undefined) {
       params = params.set('tier', filters.tier);

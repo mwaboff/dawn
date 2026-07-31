@@ -37,6 +37,7 @@ export function mapEnvironmentToCardData(response: EnvironmentResponse): CardDat
     tags: [formatDifficulty(response)],
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       environmentType: response.environmentType,
       tier: response.tier,
       difficulty: response.difficulty,

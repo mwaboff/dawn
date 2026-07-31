@@ -21,5 +21,6 @@ export function mapFeatureResponseToCardData(feature: FeatureResponse): CardData
     tags: feature.costTags?.length
       ? feature.costTags.map(tag => tag.label.toUpperCase())
       : undefined,
+    metadata: { expansionId: feature.expansionId },
   };
 }

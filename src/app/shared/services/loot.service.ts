@@ -36,6 +36,7 @@ export class LootService {
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
     }
+    params = params.set('size', filters.size ?? 20);
 
     return this.http
       .get<PaginatedResponse<LootApiResponse>>(this.baseUrl, { params, withCredentials: true })
@@ -65,6 +66,7 @@ export class LootService {
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
     }
+    params = params.set('size', filters.size ?? 20);
 
     return this.http
       .get<PaginatedResponse<LootApiResponse>>(this.baseUrl, { params, withCredentials: true })

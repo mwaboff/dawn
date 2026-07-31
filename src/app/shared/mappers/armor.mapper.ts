@@ -32,6 +32,7 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
     ],
     features: features.length > 0 ? features : undefined,
     metadata: {
+      expansionId: response.expansionId,
       baseScore: response.baseScore,
       baseMajorThreshold: response.baseMajorThreshold,
       baseSevereThreshold: response.baseSevereThreshold,

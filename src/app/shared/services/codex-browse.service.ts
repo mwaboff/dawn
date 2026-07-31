@@ -63,11 +63,16 @@ export class CodexBrowseService {
   private readonly companionService = inject(CompanionService);
   private readonly featureLookupService = inject(FeatureLookupService);
 
-  browse(type: BrowsableType, filters: BrowseFilters, page: number): Observable<BrowseResult> {
+  /**
+   * @param size Optional page size. Every backing endpoint clamps this to 100 server-side
+   *   (see `Math.min(size, 100)` in the core services), so larger values silently return 100.
+   */
+  browse(type: BrowsableType, filters: BrowseFilters, page: number, size?: number): Observable<BrowseResult> {
     switch (type) {
       case 'WEAPON':
         return this.weaponService.getWeapons({
           page,
+          size,
           tier: filters['tier'] as number | undefined,
           trait: filters['trait'] as string | undefined,
           range: filters['range'] as string | undefined,
@@ -79,6 +84,7 @@ export class CodexBrowseService {
       case 'ARMOR':
         return this.armorService.getArmors({
           page,
+          size,
           tier: filters['tier'] as number | undefined,
           burden: filters['burden'] as string | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
@@ -88,6 +94,7 @@ export class CodexBrowseService {
       case 'LOOT':
         return this.lootService.getLoot({
           page,
+          size,
           tier: filters['tier'] as number | undefined,
           isConsumable: filters['isConsumable'] as boolean | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
@@ -97,6 +104,7 @@ export class CodexBrowseService {
       case 'ADVERSARY':
         return this.adversaryService.getAdversaries({
           page,
+          size,
           tier: filters['tier'] as number | undefined,
           adversaryType: filters['adversaryType'] as string | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
@@ -112,6 +120,7 @@ export class CodexBrowseService {
       case 'ENVIRONMENT':
         return this.environmentService.getEnvironmentsPaginated({
           page,
+          size,
           tier: filters['tier'] as number | undefined,
           environmentType: filters['environmentType'] as string | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
@@ -121,6 +130,7 @@ export class CodexBrowseService {
       case 'BEASTFORM':
         return this.beastformService.getBeastformsPaginated({
           page,
+          size,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
@@ -128,6 +138,7 @@ export class CodexBrowseService {
       case 'CLASS':
         return this.classService.getClassesPaginated({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
@@ -135,6 +146,7 @@ export class CodexBrowseService {
       case 'ANCESTRY_CARD':
         return this.ancestryService.getAncestriesPaginated({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
@@ -142,6 +154,7 @@ export class CodexBrowseService {
       case 'COMMUNITY_CARD':
         return this.communityService.getCommunitiesPaginated({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
@@ -149,6 +162,7 @@ export class CodexBrowseService {
       case 'DOMAIN_CARD':
         return this.domainService.getDomainCardsBrowse({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           associatedDomainId: filters['associatedDomainId'] as number | undefined,
@@ -159,6 +173,7 @@ export class CodexBrowseService {
       case 'DOMAIN':
         return this.domainService.getDomainsPaginated({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
@@ -166,19 +181,21 @@ export class CodexBrowseService {
       case 'SUBCLASS_CARD':
         return this.subclassService.getSubclassesPaginated({
           page,
+          size,
           associatedClassId: filters['associatedClassId'] as number | undefined,
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
 
       case 'COMPANION':
-        return this.companionService.getCompanionsPaginated({ page }).pipe(
+        return this.companionService.getCompanionsPaginated({ page, size }).pipe(
           map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)),
         );
 
       case 'FEATURE':
         return this.featureLookupService.getFeaturesPaginated({
           page,
+          size,
           expansionId: filters['expansionId'] as number | undefined,
           featureType: filters['featureType'] as string | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
