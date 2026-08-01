@@ -24,26 +24,44 @@ function buildCard(overrides: Partial<TransformationCardResponse> = {}): Transfo
   };
 }
 
+const CATALOG: TransformationCardResponse[] = [
+  buildCard(),
+  buildCard({ id: 2, name: 'Vampire' }),
+  buildCard({ id: 3, name: 'Werewolf' }),
+];
+
 @Component({
   template: `
     <app-transformation-panel
       [card]="card()"
+      [catalog]="catalog()"
+      [catalogLoading]="catalogLoading()"
+      [catalogError]="catalogError()"
+      [isOwner]="isOwner()"
       [tokens]="tokens()"
       [wolfFormActive]="wolfFormActive()"
       [canAct]="canAct()"
       (tokensChange)="lastTokens = $event"
       (wolfFormToggle)="lastWolfForm = $event"
+      (cardSelected)="lastSelected = $event"
+      (cardRemoved)="removedCalled = true"
     />
   `,
   imports: [TransformationPanel],
 })
 class TestHost {
-  card = signal<TransformationCardResponse>(buildCard());
+  card = signal<TransformationCardResponse | null>(buildCard());
+  catalog = signal<TransformationCardResponse[]>(CATALOG);
+  catalogLoading = signal(false);
+  catalogError = signal(false);
+  isOwner = signal(true);
   tokens = signal<number | null>(null);
   wolfFormActive = signal(false);
   canAct = signal(true);
   lastTokens: number | null = null;
   lastWolfForm: boolean | null = null;
+  lastSelected: number | null = null;
+  removedCalled = false;
 }
 
 describe('TransformationPanel', () => {
@@ -145,5 +163,92 @@ describe('TransformationPanel', () => {
     const buttons = el.querySelectorAll<HTMLButtonElement>('.feed-tokens__btn');
     expect(buttons[0].disabled).toBe(true);
     expect(buttons[1].disabled).toBe(true);
+  });
+
+  describe('empty state', () => {
+    beforeEach(() => {
+      host.card.set(null);
+      fixture.detectChanges();
+    });
+
+    it('shows the empty state copy instead of card details', () => {
+      expect(el.querySelector('.transformation-empty')).toBeTruthy();
+      expect(el.querySelector('.transformation-name')).toBeFalsy();
+    });
+
+    it('shows the Add a Transformation action for an owner', () => {
+      const btn = el.querySelector('.transformation-empty .transformation-action-btn');
+      expect(btn?.textContent).toContain('Add a Transformation');
+    });
+
+    it('hides the Add action for a non-owner', () => {
+      host.isOwner.set(false);
+      fixture.detectChanges();
+      expect(el.querySelector('.transformation-action-btn')).toBeFalsy();
+    });
+
+    it('opens the picker when Add a Transformation is clicked', () => {
+      el.querySelector<HTMLButtonElement>('.transformation-empty .transformation-action-btn')?.click();
+      fixture.detectChanges();
+      expect(el.querySelector('.transformation-picker')).toBeTruthy();
+      expect(el.querySelectorAll('app-daggerheart-card').length).toBe(CATALOG.length);
+    });
+
+    it('emits the selected card id and closes the picker on selection', () => {
+      el.querySelector<HTMLButtonElement>('.transformation-empty .transformation-action-btn')?.click();
+      fixture.detectChanges();
+
+      el.querySelector<HTMLElement>('.transformation-picker app-daggerheart-card .card')?.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelected).toBe(CATALOG[0].id);
+      expect(el.querySelector('.transformation-picker')).toBeFalsy();
+    });
+
+    it('does not open the picker when canAct is false', () => {
+      host.canAct.set(false);
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.transformation-empty .transformation-action-btn')?.click();
+      fixture.detectChanges();
+      expect(el.querySelector('.transformation-picker')).toBeFalsy();
+    });
+  });
+
+  describe('attached card actions', () => {
+    it('shows Change and Remove for an owner', () => {
+      const actions = el.querySelectorAll('.transformation-action-btn');
+      expect(Array.from(actions).map(a => a.textContent?.trim())).toEqual(['Change', 'Remove']);
+    });
+
+    it('hides Change and Remove for a non-owner', () => {
+      host.isOwner.set(false);
+      fixture.detectChanges();
+      expect(el.querySelector('.transformation-action-btn')).toBeFalsy();
+    });
+
+    it('emits cardRemoved when Remove is clicked', () => {
+      const buttons = el.querySelectorAll<HTMLButtonElement>('.transformation-action-btn');
+      buttons[1].click();
+      expect(host.removedCalled).toBe(true);
+    });
+
+    it('opens the picker showing the current card selected when Change is clicked', () => {
+      const buttons = el.querySelectorAll<HTMLButtonElement>('.transformation-action-btn');
+      buttons[0].click();
+      fixture.detectChanges();
+      expect(el.querySelector('.transformation-picker')).toBeTruthy();
+    });
+
+    it('emits the newly picked card id -- a replace, not an addition -- when changing', () => {
+      const changeBtn = el.querySelectorAll<HTMLButtonElement>('.transformation-action-btn')[0];
+      changeBtn.click();
+      fixture.detectChanges();
+
+      const cards = el.querySelectorAll<HTMLElement>('.transformation-picker app-daggerheart-card .card');
+      cards[1].click();
+      fixture.detectChanges();
+
+      expect(host.lastSelected).toBe(CATALOG[1].id);
+    });
   });
 });

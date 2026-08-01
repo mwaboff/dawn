@@ -264,7 +264,9 @@ describe('CreateCharacter', () => {
       flushClassCards();
       const tabIds = component.tabs().map(t => t.id);
       expect(tabIds).not.toContain('bonuses');
-      expect(tabIds).toEqual(CHARACTER_TABS.filter(t => t.id !== 'bonuses').map(t => t.id));
+      expect(tabIds).toEqual(
+        CHARACTER_TABS.filter(t => t.id !== 'bonuses' && t.id !== 'martial-stances').map(t => t.id),
+      );
     });
   });
 
@@ -1089,6 +1091,134 @@ describe('CreateCharacter', () => {
 
       const compiled = fixture.nativeElement as HTMLElement;
       expect(compiled.querySelector('app-experience-selector')).toBeTruthy();
+    });
+  });
+
+  describe('Martial Stances', () => {
+    function buildStanceFighterSubclass(): SubclassCardResponse {
+      return buildSubclassCardResponse({
+        id: 500,
+        name: 'Brawler',
+        subclassPathId: 50,
+        level: 'FOUNDATION',
+        features: [{
+          id: 9,
+          name: 'Stance Fighter',
+          description: 'Choose two martial stances from Tier 1.',
+          featureType: 'PASSIVE',
+          expansionId: 1,
+          costTagIds: [],
+          costTags: [],
+        }],
+      });
+    }
+
+    function selectStanceFighterSubclass(): void {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards([...MOCK_SUBCLASSES, buildStanceFighterSubclass()]);
+      const stanceFighterCard = component.subclassCards().find(c => c.name === 'Brawler')!;
+      component.onCardClicked(stanceFighterCard);
+    }
+
+    function flushMartialStances(): void {
+      const req = httpTesting.expectOne(r => r.url.includes('/dh/martial-stances'));
+      req.flush({
+        content: [
+          { id: 1, name: 'Aggressive Stance', tier: 1, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' },
+          { id: 2, name: 'Defensive Stance', tier: 1, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' },
+          { id: 5, name: 'Relentless Stance', tier: 2, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' },
+        ],
+        currentPage: 0,
+        pageSize: 100,
+        totalElements: 3,
+        totalPages: 1,
+      });
+      fixture.detectChanges();
+    }
+
+    it('hides the martial-stances tab for a subclass without Stance Fighter', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards();
+
+      const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
+      component.onCardClicked(foundationCard);
+
+      expect(component.tabs().map(t => t.id)).not.toContain('martial-stances');
+    });
+
+    it('shows the martial-stances tab for a subclass with Stance Fighter', () => {
+      selectStanceFighterSubclass();
+
+      expect(component.tabs().map(t => t.id)).toContain('martial-stances');
+    });
+
+    it('loads only tier 1 stances as selectable when the tab is opened', () => {
+      selectStanceFighterSubclass();
+      component.onTabSelected('martial-stances');
+      flushMartialStances();
+
+      expect(component.martialStanceCards().length).toBe(3);
+    });
+
+    it('marks the step complete only with exactly 2 stances selected', () => {
+      selectStanceFighterSubclass();
+      component.onTabSelected('martial-stances');
+      flushMartialStances();
+      const [tier1a, tier1b, tier1c] = [
+        { id: 1, name: 'Aggressive Stance', description: '', cardType: 'martialStance' as const, metadata: { tier: 1 } },
+        { id: 2, name: 'Defensive Stance', description: '', cardType: 'martialStance' as const, metadata: { tier: 1 } },
+        { id: 3, name: 'Evasive Stance', description: '', cardType: 'martialStance' as const, metadata: { tier: 1 } },
+      ];
+
+      component.onMartialStancesSelected([tier1a]);
+      expect(component.completedSteps().has('martial-stances')).toBe(false);
+
+      component.onMartialStancesSelected([tier1a, tier1b]);
+      expect(component.completedSteps().has('martial-stances')).toBe(true);
+
+      component.onMartialStancesSelected([tier1a, tier1b, tier1c]);
+      expect(component.completedSteps().has('martial-stances')).toBe(false);
+    });
+
+    it('sends knownMartialStanceIds via a follow-up PUT after character creation', () => {
+      selectStanceFighterSubclass();
+      component.onTabSelected('martial-stances');
+      flushMartialStances();
+      component.onMartialStancesSelected([
+        { id: 1, name: 'Aggressive Stance', description: '', cardType: 'martialStance', metadata: { tier: 1 } },
+        { id: 2, name: 'Defensive Stance', description: '', cardType: 'martialStance', metadata: { tier: 1 } },
+      ]);
+
+      component.onTabSelected('ancestry');
+      flushAncestryCards();
+      const ancestryCard = component.ancestryCards()[0];
+      component.onCardClicked(ancestryCard);
+
+      component.onTabSelected('community');
+      flushCommunityCards();
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+
+      component.onTraitsChanged({
+        agility: 2, strength: 1, finesse: 1, instinct: 0, presence: 0, knowledge: -1,
+      });
+
+      component.onSubmitCharacter();
+
+      const createReq = httpTesting.expectOne(
+        r => r.url.includes('/dh/character-sheets') && r.method === 'POST',
+      );
+      createReq.flush({ id: 42, name: '', level: 1 } as unknown as CardData & { id: number });
+
+      const putReq = httpTesting.expectOne(
+        r => r.url.includes('/dh/character-sheets/42') && r.method === 'PUT',
+      );
+      expect(putReq.request.body).toEqual({ knownMartialStanceIds: [1, 2] });
+      putReq.flush({ id: 42, name: '', level: 1 } as unknown as CardData & { id: number });
     });
   });
 });

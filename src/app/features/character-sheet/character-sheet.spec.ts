@@ -1945,8 +1945,19 @@ describe('CharacterSheet', () => {
         expect(component.patronDie()).toBe('D8');
       });
 
-      it('renders the transformation panel only when a card is attached', () => {
+      it('renders an empty state with the Add action for the owner when no card is attached', () => {
         createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        fixture.detectChanges();
+
+        const panel = fixture.nativeElement.querySelector('app-transformation-panel');
+        expect(panel).not.toBeNull();
+        expect(panel.querySelector('.transformation-empty')).not.toBeNull();
+        expect(panel.querySelector('.transformation-action-btn')?.textContent).toContain('Add a Transformation');
+      });
+
+      it('hides the transformation panel entirely for a non-owner when no card is attached', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('app-transformation-panel')).toBeNull();
@@ -2119,6 +2130,76 @@ describe('CharacterSheet', () => {
 
         expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { wolfFormActive: true });
         expect(component.wolfFormActive()).toBe(true);
+      });
+    });
+
+    describe('transformation acquisition', () => {
+      it('sends transformationCardId and optimistically attaches the card on selection', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        mockTransformationCardService.getAllTransformationCards.mockReturnValue(of([buildTransformationCard('Vampire')]));
+        fixture.detectChanges();
+
+        component.onTransformationSelected(5);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { transformationCardId: 5 });
+        expect(component.transformationCard()?.name).toBe('Vampire');
+      });
+
+      it('replaces rather than adds when changing to a different card', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: 5, transformationCard: buildTransformationCard('Vampire') }));
+        mockTransformationCardService.getAllTransformationCards.mockReturnValue(of([
+          buildTransformationCard('Vampire'),
+          { ...buildTransformationCard('Werewolf'), id: 6 },
+        ]));
+        fixture.detectChanges();
+
+        component.onTransformationSelected(6);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { transformationCardId: 6 });
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(1);
+        expect(component.transformationCard()?.id).toBe(6);
+      });
+
+      it('sends clearTransformationCard on removal', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: 5, transformationCard: buildTransformationCard('Vampire') }));
+        fixture.detectChanges();
+
+        component.onTransformationRemoved();
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { clearTransformationCard: true });
+        expect(component.transformationCard()).toBeNull();
+      });
+
+      it('rolls back the optimistic selection when the request fails', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        mockTransformationCardService.getAllTransformationCards.mockReturnValue(of([buildTransformationCard('Vampire')]));
+        fixture.detectChanges();
+        mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onTransformationSelected(5);
+
+        expect(component.transformationCard()).toBeNull();
+      });
+
+      it('rolls back the optimistic removal when the request fails', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: 5, transformationCard: buildTransformationCard('Vampire') }));
+        mockTransformationCardService.getAllTransformationCards.mockReturnValue(of([buildTransformationCard('Vampire')]));
+        fixture.detectChanges();
+        mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onTransformationRemoved();
+
+        expect(component.transformationCard()?.name).toBe('Vampire');
+      });
+
+      it('does nothing when a non-owner attempts to select a card', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        component.onTransformationSelected(5);
+
+        expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
       });
     });
   });

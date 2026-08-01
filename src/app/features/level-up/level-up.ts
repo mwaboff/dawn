@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of, switchMap, tap, Observable } from 'rxjs';
 
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -14,18 +14,23 @@ import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils
 import { countBonusSlotsFromAdvancements } from './utils/bonus-domain-card.utils';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { SubclassService } from '../../shared/services/subclass.service';
+import { MartialStanceService } from '../../shared/services/martial-stance.service';
+import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
+import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
+import { tierForLevel } from '../character-sheet/utils/beastform-access.utils';
 
 import { LevelUpTabNav } from './components/level-up-tab-nav/level-up-tab-nav';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { TierAchievementsStep } from './components/tier-achievements-step/tier-achievements-step';
 import { AdvancementsStep } from './components/advancements-step/advancements-step';
+import { MartialStanceStep } from './components/martial-stance-step/martial-stance-step';
 import { DomainCardStep } from './components/domain-card-step/domain-card-step';
 import { DomainTradeStep, TradeRow } from './components/domain-trade-step/domain-trade-step';
 import { LevelUpReview } from './components/level-up-review/level-up-review';
 
 @Component({
   selector: 'app-level-up',
-  imports: [LevelUpTabNav, ConfirmDialog, TierAchievementsStep, AdvancementsStep, DomainCardStep, DomainTradeStep, LevelUpReview],
+  imports: [LevelUpTabNav, ConfirmDialog, TierAchievementsStep, AdvancementsStep, MartialStanceStep, DomainCardStep, DomainTradeStep, LevelUpReview],
   templateUrl: './level-up.html',
   styleUrl: './level-up.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +41,7 @@ export class LevelUp implements OnInit {
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
   private readonly subclassService = inject(SubclassService);
+  private readonly martialStanceService = inject(MartialStanceService);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -58,8 +64,18 @@ export class LevelUp implements OnInit {
   readonly tradeRow = signal<TradeRow | null>(null);
   readonly tradesSkipped = signal(false);
 
+  readonly martialStanceCards = signal<CardData[]>([]);
+  readonly martialStanceCardsLoading = signal(false);
+  readonly martialStanceCardsError = signal(false);
+  readonly selectedMartialStanceId = signal<number | null>(null);
+
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
+  /**
+   * True once the level-up call has succeeded. Guards the two-phase submit: if the follow-up
+   * stance PUT fails, resubmitting must NOT level the character a second time.
+   */
+  private readonly levelUpCompleted = signal(false);
   readonly showLevelDownDialog = signal(false);
   readonly levelDownProcessing = signal(false);
 
@@ -110,6 +126,19 @@ export class LevelUp implements OnInit {
     this.baseDomainCardSelections() + this.bonusDomainCardSlots()
   );
 
+  /**
+   * True for characters with the Martial Artist's "Stance Fighter" feature -- the rules grant an
+   * additional known stance on every level-up (not just tier transitions), so this gates the
+   * `martial-stance` step independently of `computeVisibleTabs`'s tier-achievement logic.
+   */
+  readonly showMartialStanceStep = computed(() => hasMartialStances(this.rawSheet()?.subclassCards));
+
+  readonly knownMartialStanceIds = computed(() => this.rawSheet()?.knownMartialStanceIds ?? []);
+
+  /** Stances of the character's tier or lower are selectable, per "choose an additional stance
+   * from your tier or lower" -- tier is derived from the level being leveled up TO. */
+  readonly martialStanceMaxTier = computed(() => tierForLevel(this.levelUpOptions()?.nextLevel ?? 1));
+
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (isNaN(id) || id <= 0) {
@@ -125,6 +154,18 @@ export class LevelUp implements OnInit {
     this.activeTab.set(tabId);
     if (tabId === 'domain-trades') {
       this.markStepComplete('domain-trades');
+    }
+    if (tabId === 'martial-stance') {
+      this.loadMartialStanceCards();
+    }
+  }
+
+  onMartialStanceSelected(stanceId: number | null): void {
+    this.selectedMartialStanceId.set(stanceId);
+    if (stanceId !== null) {
+      this.markStepComplete('martial-stance');
+    } else {
+      this.removeStepComplete('martial-stance');
     }
   }
 
@@ -210,18 +251,48 @@ export class LevelUp implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
-    this.characterSheetService.levelUp(this.characterId, request).subscribe({
+    // The level-up and the stance attach are two calls. If the level-up lands but the stance PUT
+    // fails, the character is ALREADY leveled -- resubmitting `levelUp` would level them a second
+    // time. So record that the first phase succeeded and, on retry, resume from the stance PUT.
+    const firstPhase$: Observable<unknown> = this.levelUpCompleted()
+      ? of(null)
+      : this.characterSheetService
+          .levelUp(this.characterId, request)
+          .pipe(tap(() => this.levelUpCompleted.set(true)));
+
+    firstPhase$.pipe(
+      switchMap(() => this.attachMartialStance()),
+    ).subscribe({
       next: () => {
         this.submitting.set(false);
         this.router.navigate(['/character', this.characterId]);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.submitting.set(false);
+        const message = err && typeof err === 'object' && 'error' in err
+          ? (err.error as { message?: string } | undefined)?.message
+          : undefined;
         this.submitError.set(
-          (err.error?.message as string | undefined) ?? 'Failed to level up. Please try again.',
+          this.levelUpCompleted()
+            ? (message ?? 'Your character leveled up, but the new stance could not be saved. Submit again to retry saving the stance.')
+            : (message ?? 'Failed to level up. Please try again.'),
         );
       },
     });
+  }
+
+  /**
+   * Adds the newly chosen stance to the character's known stances. `knownMartialStanceIds` is a
+   * full-collection replacement on the backend, so this sends the existing ids plus the new one
+   * -- sending only the new id would silently wipe every previously known stance.
+   */
+  private attachMartialStance() {
+    const newStanceId = this.selectedMartialStanceId();
+    if (!this.showMartialStanceStep() || newStanceId === null) {
+      return of(null);
+    }
+    const next = [...this.knownMartialStanceIds(), newStanceId];
+    return this.characterSheetService.updateCharacterSheet(this.characterId, { knownMartialStanceIds: next });
   }
 
   onLevelDownClick(): void {
@@ -268,7 +339,7 @@ export class LevelUp implements OnInit {
         this.characterSheet.set(mapToCharacterSheetView(sheet));
         this.levelUpOptions.set(options);
 
-        const tabs = computeVisibleTabs(options);
+        const tabs = computeVisibleTabs(options, hasMartialStances(sheet.subclassCards));
         this.visibleTabs.set(tabs);
         this.activeTab.set(tabs[0].id);
 
@@ -277,6 +348,26 @@ export class LevelUp implements OnInit {
       error: () => {
         this.error.set('Failed to load level-up data.');
         this.loading.set(false);
+      },
+    });
+  }
+
+  private loadMartialStanceCards(): void {
+    if (this.martialStanceCards().length > 0) {
+      return;
+    }
+
+    this.martialStanceCardsLoading.set(true);
+    this.martialStanceCardsError.set(false);
+
+    this.martialStanceService.getAllMartialStances().subscribe({
+      next: (stances) => {
+        this.martialStanceCards.set(stances.map(mapMartialStanceToCardData));
+        this.martialStanceCardsLoading.set(false);
+      },
+      error: () => {
+        this.martialStanceCardsError.set(true);
+        this.martialStanceCardsLoading.set(false);
       },
     });
   }

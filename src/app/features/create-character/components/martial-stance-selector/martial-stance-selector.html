@@ -1,0 +1,31 @@
+<div class="martial-stance-selector">
+  <div class="selection-counter" aria-live="polite">
+    {{ selectionCount() }} of {{ requiredCount }} chosen
+  </div>
+
+  @if (loading()) {
+    <app-card-skeleton [count]="4" />
+  } @else if (error()) {
+    <app-card-error />
+  } @else {
+    @for (group of tierGroups(); track group.tier) {
+      <div class="stance-tier-group">
+        <h3 class="stance-tier-group__heading">Tier {{ group.tier }}</h3>
+        @if (group.tier !== 1) {
+          <p class="stance-tier-group__hint">Unlocked as you level up</p>
+        }
+        <div class="card-grid card-grid--wide">
+          @for (card of group.stances; track card.id) {
+            <app-daggerheart-card
+              [card]="card"
+              [selected]="isSelected(card)"
+              [disabled]="!isSelectable(card)"
+              layout="wide"
+              (cardClicked)="onCardClicked($event)"
+            />
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

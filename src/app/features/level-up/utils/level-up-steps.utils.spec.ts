@@ -57,4 +57,21 @@ describe('computeVisibleTabs', () => {
     expect(tabs.map(t => t.id)).toContain('tier-achievements');
     expect(tabs).toHaveLength(5);
   });
+
+  it('excludes martial-stance tab by default', () => {
+    const tabs = computeVisibleTabs(makeOptions());
+    expect(tabs.map(t => t.id)).not.toContain('martial-stance');
+  });
+
+  it('includes martial-stance tab when hasMartialStances is true', () => {
+    const tabs = computeVisibleTabs(makeOptions({ tierTransition: false, currentTier: 2, nextTier: 2 }), true);
+    expect(tabs.map(t => t.id)).toContain('martial-stance');
+    expect(tabs).toHaveLength(5);
+  });
+
+  it('places martial-stance between advancements and domain-card', () => {
+    const tabs = computeVisibleTabs(makeOptions({ tierTransition: true }), true);
+    const ids = tabs.map(t => t.id);
+    expect(ids).toEqual(['tier-achievements', 'advancements', 'martial-stance', 'domain-card', 'domain-trades', 'review']);
+  });
 });

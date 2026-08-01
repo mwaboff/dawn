@@ -47,10 +47,10 @@ describe('LevelUpTabNav', () => {
   });
 
   describe('Initial State', () => {
-    it('should render all 5 chapter markers', () => {
+    it('should render all 6 chapter markers', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('.chapter-marker');
-      expect(markers.length).toBe(5);
+      expect(markers.length).toBe(6);
     });
 
     it('should display step numbers in marker pips', () => {
@@ -272,7 +272,7 @@ describe('LevelUpTabNav', () => {
 
     it('should disable next button on last step', () => {
       const allCompleted = new Set<LevelUpTabId>([
-        'tier-achievements', 'advancements', 'domain-card', 'domain-trades', 'review',
+        'tier-achievements', 'advancements', 'martial-stance', 'domain-card', 'domain-trades', 'review',
       ]);
       host.completedSteps.set(allCompleted);
       host.activeTab.set('review');
@@ -335,12 +335,12 @@ describe('LevelUpTabNav', () => {
 
       const compiled = hostFixture.nativeElement as HTMLElement;
       const prevText = compiled.querySelector('.arrow-prev .arrow-text');
-      expect(prevText?.textContent?.trim()).toBe('Advancements');
+      expect(prevText?.textContent?.trim()).toBe('Martial Stance');
     });
 
     it('should navigate sequentially through all steps when all are completed', () => {
       const allCompleted = new Set<LevelUpTabId>([
-        'tier-achievements', 'advancements', 'domain-card', 'domain-trades',
+        'tier-achievements', 'advancements', 'martial-stance', 'domain-card', 'domain-trades',
       ]);
       host.completedSteps.set(allCompleted);
       hostFixture.detectChanges();
@@ -348,7 +348,7 @@ describe('LevelUpTabNav', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: LevelUpTabId[] = [
-        'advancements', 'domain-card', 'domain-trades', 'review',
+        'advancements', 'martial-stance', 'domain-card', 'domain-trades', 'review',
       ];
 
       expectedOrder.forEach((expectedTab) => {
@@ -392,7 +392,7 @@ describe('LevelUpTabNav', () => {
     it('should have tab role on each marker', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const markers = compiled.querySelectorAll('[role="tab"]');
-      expect(markers.length).toBe(5);
+      expect(markers.length).toBe(6);
     });
 
     it('should have descriptive aria-labels with step numbers', () => {

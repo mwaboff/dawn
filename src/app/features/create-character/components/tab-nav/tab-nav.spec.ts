@@ -214,7 +214,7 @@ describe('TabNav', () => {
     it('should disable next button on last step', () => {
       // Mark all steps as complete so review is reachable
       const allCompleted = new Set<TabId>([
-        'class', 'subclass', 'ancestry', 'community', 'traits',
+        'class', 'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards', 'review',
       ]);
       host.completedSteps.set(allCompleted);
@@ -319,7 +319,7 @@ describe('TabNav', () => {
     it('should navigate sequentially through all steps when all are completed', () => {
       // Mark all steps as completed
       const allCompleted = new Set<TabId>([
-        'class', 'subclass', 'ancestry', 'community', 'traits',
+        'class', 'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
@@ -328,7 +328,7 @@ describe('TabNav', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: TabId[] = [
-        'subclass', 'ancestry', 'community', 'traits',
+        'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ];
 

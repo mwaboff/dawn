@@ -611,14 +611,20 @@
         />
       }
 
-      @if (transformationCard(); as card) {
+      @if (isOwner() || transformationCard()) {
         <app-transformation-panel
-          [card]="card"
+          [card]="transformationCard()"
+          [catalog]="transformationCatalog()"
+          [catalogLoading]="transformationCatalogLoading()"
+          [catalogError]="transformationCatalogError()"
+          [isOwner]="isOwner()"
           [tokens]="transformationTokens()"
           [wolfFormActive]="wolfFormActive()"
           [canAct]="isOwner() && !hfActionInFlight()"
           (tokensChange)="onTransformationTokensChange($event)"
           (wolfFormToggle)="onWolfFormToggle($event)"
+          (cardSelected)="onTransformationSelected($event)"
+          (cardRemoved)="onTransformationRemoved()"
         />
       }
 

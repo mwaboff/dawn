@@ -6,6 +6,7 @@ import { LevelUp } from './level-up';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
 import { SubclassService } from '../../shared/services/subclass.service';
+import { MartialStanceService } from '../../shared/services/martial-stance.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { LevelUpOptionsResponse } from './models/level-up-api.model';
 import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
@@ -123,9 +124,11 @@ describe('LevelUp', () => {
     getLevelUpOptions: ReturnType<typeof vi.fn>;
     levelUp: ReturnType<typeof vi.fn>;
     undoLevelUp: ReturnType<typeof vi.fn>;
+    updateCharacterSheet: ReturnType<typeof vi.fn>;
   };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
   let mockSubclassService: { getCachedCardResponseById: ReturnType<typeof vi.fn> };
+  let mockMartialStanceService: { getAllMartialStances: ReturnType<typeof vi.fn> };
   let mockRouter: Router;
 
   function createComponent(
@@ -139,12 +142,16 @@ describe('LevelUp', () => {
       getLevelUpOptions: vi.fn().mockReturnValue(optionsResponse),
       levelUp: vi.fn().mockReturnValue(of({ characterSheet: makeSheetResponse({ level: 5 }), advancementLogId: 1, appliedChanges: [] })),
       undoLevelUp: vi.fn().mockReturnValue(of(makeSheetResponse({ level: 3 }))),
+      updateCharacterSheet: vi.fn().mockReturnValue(of(makeSheetResponse())),
     };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
     mockSubclassService = {
       getCachedCardResponseById: vi.fn((cardId: number) => subclassCards.get(cardId)),
+    };
+    mockMartialStanceService = {
+      getAllMartialStances: vi.fn().mockReturnValue(of([])),
     };
     TestBed.configureTestingModule({
       imports: [LevelUp],
@@ -153,6 +160,7 @@ describe('LevelUp', () => {
         { provide: CharacterSheetService, useValue: mockCharacterSheetService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: SubclassService, useValue: mockSubclassService },
+        { provide: MartialStanceService, useValue: mockMartialStanceService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => id } } } },
       ],
     });
@@ -531,6 +539,91 @@ describe('LevelUp', () => {
       component.onLevelDownCancel();
 
       expect(component.showLevelDownDialog()).toBe(false);
+    });
+  });
+
+  describe('martial stances', () => {
+    function makeStanceFighterSheet(overrides: Partial<CharacterSheetResponse> = {}): CharacterSheetResponse {
+      return makeSheetResponse({
+        subclassCards: [
+          { id: 100, name: 'Brawler Foundation', features: [{ name: 'Stance Fighter', description: '' }] },
+        ],
+        knownMartialStanceIds: [1, 2],
+        ...overrides,
+      });
+    }
+
+    it('excludes the martial-stance tab for a character without Stance Fighter', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.visibleTabs().map(t => t.id)).not.toContain('martial-stance');
+    });
+
+    it('includes the martial-stance tab for a character with Stance Fighter', () => {
+      createComponent('1', of(makeStanceFighterSheet()));
+      fixture.detectChanges();
+
+      expect(component.visibleTabs().map(t => t.id)).toContain('martial-stance');
+    });
+
+    it('loads the martial stance catalog when the tab is selected', () => {
+      createComponent('1', of(makeStanceFighterSheet()));
+      mockMartialStanceService.getAllMartialStances.mockReturnValue(of([
+        { id: 1, name: 'Aggressive', tier: 1, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' },
+        { id: 5, name: 'Relentless', tier: 2, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' },
+      ]));
+      fixture.detectChanges();
+
+      component.onTabSelected('martial-stance');
+
+      expect(component.martialStanceCards().length).toBe(2);
+    });
+
+    it('caps selectable stances at the tier for the level being leveled up to', () => {
+      createComponent('1', of(makeStanceFighterSheet()));
+      fixture.detectChanges();
+
+      // default options: nextLevel 5 -> tier 3
+      expect(component.martialStanceMaxTier()).toBe(3);
+    });
+
+    it('marks the step complete only when a stance is selected', () => {
+      createComponent('1', of(makeStanceFighterSheet()));
+      fixture.detectChanges();
+
+      component.onMartialStanceSelected(9);
+      expect(component.completedSteps().has('martial-stance')).toBe(true);
+
+      component.onMartialStanceSelected(null);
+      expect(component.completedSteps().has('martial-stance')).toBe(false);
+    });
+
+    it('sends existing + new stance ids in the follow-up PUT on submit', () => {
+      createComponent('1', of(makeStanceFighterSheet({ knownMartialStanceIds: [1, 2] })));
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onMartialStanceSelected(9);
+
+      component.onSubmit();
+
+      expect(mockCharacterSheetService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        knownMartialStanceIds: [1, 2, 9],
+      });
+    });
+
+    it('does not send a follow-up PUT when the character has no Stance Fighter feature', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+
+      component.onSubmit();
+
+      expect(mockCharacterSheetService.updateCharacterSheet).not.toHaveBeenCalled();
     });
   });
 });

@@ -56,6 +56,17 @@
                 (advancementsChanged)="onAdvancementsChanged($event)"
               />
             }
+            @case ('martial-stance') {
+              <app-martial-stance-step
+                [cards]="martialStanceCards()"
+                [loading]="martialStanceCardsLoading()"
+                [error]="martialStanceCardsError()"
+                [knownStanceIds]="knownMartialStanceIds()"
+                [maxTier]="martialStanceMaxTier()"
+                [selectedStanceId]="selectedMartialStanceId()"
+                (stanceSelected)="onMartialStanceSelected($event)"
+              />
+            }
             @case ('domain-card') {
               @if (bonusDomainCardSlots() > 0) {
                 <p class="bonus-card-callout" role="note">

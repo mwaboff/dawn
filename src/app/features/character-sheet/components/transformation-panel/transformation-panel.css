@@ -20,3 +20,19 @@
 
 .transformation-questions__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.5); margin: 0 0 .35rem; }
 .transformation-questions__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); display: flex; flex-direction: column; gap: .3rem; }
+
+.transformation-empty { display: flex; flex-direction: column; gap: .6rem; padding: .75rem; border: 1px dashed rgba(212,160,86,.2); border-radius: 4px; }
+.transformation-empty__copy { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.6); font-style: italic; margin: 0; }
+
+.transformation-actions { display: flex; gap: .5rem; margin-top: .75rem; }
+.transformation-action-btn { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; padding: .35rem .75rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; transition: background-color .15s, border-color .15s; }
+.transformation-action-btn:hover:not(:disabled) { background: rgba(212,160,86,.1); border-color: var(--color-accent); }
+.transformation-action-btn:disabled { opacity: .4; cursor: not-allowed; }
+.transformation-action-btn--remove { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
+.transformation-action-btn--remove:hover:not(:disabled) { background: rgba(200,110,90,.1); border-color: rgba(200,110,90,.6); }
+
+.transformation-picker { margin-top: 1rem; padding-top: .85rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.transformation-picker__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.transformation-picker__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.6); margin: 0; }
+.transformation-picker__close { background: none; border: none; font-size: 1.1rem; line-height: 1; color: rgba(212,160,86,.7); cursor: pointer; }
+.transformation-picker__close:hover { color: var(--color-accent); }

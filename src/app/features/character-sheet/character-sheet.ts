@@ -129,10 +129,17 @@ export class CharacterSheet implements OnInit {
    * with an empty expand set server-side, so it never carries `features`/`questions` -- only the
    * 6 official cards exist, so the full catalog (already `?expand=features,questions`) is fetched
    * once and matched by id to fill those in, falling back to the sheet's bare card while that
-   * fetch is pending or if it fails.
+   * fetch is pending or if it fails. The same catalog also backs the acquisition picker, since
+   * "add" and "change" both need the full 6-card list regardless of what's currently attached.
    */
-  private readonly transformationCardDetail = signal<TransformationCardResponse | null>(null);
-  readonly transformationCard = computed(() => this.transformationCardDetail() ?? this.rawSheet()?.transformationCard ?? null);
+  readonly transformationCatalog = signal<TransformationCardResponse[]>([]);
+  readonly transformationCatalogLoading = signal(false);
+  readonly transformationCatalogError = signal(false);
+  readonly transformationCard = computed(() => {
+    const id = this.rawSheet()?.transformationCardId;
+    if (id == null) return null;
+    return this.transformationCatalog().find(c => c.id === id) ?? this.rawSheet()?.transformationCard ?? null;
+  });
   readonly transformationTokens = computed(() => this.rawSheet()?.transformationTokens ?? null);
   readonly wolfFormActive = computed(() => this.rawSheet()?.wolfFormActive ?? false);
 
@@ -257,9 +264,7 @@ export class CharacterSheet implements OnInit {
           this.rawSheet.set(response);
           this.characterSheet.set(mapToCharacterSheetView(response));
           this.loading.set(false);
-          if (response.transformationCardId != null) {
-            this.loadTransformationCardDetail(response.transformationCardId);
-          }
+          this.loadTransformationCatalog();
         },
         error: () => {
           this.error.set(true);
@@ -287,10 +292,22 @@ export class CharacterSheet implements OnInit {
     }
   }
 
-  private loadTransformationCardDetail(cardId: number): void {
+  /**
+   * Loaded unconditionally (not only when a card is already attached) because the empty-state
+   * "Add a Transformation" picker needs the full catalog too -- a character with nothing attached
+   * still has an entry point that requires the same 6-card list.
+   */
+  private loadTransformationCatalog(): void {
+    this.transformationCatalogLoading.set(true);
     this.transformationCardService.getAllTransformationCards().subscribe({
-      next: cards => this.transformationCardDetail.set(cards.find(c => c.id === cardId) ?? null),
-      error: () => this.transformationCardDetail.set(null),
+      next: cards => {
+        this.transformationCatalog.set(cards);
+        this.transformationCatalogLoading.set(false);
+      },
+      error: () => {
+        this.transformationCatalogError.set(true);
+        this.transformationCatalogLoading.set(false);
+      },
     });
   }
 
@@ -395,6 +412,52 @@ export class CharacterSheet implements OnInit {
 
     this.characterSheetService
       .updateCharacterSheet(raw.id, { wolfFormActive: active })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
+  }
+
+  /**
+   * Handles both "Add a Transformation" and "Change" -- per "A PC can have only one
+   * transformation," a selection always replaces the single FK, it never appends to a
+   * collection. Guarded by `hfActionInFlight` and mirrors the optimistic-update/rollback shape of
+   * `onWolfFormToggle` above.
+   */
+  onTransformationSelected(cardId: number): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+    if (raw.transformationCardId === cardId) return;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, transformationCardId: cardId, transformationCard: undefined });
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { transformationCardId: cardId })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
+  }
+
+  onTransformationRemoved(): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+    if (raw.transformationCardId == null) return;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, transformationCardId: undefined, transformationCard: undefined });
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { clearTransformationCard: true })
       .subscribe({
         next: () => this.hfActionInFlight.set(false),
         error: () => {
