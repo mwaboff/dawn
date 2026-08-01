@@ -7,6 +7,7 @@ describe('CAMPAIGN_GM_PANELS', () => {
     expect(CAMPAIGN_GM_PANELS.map(p => p.id)).toEqual([
       'sheet-viewer',
       'gm-notes',
+      'countdowns',
       'encounter-builder',
     ]);
   });
@@ -34,7 +35,7 @@ describe('CAMPAIGN_GM_PANELS', () => {
   });
 
   it('uses the contract column spans', () => {
-    expect(CAMPAIGN_GM_PANELS.map(p => p.colSpan)).toEqual([3, 2, 1]);
+    expect(CAMPAIGN_GM_PANELS.map(p => p.colSpan)).toEqual([3, 2, 2, 1]);
   });
 
   it('ships the unbuilt encounter builder collapsed', () => {

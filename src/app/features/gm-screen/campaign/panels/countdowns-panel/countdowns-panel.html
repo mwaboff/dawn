@@ -1,0 +1,131 @@
+@if (loading()) {
+  <p class="gm-panel__note">Loading countdowns…</p>
+} @else if (loadFailed()) {
+  <p class="gm-panel__note">Couldn't load countdowns.</p>
+} @else {
+  @for (countdown of countdowns(); track countdown.id) {
+    <app-countdown-row
+      class="cd-row"
+      [countdown]="countdown"
+      [deletePending]="pendingDeleteId() === countdown.id"
+      (tick)="onTick(countdown, $event)"
+      (deleteRequested)="onDeleteRequested(countdown.id)"
+      (deleteConfirmed)="onDeleteConfirmed(countdown)"
+      (deleteCancelled)="onDeleteCancelled()"
+    />
+  } @empty {
+    <p class="gm-panel__note">No countdowns yet. Add one to start tracking a looming event.</p>
+  }
+}
+
+@if (addFormOpen()) {
+  <form class="cd-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="cd-form__field">
+      <label class="form-label" for="cd-name">What is coming?</label>
+      <input
+        id="cd-name"
+        class="form-input"
+        type="text"
+        formControlName="name"
+        placeholder="The ritual completes"
+      />
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+        <p class="form-error">Give the countdown a name.</p>
+      }
+    </div>
+
+    <div class="cd-form__inline">
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-start">Segments</label>
+        <input id="cd-start" class="form-input form-input--sm" type="number" min="1" max="99" formControlName="startingValue" />
+      </div>
+
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-type">Advances</label>
+        <select id="cd-type" class="form-input" formControlName="type">
+          @for (option of typeOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-loop">At zero</label>
+        <select id="cd-loop" class="form-input" formControlName="loopBehavior">
+          @for (option of loopOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="cd-form__actions">
+      <button type="submit" class="btn btn--primary btn--sm" [disabled]="adding()">Add</button>
+      <button type="button" class="btn btn--secondary btn--sm" (click)="toggleAddForm()">Cancel</button>
+    </div>
+  </form>
+} @else {
+  <button type="button" class="btn btn--secondary btn--sm cd-add" (click)="toggleAddForm()">
+    + Add a countdown
+  </button>
+}
+
+<button
+  type="button"
+  class="cd-help__toggle"
+  [attr.aria-expanded]="helpOpen()"
+  (click)="toggleHelp()"
+>
+  {{ helpOpen() ? '▾' : '▸' }} How countdowns work
+</button>
+
+@if (helpOpen()) {
+  <div class="cd-help">
+    <p>
+      A countdown is a number of segments counting down to something that is going to happen. Set
+      how many segments it has, tick it down when its trigger fires, and when it hits 0 the thing
+      happens.
+    </p>
+
+    <p class="gm-panel__section-heading">When to tick</p>
+    <dl class="gm-panel__kv">
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Standard</dt>
+        <dd class="gm-panel__kv-value">Tick down 1 every time a player makes an action roll.</dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Progress / Consequence</dt>
+        <dd class="gm-panel__kv-value">Tick by the roll's outcome, using the table below.</dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Long-term</dt>
+        <dd class="gm-panel__kv-value">Tick down 1 on a long rest.</dd>
+      </div>
+    </dl>
+
+    <p class="gm-panel__section-heading">Dynamic Countdown Advancement</p>
+    <div class="gm-panel__table-wrap">
+      <table class="gm-panel__table gm-panel__table--dense">
+        <thead>
+          <tr>
+            <th scope="col">Roll Result</th>
+            <th scope="col">Progress</th>
+            <th scope="col">Consequence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Failure with Fear</td><td>—</td><td>Tick down 3</td></tr>
+          <tr><td>Failure with Hope</td><td>—</td><td>Tick down 2</td></tr>
+          <tr><td>Success with Fear</td><td>Tick down 1</td><td>Tick down 1</td></tr>
+          <tr><td>Success with Hope</td><td>Tick down 2</td><td>—</td></tr>
+          <tr><td>Critical Success</td><td>Tick down 3</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="gm-panel__note">
+      Progress countdowns run toward something good, consequence countdowns toward something bad.
+      A looping countdown starts over once its effect fires.
+    </p>
+  </div>
+}

@@ -2,6 +2,7 @@ import { GmPanelDef } from '../models/gm-panel.model';
 import { SheetViewerPanel } from './panels/sheet-viewer-panel/sheet-viewer-panel';
 import { GmNotesPanel } from './panels/gm-notes-panel/gm-notes-panel';
 import { EncounterBuilderPanel } from './panels/encounter-builder-panel/encounter-builder-panel';
+import { CountdownsPanel } from './panels/countdowns-panel/countdowns-panel';
 
 /**
  * Live campaign tools, prepended to the static rules reference on the campaign GM screen.
@@ -28,6 +29,15 @@ export const CAMPAIGN_GM_PANELS: readonly GmPanelDef[] = [
     defaultOrder: -200,
     body: { kind: 'component', component: GmNotesPanel },
     keywords: ['notes', 'session', 'prep', 'secrets'],
+  },
+  {
+    id: 'countdowns',
+    title: 'Countdowns',
+    category: 'This Campaign',
+    colSpan: 2,
+    defaultOrder: -150,
+    body: { kind: 'component', component: CountdownsPanel },
+    keywords: ['countdown', 'clock', 'timer', 'tick', 'progress', 'consequence', 'loop', 'ritual'],
   },
   {
     id: 'encounter-builder',

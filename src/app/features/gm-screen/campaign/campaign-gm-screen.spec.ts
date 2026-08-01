@@ -56,6 +56,13 @@ describe('CampaignGmScreen', () => {
   }
 
   afterEach(() => {
+    // Once the campaign resolves, the Countdowns panel loads its own list. That belongs to the
+    // panel's spec, not the shell's, so drain it here rather than asserting on it in every test.
+    // Already-cancelled ones are the panel being torn down mid-flight, which cannot be flushed.
+    httpTesting
+      .match(r => r.url.includes('/countdowns'))
+      .filter(request => !request.cancelled)
+      .forEach(request => request.flush([]));
     httpTesting.verify();
   });
 

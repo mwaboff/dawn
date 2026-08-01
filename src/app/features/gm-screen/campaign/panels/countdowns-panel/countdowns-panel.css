@@ -1,0 +1,77 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.cd-row {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.cd-row:last-of-type {
+  border-bottom: none;
+}
+
+.cd-add {
+  align-self: flex-start;
+}
+
+.cd-form {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  padding: .65rem;
+  border: 1px solid var(--gm-border-strong);
+  border-radius: .35rem;
+}
+
+.cd-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  flex: 1 1 8rem;
+}
+
+.cd-form__inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.cd-form__actions {
+  display: flex;
+  gap: .5rem;
+}
+
+/* 16px minimum, or iOS Safari zooms the page when a field takes focus. */
+.cd-form input,
+.cd-form select {
+  font-size: 16px;
+}
+
+.cd-help__toggle {
+  align-self: flex-start;
+  padding: .2rem 0;
+  background: none;
+  border: none;
+  color: var(--gm-accent);
+  font-family: var(--font-body);
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.cd-help__toggle:hover,
+.cd-help__toggle:focus-visible {
+  color: var(--color-accent-bright);
+}
+
+.cd-help {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  font-size: .9rem;
+}

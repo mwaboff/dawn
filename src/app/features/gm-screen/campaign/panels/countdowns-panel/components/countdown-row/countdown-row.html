@@ -1,0 +1,57 @@
+<div class="cd-row__head">
+  <span class="cd-row__name">{{ countdown().name }}</span>
+  <span class="cd-row__type">{{ typeLabel() }}</span>
+  @if (loopLabel()) {
+    <span class="cd-row__loop">{{ loopLabel() }}</span>
+  }
+  <app-inline-delete-confirm
+    [itemLabel]="countdown().name"
+    [active]="deletePending()"
+    (requested)="deleteRequested.emit()"
+    (confirmed)="deleteConfirmed.emit()"
+    (cancelled)="deleteCancelled.emit()"
+  />
+</div>
+
+<div class="cd-row__controls">
+  <button
+    type="button"
+    class="gm-panel__btn"
+    [disabled]="atZero()"
+    (click)="onTickDown()"
+    [attr.aria-label]="'Tick down ' + countdown().name"
+  >
+    &minus;
+  </button>
+
+  <p class="cd-row__readout" aria-live="polite">
+    <span class="cd-row__value">{{ countdown().currentValue }}</span>
+    <span class="cd-row__max">/ {{ countdown().startingValue }}</span>
+  </p>
+
+  <button
+    type="button"
+    class="gm-panel__btn"
+    [disabled]="atStart()"
+    (click)="onTickUp()"
+    [attr.aria-label]="'Tick up ' + countdown().name"
+  >
+    +
+  </button>
+
+  <span class="cd-row__segments" aria-hidden="true">
+    @for (filled of segments(); track $index) {
+      <span class="cd-row__segment" [class.cd-row__segment--filled]="filled"></span>
+    }
+  </span>
+</div>
+
+<p class="cd-row__trigger">{{ trigger() }}</p>
+
+@if (countdown().note) {
+  <p class="cd-row__note">{{ countdown().note }}</p>
+}
+
+@if (atZero()) {
+  <p class="gm-panel__callout gm-panel__callout--fear">Triggered — its effect happens now.</p>
+}
