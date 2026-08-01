@@ -53,6 +53,32 @@ export interface CampaignCharacterSummary {
   ancestryNames: string[];
   subclassNames: string[];
   classNames: string[];
+  /** Whether the GM has revealed the Transformation panel on this character's sheet. */
+  transformationEnabled: boolean;
+  /** The transformation assigned to this character; kept even while `transformationEnabled` is false. */
+  transformationCardId?: number;
+  transformationCardName?: string;
+}
+
+/**
+ * Body of `PUT /dh/campaigns/{campaignId}/character-sheets/{sheetId}/transformation`.
+ * `clearTransformationCard` wins over `transformationCardId` when both are sent.
+ */
+export interface UpdateCharacterTransformationRequest {
+  enabled: boolean;
+  transformationCardId?: number;
+  clearTransformationCard?: boolean;
+}
+
+/**
+ * The transformation endpoint returns the full character-sheet response, but `shared/` may not
+ * import from `features/` (see CLAUDE.md), so this is typed as the narrow slice the campaign page
+ * actually consumes rather than re-declaring the sheet contract here.
+ */
+export interface CharacterTransformationStateResponse {
+  id: number;
+  transformationEnabled: boolean;
+  transformationCardId?: number;
 }
 
 export interface CreateCampaignRequest {

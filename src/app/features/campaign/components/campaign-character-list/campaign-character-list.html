@@ -6,49 +6,80 @@
   } @else {
     <ol class="character-roster">
       @for (character of characters(); track character.id) {
-        <li
-          class="character-entry"
-          tabindex="0"
-          role="button"
-          (click)="onViewCharacter(character.id)"
-          (keydown.enter)="onViewCharacter(character.id)"
-        >
-          <span class="character-level">{{ character.level }}</span>
-          <div class="character-info">
-            <div class="character-name-row">
-              <span class="character-name">{{ character.name }}</span>
-              @if (getSummary(character); as summary) {
-                <a class="character-owner" [routerLink]="['/profile', character.ownerId]" (click)="$event.stopPropagation()">{{ summary.ownerUsername }}</a>
+        <li class="character-entry-wrap">
+          <div
+            class="character-entry"
+            tabindex="0"
+            role="button"
+            (click)="onViewCharacter(character.id)"
+            (keydown.enter)="onViewCharacter(character.id)"
+          >
+            <span class="character-level">{{ character.level }}</span>
+            <div class="character-info">
+              <div class="character-name-row">
+                <span class="character-name">{{ character.name }}</span>
+                @if (getSummary(character); as summary) {
+                  <a class="character-owner" [routerLink]="['/profile', character.ownerId]" (click)="$event.stopPropagation()">{{ summary.ownerUsername }}</a>
+                }
+              </div>
+              @if (getClassEntries(character); as entries) {
+                @if (entries.length > 0) {
+                  <p class="character-class">
+                    @for (entry of entries; track entry.className; let last = $last) {
+                      <span>{{ entry.className }}</span>
+                      @if (entry.subclassName) {
+                        <span class="character-class-sep" aria-hidden="true"> · </span>
+                        <span class="character-class-subclass">{{ entry.subclassName }}</span>
+                      }
+                      @if (!last) {
+                        <span class="character-class-sep" aria-hidden="true"> / </span>
+                      }
+                    }
+                  </p>
+                }
               }
             </div>
-            @if (getClassEntries(character); as entries) {
-              @if (entries.length > 0) {
-                <p class="character-class">
-                  @for (entry of entries; track entry.className; let last = $last) {
-                    <span>{{ entry.className }}</span>
-                    @if (entry.subclassName) {
-                      <span class="character-class-sep" aria-hidden="true"> · </span>
-                      <span class="character-class-subclass">{{ entry.subclassName }}</span>
+
+            @if (canManage()) {
+              <div class="character-actions">
+                @if (canGrantTransformations()) {
+                  <button
+                    type="button"
+                    class="character-transformation-btn"
+                    [class.character-transformation-btn--on]="isTransformationEnabled(character)"
+                    (click)="onToggleTransformationControl(character.id, $event)"
+                    [attr.aria-expanded]="openTransformationId() === character.id"
+                    [attr.aria-controls]="transformationControlId(character.id)"
+                  >
+                    Transformation
+                    @if (isTransformationEnabled(character)) {
+                      <span class="character-transformation-badge">On</span>
                     }
-                    @if (!last) {
-                      <span class="character-class-sep" aria-hidden="true"> / </span>
-                    }
-                  }
-                </p>
-              }
+                  </button>
+                }
+                @if (confirmingRemoveId() === character.id) {
+                  <span class="character-confirm-text">Remove?</span>
+                  <button type="button" class="character-confirm-yes" (click)="onRemoveClick(character.id, $event)">Yes</button>
+                  <button type="button" class="character-confirm-cancel" (click)="onCancelRemove($event)">Cancel</button>
+                } @else {
+                  <button type="button" class="character-remove-btn" (click)="onRemoveClick(character.id, $event)">Remove</button>
+                }
+              </div>
             }
           </div>
 
-          @if (canManage()) {
-            <div class="character-actions">
-              @if (confirmingRemoveId() === character.id) {
-                <span class="character-confirm-text">Remove?</span>
-                <button type="button" class="character-confirm-yes" (click)="onRemoveClick(character.id, $event)">Yes</button>
-                <button type="button" class="character-confirm-cancel" (click)="onCancelRemove($event)">Cancel</button>
-              } @else {
-                <button type="button" class="character-remove-btn" (click)="onRemoveClick(character.id, $event)">Remove</button>
-              }
-            </div>
+          @if (canGrantTransformations() && openTransformationId() === character.id) {
+            <app-campaign-transformation-control
+              [controlId]="transformationControlId(character.id)"
+              [characterName]="character.name"
+              [summary]="getSummary(character)"
+              [catalog]="transformationCatalog()"
+              [catalogLoading]="transformationCatalogLoading()"
+              [catalogError]="transformationCatalogError()"
+              [saving]="savingTransformationId() === character.id"
+              (transformationChange)="onTransformationChange(character.id, $event)"
+              (retryCatalog)="retryTransformationCatalog.emit()"
+            />
           }
         </li>
       }

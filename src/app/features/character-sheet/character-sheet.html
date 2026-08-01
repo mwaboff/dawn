@@ -611,7 +611,7 @@
         />
       }
 
-      @if (isOwner() || transformationCard()) {
+      @if (transformationEnabled()) {
         <app-transformation-panel
           [card]="transformationCard()"
           [catalog]="transformationCatalog()"

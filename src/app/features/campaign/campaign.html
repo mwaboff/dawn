@@ -77,11 +77,20 @@
       <app-campaign-character-list
         [campaign]="c"
         [canManage]="canManage()"
+        [canGrantTransformations]="canManage() && !c.isEnded"
         [confirmingRemoveId]="confirmingRemoveId()"
         [characterSummaries]="c.characterSummaries ?? []"
+        [openTransformationId]="openTransformationId()"
+        [savingTransformationId]="savingTransformationId()"
+        [transformationCatalog]="transformationCatalog()"
+        [transformationCatalogLoading]="transformationCatalogLoading()"
+        [transformationCatalogError]="transformationCatalogError()"
         (removeCharacter)="onRemoveCharacter($event)"
         (viewCharacter)="onViewCharacter($event)"
         (cancelRemove)="onCancelRemove()"
+        (toggleTransformation)="onToggleTransformation($event)"
+        (transformationChange)="onTransformationChange($event)"
+        (retryTransformationCatalog)="loadTransformationCatalog()"
       />
     </div>
 

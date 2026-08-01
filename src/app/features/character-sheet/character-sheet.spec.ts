@@ -45,6 +45,7 @@ const mockResponse: CharacterSheetResponse = {
   gold: 50,
   ownerId: 1,
   proficiency: 1,
+  transformationEnabled: true,
   equippedDomainCardIds: [],
   vaultDomainCardIds: [],
   communityCardIds: [],
@@ -1945,22 +1946,25 @@ describe('CharacterSheet', () => {
         expect(component.patronDie()).toBe('D8');
       });
 
-      it('renders an empty state with the Add action for the owner when no card is attached', () => {
-        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+      it('renders the transformation panel when the GM has enabled transformations', () => {
+        createComponent('1', of({ ...mockResponse, transformationEnabled: true, transformationCardId: undefined, transformationCard: undefined }));
         fixture.detectChanges();
 
-        const panel = fixture.nativeElement.querySelector('app-transformation-panel');
-        expect(panel).not.toBeNull();
-        expect(panel.querySelector('.transformation-empty')).not.toBeNull();
-        expect(panel.querySelector('.transformation-action-btn')?.textContent).toContain('Add a Transformation');
+        expect(fixture.nativeElement.querySelector('app-transformation-panel')).not.toBeNull();
       });
 
-      it('hides the transformation panel entirely for a non-owner when no card is attached', () => {
-        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      it('hides the transformation panel from the owner when transformations are not enabled', () => {
+        createComponent('1', of({ ...mockResponse, transformationEnabled: false }));
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('app-transformation-panel')).toBeNull();
+      });
+
+      it('hides the transformation panel when the flag is absent from the response', () => {
+        createComponent('1', of({ ...mockResponse, transformationEnabled: undefined as unknown as boolean }));
+        fixture.detectChanges();
+
+        expect(component.transformationEnabled()).toBe(false);
       });
 
       it('fetches the full transformation card catalog when a card is attached', () => {

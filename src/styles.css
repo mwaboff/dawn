@@ -10,6 +10,7 @@
 @import "./app/shared/styles/skeleton.css";
 @import "./app/shared/styles/gm-panel.css";
 @import "./app/shared/styles/gm-screen-shell.css";
+@import "./app/shared/styles/expandable-card.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -41,6 +42,10 @@
   --color-card-companion: #6bad56;
   --color-card-beastform: #3fae8f;
   --color-card-environment: #7a6fd4;
+  /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
+     renders directly above Equipped Domain Cards, and a rose accent read as a shade of
+     --color-card-domainCard rather than as a separate kind of card. */
+  --color-card-transformation: #8f9fe8;
   --color-card-feature: #a89684;
 
   /* Typography */

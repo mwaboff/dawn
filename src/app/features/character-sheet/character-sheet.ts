@@ -140,6 +140,8 @@ export class CharacterSheet implements OnInit {
     if (id == null) return null;
     return this.transformationCatalog().find(c => c.id === id) ?? this.rawSheet()?.transformationCard ?? null;
   });
+  /** Transformations are GM-granted: the panel stays hidden for everyone until the flag is set. */
+  readonly transformationEnabled = computed(() => this.rawSheet()?.transformationEnabled ?? false);
   readonly transformationTokens = computed(() => this.rawSheet()?.transformationTokens ?? null);
   readonly wolfFormActive = computed(() => this.rawSheet()?.wolfFormActive ?? false);
 
@@ -294,7 +296,7 @@ export class CharacterSheet implements OnInit {
 
   /**
    * Loaded unconditionally (not only when a card is already attached) because the empty-state
-   * "Add a Transformation" picker needs the full catalog too -- a character with nothing attached
+   * "Choose a transformation" picker needs the full catalog too -- a character with nothing attached
    * still has an entry point that requires the same 6-card list.
    */
   private loadTransformationCatalog(): void {
@@ -422,7 +424,7 @@ export class CharacterSheet implements OnInit {
   }
 
   /**
-   * Handles both "Add a Transformation" and "Change" -- per "A PC can have only one
+   * Handles both "Choose a transformation" and "Change" -- per "A PC can have only one
    * transformation," a selection always replaces the single FK, it never appends to a
    * collection. Guarded by `hfActionInFlight` and mirrors the optimistic-update/rollback shape of
    * `onWolfFormToggle` above.

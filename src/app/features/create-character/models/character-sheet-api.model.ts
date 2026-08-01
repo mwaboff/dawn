@@ -342,6 +342,12 @@ export interface CharacterSheetResponse {
   favor?: number;
   /** Current Combo Die size (Brawler resource), null when the character has no Combo Die. */
   comboDie?: ComboDieType;
+  /**
+   * Whether transformations are unlocked for this character. The sheet hides the Transformation
+   * panel entirely -- owner included -- until a GM enables it from the Campaign page, so it is
+   * deliberately absent from every update-request type: a player must not be able to self-grant.
+   */
+  transformationEnabled?: boolean;
   /** ID of the transformation card attached to this character (null if none). */
   transformationCardId?: number;
   /** Full transformation card object (included only when `expand=transformationCard`). */

@@ -1,4 +1,19 @@
-.transformation-name { font-family: var(--font-display); font-size: 1rem; color: var(--color-parchment); margin: 0 0 .35rem; }
+/* The gap between groups lives on the host, not on .card-group: inside this component the group is
+   always the last child, so a `.card-group:last-child { margin-bottom: 0 }` rule would zero it out
+   and let the next group's heading crowd the card. */
+:host { display: block; margin-bottom: 1.25rem; }
+:host(:last-child) { margin-bottom: 0; }
+
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only the
+   transformation accent lives here. */
+.card-group__heading--transformation { color: var(--color-card-transformation); }
+.expandable-card--transformation { border-left-color: var(--color-card-transformation); }
+.expandable-card__meta-badge--transformation { color: var(--color-card-transformation); border-color: color-mix(in srgb, var(--color-card-transformation) 35%, transparent); }
+/* Filled, mirroring .wolf-form__toggle--active so the collapsed badge and the expanded toggle read
+   as the same state. */
+.expandable-card__meta-badge--active { background: var(--color-card-transformation); border-color: var(--color-card-transformation); color: rgba(20,15,10,.9); }
+.expandable-card__meta-badge--depleted { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
+
 .transformation-description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.75); margin: 0 0 .75rem; }
 
 .transformation-features { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .75rem; }

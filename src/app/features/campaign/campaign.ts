@@ -4,7 +4,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { CampaignService } from '../../shared/services/campaign.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CampaignResponse } from '../../shared/models/campaign-api.model';
+import { CampaignResponse, UpdateCharacterTransformationRequest } from '../../shared/models/campaign-api.model';
+import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
+import { TransformationCardService } from '../../shared/services/transformation-card.service';
 import { CampaignSummary } from './components/campaign-summary/campaign-summary';
 import { CampaignPlayerList } from './components/campaign-player-list/campaign-player-list';
 import { CampaignCharacterList } from './components/campaign-character-list/campaign-character-list';
@@ -34,6 +36,7 @@ export class Campaign implements OnInit {
   private readonly router = inject(Router);
   private readonly campaignService = inject(CampaignService);
   private readonly authService = inject(AuthService);
+  private readonly transformationCardService = inject(TransformationCardService);
 
   readonly campaign = signal<CampaignResponse | null>(null);
   readonly loading = signal(true);
@@ -43,6 +46,12 @@ export class Campaign implements OnInit {
   readonly confirmingRemoveNpcId = signal<number | null>(null);
   readonly showSubmitPicker = signal(false);
   readonly showNpcPicker = signal(false);
+  readonly openTransformationId = signal<number | null>(null);
+  readonly savingTransformationId = signal<number | null>(null);
+  readonly transformationCatalog = signal<TransformationCardResponse[]>([]);
+  readonly transformationCatalogLoading = signal(false);
+  readonly transformationCatalogError = signal(false);
+  private readonly transformationCatalogLoaded = signal(false);
 
   readonly isGameMaster = computed(() => {
     const c = this.campaign();
@@ -185,6 +194,49 @@ export class Campaign implements OnInit {
     } else {
       this.confirmingRemoveNpcId.set(sheetId);
     }
+  }
+
+  /** Only one drawer is open at a time; re-clicking the open character closes it. */
+  onToggleTransformation(sheetId: number): void {
+    const nowOpen = this.openTransformationId() !== sheetId;
+    this.openTransformationId.set(nowOpen ? sheetId : null);
+    if (nowOpen && !this.transformationCatalogLoaded() && !this.transformationCatalogLoading()) {
+      this.loadTransformationCatalog();
+    }
+  }
+
+  /** Lazy load: nothing is fetched until a GM first opens a character's transformation drawer. */
+  loadTransformationCatalog(): void {
+    this.transformationCatalogLoading.set(true);
+    this.transformationCatalogError.set(false);
+
+    this.transformationCardService.getAllTransformationCards().subscribe({
+      next: cards => {
+        this.transformationCatalog.set(cards);
+        this.transformationCatalogLoaded.set(true);
+        this.transformationCatalogLoading.set(false);
+      },
+      error: () => {
+        this.transformationCatalogError.set(true);
+        this.transformationCatalogLoading.set(false);
+      },
+    });
+  }
+
+  onTransformationChange(change: { sheetId: number; request: UpdateCharacterTransformationRequest }): void {
+    const c = this.campaign();
+    if (!c) return;
+    this.savingTransformationId.set(change.sheetId);
+    this.campaignService.updateCharacterTransformation(c.id, change.sheetId, change.request).subscribe({
+      next: () => {
+        this.savingTransformationId.set(null);
+        this.reloadCampaign();
+      },
+      error: () => {
+        this.savingTransformationId.set(null);
+        this.reloadCampaign();
+      },
+    });
   }
 
   onCancelRemoveNpc(): void {

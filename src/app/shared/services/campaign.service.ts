@@ -9,6 +9,8 @@ import {
   UpdateCampaignRequest,
   CampaignInviteResponse,
   JoinCampaignResponse,
+  UpdateCharacterTransformationRequest,
+  CharacterTransformationStateResponse,
 } from '../models/campaign-api.model';
 
 @Injectable({ providedIn: 'root' })
@@ -101,6 +103,27 @@ export class CampaignService {
   rejectCharacterSheet(campaignId: number, sheetId: number): Observable<CampaignResponse> {
     return this.http.post<CampaignResponse>(
       `${this.baseUrl}/${campaignId}/character-sheets/${sheetId}/reject`, {}, { withCredentials: true }
+    );
+  }
+
+  /**
+   * GM-only (campaign GM / creator / Moderator+). Shows or hides the Transformation panel on one
+   * character's sheet, and optionally assigns or clears the transformation card.
+   *
+   * Disabling preserves the assigned card -- it only hides the panel, it never discards the
+   * player's selection -- and a card may be assigned while disabled so a GM can pre-load one.
+   *
+   * The backend returns the full character-sheet response; the narrow
+   * {@link CharacterTransformationStateResponse} is used because `shared/` cannot import the sheet
+   * contract from `features/`.
+   */
+  updateCharacterTransformation(
+    campaignId: number,
+    sheetId: number,
+    request: UpdateCharacterTransformationRequest,
+  ): Observable<CharacterTransformationStateResponse> {
+    return this.http.put<CharacterTransformationStateResponse>(
+      `${this.baseUrl}/${campaignId}/character-sheets/${sheetId}/transformation`, request, { withCredentials: true }
     );
   }
 

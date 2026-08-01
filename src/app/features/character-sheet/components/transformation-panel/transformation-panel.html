@@ -1,92 +1,115 @@
-<div class="panel">
-  <h2 class="panel__title">Transformation</h2>
+<div class="card-group">
+  <div class="card-group__heading-row">
+    <h3 class="card-group__heading card-group__heading--transformation">Transformation</h3>
+  </div>
 
-  @if (card(); as c) {
-    <h3 class="transformation-name">{{ c.name }}</h3>
-    @if (c.description) {
-      <p class="transformation-description" [innerHTML]="c.description | formatText"></p>
-    }
-
-    @if (features().length > 0) {
-      <div class="transformation-features">
-        @for (feature of features(); track feature.id) {
-          <div class="transformation-feature">
-            <strong class="transformation-feature__name">{{ feature.name }}</strong>
-            @if (feature.description) {
-              <p class="transformation-feature__description" [innerHTML]="feature.description | formatText"></p>
-            }
-          </div>
-        }
-      </div>
-    }
-
-    @if (isVampire()) {
-      <div class="feed-tokens">
-        <span class="feed-tokens__label">Feed Tokens</span>
-        <div class="feed-tokens__controls">
-          <button type="button" class="feed-tokens__btn" (click)="adjustTokens(-1)" [disabled]="!canAct() || currentTokens() <= 0" aria-label="Remove a Feed token">&#8722;</button>
-          <span class="feed-tokens__value">{{ currentTokens() }}/{{ maxTokens }}</span>
-          <button type="button" class="feed-tokens__btn" (click)="adjustTokens(1)" [disabled]="!canAct() || currentTokens() >= maxTokens" aria-label="Add a Feed token">+</button>
-        </div>
-        @if (currentTokens() === 0) {
-          <p class="feed-tokens__warning">At 0 tokens, action and reaction rolls have disadvantage.</p>
-        }
-      </div>
-    }
-
-    @if (isWerewolf()) {
-      <div class="wolf-form">
-        <span class="wolf-form__label">Wolf Form</span>
-        <button type="button" class="wolf-form__toggle" [class.wolf-form__toggle--active]="wolfFormActive()" (click)="onWolfFormToggle()" [disabled]="!canAct()" [attr.aria-pressed]="wolfFormActive()">
-          {{ wolfFormActive() ? 'Active' : 'Inactive' }}
-        </button>
-      </div>
-    }
-
-    @if (questions().length > 0) {
-      <div class="transformation-questions">
-        <h3 class="transformation-questions__heading">Questions</h3>
-        <ol class="transformation-questions__list">
-          @for (question of questions(); track question.id) {
-            <li>{{ question.questionText }}</li>
+  <div class="card-group__list">
+    <div class="expandable-card expandable-card--transformation">
+      <button type="button" class="expandable-card__header" (click)="toggleSection()"
+              [attr.aria-expanded]="expanded()"
+              aria-controls="transformation-body">
+        <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="expanded()" aria-hidden="true">&#9654;</span>
+        <h4 class="expandable-card__name">{{ headerName() }}</h4>
+        <div class="expandable-card__meta">
+          @if (isVampire()) {
+            <span class="expandable-card__meta-badge expandable-card__meta-badge--transformation"
+                  [class.expandable-card__meta-badge--depleted]="currentTokens() === 0">Feed {{ currentTokens() }}/{{ maxTokens }}</span>
           }
-        </ol>
-      </div>
-    }
+          @if (isWerewolf()) {
+            <span class="expandable-card__meta-badge expandable-card__meta-badge--transformation"
+                  [class.expandable-card__meta-badge--active]="wolfFormActive()">{{ wolfFormActive() ? 'Wolf form' : 'Human form' }}</span>
+          }
+        </div>
+      </button>
 
-    @if (isOwner()) {
-      <div class="transformation-actions">
-        <button type="button" class="transformation-action-btn" (click)="openPicker()" [disabled]="!canAct()">Change</button>
-        <button type="button" class="transformation-action-btn transformation-action-btn--remove" (click)="onRemove()" [disabled]="!canAct()">Remove</button>
-      </div>
-    }
-  } @else {
-    <div class="transformation-empty">
-      <p class="transformation-empty__copy">
-        Transformations are granted by your GM as part of the story, not chosen off a shelf.
-        Ask your GM if one fits where your character is headed.
-      </p>
-      @if (isOwner()) {
-        <button type="button" class="transformation-action-btn" (click)="openPicker()" [disabled]="!canAct()">Add a Transformation</button>
+      @if (expanded()) {
+        <div class="expandable-card__body" id="transformation-body">
+          @if (card(); as c) {
+            @if (c.description) {
+              <p class="transformation-description" [innerHTML]="c.description | formatText"></p>
+            }
+
+            @if (features().length > 0) {
+              <div class="transformation-features">
+                @for (feature of features(); track feature.id) {
+                  <div class="transformation-feature">
+                    <strong class="transformation-feature__name">{{ feature.name }}</strong>
+                    @if (feature.description) {
+                      <p class="transformation-feature__description" [innerHTML]="feature.description | formatText"></p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            @if (isVampire()) {
+              <div class="feed-tokens">
+                <span class="feed-tokens__label">Feed Tokens</span>
+                <div class="feed-tokens__controls">
+                  <button type="button" class="feed-tokens__btn" (click)="adjustTokens(-1)" [disabled]="!canAct() || currentTokens() <= 0" aria-label="Remove a Feed token">&#8722;</button>
+                  <span class="feed-tokens__value">{{ currentTokens() }}/{{ maxTokens }}</span>
+                  <button type="button" class="feed-tokens__btn" (click)="adjustTokens(1)" [disabled]="!canAct() || currentTokens() >= maxTokens" aria-label="Add a Feed token">+</button>
+                </div>
+                @if (currentTokens() === 0) {
+                  <p class="feed-tokens__warning">At 0 tokens, action and reaction rolls have disadvantage.</p>
+                }
+              </div>
+            }
+
+            @if (isWerewolf()) {
+              <div class="wolf-form">
+                <span class="wolf-form__label">Wolf Form</span>
+                <button type="button" class="wolf-form__toggle" [class.wolf-form__toggle--active]="wolfFormActive()" (click)="onWolfFormToggle()" [disabled]="!canAct()" [attr.aria-pressed]="wolfFormActive()">
+                  {{ wolfFormActive() ? 'Active' : 'Inactive' }}
+                </button>
+              </div>
+            }
+
+            @if (questions().length > 0) {
+              <div class="transformation-questions">
+                <h3 class="transformation-questions__heading">Questions</h3>
+                <ol class="transformation-questions__list">
+                  @for (question of questions(); track question.id) {
+                    <li>{{ question.questionText }}</li>
+                  }
+                </ol>
+              </div>
+            }
+
+            @if (isOwner()) {
+              <div class="transformation-actions">
+                <button type="button" class="transformation-action-btn" (click)="openPicker()" [disabled]="!canAct()">Change</button>
+                <button type="button" class="transformation-action-btn transformation-action-btn--remove" (click)="onRemove()" [disabled]="!canAct()">Remove</button>
+              </div>
+            }
+          } @else {
+            <div class="transformation-empty">
+              <p class="transformation-empty__copy">{{ emptyCopy() }}</p>
+              @if (isOwner()) {
+                <button type="button" class="transformation-action-btn" (click)="openPicker()" [disabled]="!canAct()">Choose a transformation</button>
+              }
+            </div>
+          }
+
+          @if (pickerOpen()) {
+            <div class="transformation-picker">
+              <div class="transformation-picker__header">
+                <h3 class="transformation-picker__heading">Choose a Transformation</h3>
+                <button type="button" class="transformation-picker__close" (click)="closePicker()" aria-label="Cancel">&times;</button>
+              </div>
+              <app-card-selection-grid
+                [cards]="catalogOptions()"
+                [loading]="catalogLoading()"
+                [error]="catalogError()"
+                [selectedCard]="selectedOption()"
+                [collapsibleFeatures]="true"
+                layout="wide"
+                (cardSelected)="onOptionSelected($event)"
+              />
+            </div>
+          }
+        </div>
       }
     </div>
-  }
-
-  @if (pickerOpen()) {
-    <div class="transformation-picker">
-      <div class="transformation-picker__header">
-        <h3 class="transformation-picker__heading">Choose a Transformation</h3>
-        <button type="button" class="transformation-picker__close" (click)="closePicker()" aria-label="Cancel">&times;</button>
-      </div>
-      <app-card-selection-grid
-        [cards]="catalogOptions()"
-        [loading]="catalogLoading()"
-        [error]="catalogError()"
-        [selectedCard]="selectedOption()"
-        [collapsibleFeatures]="true"
-        layout="wide"
-        (cardSelected)="onOptionSelected($event)"
-      />
-    </div>
-  }
+  </div>
 </div>

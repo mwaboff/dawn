@@ -9,11 +9,14 @@ import { isVampireTransformation, isWerewolfTransformation } from '../../utils/t
 const MAX_FEED_TOKENS = 6;
 
 /**
- * The transformation panel covers all of acquisition and display: an empty state with an
- * "Add a Transformation" entry point for the owner when nothing is attached, an attached card's
+ * The transformation panel covers all of acquisition and display: an empty state with a
+ * "Choose a transformation" entry point for the owner when nothing is attached, an attached card's
  * features/questions/mechanics, and a "Change"/"Remove" pair once one is attached. "Change" reuses
- * the same picker as "Add" -- per the rule that a PC can have only one transformation, selecting a
- * new card always replaces the FK, it never adds to a collection.
+ * the same picker -- per the rule that a PC can have only one transformation, selecting a new card
+ * always replaces the FK, it never adds to a collection.
+ *
+ * The parent only renders this panel when the sheet's `transformationEnabled` flag is set, which
+ * only a GM can set from the Campaign page. There is no player-facing path to it.
  *
  * The Vampire Feed token pool and Werewolf Wolf Form toggle stay card-name-driven -- see
  * `transformation-card.utils.ts` -- since neither is a structured field on the response.
@@ -41,7 +44,20 @@ export class TransformationPanel {
   readonly cardRemoved = output<void>();
 
   readonly pickerOpen = signal(false);
+  /** Collapsed by default; the header badges carry the live state a player needs mid-combat. */
+  readonly expanded = signal(false);
 
+  readonly headerName = computed(() => this.card()?.name ?? 'No transformation');
+  /**
+   * The panel only renders once a GM has enabled transformations for this character, so the empty
+   * state addresses someone who has already been granted one and just has not picked yet. Anyone
+   * else looking at the sheet gets the bare fact instead of instructions they cannot act on.
+   */
+  readonly emptyCopy = computed(() =>
+    this.isOwner()
+      ? 'Your GM opened transformations for this character. Choose the one that fits where your story is headed.'
+      : 'No transformation chosen yet.',
+  );
   readonly isVampire = computed(() => isVampireTransformation(this.card()?.name));
   readonly isWerewolf = computed(() => isWerewolfTransformation(this.card()?.name));
   readonly currentTokens = computed(() => this.tokens() ?? 0);
@@ -54,6 +70,10 @@ export class TransformationPanel {
     const current = this.card();
     return current ? this.catalogOptions().find(option => option.id === current.id) : undefined;
   });
+
+  toggleSection(): void {
+    this.expanded.update(open => !open);
+  }
 
   openPicker(): void {
     if (!this.canAct()) return;
