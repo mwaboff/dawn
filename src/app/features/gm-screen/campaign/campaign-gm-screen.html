@@ -30,7 +30,10 @@
     <header class="gm-screen-header">
       <a class="gm-screen-back" [routerLink]="['/campaign', c.id]">&larr; Back to Campaign</a>
       <h1 class="gm-screen-title">{{ c.name }}</h1>
-      <p class="gm-screen-subtitle">GM screen &mdash; live table tools above the rules reference.</p>
+      <p class="gm-screen-subtitle">
+        Rolls, conditions and GM moves for running the table. Drag a panel by its grip to rearrange
+        the board; your layout is remembered on this device.
+      </p>
     </header>
 
     <app-gm-panel-grid [panels]="panels()" storageKey="gm-screen-campaign">
