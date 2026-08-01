@@ -1,0 +1,28 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.cd-help__toggle {
+  align-self: flex-start;
+  padding: .2rem 0;
+  background: none;
+  border: none;
+  color: var(--gm-accent);
+  font-family: var(--font-body);
+  font-size: .85rem;
+  cursor: pointer;
+}
+
+.cd-help__toggle:hover,
+.cd-help__toggle:focus-visible {
+  color: var(--color-accent-bright);
+}
+
+.cd-help {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  font-size: .9rem;
+}

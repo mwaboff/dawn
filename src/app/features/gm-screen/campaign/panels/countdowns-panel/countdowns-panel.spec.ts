@@ -230,13 +230,11 @@ describe('CountdownsPanel', () => {
     expect(component.adding()).toBe(false);
   });
 
-  it('exposes the advancement table once help is opened', () => {
+  it('renders the rules reference alongside the list', () => {
     setUp();
     httpMock.expectOne(LIST_URL).flush([]);
-
-    component.toggleHelp();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.gm-panel__table')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-countdown-help')).not.toBeNull();
   });
 });

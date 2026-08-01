@@ -10,13 +10,14 @@ import {
 } from '../../../../../shared/models/countdown-api.model';
 import { CountdownService } from '../../../../../shared/services/countdown.service';
 import { GmScreenContext } from '../../gm-screen-context.service';
+import { CountdownHelp } from './components/countdown-help/countdown-help';
 import { CountdownRow } from './components/countdown-row/countdown-row';
 
 /**
  * The campaign's countdown tracker.
  *
- * Owns the list, the add form, and the reference section; a single countdown's controls live in
- * {@link CountdownRow}. Ticking is optimistic and rolls back on failure, following
+ * Owns the list and the add form; a single countdown's controls live in {@link CountdownRow} and
+ * the rules reference in {@link CountdownHelp}. Ticking is optimistic and rolls back on failure, following
  * `FearCounterPanel` -- the difference is that the server may answer a tick to 0 with a looped
  * value, so the response replaces the row rather than merely confirming it.
  */
@@ -25,7 +26,7 @@ import { CountdownRow } from './components/countdown-row/countdown-row';
   templateUrl: './countdowns-panel.html',
   styleUrl: './countdowns-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CountdownRow],
+  imports: [ReactiveFormsModule, CountdownRow, CountdownHelp],
 })
 export class CountdownsPanel {
   private readonly context = inject(GmScreenContext);
@@ -43,7 +44,6 @@ export class CountdownsPanel {
   readonly loadFailed = signal(false);
   readonly adding = signal(false);
   readonly addFormOpen = signal(false);
-  readonly helpOpen = signal(false);
   readonly pendingDeleteId = signal<number | null>(null);
 
   readonly form = this.fb.nonNullable.group({
@@ -62,10 +62,6 @@ export class CountdownsPanel {
 
   toggleAddForm(): void {
     this.addFormOpen.update(open => !open);
-  }
-
-  toggleHelp(): void {
-    this.helpOpen.update(open => !open);
   }
 
   onDeleteRequested(id: number): void {
