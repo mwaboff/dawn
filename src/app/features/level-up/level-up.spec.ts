@@ -553,6 +553,32 @@ describe('LevelUp', () => {
       });
     }
 
+    function makeMartialArtistFoundationCard(id: number): SubclassCardResponse {
+      return {
+        id,
+        name: 'Martial Artist Foundation',
+        cardType: 'SUBCLASS',
+        expansionId: 1,
+        isOfficial: true,
+        featureIds: [1],
+        features: [{
+          id: 1,
+          name: 'Stance Fighter',
+          description: '',
+          featureType: 'PASSIVE',
+          expansionId: 1,
+          costTagIds: [],
+          costTags: [],
+        }],
+        costTagIds: [],
+        costTags: [],
+        subclassPathId: 1,
+        level: 'FOUNDATION',
+        createdAt: '',
+        lastModifiedAt: '',
+      };
+    }
+
     it('excludes the martial-stance tab for a character without Stance Fighter', () => {
       createComponent('1');
       fixture.detectChanges();
@@ -588,30 +614,66 @@ describe('LevelUp', () => {
       expect(component.martialStanceMaxTier()).toBe(3);
     });
 
+    it('requires exactly 1 stance for a character that already has Stance Fighter', () => {
+      createComponent('1', of(makeStanceFighterSheet()));
+      fixture.detectChanges();
+
+      expect(component.requiredMartialStanceCount()).toBe(1);
+    });
+
     it('marks the step complete only when a stance is selected', () => {
       createComponent('1', of(makeStanceFighterSheet()));
       fixture.detectChanges();
 
-      component.onMartialStanceSelected(9);
+      component.onMartialStanceSelected([9]);
       expect(component.completedSteps().has('martial-stance')).toBe(true);
 
-      component.onMartialStanceSelected(null);
+      component.onMartialStanceSelected([]);
       expect(component.completedSteps().has('martial-stance')).toBe(false);
     });
 
-    it('sends existing + new stance ids in the follow-up PUT on submit', () => {
+    it('sends existing + new stance id in the follow-up PUT on submit', () => {
       createComponent('1', of(makeStanceFighterSheet({ knownMartialStanceIds: [1, 2] })));
       fixture.detectChanges();
 
       component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
       component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
-      component.onMartialStanceSelected(9);
+      component.onMartialStanceSelected([9]);
 
       component.onSubmit();
 
       expect(mockCharacterSheetService.updateCharacterSheet).toHaveBeenCalledWith(1, {
         knownMartialStanceIds: [1, 2, 9],
       });
+    });
+
+    it('clears stance picks when advancements change afterwards', () => {
+      createComponent('1', of(makeStanceFighterSheet({ knownMartialStanceIds: [1, 2] })));
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onMartialStanceSelected([9]);
+      expect(component.completedSteps().has('martial-stance')).toBe(true);
+
+      // Revisiting the advancements step can change how many stances are owed, so an earlier
+      // pick must not survive as a stale "complete" flag.
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'BOOST_EVASION' }]);
+
+      expect(component.completedSteps().has('martial-stance')).toBe(false);
+      expect(component.selectedMartialStanceIds()).toEqual([]);
+    });
+
+    it('does not PUT an under-filled stance selection', () => {
+      createComponent('1', of(makeStanceFighterSheet({ knownMartialStanceIds: [1, 2] })));
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onMartialStanceSelected([]);
+
+      component.onSubmit();
+
+      expect(mockCharacterSheetService.updateCharacterSheet).not.toHaveBeenCalled();
     });
 
     it('does not send a follow-up PUT when the character has no Stance Fighter feature', () => {
@@ -624,6 +686,110 @@ describe('LevelUp', () => {
       component.onSubmit();
 
       expect(mockCharacterSheetService.updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    describe('acquiring Stance Fighter via multiclass', () => {
+      it('shows the martial-stance tab once a MULTICLASS advancement granting Stance Fighter is chosen, at level 5', () => {
+        const subclassCards = new Map([[900, makeMartialArtistFoundationCard(900)]]);
+        createComponent(
+          '1',
+          of(makeSheetResponse({ subclassCardIds: [100], subclassCards: [{ id: 100, name: 'Guardian Foundation' }] })),
+          of(makeOptionsResponse({
+            nextLevel: 5,
+            availableAdvancements: [
+              { type: 'MULTICLASS', description: 'Multiclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'UPGRADE_SUBCLASS' },
+            ],
+          })),
+          subclassCards,
+        );
+        fixture.detectChanges();
+
+        expect(component.visibleTabs().map(t => t.id)).not.toContain('martial-stance');
+
+        component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+
+        expect(component.visibleTabs().map(t => t.id)).toContain('martial-stance');
+      });
+
+      it('requires exactly 2 stances and pins the tier to 1 -- even at level 5 (tierForLevel(5) is 3)', () => {
+        const subclassCards = new Map([[900, makeMartialArtistFoundationCard(900)]]);
+        createComponent(
+          '1',
+          of(makeSheetResponse({ subclassCardIds: [100], subclassCards: [{ id: 100, name: 'Guardian Foundation' }] })),
+          of(makeOptionsResponse({ nextLevel: 5 })),
+          subclassCards,
+        );
+        fixture.detectChanges();
+
+        component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+
+        expect(component.requiredMartialStanceCount()).toBe(2);
+        expect(component.martialStanceMaxTier()).toBe(1);
+      });
+
+      it('does not detect acquisition for an unrelated multiclass subclass', () => {
+        const unrelatedCard: SubclassCardResponse = { ...makeMartialArtistFoundationCard(901), features: [] };
+        const subclassCards = new Map([[901, unrelatedCard]]);
+        createComponent(
+          '1',
+          of(makeSheetResponse({ subclassCardIds: [100] })),
+          of(makeOptionsResponse({ nextLevel: 5 })),
+          subclassCards,
+        );
+        fixture.detectChanges();
+
+        component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 901 }]);
+
+        expect(component.acquiresMartialStancesThisLevelUp()).toBe(false);
+        expect(component.visibleTabs().map(t => t.id)).not.toContain('martial-stance');
+      });
+
+      it('does not treat a character who already has Stance Fighter as newly acquiring it', () => {
+        createComponent('1', of(makeStanceFighterSheet()));
+        fixture.detectChanges();
+
+        expect(component.acquiresMartialStancesThisLevelUp()).toBe(false);
+        expect(component.requiredMartialStanceCount()).toBe(1);
+      });
+
+      it('sends both newly selected stance ids in the follow-up PUT, alongside any existing known ids', () => {
+        const subclassCards = new Map([[900, makeMartialArtistFoundationCard(900)]]);
+        createComponent(
+          '1',
+          of(makeSheetResponse({ subclassCardIds: [100], subclassCards: [{ id: 100, name: 'Guardian Foundation' }], knownMartialStanceIds: [42] })),
+          of(makeOptionsResponse({ nextLevel: 5 })),
+          subclassCards,
+        );
+        fixture.detectChanges();
+
+        component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+        component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+        component.onMartialStanceSelected([1, 2]);
+
+        component.onSubmit();
+
+        expect(mockCharacterSheetService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+          knownMartialStanceIds: [42, 1, 2],
+        });
+      });
+
+      it('marks the step complete only once both required stances are selected', () => {
+        const subclassCards = new Map([[900, makeMartialArtistFoundationCard(900)]]);
+        createComponent(
+          '1',
+          of(makeSheetResponse({ subclassCardIds: [100], subclassCards: [{ id: 100, name: 'Guardian Foundation' }] })),
+          of(makeOptionsResponse({ nextLevel: 5 })),
+          subclassCards,
+        );
+        fixture.detectChanges();
+        component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+
+        component.onMartialStanceSelected([1]);
+        expect(component.completedSteps().has('martial-stance')).toBe(false);
+
+        component.onMartialStanceSelected([1, 2]);
+        expect(component.completedSteps().has('martial-stance')).toBe(true);
+      });
     });
   });
 });

@@ -1,10 +1,10 @@
 <div class="martial-stance-step">
   <div class="step-header">
-    <p class="step-instruction">Choose an additional stance from your tier or lower</p>
-    <div class="selection-badge" [class.complete]="selectionCount() === 1" aria-live="polite">
+    <p class="step-instruction">{{ instruction() }}</p>
+    <div class="selection-badge" [class.complete]="isSelectionComplete()" aria-live="polite">
       <span class="selection-badge__count">{{ selectionCount() }}</span>
       <span class="selection-badge__sep">/</span>
-      <span class="selection-badge__max">1</span>
+      <span class="selection-badge__max">{{ requiredCount() }}</span>
     </div>
   </div>
 

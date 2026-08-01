@@ -63,8 +63,9 @@
                 [error]="martialStanceCardsError()"
                 [knownStanceIds]="knownMartialStanceIds()"
                 [maxTier]="martialStanceMaxTier()"
-                [selectedStanceId]="selectedMartialStanceId()"
-                (stanceSelected)="onMartialStanceSelected($event)"
+                [requiredCount]="requiredMartialStanceCount()"
+                [selectedStanceIds]="selectedMartialStanceIds()"
+                (stancesSelected)="onMartialStanceSelected($event)"
               />
             }
             @case ('domain-card') {

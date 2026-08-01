@@ -12,6 +12,7 @@ import { LevelUpTab, LevelUpTabId } from './models/level-up.model';
 import { computeVisibleTabs } from './utils/level-up-steps.utils';
 import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils';
 import { countBonusSlotsFromAdvancements } from './utils/bonus-domain-card.utils';
+import { acquiresMartialStances } from './utils/acquires-martial-stances.utils';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { SubclassService } from '../../shared/services/subclass.service';
 import { MartialStanceService } from '../../shared/services/martial-stance.service';
@@ -49,7 +50,6 @@ export class LevelUp implements OnInit {
   private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   readonly levelUpOptions = signal<LevelUpOptionsResponse | null>(null);
 
-  readonly visibleTabs = signal<LevelUpTab[]>([]);
   readonly activeTab = signal<LevelUpTabId>('advancements');
   private readonly completedStepsSignal = signal<Set<LevelUpTabId>>(new Set());
   readonly completedSteps = this.completedStepsSignal.asReadonly();
@@ -67,7 +67,7 @@ export class LevelUp implements OnInit {
   readonly martialStanceCards = signal<CardData[]>([]);
   readonly martialStanceCardsLoading = signal(false);
   readonly martialStanceCardsError = signal(false);
-  readonly selectedMartialStanceId = signal<number | null>(null);
+  readonly selectedMartialStanceIds = signal<number[]>([]);
 
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -101,6 +101,19 @@ export class LevelUp implements OnInit {
     return sheet?.domainCards ?? [];
   });
 
+  /**
+   * Recomputed from `showMartialStanceStep` (not fixed at load time) so the `martial-stance` tab
+   * appears as soon as the player chooses a MULTICLASS/UPGRADE_SUBCLASS advancement that newly
+   * grants Stance Fighter -- the advancements step comes before the martial-stance tab in
+   * `ALL_LEVEL_UP_TABS`, so the tab must react to that choice, not just the character's
+   * already-owned subclass cards.
+   */
+  readonly visibleTabs = computed<LevelUpTab[]>(() => {
+    const options = this.levelUpOptions();
+    if (!options) return [];
+    return computeVisibleTabs(options, this.showMartialStanceStep());
+  });
+
   private static readonly TIER_3_ONLY_TYPES = new Set<string>(['UPGRADE_SUBCLASS', 'MULTICLASS']);
 
   readonly filteredAdvancements = computed<AvailableAdvancement[]>(() => {
@@ -127,17 +140,51 @@ export class LevelUp implements OnInit {
   );
 
   /**
+   * True when a chosen advancement THIS level-up newly grants a subclass card carrying the
+   * "Stance Fighter" feature -- e.g. multiclassing into Martial Artist. Distinct from already
+   * having the feature: the acquisition grant ("choose two martial stances from Tier 1") only
+   * fires the level-up the feature is newly taken, never again afterward.
+   */
+  readonly acquiresMartialStancesThisLevelUp = computed<boolean>(() =>
+    acquiresMartialStances(
+      this.selectedAdvancements(),
+      new Set(this.rawSheet()?.subclassCardIds ?? []),
+      (id) => this.subclassService.getCachedCardResponseById(id),
+      hasMartialStances(this.rawSheet()?.subclassCards),
+    )
+  );
+
+  /**
    * True for characters with the Martial Artist's "Stance Fighter" feature -- the rules grant an
    * additional known stance on every level-up (not just tier transitions), so this gates the
-   * `martial-stance` step independently of `computeVisibleTabs`'s tier-achievement logic.
+   * `martial-stance` step independently of `computeVisibleTabs`'s tier-achievement logic. Also
+   * true on the level-up that newly ACQUIRES the feature (see `acquiresMartialStances` above),
+   * since a multiclassed character's existing `subclassCards` won't include the subclass being
+   * chosen during this same level-up.
    */
-  readonly showMartialStanceStep = computed(() => hasMartialStances(this.rawSheet()?.subclassCards));
+  readonly showMartialStanceStep = computed(() =>
+    hasMartialStances(this.rawSheet()?.subclassCards) || this.acquiresMartialStancesThisLevelUp()
+  );
 
   readonly knownMartialStanceIds = computed(() => this.rawSheet()?.knownMartialStanceIds ?? []);
 
-  /** Stances of the character's tier or lower are selectable, per "choose an additional stance
-   * from your tier or lower" -- tier is derived from the level being leveled up TO. */
-  readonly martialStanceMaxTier = computed(() => tierForLevel(this.levelUpOptions()?.nextLevel ?? 1));
+  /**
+   * Number of stances this step must collect: 2 on the acquiring level-up (the foundation card's
+   * full "choose two martial stances from Tier 1" grant, same as at character creation), 1 on
+   * every other level-up ("choose an additional stance"). The acquisition grant and the ongoing
+   * per-level grant never stack on the same level-up.
+   */
+  readonly requiredMartialStanceCount = computed<number>(() => this.acquiresMartialStancesThisLevelUp() ? 2 : 1);
+
+  /**
+   * Highest selectable stance tier. Pinned to Tier 1 on the acquiring level-up, per "choose two
+   * martial stances from Tier 1" -- otherwise stances of the character's tier or lower are
+   * selectable, per "choose an additional stance from your tier or lower", with tier derived from
+   * the level being leveled up TO.
+   */
+  readonly martialStanceMaxTier = computed(() =>
+    this.acquiresMartialStancesThisLevelUp() ? 1 : tierForLevel(this.levelUpOptions()?.nextLevel ?? 1)
+  );
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -160,9 +207,9 @@ export class LevelUp implements OnInit {
     }
   }
 
-  onMartialStanceSelected(stanceId: number | null): void {
-    this.selectedMartialStanceId.set(stanceId);
-    if (stanceId !== null) {
+  onMartialStanceSelected(stanceIds: number[]): void {
+    this.selectedMartialStanceIds.set(stanceIds);
+    if (stanceIds.length === this.requiredMartialStanceCount()) {
       this.markStepComplete('martial-stance');
     } else {
       this.removeStepComplete('martial-stance');
@@ -185,6 +232,17 @@ export class LevelUp implements OnInit {
     } else {
       this.removeStepComplete('advancements');
     }
+    // Changing advancements can change whether the martial-stance step is shown at all and how
+    // many stances it requires (acquiring the feature asks for 2, an ordinary level-up for 1).
+    // Selections made under the old rules would otherwise survive as a stale "complete" flag with
+    // the wrong number of stances chosen, letting the user submit an under-filled selection.
+    this.clearMartialStanceSelections();
+  }
+
+  /** Drops any stance picks and the step's completed flag, so the step must be re-satisfied. */
+  private clearMartialStanceSelections(): void {
+    this.selectedMartialStanceIds.set([]);
+    this.removeStepComplete('martial-stance');
   }
 
   onDomainCardsSelected(cards: CardData[]): void {
@@ -282,16 +340,21 @@ export class LevelUp implements OnInit {
   }
 
   /**
-   * Adds the newly chosen stance to the character's known stances. `knownMartialStanceIds` is a
-   * full-collection replacement on the backend, so this sends the existing ids plus the new one
-   * -- sending only the new id would silently wipe every previously known stance.
+   * Adds the newly chosen stance(s) to the character's known stances. `knownMartialStanceIds` is
+   * a full-collection replacement on the backend, so this sends the existing ids plus ALL newly
+   * selected ones -- sending only the new id(s) would silently wipe every previously known
+   * stance.
    */
   private attachMartialStance() {
-    const newStanceId = this.selectedMartialStanceId();
-    if (!this.showMartialStanceStep() || newStanceId === null) {
+    const newStanceIds = this.selectedMartialStanceIds();
+    // Defense in depth: the step's own cap and the completed-step gate should both already
+    // guarantee this, but the required count is derived from the chosen advancements and can move
+    // after the step was satisfied. Re-check against the CURRENT requirement rather than trusting
+    // a flag set earlier, so an under-filled selection can never be persisted.
+    if (!this.showMartialStanceStep() || newStanceIds.length !== this.requiredMartialStanceCount()) {
       return of(null);
     }
-    const next = [...this.knownMartialStanceIds(), newStanceId];
+    const next = [...this.knownMartialStanceIds(), ...newStanceIds];
     return this.characterSheetService.updateCharacterSheet(this.characterId, { knownMartialStanceIds: next });
   }
 
@@ -339,9 +402,7 @@ export class LevelUp implements OnInit {
         this.characterSheet.set(mapToCharacterSheetView(sheet));
         this.levelUpOptions.set(options);
 
-        const tabs = computeVisibleTabs(options, hasMartialStances(sheet.subclassCards));
-        this.visibleTabs.set(tabs);
-        this.activeTab.set(tabs[0].id);
+        this.activeTab.set(this.visibleTabs()[0].id);
 
         this.loading.set(false);
       },
