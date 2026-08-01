@@ -1,0 +1,30 @@
+<div class="board-bar__lead">
+  <ng-content select="[gmBoardLead]" />
+</div>
+
+<label class="board-bar__field">
+  <span class="board-bar__label">Search the screen</span>
+  <input
+    type="search"
+    class="board-bar__input"
+    placeholder="Conditions, thresholds, rest moves…"
+    [value]="filter()"
+    (input)="onFilterInput($event)"
+  />
+</label>
+
+<p class="board-bar__count" aria-live="polite">
+  @if (filter().trim()) {
+    {{ matchCount() }} of {{ totalCount() }} panels
+  } @else {
+    {{ totalCount() }} panels
+  }
+</p>
+
+<div class="board-bar__actions">
+  <button type="button" class="board-bar__btn" (click)="expandAll.emit()">Expand all</button>
+  <button type="button" class="board-bar__btn" (click)="collapseAll.emit()">Collapse all</button>
+  <button type="button" class="board-bar__btn board-bar__btn--quiet" (click)="resetLayout.emit()">
+    Reset layout
+  </button>
+</div>

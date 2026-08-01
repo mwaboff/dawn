@@ -7,6 +7,7 @@ function panel(id: string, defaultOrder: number, extra: Partial<GmPanelDef> = {}
   return {
     id,
     title: id,
+    category: 'Combat',
     colSpan: 1,
     defaultOrder,
     body: { kind: 'static', blocks: [] },

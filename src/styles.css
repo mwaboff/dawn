@@ -9,6 +9,7 @@
 @import "./app/shared/styles/inline-confirm.css";
 @import "./app/shared/styles/skeleton.css";
 @import "./app/shared/styles/gm-panel.css";
+@import "./app/shared/styles/gm-screen-shell.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -45,6 +46,16 @@
   /* Typography */
   --font-display: 'Cinzel', serif;
   --font-body: 'Lora', serif;
+
+  /* Height of the fixed navbar. `app.css` pads the page by it and anything `position: sticky`
+     must offset by it too, or it scrolls underneath. */
+  --nav-height: 4.5rem;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --nav-height: 4rem;
+  }
 }
 
 * {

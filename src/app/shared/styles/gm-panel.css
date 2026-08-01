@@ -15,7 +15,10 @@
   --gm-parchment: var(--color-parchment);
   --gm-border: rgba(212, 160, 86, .2);
   --gm-border-strong: rgba(212, 160, 86, .35);
-  --gm-muted: rgba(245, 230, 211, .72);
+  --gm-muted: rgba(245, 230, 211, .82);
+  /* The dimmest tier still cleared for body copy: ~7:1 on the panel background. Anything below
+     .68 alpha drops under WCAG AA here, so secondary text stops at this token. */
+  --gm-dim: rgba(245, 230, 211, .68);
 
   display: flex;
   flex-direction: column;
@@ -31,22 +34,22 @@
 .gm-panel__head {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  padding: .6rem .75rem;
+  gap: .4rem;
+  padding: .35rem .5rem .35rem .55rem;
   background: rgba(58, 40, 23, .35);
   border-bottom: 1px solid var(--gm-border);
 }
 
+/* Sentence case, not uppercase: the section heading above owns the uppercase register, and a
+   title like "Cover, Darkness, Underwater & Falling" is unreadable spaced out in small caps. */
 .gm-panel__title {
-  flex: 1;
   min-width: 0;
-  margin: 0;
   font-family: var(--font-display);
   font-size: .95rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: .01em;
   color: var(--gm-accent);
+  transition: color .12s ease;
 }
 
 .gm-panel__head-actions {
@@ -66,7 +69,7 @@
   padding: 0;
   background: none;
   border: none;
-  color: rgba(212, 160, 86, .7);
+  color: rgba(212, 160, 86, .85);
   font: inherit;
   font-size: .85rem;
   line-height: 1;
@@ -75,12 +78,10 @@
   transition: color .12s, background-color .12s;
 }
 
-.gm-panel__btn:hover:not(:disabled) { color: var(--gm-accent); background: rgba(212, 160, 86, .1); }
+.gm-panel__btn:hover:not(:disabled) { color: var(--color-accent-bright); background: rgba(212, 160, 86, .14); }
 .gm-panel__btn:focus-visible { outline: 2px solid var(--gm-accent); outline-offset: -2px; }
-.gm-panel__btn:disabled { opacity: .3; cursor: default; }
-
-.gm-panel__chevron { transition: transform .18s; }
-.gm-panel__chevron--collapsed { transform: rotate(-90deg); }
+/* .3 put disabled controls under the 3:1 floor for non-text UI. */
+.gm-panel__btn:disabled { opacity: .45; cursor: default; }
 
 .gm-panel__body {
   display: flex;
@@ -88,8 +89,8 @@
   gap: .85rem;
   padding: .85rem .9rem 1rem;
   font-family: var(--font-body);
-  font-size: .875rem;
-  line-height: 1.6;
+  font-size: .9375rem;
+  line-height: 1.65;
   color: var(--gm-muted);
 }
 
@@ -101,48 +102,60 @@
 
 .gm-panel__body > * { margin: 0; }
 
+/* Second-level heading inside a panel. Parchment with a hairline rule rather than a fourth shade
+   of gold small caps -- it has to sit clearly below the panel title without competing with it. */
 .gm-panel__section-heading {
+  padding-bottom: .2rem;
+  border-bottom: 1px solid rgba(212, 160, 86, .18);
   font-family: var(--font-display);
-  font-size: .8rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: rgba(212, 160, 86, .8);
+  font-size: .9rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: var(--gm-parchment);
 }
 
 .gm-panel__list { padding-left: 1.15rem; display: flex; flex-direction: column; gap: .3rem; }
-.gm-panel__list li::marker { color: rgba(212, 160, 86, .6); }
+.gm-panel__list li::marker { color: rgba(212, 160, 86, .75); }
 
-.gm-panel__kv { display: flex; flex-direction: column; gap: .35rem; }
-.gm-panel__kv-row { display: flex; gap: .6rem; align-items: baseline; }
+/* Stacked, not two columns. Side-by-side made every row's key a different width, so nothing
+   lined up and it read as a broken table -- and in a 300px column it left the values wrapping in
+   a ragged strip. A bold label with its text beneath is what these pairs actually are. */
+.gm-panel__kv { display: flex; flex-direction: column; gap: .7rem; }
+.gm-panel__kv-row { display: block; }
+
 .gm-panel__kv-key {
-  flex: 0 0 auto;
-  font-family: var(--font-display);
-  font-size: .78rem;
-  letter-spacing: .06em;
-  text-transform: uppercase;
+  display: block;
+  margin-bottom: .1rem;
+  font-family: var(--font-body);
+  font-size: .9375rem;
+  font-weight: 600;
   color: var(--gm-parchment);
 }
-.gm-panel__kv-value { flex: 1; min-width: 0; }
+
+.gm-panel__kv-value { display: block; }
 
 /* Tables scroll inside the panel rather than forcing the page to scroll horizontally. */
 .gm-panel__table-wrap { overflow-x: auto; }
-.gm-panel__table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.gm-panel__table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .gm-panel__table th,
-.gm-panel__table td { padding: .35rem .5rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(212, 160, 86, .1); }
+.gm-panel__table td { padding: .4rem .5rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(212, 160, 86, .12); }
+/* Column headers recede: the panel title is the only gold uppercase on the card. */
 .gm-panel__table th {
-  font-family: var(--font-display);
-  font-size: .72rem;
+  font-family: var(--font-body);
+  font-size: .78rem;
+  font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: rgba(212, 160, 86, .85);
+  color: var(--gm-dim);
   white-space: nowrap;
 }
+.gm-panel__table tbody tr:nth-child(even) { background: rgba(245, 230, 211, .03); }
 .gm-panel__table tr:last-child td { border-bottom: none; }
 .gm-panel__table--dense th,
-.gm-panel__table--dense td { padding: .2rem .4rem; font-size: .8rem; }
+.gm-panel__table--dense td { padding: .25rem .4rem; font-size: .85rem; }
 
-.gm-panel__steps { display: flex; flex-direction: column; gap: .45rem; }
+.gm-panel__steps { padding-left: 1.15rem; display: flex; flex-direction: column; gap: .5rem; }
+.gm-panel__steps li::marker { color: rgba(212, 160, 86, .75); font-weight: 600; }
 .gm-panel__step-label { color: var(--gm-parchment); font-weight: 600; }
 .gm-panel__step-detail { display: block; }
 
@@ -157,6 +170,9 @@
 .gm-panel__callout--fear { border-left-color: #7a6fd4; background: rgba(122, 111, 212, .1); }
 .gm-panel__callout--neutral { border-left-color: rgba(245, 230, 211, .35); background: rgba(245, 230, 211, .04); }
 
+/* Shared empty/secondary line used by the campaign tool panels. */
+.gm-panel__note { margin: 0; font-style: italic; color: var(--gm-dim); }
+
 @media (max-width: 700px) {
-  .gm-panel__body { font-size: .9rem; }
+  .gm-panel__body { font-size: .95rem; }
 }

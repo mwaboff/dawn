@@ -10,22 +10,24 @@ import {
   input,
   signal,
   untracked,
-  viewChild,
+  viewChildren,
 } from '@angular/core';
-import { NgComponentOutlet, isPlatformBrowser } from '@angular/common';
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { isPlatformBrowser } from '@angular/common';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { GmPanelDef } from '../../models/gm-panel.model';
 import { MasonryGridDirective } from '../../layout/masonry-grid.directive';
 import { MasonryItemDirective } from '../../layout/masonry-item.directive';
 import { PanelLayoutStore, createPanelLayoutStore } from '../../layout/panel-layout.store';
+import { PanelSection, groupIntoSections } from '../../layout/panel-sections.util';
 import { matchesFilter } from '../../layout/panel-search.util';
-import { GmPanelBlocks } from '../gm-panel-blocks/gm-panel-blocks';
+import { GmBoardControls } from '../gm-board-controls/gm-board-controls';
+import { GmPanelCard } from '../gm-panel-card/gm-panel-card';
 
 const NARROW_QUERY = '(max-width: 700px)';
 
 /**
- * The panel board shared by the public and campaign GM screens: filtering, drag-to-reorder,
- * collapse and masonry, all driven from a `GmPanelDef[]` and a localStorage key.
+ * The panel board shared by the public and campaign GM screens: filtering, sectioning,
+ * drag-to-reorder, collapse and masonry, all driven from a `GmPanelDef[]` and a localStorage key.
  */
 @Component({
   selector: 'app-gm-panel-grid',
@@ -33,13 +35,12 @@ const NARROW_QUERY = '(max-width: 700px)';
   styleUrls: ['./gm-panel-grid.css', './gm-panel-grid-controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NgComponentOutlet,
     CdkDropList,
     CdkDrag,
-    CdkDragHandle,
     MasonryGridDirective,
     MasonryItemDirective,
-    GmPanelBlocks,
+    GmBoardControls,
+    GmPanelCard,
   ],
 })
 export class GmPanelGrid {
@@ -50,7 +51,7 @@ export class GmPanelGrid {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-  private readonly masonry = viewChild.required(MasonryGridDirective);
+  private readonly masonry = viewChildren(MasonryGridDirective);
 
   readonly filter = signal('');
   readonly isFiltering = computed(() => this.filter().trim().length > 0);
@@ -62,8 +63,9 @@ export class GmPanelGrid {
   // which is the first template read, by which time inputs are set.
   private storeRef: PanelLayoutStore | null = null;
 
-  readonly orderedPanels = computed(() => this.store.orderedPanels());
+  readonly sections = computed(() => groupIntoSections(this.store.orderedPanels()));
   readonly collapsedIds = computed(() => this.store.collapsed());
+  readonly matchCount = computed(() => this.panels().filter(p => this.matches(p)).length);
 
   constructor() {
     if (this.isBrowser && typeof matchMedia === 'function') {
@@ -88,20 +90,26 @@ export class GmPanelGrid {
     return matchesFilter(panel, this.filter());
   }
 
+  /** A section with no surviving panels is hidden outright rather than left as a bare heading. */
+  sectionMatches(section: PanelSection): boolean {
+    return section.panels.some(p => this.matches(p));
+  }
+
   isCollapsed(panel: GmPanelDef): boolean {
     return this.collapsedIds().has(panel.id);
   }
 
-  /**
-   * `until-found` rather than `@if` so Chromium's find-in-page can reveal collapsed content.
-   * An active filter forces every panel open so matches are never hidden behind a chevron.
-   */
-  bodyHidden(panel: GmPanelDef): 'until-found' | null {
-    return this.isCollapsed(panel) && !this.isFiltering() ? 'until-found' : null;
+  isSectionCollapsed(section: PanelSection): boolean {
+    return section.panels.every(p => this.isCollapsed(p));
   }
 
   toggleCollapsed(panel: GmPanelDef): void {
     this.store.toggleCollapsed(panel.id);
+  }
+
+  toggleSection(section: PanelSection): void {
+    const collapse = !this.isSectionCollapsed(section);
+    for (const panel of section.panels) this.store.setCollapsed(panel.id, collapse);
   }
 
   /** Chromium auto-expands on a find-in-page hit; sync state so the chevron does not lie. */
@@ -113,30 +121,29 @@ export class GmPanelGrid {
     this.store.setAllCollapsed(collapsed);
   }
 
-  onFilterInput(event: Event): void {
-    this.filter.set((event.target as HTMLInputElement).value);
-  }
-
-  clearFilter(): void {
-    this.filter.set('');
-  }
-
-  moveBy(index: number, delta: number): void {
-    this.store.move(index, index + delta);
+  resetLayout(): void {
+    this.store.reset();
     this.remeasure();
   }
 
-  /**
-   * Drag is disabled while filtering, so the CDK indices are indices into the full list and need
-   * no remapping.
-   */
-  onDrop(event: CdkDragDrop<unknown>): void {
-    this.store.move(event.previousIndex, event.currentIndex);
+  /** Section-local indices are mapped back onto the flat order the store persists. */
+  moveBy(section: PanelSection, index: number, delta: number): void {
+    const target = index + delta;
+    if (target < 0 || target >= section.indices.length) return;
+    this.store.move(section.indices[index], section.indices[target]);
+    this.remeasure();
+  }
+
+  /** Drag is disabled while filtering, so CDK indices are indices into the unfiltered section. */
+  onDrop(section: PanelSection, event: CdkDragDrop<unknown>): void {
+    this.store.move(section.indices[event.previousIndex], section.indices[event.currentIndex]);
     this.remeasure();
   }
 
   /** `track p.id` moves nodes rather than recreating them, but the column each lands in changes. */
   private remeasure(): void {
-    afterNextRender(() => this.masonry().recalcAll(), { injector: this.injector });
+    afterNextRender(() => this.masonry().forEach(grid => grid.recalcAll()), {
+      injector: this.injector,
+    });
   }
 }

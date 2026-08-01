@@ -1,21 +1,78 @@
+.gm-section { display: block; }
+.gm-section + .gm-section { margin-top: 2.25rem; }
+
+/* The section name is the one place the board raises its voice; panel titles sit a step below it
+   so a wall of 24 panels reads as seven groups first and 24 items second. */
+.gm-section__head {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: .85rem;
+}
+
+.gm-section__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--color-parchment);
+  white-space: nowrap;
+}
+
+.gm-section__rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(212, 160, 86, .45), rgba(212, 160, 86, .06));
+}
+
+.gm-section__btn {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 .6rem;
+  background: none;
+  border: none;
+  color: rgba(245, 230, 211, .68);
+  font-family: var(--font-display);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.gm-section__btn:hover { color: var(--color-accent-bright); background: rgba(212, 160, 86, .1); }
+.gm-section__btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
 /* Masonry substrate: tiny fixed rows the directive spans each panel across.
    `grid-auto-flow: dense` is deliberately absent -- backfilling holes would reorder panels the
-   user placed by hand. Occasional gaps beside a wide panel are the accepted cost. */
+   user placed by hand. Sections keep each run short enough that the gaps stay small. */
 .gm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   grid-auto-rows: 4px;
   gap: 16px;
 }
 
-/* A class, never an inline `grid-column` binding: an inline style would outrank the media query
+/* Classes, never inline `grid-column` bindings: an inline style would outrank the media queries
    below and overflow narrow screens. */
-.gm-panel--wide {
-  grid-column: span 2;
+.gm-panel--wide { grid-column: span 2; }
+.gm-panel--wider { grid-column: span 3; }
+
+.is-filtered-out { display: none; }
+
+.gm-board__empty {
+  margin: 2rem 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-style: italic;
+  color: rgba(245, 230, 211, .68);
 }
 
-.is-filtered-out {
-  display: none;
+/* Below ~3 columns a `span 3` panel would create an implicit fourth track and overflow the page. */
+@media (max-width: 995px) {
+  .gm-panel--wider { grid-column: span 2; }
 }
 
 @media (max-width: 700px) {
@@ -24,12 +81,12 @@
     grid-auto-rows: auto;
   }
 
-  .gm-panel--wide {
-    grid-column: span 1;
-  }
+  .gm-panel--wide,
+  .gm-panel--wider { grid-column: span 1; }
 
   /* Covers the frame where a stale inline span survives the breakpoint crossing. */
-  .gm-panel {
-    grid-row: auto !important;
-  }
+  .gm-panel { grid-row: auto !important; }
+
+  .gm-section + .gm-section { margin-top: 1.75rem; }
+  .gm-section__title { font-size: .95rem; letter-spacing: .1em; white-space: normal; }
 }

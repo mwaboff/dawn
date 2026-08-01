@@ -1,0 +1,84 @@
+@if (sheet(); as s) {
+  <div class="gm-panel__table-wrap">
+    <table class="gm-panel__table gm-panel__table--dense">
+      <thead>
+        <tr>
+          @for (trait of s.traits; track trait.abbreviation) {
+            <th scope="col">{{ trait.abbreviation }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          @for (trait of s.traits; track trait.abbreviation) {
+            <td>{{ signed(trait.modifier.modified) }}</td>
+          }
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gm-panel__kv">
+    <div class="gm-panel__kv-row">
+      <span class="gm-panel__kv-key">Armor</span>
+      <span class="gm-panel__kv-value">
+        {{ s.activeArmor?.name || 'None' }} &middot; score {{ s.armorScore.modified }} &middot;
+        {{ s.armorMarked }}/{{ s.armorMax }} marked
+      </span>
+    </div>
+    <div class="gm-panel__kv-row">
+      <span class="gm-panel__kv-key">Proficiency</span>
+      <span class="gm-panel__kv-value">{{ s.proficiency.modified }}</span>
+    </div>
+  </div>
+
+  <h4 class="gm-panel__section-heading">Experiences</h4>
+  @if (s.experiences.length) {
+    <ul class="gm-panel__list">
+      @for (experience of s.experiences; track experience.id) {
+        <li>{{ experience.description }} ({{ signed(experience.modifier) }})</li>
+      }
+    </ul>
+  } @else {
+    <p class="gm-panel__note">None recorded.</p>
+  }
+
+  <h4 class="gm-panel__section-heading">Equipped weapons</h4>
+  @if (equippedWeapons().length) {
+    <div class="gm-panel__table-wrap">
+      <table class="gm-panel__table gm-panel__table--dense">
+        <thead>
+          <tr>
+            <th scope="col">Weapon</th>
+            <th scope="col">Trait</th>
+            <th scope="col">Range</th>
+            <th scope="col">Damage</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (weapon of equippedWeapons(); track weapon.inventoryEntryId) {
+            <tr>
+              <td>{{ weapon.name }}</td>
+              <td>{{ weapon.trait }}</td>
+              <td>{{ weapon.range }}</td>
+              <td>{{ weapon.damage }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="gm-panel__note">Nothing equipped.</p>
+  }
+
+  <h4 class="gm-panel__section-heading">Loadout</h4>
+  @if (s.equippedDomainCards.length) {
+    <ul class="gm-panel__list">
+      @for (card of s.equippedDomainCards; track card.id) {
+        <li>{{ card.name }} &mdash; {{ card.domainName }} Lv {{ card.level }}, recall {{ card.recallCost }}</li>
+      }
+    </ul>
+  } @else {
+    <p class="gm-panel__note">No cards equipped.</p>
+  }
+}

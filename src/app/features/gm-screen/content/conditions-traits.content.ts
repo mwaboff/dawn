@@ -4,6 +4,7 @@ export const CONDITIONS_TRAITS_PANELS: readonly GmPanelDef[] = [
   {
     id: 'conditions',
     title: 'Conditions',
+    category: 'Conditions & Resources',
     colSpan: 1,
     defaultOrder: 60,
     keywords: ['hidden', 'restrained', 'vulnerable', 'temporary', 'clear a condition', 'stealth'],
@@ -46,8 +47,10 @@ export const CONDITIONS_TRAITS_PANELS: readonly GmPanelDef[] = [
   {
     id: 'traits',
     title: 'Character Traits',
+    category: 'Conditions & Resources',
     colSpan: 1,
     defaultOrder: 70,
+    defaultCollapsed: true,
     keywords: ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge', 'trait roll'],
     body: {
       kind: 'static',
@@ -71,6 +74,7 @@ export const CONDITIONS_TRAITS_PANELS: readonly GmPanelDef[] = [
   {
     id: 'hope-fear',
     title: 'Spending Hope & Fear',
+    category: 'Conditions & Resources',
     colSpan: 1,
     defaultOrder: 80,
     keywords: ['experience', 'tag team', 'hope feature', 'fear feature', 'interrupt', 'spotlight'],
@@ -101,8 +105,10 @@ export const CONDITIONS_TRAITS_PANELS: readonly GmPanelDef[] = [
   {
     id: 'stress',
     title: 'Stress',
+    category: 'Conditions & Resources',
     colSpan: 1,
     defaultOrder: 90,
+    defaultCollapsed: true,
     keywords: ['mark stress', 'clear stress', 'recall cost', 'vulnerable', 'last stress'],
     body: {
       kind: 'static',

@@ -1,0 +1,93 @@
+/* Panel chrome shared with campaign tool components lives in shared/styles/gm-panel.css. Only the
+   header's own interaction surfaces are here -- nothing else renders them. */
+
+.gm-panel__head {
+  position: relative;
+}
+
+/* Only the grip drags, so a long table inside a panel stays scrollable on touch. */
+.gm-panel__grip {
+  flex: 0 0 auto;
+  width: 1rem;
+  touch-action: none;
+  font-size: .95rem;
+  line-height: 1;
+  color: rgba(212, 160, 86, .45);
+  cursor: grab;
+  user-select: none;
+}
+
+:host(.cdk-drag-disabled) .gm-panel__grip { visibility: hidden; }
+
+.gm-panel__heading {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* The title is the collapse control: one wide target instead of a 44px chevron button that ate a
+   third of the header on a 300px column. */
+.gm-panel__toggle {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gm-panel__toggle:focus-visible {
+  outline: 2px solid var(--gm-accent);
+  outline-offset: -2px;
+  border-radius: 3px;
+}
+
+.gm-panel__chevron {
+  flex: 0 0 auto;
+  color: rgba(212, 160, 86, .75);
+  transition: transform .18s ease;
+}
+
+.gm-panel__chevron--collapsed { transform: rotate(-90deg); }
+
+.gm-panel__toggle:hover .gm-panel__title { color: var(--color-accent-bright); }
+
+/* Reorder arrows are keyboard affordances, and 28 panels each showing two of them at rest is
+   noise. They sit over the title's tail so revealing them costs no layout shift. */
+.gm-panel__head-actions {
+  position: absolute;
+  right: .4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: .15rem;
+  padding-left: 1.5rem;
+  /* Matches the composited header fill so the reveal has no visible seam. */
+  background: linear-gradient(to right, transparent, rgb(36, 26, 18) 1.5rem);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease;
+}
+
+:host(:hover) .gm-panel__head-actions,
+.gm-panel__head:focus-within .gm-panel__head-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .gm-panel__head-actions { opacity: 1; pointer-events: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gm-panel__chevron,
+  .gm-panel__head-actions { transition: none; }
+}

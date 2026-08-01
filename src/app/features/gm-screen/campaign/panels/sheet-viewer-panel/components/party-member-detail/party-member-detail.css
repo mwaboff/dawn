@@ -1,0 +1,9 @@
+/* Content styling comes from the global gm-panel vocabulary; this only sets the stack rhythm. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+  padding: .7rem .8rem .85rem;
+  border-top: 1px solid rgba(212, 160, 86, .18);
+  background: rgba(0, 0, 0, .18);
+}

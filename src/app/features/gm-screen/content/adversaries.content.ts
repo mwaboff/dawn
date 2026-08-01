@@ -4,8 +4,10 @@ export const ADVERSARY_PANELS: readonly GmPanelDef[] = [
   {
     id: 'battle-guide',
     title: 'Battle Guide (Battle Points)',
-    colSpan: 2,
+    category: 'Combat',
+    colSpan: 3,
     defaultOrder: 170,
+    defaultCollapsed: true,
     keywords: ['bp', 'encounter building', 'balance', 'minion', 'bruiser', 'solo', 'skulk', 'horde', 'leader'],
     body: {
       kind: 'static',
@@ -55,8 +57,10 @@ export const ADVERSARY_PANELS: readonly GmPanelDef[] = [
   {
     id: 'improvised-adversaries',
     title: 'Improvised Adversaries',
+    category: 'Combat',
     colSpan: 2,
     defaultOrder: 180,
+    defaultCollapsed: true,
     keywords: ['statblock', 'stat block', 'on the fly', 'homebrew', 'evasion', 'attack modifier', 'thresholds'],
     body: {
       kind: 'static',

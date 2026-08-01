@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, catchError, switchMap, tap } from 'rxjs';
 
 import { CampaignService } from '../../../../../shared/services/campaign.service';
-import { SavingSpinner } from '../../../../../shared/components/saving-spinner/saving-spinner';
 import { GmScreenContext } from '../../gm-screen-context.service';
 
 /** Daggerheart caps the Fear pool at 12; the backend rejects anything outside 0-12. */
@@ -14,7 +13,6 @@ const FEAR_MAX = 12;
   templateUrl: './fear-counter-panel.html',
   styleUrl: './fear-counter-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner],
 })
 export class FearCounterPanel {
   private readonly context = inject(GmScreenContext);
@@ -24,6 +22,12 @@ export class FearCounterPanel {
   readonly max = FEAR_MAX;
   readonly fear = this.context.fear;
   readonly saving = computed(() => this.context.isSaving('fear'));
+
+  /**
+   * One entry per point of the pool, true where it is filled. The pips carry the reading at a
+   * glance from across the table; the numeral is the precise value.
+   */
+  readonly pips = computed(() => Array.from({ length: FEAR_MAX }, (_, i) => i < this.fear()));
 
   constructor() {
     this.initSavePipeline();

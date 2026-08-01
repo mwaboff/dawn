@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, Subject, catchError, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, from, mergeMap, tap } from 'rxjs';
 
 import { CharacterSheetService } from '../../../../../core/services/character-sheet.service';
 import { CampaignCharacterSheet } from '../../../../../shared/models/campaign-api.model';
 import { mapToCharacterSheetView } from '../../../../character-sheet/utils/character-sheet-view.mapper';
-import { CharacterSheetView, WeaponDisplay } from '../../../../character-sheet/models/character-sheet-view.model';
+import { CharacterSheetView } from '../../../../character-sheet/models/character-sheet-view.model';
 import { GmScreenContext } from '../../gm-screen-context.service';
+import { PartyMemberDetail } from './components/party-member-detail/party-member-detail';
 
-/** Everything the read-only GM stat block below renders. Kept in sync with the template. */
+/** Everything the stat block below a roster row renders. Kept in sync with the detail template. */
 const EXPAND_FIELDS = [
   'experiences',
   'communityCards',
@@ -24,102 +25,117 @@ const EXPAND_FIELDS = [
   'modifiers',
 ];
 
-export interface SheetOption {
-  id: number;
-  label: string;
+/** Four at a time: enough to fill a typical party in one round trip without flooding the API. */
+const FETCH_CONCURRENCY = 4;
+
+export interface PartyGroup {
+  readonly label: string;
+  readonly members: readonly CampaignCharacterSheet[];
 }
 
 /**
- * Read-only view of a campaign character. Editing is deliberately absent: NPC editing from the GM
- * screen needs a campaign-aware `CharacterSheetService.validateAccess` on the backend first.
+ * Every campaign character as a vitals-first roster, because mid-combat the GM's question is
+ * "what is everyone's Evasion and who is bloodied", not "show me one sheet". Each row expands into
+ * the full stat block; sheets are fetched once and cached for the life of the panel.
  */
 @Component({
   selector: 'app-sheet-viewer-panel',
   templateUrl: './sheet-viewer-panel.html',
   styleUrl: './sheet-viewer-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [PartyMemberDetail],
 })
 export class SheetViewerPanel {
   private readonly context = inject(GmScreenContext);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly selectedId = signal<number | null>(null);
-  readonly sheet = signal<CharacterSheetView | null>(null);
-  readonly loading = signal(false);
-  readonly error = signal(false);
+  private readonly sheets = signal<ReadonlyMap<number, CharacterSheetView>>(new Map());
+  private readonly loadingIds = signal<ReadonlySet<number>>(new Set());
+  private readonly failedIds = signal<ReadonlySet<number>>(new Set());
 
-  readonly playerOptions = computed(() =>
-    this.toOptions(this.context.campaign()?.playerCharacters, this.context.campaign()?.playerCharacterIds),
-  );
-  readonly npcOptions = computed(() =>
-    this.toOptions(this.context.campaign()?.nonPlayerCharacters, this.context.campaign()?.nonPlayerCharacterIds),
-  );
-  readonly hasOptions = computed(() => this.playerOptions().length > 0 || this.npcOptions().length > 0);
+  readonly expandedId = signal<number | null>(null);
 
-  readonly equippedWeapons = computed(() => {
-    const view = this.sheet();
-    if (!view) return [];
-    return [view.activePrimaryWeapon, view.activeSecondaryWeapon].filter(
-      (weapon): weapon is WeaponDisplay => weapon !== null,
-    );
+  readonly groups = computed<readonly PartyGroup[]>(() => {
+    const campaign = this.context.campaign();
+    return [
+      { label: 'Player characters', members: campaign?.playerCharacters ?? [] },
+      { label: 'NPCs', members: campaign?.nonPlayerCharacters ?? [] },
+    ].filter(group => group.members.length > 0);
   });
 
-  private readonly load$ = new Subject<number>();
+  readonly hasMembers = computed(() => this.groups().length > 0);
+  readonly anyLoading = computed(() => this.loadingIds().size > 0);
 
   constructor() {
-    this.initLoadPipeline();
+    effect(() => {
+      const ids = this.groups().flatMap(group => group.members.map(member => member.id));
+      untracked(() => this.loadMissing(ids));
+    });
   }
 
-  onSelect(value: string): void {
-    const id = Number(value);
-    if (!id) {
-      this.selectedId.set(null);
-      this.sheet.set(null);
-      this.error.set(false);
-      return;
-    }
-    this.selectedId.set(id);
-    this.load$.next(id);
+  sheetFor(id: number): CharacterSheetView | null {
+    return this.sheets().get(id) ?? null;
   }
 
+  isLoading(id: number): boolean {
+    return this.loadingIds().has(id);
+  }
+
+  hasFailed(id: number): boolean {
+    return this.failedIds().has(id);
+  }
+
+  isExpanded(id: number): boolean {
+    return this.expandedId() === id;
+  }
+
+  /** One open at a time: two full stat blocks in a panel column is unreadable. */
+  toggle(id: number): void {
+    this.expandedId.update(current => (current === id ? null : id));
+  }
+
+  /** Drops every cached sheet so the next render refetches -- vitals go stale within a scene. */
   refresh(): void {
-    const id = this.selectedId();
-    if (id !== null) this.load$.next(id);
+    this.sheets.set(new Map());
+    this.failedIds.set(new Set());
+    this.loadMissing(this.groups().flatMap(group => group.members.map(member => member.id)));
   }
 
-  signed(value: number): string {
-    return value >= 0 ? `+${value}` : `${value}`;
-  }
+  private loadMissing(ids: readonly number[]): void {
+    const sheets = this.sheets();
+    const loading = this.loadingIds();
+    const pending = ids.filter(id => !sheets.has(id) && !loading.has(id));
+    if (pending.length === 0) return;
 
-  private toOptions(sheets: CampaignCharacterSheet[] | undefined, ids: number[] | undefined): SheetOption[] {
-    if (sheets?.length) {
-      return sheets.map(s => ({ id: s.id, label: `${s.name} (Lv ${s.level})` }));
-    }
-    return (ids ?? []).map(id => ({ id, label: `Character #${id}` }));
-  }
-
-  private initLoadPipeline(): void {
-    this.load$
+    this.loadingIds.update(current => new Set([...current, ...pending]));
+    from(pending)
       .pipe(
-        switchMap(id => {
-          this.loading.set(true);
-          this.error.set(false);
-          return this.characterSheetService.getCharacterSheet(id, EXPAND_FIELDS).pipe(
-            tap(response => {
-              this.sheet.set(mapToCharacterSheetView(response));
-              this.loading.set(false);
-            }),
-            catchError(() => {
-              this.sheet.set(null);
-              this.error.set(true);
-              this.loading.set(false);
-              return EMPTY;
-            }),
-          );
-        }),
+        mergeMap(id => this.fetch(id), FETCH_CONCURRENCY),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  private fetch(id: number) {
+    return this.characterSheetService.getCharacterSheet(id, EXPAND_FIELDS).pipe(
+      tap(response => {
+        this.sheets.update(current => new Map(current).set(id, mapToCharacterSheetView(response)));
+        this.settle(id);
+      }),
+      catchError(() => {
+        this.failedIds.update(current => new Set(current).add(id));
+        this.settle(id);
+        return EMPTY;
+      }),
+    );
+  }
+
+  private settle(id: number): void {
+    this.loadingIds.update(current => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
   }
 }

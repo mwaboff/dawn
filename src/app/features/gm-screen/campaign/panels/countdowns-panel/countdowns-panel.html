@@ -1,0 +1,74 @@
+@if (loading()) {
+  <p class="gm-panel__note">Loading countdowns…</p>
+} @else if (loadFailed()) {
+  <p class="gm-panel__note">Couldn't load countdowns.</p>
+} @else {
+  @for (countdown of countdowns(); track countdown.id) {
+    <app-countdown-row
+      class="cd-row"
+      [countdown]="countdown"
+      [deletePending]="pendingDeleteId() === countdown.id"
+      (tick)="onTick(countdown, $event)"
+      (deleteRequested)="onDeleteRequested(countdown.id)"
+      (deleteConfirmed)="onDeleteConfirmed(countdown)"
+      (deleteCancelled)="onDeleteCancelled()"
+    />
+  } @empty {
+    <p class="gm-panel__note">No countdowns yet. Add one to start tracking a looming event.</p>
+  }
+}
+
+@if (addFormOpen()) {
+  <form class="cd-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="cd-form__field">
+      <label class="form-label" for="cd-name">What is coming?</label>
+      <input
+        id="cd-name"
+        class="form-input"
+        type="text"
+        formControlName="name"
+        placeholder="The ritual completes"
+      />
+      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+        <p class="form-error">Give the countdown a name.</p>
+      }
+    </div>
+
+    <div class="cd-form__inline">
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-start">Segments</label>
+        <input id="cd-start" class="form-input form-input--sm" type="number" min="1" max="99" formControlName="startingValue" />
+        <p class="cd-form__hint">2–4 soon · 5+ across a scene</p>
+      </div>
+
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-type">Advances</label>
+        <select id="cd-type" class="form-input" formControlName="type">
+          @for (option of typeOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="cd-form__field">
+        <label class="form-label" for="cd-loop">At zero</label>
+        <select id="cd-loop" class="form-input" formControlName="loopBehavior">
+          @for (option of loopOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="cd-form__actions">
+      <button type="submit" class="btn btn--primary btn--sm" [disabled]="adding()">Add</button>
+      <button type="button" class="btn btn--secondary btn--sm" (click)="toggleAddForm()">Cancel</button>
+    </div>
+  </form>
+} @else {
+  <button type="button" class="btn btn--secondary btn--sm cd-add" (click)="toggleAddForm()">
+    + Add a countdown
+  </button>
+}
+
+<app-countdown-help />

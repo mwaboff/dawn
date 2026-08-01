@@ -7,6 +7,7 @@ function staticPanel(blocks: readonly GmContentBlock[], keywords?: readonly stri
   return {
     id: 'p',
     title: 'Damage Thresholds',
+    category: 'Combat',
     colSpan: 1,
     defaultOrder: 10,
     body: { kind: 'static', blocks },
@@ -59,6 +60,7 @@ describe('panelSearchText', () => {
     const panel: GmPanelDef = {
       id: 'fear-counter',
       title: 'Fear',
+      category: 'This Campaign',
       colSpan: 1,
       defaultOrder: -400,
       body: { kind: 'component', component: Noop },

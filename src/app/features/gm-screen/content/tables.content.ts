@@ -5,8 +5,10 @@ export const TABLES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'gold',
     title: 'Gold & Average Costs',
+    category: 'Tables',
     colSpan: 1,
     defaultOrder: 230,
+    defaultCollapsed: true,
     keywords: ['coins', 'handful', 'bag', 'chest', 'currency', 'price', 'shopping', 'inn', 'mount'],
     body: {
       kind: 'static',
@@ -44,8 +46,10 @@ export const TABLES_PANELS: readonly GmPanelDef[] = [
   {
     id: 'random-tables',
     title: 'Random Tables (d12)',
-    colSpan: 2,
+    category: 'Tables',
+    colSpan: 3,
     defaultOrder: 240,
+    defaultCollapsed: true,
     keywords: ['improvise', 'generator', 'npc', 'name', 'description', 'location', 'item', 'roll'],
     body: {
       kind: 'static',

@@ -1,26 +1,32 @@
-<div class="fear">
-  <button
-    type="button"
-    class="gm-panel__btn fear__step"
-    [disabled]="fear() === 0"
-    (click)="adjust(-1)"
-    aria-label="Decrease Fear"
-  >&minus;</button>
+<span class="fear__label">Fear</span>
 
-  <p class="fear__readout" aria-live="polite">
-    <span class="fear__value">{{ fear() }}</span>
-    <span class="fear__max">of {{ max }}</span>
-  </p>
+<button
+  type="button"
+  class="fear__step"
+  [disabled]="fear() === 0"
+  (click)="adjust(-1)"
+  aria-label="Spend a Fear"
+>&minus;</button>
 
-  <button
-    type="button"
-    class="gm-panel__btn fear__step"
-    [disabled]="fear() === max"
-    (click)="adjust(1)"
-    aria-label="Increase Fear"
-  >+</button>
-</div>
+<p class="fear__readout" aria-live="polite">
+  <span class="fear__value">{{ fear() }}</span>
+  <span class="fear__max">/ {{ max }}</span>
+</p>
 
-@if (saving()) {
-  <div class="fear__saving"><app-saving-spinner /></div>
-}
+<button
+  type="button"
+  class="fear__step"
+  [disabled]="fear() === max"
+  (click)="adjust(1)"
+  aria-label="Gain a Fear"
+>+</button>
+
+<span class="fear__pips" aria-hidden="true">
+  @for (pip of pips(); track $index) {
+    <span class="fear__pip" [class.fear__pip--filled]="pip"></span>
+  }
+</span>
+
+<span class="fear__save" aria-hidden="true">
+  <span class="fear__save-dot" [class.is-saving]="saving()"></span>
+</span>

@@ -56,6 +56,13 @@ describe('CampaignGmScreen', () => {
   }
 
   afterEach(() => {
+    // Once the campaign resolves, the Countdowns panel loads its own list. That belongs to the
+    // panel's spec, not the shell's, so drain it here rather than asserting on it in every test.
+    // Already-cancelled ones are the panel being torn down mid-flight, which cannot be flushed.
+    httpTesting
+      .match(r => r.url.includes('/countdowns'))
+      .filter(request => !request.cancelled)
+      .forEach(request => request.flush([]));
     httpTesting.verify();
   });
 
@@ -80,6 +87,40 @@ describe('CampaignGmScreen', () => {
     const grid = fixture.debugElement.query(node => node.componentInstance instanceof GmPanelGrid);
     expect(grid).toBeTruthy();
     expect(grid.componentInstance.panels().length).toBe(CAMPAIGN_GM_PANELS.length + STATIC_GM_PANELS.length);
+  });
+
+  it('should pin Fear into the board bar rather than the scrolling grid', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+
+    // Projected through the grid into the sticky bar, so it stays on screen while the board scrolls.
+    const fear = el.querySelector('app-gm-board-controls app-fear-counter-panel');
+    expect(fear).toBeTruthy();
+    expect(fear?.textContent).toContain('3');
+    expect(el.querySelector('.gm-grid app-fear-counter-panel')).toBeNull();
+  });
+
+  it('should offer the dice roller to a game master but not on an access-denied screen', () => {
+    setup();
+    const authService = TestBed.inject(AuthService);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 1, username: 'gm_user', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    fixture.detectChanges();
+    expect(el.querySelector('app-dice-roller')).toBeTruthy();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (authService as any)['currentUser'].set({ id: 99, username: 'player', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+    fixture.detectChanges();
+    expect(el.querySelector('app-dice-roller')).toBeNull();
   });
 
   it('should show access-denied for a non-game-master, non-admin user', () => {

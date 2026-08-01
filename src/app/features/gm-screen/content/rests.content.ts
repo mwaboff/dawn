@@ -4,8 +4,10 @@ export const REST_PANELS: readonly GmPanelDef[] = [
   {
     id: 'rests',
     title: 'Short Rest & Long Rest',
+    category: 'Downtime',
     colSpan: 2,
     defaultOrder: 140,
+    defaultCollapsed: true,
     keywords: ['downtime', 'recover', 'heal', 'healing', 'loadout', 'vault', 'domain cards', 'project', 'countdown'],
     body: {
       kind: 'static',
@@ -78,12 +80,6 @@ export const REST_PANELS: readonly GmPanelDef[] = [
               'Work on a Project',
               'Establish or continue work on a project. The GM might ask for an action roll to determine how much to tick down on the Progress Countdown.',
             ],
-          ],
-        },
-        {
-          kind: 'text',
-          paragraphs: [
-            'Swapping domain cards outside a rest costs Stress equal to the card’s Recall Cost; swapping during a Short or Long Rest is free.',
           ],
         },
       ],
