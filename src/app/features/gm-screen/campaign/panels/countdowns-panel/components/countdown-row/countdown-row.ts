@@ -54,6 +54,12 @@ export class CountdownRow {
   readonly atZero = computed(() => this.countdown().currentValue === 0);
   readonly atStart = computed(() => this.countdown().currentValue === this.countdown().startingValue);
 
+  /**
+   * A decreasing countdown that has decayed past its final loop. Its major event has happened and
+   * there is nothing left to tick (Core Rulebook p. 163).
+   */
+  readonly spent = computed(() => this.countdown().startingValue === 0);
+
   onTickDown(): void {
     this.tick.emit(this.countdown().currentValue - 1);
   }

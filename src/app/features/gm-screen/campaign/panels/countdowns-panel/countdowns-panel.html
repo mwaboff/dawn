@@ -38,6 +38,7 @@
       <div class="cd-form__field">
         <label class="form-label" for="cd-start">Segments</label>
         <input id="cd-start" class="form-input form-input--sm" type="number" min="1" max="99" formControlName="startingValue" />
+        <p class="cd-form__hint">2–4 soon · 5+ across a scene</p>
       </div>
 
       <div class="cd-form__field">
@@ -82,9 +83,64 @@
 @if (helpOpen()) {
   <div class="cd-help">
     <p>
-      A countdown is a number of segments counting down to something that is going to happen. Set
-      how many segments it has, tick it down when its trigger fires, and when it hits 0 the thing
-      happens.
+      A countdown tracks progress toward an event, consequence, or adversary move. It starts at a
+      number, ticks down, and when it reaches 0 the thing happens — right after the roll that got
+      it there is resolved.
+    </p>
+
+    <p class="gm-panel__section-heading">Three things to decide</p>
+    <dl class="gm-panel__kv">
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Activation</dt>
+        <dd class="gm-panel__kv-value">
+          What moment in the fiction starts it? "The PCs sneak into the enemy camp."
+        </dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Advancement</dt>
+        <dd class="gm-panel__kv-value">
+          What makes it tick down? Every action roll, or only certain roll results — that's what the
+          type below sets.
+        </dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">Effect</dt>
+        <dd class="gm-panel__kv-value">
+          What happens at 0? An enemy's big move, reinforcements, the bridge finally giving way.
+        </dd>
+      </div>
+    </dl>
+
+    <p class="gm-panel__note">
+      You can tell the players outright ("I'm starting a countdown to when the army attacks") or
+      just imply it ("the bridge is starting to crack"). Showing the number builds tension; hiding
+      it keeps them guessing.
+    </p>
+
+    <p class="gm-panel__section-heading">How many segments</p>
+    <dl class="gm-panel__kv">
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">2–4</dt>
+        <dd class="gm-panel__kv-value">
+          Something that should land soon, regardless of how the players roll.
+        </dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">5+</dt>
+        <dd class="gm-panel__kv-value">A powerful move or event that builds across a whole scene.</dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">5–10</dt>
+        <dd class="gm-panel__kv-value">Typical for progress and consequence countdowns.</dd>
+      </div>
+      <div class="gm-panel__kv-row">
+        <dt class="gm-panel__kv-key">4–12</dt>
+        <dd class="gm-panel__kv-value">Typical for a long-term countdown spanning sessions.</dd>
+      </div>
+    </dl>
+
+    <p class="gm-panel__note">
+      Running several at once gets complicated — most encounters use no more than one.
     </p>
 
     <p class="gm-panel__section-heading">When to tick</p>
@@ -125,7 +181,8 @@
 
     <p class="gm-panel__note">
       Progress countdowns run toward something good, consequence countdowns toward something bad.
-      A looping countdown starts over once its effect fires.
+      A looping countdown starts over once its effect fires; a decreasing one loops fewer segments
+      each time and ends for good when it runs out.
     </p>
   </div>
 }

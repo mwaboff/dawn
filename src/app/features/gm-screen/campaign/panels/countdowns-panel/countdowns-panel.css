@@ -36,6 +36,12 @@
   flex: 1 1 8rem;
 }
 
+.cd-form__hint {
+  margin: 0;
+  font-size: .75rem;
+  color: var(--gm-dim);
+}
+
 .cd-form__inline {
   display: flex;
   flex-wrap: wrap;

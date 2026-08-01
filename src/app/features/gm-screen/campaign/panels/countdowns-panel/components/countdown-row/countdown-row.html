@@ -52,6 +52,10 @@
   <p class="cd-row__note">{{ countdown().note }}</p>
 }
 
-@if (atZero()) {
+@if (spent()) {
+  <p class="gm-panel__callout gm-panel__callout--fear">
+    Run out — this is the decreasing countdown's final event.
+  </p>
+} @else if (atZero()) {
   <p class="gm-panel__callout gm-panel__callout--fear">Triggered — its effect happens now.</p>
 }

@@ -112,6 +112,13 @@ describe('CountdownRow', () => {
     expect(emitted).toBe(6);
   });
 
+  it('announces a decreasing countdown that has run out of loops', () => {
+    setUp(countdown({ startingValue: 0, currentValue: 0, loopBehavior: 'LOOP_DECREASING' }));
+    expect(fixture.nativeElement.querySelector('.gm-panel__callout').textContent).toContain(
+      'Run out',
+    );
+  });
+
   it('renders the note when one is set', () => {
     setUp(countdown({ note: 'The gate opens' }));
     expect(fixture.nativeElement.querySelector('.cd-row__note').textContent.trim()).toBe(
