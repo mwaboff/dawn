@@ -1,0 +1,60 @@
+<div class="panel">
+  <h2 class="panel__title">Martial Stances</h2>
+
+  @if (activeStanceId() !== null) {
+    <div class="stance-active" role="status">
+      <span class="stance-active__label">Active</span>
+      @for (group of tierGroups(); track group.tier) {
+        @for (stance of group.stances; track stance.id) {
+          @if (stance.id === activeStanceId()) {
+            <span class="stance-active__name">{{ stance.name }}</span>
+          }
+        }
+      }
+      @if (canAct()) {
+        <button type="button" class="stance-btn stance-btn--clear" (click)="onClear()" [disabled]="actionInFlight()">
+          Drop Stance
+        </button>
+      }
+    </div>
+  }
+
+  @if (knownStances().length === 0) {
+    <p class="stance-empty">No martial stances known yet.</p>
+  } @else {
+    @for (group of tierGroups(); track group.tier) {
+      <div class="stance-tier-group">
+        <h3 class="stance-tier-group__heading">Tier {{ group.tier }}</h3>
+        <div class="stance-list">
+          @for (stance of group.stances; track stance.id) {
+            <div class="stance-card" [class.stance-card--active]="isActive(stance.id)">
+              <div class="stance-card__header">
+                <span class="stance-card__name">{{ stance.name }}</span>
+                @if (canAct() && !isActive(stance.id)) {
+                  <button type="button" class="stance-btn" (click)="onActivate(stance.id)" [disabled]="!canActivateAnotherStance()">
+                    Enter (1 Focus)
+                  </button>
+                }
+                @if (isActive(stance.id)) {
+                  <span class="stance-card__active-badge">Active</span>
+                }
+              </div>
+              @if (stance.description) {
+                <p class="stance-card__description">{{ stance.description }}</p>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <div class="stance-drop-reminder">
+    <h3 class="stance-drop-reminder__heading">A stance drops when...</h3>
+    <ul class="stance-drop-reminder__list">
+      @for (condition of dropConditions; track condition) {
+        <li>{{ condition }}</li>
+      }
+    </ul>
+  </div>
+</div>

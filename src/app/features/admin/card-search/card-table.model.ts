@@ -91,6 +91,13 @@ const CATEGORY_DEFS: AdminCategory[] = [
     TIER,
     { key: 'example', label: 'Examples', width: '14rem' },
   ] },
+  { id: 'transformationCard', label: 'Transformation Cards', type: 'TRANSFORMATION_CARD', columns: [
+    { key: 'detail', label: 'Detail', width: '16rem' },
+  ] },
+  { id: 'martialStance', label: 'Martial Stances', type: 'MARTIAL_STANCE', columns: [
+    TIER,
+    { key: 'detail', label: 'Detail', width: '14rem' },
+  ] },
 ];
 
 export const ADMIN_CATEGORIES: AdminCategory[] = CATEGORY_DEFS.map(cat => ({

@@ -30,24 +30,24 @@ describe('LandingTypeGrid', () => {
     expect(fixture.nativeElement.querySelector('app-landing-type-grid')).toBeTruthy();
   });
 
-  it('renders 13 type cards', () => {
+  it('renders 15 type cards', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card');
-    expect(cards.length).toBe(13);
+    expect(cards.length).toBe(15);
   });
 
   it('renders a glyph for each card', () => {
     const glyphs = fixture.nativeElement.querySelectorAll('.type-glyph');
-    expect(glyphs.length).toBe(13);
+    expect(glyphs.length).toBe(15);
   });
 
   it('renders a label for each card', () => {
     const labels = fixture.nativeElement.querySelectorAll('.type-label');
-    expect(labels.length).toBe(13);
+    expect(labels.length).toBe(15);
   });
 
   it('renders a tagline for each card', () => {
     const taglines = fixture.nativeElement.querySelectorAll('.type-tagline');
-    expect(taglines.length).toBe(13);
+    expect(taglines.length).toBe(15);
   });
 
   it('emits WEAPON when Weapons card is clicked', () => {
@@ -112,6 +112,20 @@ describe('LandingTypeGrid', () => {
     const beastformCard = Array.from(cards).find(c => c.textContent?.includes('Beastform'));
     beastformCard?.click();
     expect(host.lastSelectedType).toBe('BEASTFORM');
+  });
+
+  it('emits TRANSFORMATION_CARD when Transformation Cards card is clicked', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
+    const transformationCard = Array.from(cards).find(c => c.textContent?.includes('Transformation Cards'));
+    transformationCard?.click();
+    expect(host.lastSelectedType).toBe('TRANSFORMATION_CARD');
+  });
+
+  it('emits MARTIAL_STANCE when Martial Stances card is clicked', () => {
+    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
+    const martialStanceCard = Array.from(cards).find(c => c.textContent?.includes('Martial Stances'));
+    martialStanceCard?.click();
+    expect(host.lastSelectedType).toBe('MARTIAL_STANCE');
   });
 
   it('does not render a Features card', () => {

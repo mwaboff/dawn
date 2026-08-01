@@ -1,0 +1,55 @@
+<div class="panel">
+  <h2 class="panel__title">Transformation</h2>
+
+  <h3 class="transformation-name">{{ card().name }}</h3>
+  @if (card().description) {
+    <p class="transformation-description" [innerHTML]="card().description | formatText"></p>
+  }
+
+  @if (features().length > 0) {
+    <div class="transformation-features">
+      @for (feature of features(); track feature.id) {
+        <div class="transformation-feature">
+          <strong class="transformation-feature__name">{{ feature.name }}</strong>
+          @if (feature.description) {
+            <p class="transformation-feature__description" [innerHTML]="feature.description | formatText"></p>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (isVampire()) {
+    <div class="feed-tokens">
+      <span class="feed-tokens__label">Feed Tokens</span>
+      <div class="feed-tokens__controls">
+        <button type="button" class="feed-tokens__btn" (click)="adjustTokens(-1)" [disabled]="!canAct() || currentTokens() <= 0" aria-label="Remove a Feed token">&#8722;</button>
+        <span class="feed-tokens__value">{{ currentTokens() }}/{{ maxTokens }}</span>
+        <button type="button" class="feed-tokens__btn" (click)="adjustTokens(1)" [disabled]="!canAct() || currentTokens() >= maxTokens" aria-label="Add a Feed token">+</button>
+      </div>
+      @if (currentTokens() === 0) {
+        <p class="feed-tokens__warning">At 0 tokens, action and reaction rolls have disadvantage.</p>
+      }
+    </div>
+  }
+
+  @if (isWerewolf()) {
+    <div class="wolf-form">
+      <span class="wolf-form__label">Wolf Form</span>
+      <button type="button" class="wolf-form__toggle" [class.wolf-form__toggle--active]="wolfFormActive()" (click)="onWolfFormToggle()" [disabled]="!canAct()" [attr.aria-pressed]="wolfFormActive()">
+        {{ wolfFormActive() ? 'Active' : 'Inactive' }}
+      </button>
+    </div>
+  }
+
+  @if (questions().length > 0) {
+    <div class="transformation-questions">
+      <h3 class="transformation-questions__heading">Questions</h3>
+      <ol class="transformation-questions__list">
+        @for (question of questions(); track question.id) {
+          <li>{{ question.questionText }}</li>
+        }
+      </ol>
+    </div>
+  }
+</div>

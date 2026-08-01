@@ -13,7 +13,9 @@ export type CardType =
   | 'subclassPath'
   | 'feature'
   | 'environment'
-  | 'beastform';
+  | 'beastform'
+  | 'transformationCard'
+  | 'martialStance';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -31,6 +33,8 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   feature: 'Feature',
   environment: 'Environment',
   beastform: 'Beastform',
+  transformationCard: 'Transformation Card',
+  martialStance: 'Martial Stance',
 };
 
 export interface CardFeature {

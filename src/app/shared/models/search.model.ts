@@ -130,6 +130,8 @@ export const typeGlyphs: Partial<Record<SearchableEntityType, string>> = {
   DOMAIN_CARD: '✧',
   DOMAIN: '⬢',
   COMPANION: '❦',
+  TRANSFORMATION_CARD: '☍',
+  MARTIAL_STANCE: '☯',
 };
 
 /**
@@ -152,6 +154,8 @@ export const BROWSABLE_TYPES: SearchableEntityType[] = [
   'ENVIRONMENT',
   'COMPANION',
   'BEASTFORM',
+  'TRANSFORMATION_CARD',
+  'MARTIAL_STANCE',
 ];
 
 /**

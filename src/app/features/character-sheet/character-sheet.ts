@@ -1,16 +1,22 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, LowerCasePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { isAtLeast } from '../../shared/models/role.model';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { hasBeastformFeature } from './utils/beastform-access.utils';
+import { hasMartialStances } from './utils/martial-stance-access.utils';
+import { hasWarlockResources, hasBrawlerResources } from './utils/hf-class-resource-access.utils';
+import { patronDieForLevel } from './utils/patron-die.utils';
 import { BeastformSection } from './components/beastform-section/beastform-section';
+import { MartialStancePanel } from './components/martial-stance-panel/martial-stance-panel';
+import { TransformationPanel } from './components/transformation-panel/transformation-panel';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
@@ -19,6 +25,8 @@ import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../shared/models/loot-api.model';
+import { TransformationCardService } from '../../shared/services/transformation-card.service';
+import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
 import {
   WeaponResponse as CsWeaponResponse,
   ArmorResponse as CsArmorResponse,
@@ -38,12 +46,14 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, BeastformSection],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
+  private readonly diceRollerService = inject(DiceRollerService);
+  private readonly transformationCardService = inject(TransformationCardService);
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -59,6 +69,12 @@ export class CharacterSheet implements OnInit {
   private readonly localArmorMarked = signal<number | null>(null);
   private readonly localGoldAdjustment = signal(0);
   private readonly swapInFlight = signal(false);
+  /** True while a Hope & Fear stance/transformation PUT is in flight; disables the panel controls. */
+  readonly hfActionInFlight = signal(false);
+
+  private readonly localFocusMarked = signal<number | null>(null);
+  private readonly localFavor = signal<number | null>(null);
+  readonly lastFocusRoll = signal<number | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -66,17 +82,59 @@ export class CharacterSheet implements OnInit {
   private readonly hopeStressSave$ = new Subject<void>();
   private readonly goldSave$ = new Subject<void>();
   private readonly notesSave$ = new Subject<void>();
+  private readonly focusSave$ = new Subject<void>();
+  private readonly favorSave$ = new Subject<void>();
 
   private readonly savingSections = signal<Set<string>>(new Set());
   readonly isSavingHealth = computed(() => this.savingSections().has('health'));
   readonly isSavingHopeStress = computed(() => this.savingSections().has('hopeStress'));
   readonly isSavingGold = computed(() => this.savingSections().has('gold'));
+  readonly isSavingFocus = computed(() => this.savingSections().has('focus'));
+  readonly isSavingFavor = computed(() => this.savingSections().has('favor'));
 
   readonly markedHp = computed(() => this.localHpMarked() ?? (this.characterSheet()?.hitPointMarked ?? 0));
   readonly markedStress = computed(() => this.localStressMarked() ?? (this.characterSheet()?.stressMarked ?? 0));
   readonly markedHope = computed(() => this.localHopeMarked() ?? (this.characterSheet()?.hopeMarked ?? 0));
   readonly markedArmor = computed(() => this.localArmorMarked() ?? (this.characterSheet()?.armorMarked ?? 0));
   readonly currentGold = computed(() => (this.characterSheet()?.gold ?? 0) + this.localGoldAdjustment());
+
+  readonly focusMax = computed(() => this.rawSheet()?.focusMax ?? 0);
+  readonly markedFocus = computed(() => this.localFocusMarked() ?? (this.rawSheet()?.focusMarked ?? 0));
+  readonly currentFavor = computed(() => this.localFavor() ?? (this.rawSheet()?.favor ?? 0));
+
+  /**
+   * Martial Stances are granted by the Martial Artist subclass foundation feature "Stance
+   * Fighter", so -- unlike Beastform -- the gate scans `subclassCards`, not `classes`.
+   */
+  readonly showMartialStances = computed(() => hasMartialStances(this.rawSheet()?.subclassCards));
+
+  /** Warlock's Favor + Patron Die, gated on the "Patron's Pact" class feature. */
+  readonly showWarlockResources = computed(() => hasWarlockResources(this.rawSheet()?.classes));
+
+  /** Brawler's stored Combo Die, gated on the "Combo Strike" class feature. */
+  readonly showBrawlerResources = computed(() => hasBrawlerResources(this.rawSheet()?.classes));
+
+  /** Combo Die is a player choice (once per tier) and is stored; it defaults to a d4 per the
+   * printed rule until the player upgrades it via level-up. */
+  readonly comboDie = computed(() => this.rawSheet()?.comboDie ?? 'D4');
+
+  /** Patron Die has no player input, so it is derived from level rather than persisted. */
+  readonly patronDie = computed(() => patronDieForLevel(this.rawSheet()?.level ?? 1));
+
+  readonly knownMartialStances = computed(() => this.rawSheet()?.knownMartialStances ?? []);
+  readonly activeMartialStanceId = computed(() => this.rawSheet()?.activeMartialStanceId ?? null);
+
+  /**
+   * The character-sheet endpoint's `?expand=transformationCard` always resolves the nested card
+   * with an empty expand set server-side, so it never carries `features`/`questions` -- only the
+   * 6 official cards exist, so the full catalog (already `?expand=features,questions`) is fetched
+   * once and matched by id to fill those in, falling back to the sheet's bare card while that
+   * fetch is pending or if it fails.
+   */
+  private readonly transformationCardDetail = signal<TransformationCardResponse | null>(null);
+  readonly transformationCard = computed(() => this.transformationCardDetail() ?? this.rawSheet()?.transformationCard ?? null);
+  readonly transformationTokens = computed(() => this.rawSheet()?.transformationTokens ?? null);
+  readonly wolfFormActive = computed(() => this.rawSheet()?.wolfFormActive ?? false);
 
   readonly isOwner = computed(() => {
     const sheet = this.characterSheet();
@@ -184,8 +242,12 @@ export class CharacterSheet implements OnInit {
       'inventoryArmors',
       'inventoryItems',
       'features',
+      'questions',
       'costTags',
       'modifiers',
+      'transformationCard',
+      'knownMartialStances',
+      'activeMartialStance',
     ];
 
     this.characterSheetService
@@ -195,6 +257,9 @@ export class CharacterSheet implements OnInit {
           this.rawSheet.set(response);
           this.characterSheet.set(mapToCharacterSheetView(response));
           this.loading.set(false);
+          if (response.transformationCardId != null) {
+            this.loadTransformationCardDetail(response.transformationCardId);
+          }
         },
         error: () => {
           this.error.set(true);
@@ -203,20 +268,140 @@ export class CharacterSheet implements OnInit {
       });
   }
 
-  toggleResourceBox(resource: 'hp' | 'stress' | 'hope' | 'armor', index: number): void {
-    const current = { hp: this.markedHp, stress: this.markedStress, hope: this.markedHope, armor: this.markedArmor }[resource]();
+  toggleResourceBox(resource: 'hp' | 'stress' | 'hope' | 'armor' | 'focus', index: number): void {
+    const current = { hp: this.markedHp, stress: this.markedStress, hope: this.markedHope, armor: this.markedArmor, focus: this.markedFocus }[resource]();
     const newValue = current === index ? index - 1 : index;
     switch (resource) {
       case 'hp': this.localHpMarked.set(newValue); break;
       case 'stress': this.localStressMarked.set(newValue); break;
       case 'hope': this.localHopeMarked.set(newValue); break;
       case 'armor': this.localArmorMarked.set(newValue); break;
+      case 'focus': this.localFocusMarked.set(newValue); break;
     }
     if (resource === 'hp' || resource === 'armor') {
       this.healthSave$.next();
+    } else if (resource === 'focus') {
+      this.focusSave$.next();
     } else {
       this.hopeStressSave$.next();
     }
+  }
+
+  private loadTransformationCardDetail(cardId: number): void {
+    this.transformationCardService.getAllTransformationCards().subscribe({
+      next: cards => this.transformationCardDetail.set(cards.find(c => c.id === cardId) ?? null),
+      error: () => this.transformationCardDetail.set(null),
+    });
+  }
+
+  /**
+   * Rolls Instinct-many d6 through the shared client-side dice roller and gains Focus equal to
+   * the HIGHEST single die -- not a sum, and not simply refilling to max. There is deliberately no
+   * backend endpoint for this: every roll in the app is client-side, with the server only storing
+   * the result.
+   */
+  refreshFocus(): void {
+    if (!this.isOwner()) return;
+    const instinct = this.rawSheet()?.instinctModifier ?? 0;
+    const diceCount = Math.max(instinct, 1);
+    const result = this.diceRollerService.roll({ dice: [{ type: 'd6', count: diceCount }], includeDuality: false });
+    const highest = Math.max(...result.diceResults.map(d => d.value));
+    const clamped = Math.min(highest, this.focusMax());
+    this.lastFocusRoll.set(highest);
+    this.localFocusMarked.set(clamped);
+    this.focusSave$.next();
+  }
+
+  adjustFavor(amount: number): void {
+    this.localFavor.update(current => (current ?? this.rawSheet()?.favor ?? 0) + amount);
+    this.favorSave$.next();
+  }
+
+  onActivateMartialStance(stanceId: number): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+    if (raw.activeMartialStanceId === stanceId) return;
+
+    const focusBefore = this.markedFocus();
+    if (focusBefore < 1) return;
+    const newFocus = focusBefore - 1;
+    const activeStance = this.knownMartialStances().find(s => s.id === stanceId) ?? null;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, activeMartialStanceId: stanceId, activeMartialStance: activeStance ?? undefined, focusMarked: newFocus });
+    // Clear the pip-toggle override so `markedFocus()` reads the post-activation value from
+    // rawSheet. Without this, a Focus pip toggled within the last 800ms leaves a stale local
+    // override that both hides the spent Focus and gets PUT by the debounced focusSave$ pipeline
+    // when it fires, silently refunding the Focus this stance shift just cost.
+    this.localFocusMarked.set(null);
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { activeMartialStanceId: stanceId, focusMarked: newFocus })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
+  }
+
+  onClearMartialStance(): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, activeMartialStanceId: undefined, activeMartialStance: undefined });
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { clearActiveMartialStance: true })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
+  }
+
+  onTransformationTokensChange(newTokens: number): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, transformationTokens: newTokens });
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { transformationTokens: newTokens })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
+  }
+
+  onWolfFormToggle(active: boolean): void {
+    const raw = this.rawSheet();
+    if (!raw || !this.isOwner() || this.hfActionInFlight()) return;
+
+    const previousRaw = raw;
+    this.rawSheet.set({ ...raw, wolfFormActive: active });
+    this.hfActionInFlight.set(true);
+
+    this.characterSheetService
+      .updateCharacterSheet(raw.id, { wolfFormActive: active })
+      .subscribe({
+        next: () => this.hfActionInFlight.set(false),
+        error: () => {
+          this.rawSheet.set(previousRaw);
+          this.hfActionInFlight.set(false);
+        },
+      });
   }
 
   formatModifier(value: number): string {
@@ -658,6 +843,60 @@ export class CharacterSheet implements OnInit {
           catchError(() => {
             this.localGoldAdjustment.set(goldSnapshot);
             this.clearSaving('gold');
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
+
+    this.focusSave$.pipe(
+      debounceTime(800),
+      switchMap(() => {
+        if (!this.isOwner()) return EMPTY;
+        const raw = this.rawSheet();
+        if (!raw) return EMPTY;
+        const snapshot = raw.focusMarked;
+        const newFocus = this.markedFocus();
+        this.markSaving('focus');
+        return this.characterSheetService.updateCharacterSheet(raw.id, {
+          focusMarked: newFocus,
+        }).pipe(
+          tap(() => {
+            this.rawSheet.update(s => s ? { ...s, focusMarked: newFocus } : s);
+            this.localFocusMarked.set(null);
+            this.clearSaving('focus');
+          }),
+          catchError(() => {
+            this.localFocusMarked.set(snapshot ?? null);
+            this.clearSaving('focus');
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
+
+    this.favorSave$.pipe(
+      debounceTime(800),
+      switchMap(() => {
+        if (!this.isOwner()) return EMPTY;
+        const raw = this.rawSheet();
+        if (!raw) return EMPTY;
+        const snapshot = this.localFavor();
+        const newFavor = this.currentFavor();
+        this.markSaving('favor');
+        return this.characterSheetService.updateCharacterSheet(raw.id, {
+          favor: newFavor,
+        }).pipe(
+          tap(() => {
+            this.rawSheet.update(s => s ? { ...s, favor: newFavor } : s);
+            this.localFavor.set(null);
+            this.clearSaving('favor');
+          }),
+          catchError(() => {
+            this.localFavor.set(snapshot);
+            this.clearSaving('favor');
             return EMPTY;
           }),
         );

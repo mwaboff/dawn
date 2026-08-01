@@ -69,6 +69,22 @@
             <app-modifier-indicator [stat]="sheet.proficiency" statLabel="Proficiency" />
           </span>
         </div>
+        @if (showBrawlerResources()) {
+          <div class="shield">
+            <span class="shield__label">Combo Die</span>
+            <span class="shield__value-row">
+              <span class="shield__value">{{ comboDie() | lowercase }}</span>
+            </span>
+          </div>
+        }
+        @if (showWarlockResources()) {
+          <div class="shield">
+            <span class="shield__label">Patron Die</span>
+            <span class="shield__value-row">
+              <span class="shield__value">{{ patronDie() | lowercase }}</span>
+            </span>
+          </div>
+        }
       </div>
     </header>
 
@@ -171,6 +187,38 @@
             </div>
           </div>
         </div>
+
+        @if (showMartialStances()) {
+          <div class="panel">
+            <h2 class="panel__title">Focus @if (isSavingFocus()) { <app-saving-spinner /> }</h2>
+            <div class="resource-row">
+              <span class="resource-row__label">Focus</span>
+              <div class="resource-row__boxes">
+                @for (i of getRange(focusMax()); track i) {
+                  <button class="resource-box" [class.resource-box--marked]="i <= markedFocus()" (click)="toggleResourceBox('focus', i)" [attr.aria-label]="'Focus ' + i" [attr.aria-pressed]="i <= markedFocus()"></button>
+                }
+              </div>
+              <span class="resource-row__count">{{ markedFocus() }}/{{ focusMax() }}</span>
+            </div>
+            @if (isOwner()) {
+              <button type="button" class="refresh-focus-btn" (click)="refreshFocus()">Refresh Focus</button>
+              @if (lastFocusRoll(); as roll) {
+                <p class="refresh-focus-result">Rolled highest of {{ roll }} — Focus set to {{ markedFocus() }}.</p>
+              }
+            }
+          </div>
+        }
+
+        @if (showWarlockResources()) {
+          <div class="panel">
+            <h2 class="panel__title">Favor @if (isSavingFavor()) { <app-saving-spinner /> }</h2>
+            <div class="favor-counter" aria-live="polite">
+              <button type="button" class="favor-btn" (click)="adjustFavor(-1)" [disabled]="!isOwner()" aria-label="Remove 1 Favor">&#8722;</button>
+              <span class="favor-counter__value">{{ currentFavor() }}</span>
+              <button type="button" class="favor-btn" (click)="adjustFavor(1)" [disabled]="!isOwner()" aria-label="Add 1 Favor">+</button>
+            </div>
+          </div>
+        }
 
         @if (sheet.experiences.length > 0) {
           <div class="panel">
@@ -549,6 +597,29 @@
 
       @if (showBeastforms()) {
         <app-beastform-section [characterLevel]="sheet.level" />
+      }
+
+      @if (showMartialStances()) {
+        <app-martial-stance-panel
+          [knownStances]="knownMartialStances()"
+          [activeStanceId]="activeMartialStanceId()"
+          [focusMarked]="markedFocus()"
+          [canAct]="isOwner()"
+          [actionInFlight]="hfActionInFlight()"
+          (activateStance)="onActivateMartialStance($event)"
+          (clearStance)="onClearMartialStance()"
+        />
+      }
+
+      @if (transformationCard(); as card) {
+        <app-transformation-panel
+          [card]="card"
+          [tokens]="transformationTokens()"
+          [wolfFormActive]="wolfFormActive()"
+          [canAct]="isOwner() && !hfActionInFlight()"
+          (tokensChange)="onTransformationTokensChange($event)"
+          (wolfFormToggle)="onWolfFormToggle($event)"
+        />
       }
 
       @if (sheet.equippedDomainCards.length > 0) {

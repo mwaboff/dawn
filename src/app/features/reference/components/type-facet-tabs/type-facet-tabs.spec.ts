@@ -41,9 +41,9 @@ describe('TypeFacetTabs', () => {
     expect(tablist).toBeTruthy();
   });
 
-  it('renders 14 tabs (All + 13 types)', () => {
+  it('renders 16 tabs (All + 15 types)', () => {
     const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(14);
+    expect(tabs.length).toBe(16);
   });
 
   it('marks All tab as active when activeType is null', () => {

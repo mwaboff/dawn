@@ -1,0 +1,22 @@
+.transformation-name { font-family: var(--font-display); font-size: 1rem; color: var(--color-parchment); margin: 0 0 .35rem; }
+.transformation-description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.75); margin: 0 0 .75rem; }
+
+.transformation-features { display: flex; flex-direction: column; gap: .5rem; margin-bottom: .75rem; }
+.transformation-feature__name { color: var(--color-accent); font-size: .85rem; }
+.transformation-feature__description { font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); margin: .2rem 0 0; }
+
+.feed-tokens, .wolf-form { display: flex; align-items: center; gap: .6rem; padding: .5rem .65rem; margin-bottom: .75rem; border-radius: 4px; background: rgba(212,160,86,.06); border: 1px solid rgba(212,160,86,.2); flex-wrap: wrap; }
+.feed-tokens__label, .wolf-form__label { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.65); }
+.feed-tokens__controls { display: flex; align-items: center; gap: .5rem; }
+.feed-tokens__btn { width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(212,160,86,.35); background: transparent; color: var(--color-accent); cursor: pointer; }
+.feed-tokens__btn:hover:not(:disabled) { background: rgba(212,160,86,.12); }
+.feed-tokens__btn:disabled { opacity: .35; cursor: not-allowed; }
+.feed-tokens__value { font-weight: 700; color: var(--color-parchment); min-width: 3.5rem; text-align: center; }
+.feed-tokens__warning { flex-basis: 100%; font-family: var(--font-body); font-size: .75rem; color: rgba(200,110,90,.85); margin: .25rem 0 0; }
+
+.wolf-form__toggle { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.75); cursor: pointer; }
+.wolf-form__toggle--active { background: var(--color-accent); border-color: var(--color-accent); color: rgba(20,15,10,.9); }
+.wolf-form__toggle:disabled { opacity: .4; cursor: not-allowed; }
+
+.transformation-questions__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.5); margin: 0 0 .35rem; }
+.transformation-questions__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); display: flex; flex-direction: column; gap: .3rem; }

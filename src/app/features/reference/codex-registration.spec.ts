@@ -8,6 +8,8 @@ import { LootService } from '../../shared/services/loot.service';
 import { AdversaryService } from '../../shared/services/adversary.service';
 import { EnvironmentService } from '../../shared/services/environment.service';
 import { BeastformService } from '../../shared/services/beastform.service';
+import { TransformationCardService } from '../../shared/services/transformation-card.service';
+import { MartialStanceService } from '../../shared/services/martial-stance.service';
 import { ClassService } from '../../shared/services/class.service';
 import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
@@ -121,6 +123,8 @@ describe('codex type registration completeness', () => {
           { provide: AdversaryService, useValue: { getAdversaries: vi.fn(adversaryResult) } },
           { provide: EnvironmentService, useValue: { getEnvironmentsPaginated: vi.fn(cardResult) } },
           { provide: BeastformService, useValue: { getBeastformsPaginated: vi.fn(cardResult) } },
+          { provide: TransformationCardService, useValue: { getTransformationCardsPaginated: vi.fn(cardResult) } },
+          { provide: MartialStanceService, useValue: { getMartialStancesPaginated: vi.fn(cardResult) } },
           { provide: ClassService, useValue: { getClassesPaginated: vi.fn(cardResult) } },
           { provide: AncestryService, useValue: { getAncestriesPaginated: vi.fn(cardResult) } },
           { provide: CommunityService, useValue: { getCommunitiesPaginated: vi.fn(cardResult) } },

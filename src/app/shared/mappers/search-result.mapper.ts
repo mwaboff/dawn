@@ -12,6 +12,8 @@ import { mapDomainToCardData } from './domain.mapper';
 import { mapSubclassResponseToCardData } from './subclass.mapper';
 import { mapEnvironmentToCardData } from './environment.mapper';
 import { mapBeastformToCardData } from './beastform.mapper';
+import { mapTransformationCardToCardData } from './transformation-card.mapper';
+import { mapMartialStanceToCardData } from './martial-stance.mapper';
 import { WeaponResponse } from '../models/weapon-api.model';
 import { ArmorResponse } from '../models/armor-api.model';
 import { LootApiResponse } from '../models/loot-api.model';
@@ -23,6 +25,8 @@ import { DomainCardResponse, DomainResponse } from '../models/domain-card-api.mo
 import { SubclassCardResponse } from '../models/subclass-api.model';
 import { EnvironmentResponse } from '../models/environment-api.model';
 import { BeastformResponse } from '../models/beastform-api.model';
+import { TransformationCardResponse } from '../models/transformation-card-api.model';
+import { MartialStanceResponse } from '../models/martial-stance-api.model';
 import { SearchResultResponse, SearchableEntityType } from '../models/search.model';
 
 export interface MappedSearchResult {
@@ -132,6 +136,18 @@ export function mapSearchResult(result: SearchResultResponse): MappedSearchResul
     case 'BEASTFORM':
       if (entity) {
         return { ...base, card: mapBeastformToCardData(entity as BeastformResponse) };
+      }
+      return { ...base, card: buildFallbackCard(result) };
+
+    case 'TRANSFORMATION_CARD':
+      if (entity) {
+        return { ...base, card: mapTransformationCardToCardData(entity as TransformationCardResponse) };
+      }
+      return { ...base, card: buildFallbackCard(result) };
+
+    case 'MARTIAL_STANCE':
+      if (entity) {
+        return { ...base, card: mapMartialStanceToCardData(entity as MartialStanceResponse) };
       }
       return { ...base, card: buildFallbackCard(result) };
 

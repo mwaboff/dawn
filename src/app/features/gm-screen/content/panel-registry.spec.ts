@@ -28,6 +28,8 @@ const EXPECTED_IDS = [
   'improvised-adversaries',
   'success-with-fear',
   'example-gm-moves',
+  'transformations',
+  'martial-stances',
   'gold',
   'random-tables',
 ];

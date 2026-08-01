@@ -7,9 +7,13 @@ import { CharacterSheet } from './character-sheet';
 import { BeastformSection } from './components/beastform-section/beastform-section';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CharacterSheetResponse, ClassCardResponse } from '../create-character/models/character-sheet-api.model';
+import { CharacterSheetResponse, ClassCardResponse, SubclassCardResponse } from '../create-character/models/character-sheet-api.model';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { DiceRollerService } from '../../core/services/dice-roller.service';
+import { MartialStanceResponse } from '../../shared/models/martial-stance-api.model';
+import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
+import { TransformationCardService } from '../../shared/services/transformation-card.service';
 
 const mockResponse: CharacterSheetResponse = {
   id: 1,
@@ -60,6 +64,9 @@ describe('CharacterSheet', () => {
   let component: CharacterSheet;
   let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheetNotes: ReturnType<typeof vi.fn> };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let diceRollerService: DiceRollerService;
+  let diceRollSpy: ReturnType<typeof vi.spyOn>;
+  let mockTransformationCardService: { getAllTransformationCards: ReturnType<typeof vi.fn> };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
     mockService = {
@@ -70,6 +77,9 @@ describe('CharacterSheet', () => {
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
     };
+    mockTransformationCardService = {
+      getAllTransformationCards: vi.fn().mockReturnValue(of([])),
+    };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
       providers: [
@@ -78,6 +88,7 @@ describe('CharacterSheet', () => {
         provideHttpClientTesting(),
         { provide: CharacterSheetService, useValue: mockService },
         { provide: AuthService, useValue: mockAuthService },
+        { provide: TransformationCardService, useValue: mockTransformationCardService },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -86,6 +97,8 @@ describe('CharacterSheet', () => {
     });
     fixture = TestBed.createComponent(CharacterSheet);
     component = fixture.componentInstance;
+    diceRollerService = TestBed.inject(DiceRollerService);
+    diceRollSpy = vi.spyOn(diceRollerService, 'roll');
   }
 
   beforeEach(() => {
@@ -182,8 +195,12 @@ describe('CharacterSheet', () => {
       'inventoryArmors',
       'inventoryItems',
       'features',
+      'questions',
       'costTags',
       'modifiers',
+      'transformationCard',
+      'knownMartialStances',
+      'activeMartialStance',
     ]);
   });
 
@@ -1832,6 +1849,277 @@ describe('CharacterSheet', () => {
       const child = fixture.debugElement.query(By.directive(BeastformSection));
       expect(child.componentInstance.characterLevel()).toBe(7);
       expect(child.componentInstance.tier()).toBe(3);
+    });
+  });
+
+  describe('Hope & Fear resources', () => {
+    function martialArtistSubclass(): SubclassCardResponse {
+      return {
+        id: 10,
+        name: 'Martial Artist',
+        features: [{ id: 1, name: 'Stance Fighter', description: 'Choose a stance.' }],
+      };
+    }
+
+    function warlockClass(): ClassCardResponse {
+      return {
+        id: 20,
+        name: 'Warlock',
+        classFeatures: [{ id: 2, name: "Patron's Pact", description: 'A bargain.' }],
+      };
+    }
+
+    function brawlerClass(): ClassCardResponse {
+      return {
+        id: 30,
+        name: 'Brawler',
+        classFeatures: [{ id: 3, name: 'Combo Strike', description: 'Chain hits.' }],
+      };
+    }
+
+    function buildStance(id: number, name: string, tier: number): MartialStanceResponse {
+      return { id, name, tier, expansionId: 2, description: 'Effect.', createdAt: '', lastModifiedAt: '' };
+    }
+
+    function buildTransformationCard(name: string): TransformationCardResponse {
+      return {
+        id: 5,
+        name,
+        expansionId: 2,
+        features: [{ id: 1, name: 'Feature One' }, { id: 2, name: 'Feature Two' }],
+        questions: [{ id: 1, questionText: 'Q1' }],
+        createdAt: '',
+        lastModifiedAt: '',
+      };
+    }
+
+    describe('gating', () => {
+      it('hides the Focus panel and stance panel without Stance Fighter', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [] }));
+        fixture.detectChanges();
+
+        expect(component.showMartialStances()).toBe(false);
+        expect(fixture.nativeElement.querySelector('app-martial-stance-panel')).toBeNull();
+      });
+
+      it('shows the stance panel when Stance Fighter is present', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()] }));
+        fixture.detectChanges();
+
+        expect(component.showMartialStances()).toBe(true);
+        expect(fixture.nativeElement.querySelector('app-martial-stance-panel')).not.toBeNull();
+      });
+
+      it('shows Favor and Patron Die for a Warlock', () => {
+        createComponent('1', of({ ...mockResponse, classes: [warlockClass()] }));
+        fixture.detectChanges();
+
+        expect(component.showWarlockResources()).toBe(true);
+        expect(fixture.nativeElement.textContent).toContain('Patron Die');
+      });
+
+      it('shows Combo Die for a Brawler', () => {
+        createComponent('1', of({ ...mockResponse, classes: [brawlerClass()] }));
+        fixture.detectChanges();
+
+        expect(component.showBrawlerResources()).toBe(true);
+        expect(fixture.nativeElement.textContent).toContain('Combo Die');
+      });
+
+      it('defaults Combo Die display to D4 when unset', () => {
+        createComponent('1', of({ ...mockResponse, classes: [brawlerClass()] }));
+        fixture.detectChanges();
+
+        expect(component.comboDie()).toBe('D4');
+      });
+
+      it('computes Patron Die as d6 below level 5', () => {
+        createComponent('1', of({ ...mockResponse, classes: [warlockClass()], level: 4 }));
+        fixture.detectChanges();
+        expect(component.patronDie()).toBe('D6');
+      });
+
+      it('computes Patron Die as d8 at level 5+', () => {
+        createComponent('1', of({ ...mockResponse, classes: [warlockClass()], level: 5 }));
+        fixture.detectChanges();
+        expect(component.patronDie()).toBe('D8');
+      });
+
+      it('renders the transformation panel only when a card is attached', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: undefined, transformationCard: undefined }));
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('app-transformation-panel')).toBeNull();
+      });
+
+      it('fetches the full transformation card catalog when a card is attached', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          transformationCardId: 5,
+          transformationCard: { id: 5, name: 'Vampire', expansionId: 2, createdAt: '', lastModifiedAt: '' },
+        }));
+        mockTransformationCardService.getAllTransformationCards.mockReturnValue(of([buildTransformationCard('Vampire')]));
+        fixture.detectChanges();
+
+        expect(mockTransformationCardService.getAllTransformationCards).toHaveBeenCalled();
+        expect(component.transformationCard()?.features?.length).toBe(2);
+        expect(fixture.nativeElement.querySelector('app-transformation-panel')).not.toBeNull();
+      });
+    });
+
+    describe('debounced Focus and Favor saving', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('toggleResourceBox for focus triggers a save with focusMarked', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()], focusMax: 6, focusMarked: 0 }));
+        fixture.detectChanges();
+
+        component.toggleResourceBox('focus', 3);
+        vi.advanceTimersByTime(800);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { focusMarked: 3 });
+      });
+
+      it('adjustFavor triggers a save with the new Favor total', () => {
+        createComponent('1', of({ ...mockResponse, classes: [warlockClass()], favor: 3 }));
+        fixture.detectChanges();
+
+        component.adjustFavor(2);
+        vi.advanceTimersByTime(800);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { favor: 5 });
+      });
+    });
+
+    describe('refreshFocus', () => {
+      it('sets Focus to the highest rolled die, clamped to focusMax', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()], focusMax: 6, focusMarked: 0, instinctModifier: 3 }));
+        fixture.detectChanges();
+        diceRollSpy.mockReturnValue({
+          id: '1', timestamp: 0, duality: null, total: 10,
+          diceResults: [{ type: 'd6', value: 2 }, { type: 'd6', value: 5 }, { type: 'd6', value: 3 }],
+        });
+
+        component.refreshFocus();
+
+        expect(diceRollSpy).toHaveBeenCalledWith({ dice: [{ type: 'd6', count: 3 }], includeDuality: false });
+        expect(component.markedFocus()).toBe(5);
+        expect(component.lastFocusRoll()).toBe(5);
+      });
+
+      it('clamps the roll result to focusMax', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()], focusMax: 2, focusMarked: 0, instinctModifier: 1 }));
+        fixture.detectChanges();
+        diceRollSpy.mockReturnValue({
+          id: '1', timestamp: 0, duality: null, total: 6,
+          diceResults: [{ type: 'd6', value: 6 }],
+        });
+
+        component.refreshFocus();
+
+        expect(component.markedFocus()).toBe(2);
+      });
+
+      it('does nothing for a non-owner', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()] }));
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        component.refreshFocus();
+
+        expect(diceRollSpy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('martial stance activation', () => {
+      it('activates a stance and spends 1 Focus', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          subclassCards: [martialArtistSubclass()],
+          focusMarked: 2,
+          knownMartialStances: [buildStance(1, 'Aggressive Stance', 1)],
+        }));
+        fixture.detectChanges();
+
+        component.onActivateMartialStance(1);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { activeMartialStanceId: 1, focusMarked: 1 });
+        expect(component.activeMartialStanceId()).toBe(1);
+        expect(component.markedFocus()).toBe(1);
+      });
+
+      it('does not activate a stance when Focus is empty', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          subclassCards: [martialArtistSubclass()],
+          focusMarked: 0,
+          knownMartialStances: [buildStance(1, 'Aggressive Stance', 1)],
+        }));
+        fixture.detectChanges();
+
+        component.onActivateMartialStance(1);
+
+        expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+      });
+
+      it('rolls back the optimistic update on save error', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          subclassCards: [martialArtistSubclass()],
+          focusMarked: 2,
+          knownMartialStances: [buildStance(1, 'Aggressive Stance', 1)],
+        }));
+        mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+        fixture.detectChanges();
+
+        component.onActivateMartialStance(1);
+
+        expect(component.activeMartialStanceId()).toBeNull();
+        expect(component.markedFocus()).toBe(2);
+      });
+
+      it('clears the active stance', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          subclassCards: [martialArtistSubclass()],
+          activeMartialStanceId: 1,
+          knownMartialStances: [buildStance(1, 'Aggressive Stance', 1)],
+        }));
+        fixture.detectChanges();
+
+        component.onClearMartialStance();
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { clearActiveMartialStance: true });
+        expect(component.activeMartialStanceId()).toBeNull();
+      });
+    });
+
+    describe('transformation mechanics', () => {
+      it('updates Vampire Feed tokens', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: 5, transformationCard: buildTransformationCard('Vampire'), transformationTokens: 2 }));
+        fixture.detectChanges();
+
+        component.onTransformationTokensChange(3);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { transformationTokens: 3 });
+        expect(component.transformationTokens()).toBe(3);
+      });
+
+      it('toggles Wolf Form', () => {
+        createComponent('1', of({ ...mockResponse, transformationCardId: 5, transformationCard: buildTransformationCard('Werewolf'), wolfFormActive: false }));
+        fixture.detectChanges();
+
+        component.onWolfFormToggle(true);
+
+        expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { wolfFormActive: true });
+        expect(component.wolfFormActive()).toBe(true);
+      });
     });
   });
 });

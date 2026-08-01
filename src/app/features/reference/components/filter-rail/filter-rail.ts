@@ -162,6 +162,13 @@ export const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>
   BEASTFORM: [
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
+  // No filters: TransformationCardController's GET only supports expansionId server-side,
+  // which the browse pipeline already applies via the expansion selector, not this rail.
+  TRANSFORMATION_CARD: [],
+  MARTIAL_STANCE: [
+    { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
+    { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
+  ],
 };
 
 @Component({
