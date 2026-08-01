@@ -64,6 +64,31 @@ describe('GmScreenContext', () => {
     expect(context.gmNotes()).toBe('typed since the save started');
   });
 
+  it('keeps expanded collections a patch response omits', () => {
+    const sheet = {
+      id: 42,
+      name: 'Rooke',
+      level: 3,
+      ownerId: 5,
+      createdAt: '',
+      lastModifiedAt: '',
+    };
+    context.setCampaign(campaign({ playerCharacters: [sheet], playerCharacterIds: [42] }));
+
+    // What PATCH /campaigns/7/fear actually answers with: no expand, so no roster.
+    context.patchCampaign(campaign({ fear: 9 }));
+
+    expect(context.campaign()?.playerCharacters).toEqual([sheet]);
+    expect(context.campaign()?.fear).toBe(9);
+  });
+
+  it('patches onto nothing when no campaign has been seeded', () => {
+    context.patchCampaign(campaign({ fear: 9 }));
+
+    expect(context.campaign()?.fear).toBe(9);
+    expect(context.campaignId()).toBe(7);
+  });
+
   it('tracks saving keys independently', () => {
     context.markSaving('fear');
     context.markSaving('gmNotes');

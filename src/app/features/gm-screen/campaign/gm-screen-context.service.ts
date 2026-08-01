@@ -37,9 +37,20 @@ export class GmScreenContext {
     this.gmNotes.set(campaign.gmNotes ?? '');
   }
 
-  /** Merges a save response without clobbering whatever the user has typed since. */
+  /**
+   * Merges a save response without clobbering whatever the user has typed since.
+   *
+   * The PATCH endpoints answer with an *un-expanded* campaign, so `playerCharacters`,
+   * `nonPlayerCharacters` and friends are absent from the payload rather than empty. Assigning the
+   * response wholesale would drop the party roster the page shell loaded, leaving the sheet viewer
+   * on its empty state until a full reload -- so absent keys keep their current value.
+   */
   patchCampaign(campaign: CampaignResponse): void {
-    this.campaign.set(campaign);
+    this.campaign.update(current => {
+      if (current === null) return campaign;
+      const present = Object.entries(campaign).filter(([, value]) => value !== undefined);
+      return { ...current, ...(Object.fromEntries(present) as Partial<CampaignResponse>) };
+    });
     this.campaignId.set(campaign.id);
   }
 
