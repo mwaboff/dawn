@@ -163,6 +163,18 @@ describe('Navbar', () => {
       component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
       expect(component.isUserMenuOpen()).toBe(false);
     });
+
+    it('should return focus to the user button when the user menu closes via Escape', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isUserMenuOpen.set(true);
+      fixture.detectChanges();
+
+      component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      const userBtn = fixture.nativeElement.querySelector('.nav-user-btn');
+      expect(document.activeElement).toBe(userBtn);
+    });
   });
 
   describe('Reference link', () => {
@@ -301,6 +313,18 @@ describe('Navbar', () => {
       component.onKeydown(event);
       expect(component.isDropdownOpen()).toBe(false);
     });
+
+    it('should return focus to the create button when the dropdown closes via Escape', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      component.isDropdownOpen.set(true);
+      fixture.detectChanges();
+
+      component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      const createBtn = fixture.nativeElement.querySelector('.nav-create-btn');
+      expect(document.activeElement).toBe(createBtn);
+    });
   });
 
   describe('mobile menu', () => {
@@ -354,6 +378,17 @@ describe('Navbar', () => {
       component.isMobileMenuOpen.set(true);
       component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
       expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should return focus to the burger button when the mobile menu closes via Escape', () => {
+      fixture.detectChanges();
+      component.isMobileMenuOpen.set(true);
+      fixture.detectChanges();
+
+      component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      const burgerBtn = fixture.nativeElement.querySelector('.nav-burger');
+      expect(document.activeElement).toBe(burgerBtn);
     });
 
     it('should close mobile menu when onCreateCharacter is called', () => {

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, signal, computed, inject, viewChild, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -29,6 +29,10 @@ export class Navbar {
     const username = this.authService.user()?.username;
     return username ? username.charAt(0).toUpperCase() : '';
   });
+
+  private readonly createBtnRef = viewChild<ElementRef<HTMLButtonElement>>('createBtn');
+  private readonly userBtnRef = viewChild<ElementRef<HTMLButtonElement>>('userBtn');
+  private readonly burgerBtnRef = viewChild<ElementRef<HTMLButtonElement>>('burgerBtn');
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -82,9 +86,18 @@ export class Navbar {
 
   onKeydown(event: KeyboardEvent): void {
     if (event.key !== 'Escape') return;
-    if (this.isDropdownOpen()) this.closeDropdown();
-    if (this.isUserMenuOpen()) this.closeUserMenu();
-    if (this.isMobileMenuOpen()) this.closeMobileMenu();
+    if (this.isDropdownOpen()) {
+      this.closeDropdown();
+      this.createBtnRef()?.nativeElement.focus();
+    }
+    if (this.isUserMenuOpen()) {
+      this.closeUserMenu();
+      this.userBtnRef()?.nativeElement.focus();
+    }
+    if (this.isMobileMenuOpen()) {
+      this.closeMobileMenu();
+      this.burgerBtnRef()?.nativeElement.focus();
+    }
   }
 
   onCreateCharacter(): void {

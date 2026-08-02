@@ -1,4 +1,5 @@
-<div class="dialog-backdrop" (click)="onBackdropClick($event)" (keydown)="onKeydown($event)" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- appModalFocus provides the keyboard equivalent (Escape via its `escape` output, Tab trapped to the dialog buttons); clicking the backdrop is a pointer-only convenience on top of that. -->
+<div class="dialog-backdrop" (click)="onBackdropClick($event)" role="dialog" aria-modal="true" [attr.aria-label]="title()" appModalFocus (escape)="onCancel()">
   <div class="dialog-panel">
     <h2 class="dialog-title">{{ title() }}</h2>
     <p class="dialog-message">{{ message() }}</p>

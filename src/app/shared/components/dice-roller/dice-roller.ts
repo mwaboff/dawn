@@ -1,12 +1,16 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ElementRef,
+  PLATFORM_ID,
   inject,
   signal,
   computed,
+  viewChild,
   OnInit,
   OnDestroy,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { DiceRollerService } from '../../../core/services/dice-roller.service';
 import {
   DICE_SIDES,
@@ -21,9 +25,15 @@ import {
   templateUrl: './dice-roller.html',
   styleUrl: './dice-roller.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'onEscape()',
+  },
 })
 export class DiceRoller implements OnInit, OnDestroy {
   readonly service = inject(DiceRollerService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  private readonly fabRef = viewChild<ElementRef<HTMLButtonElement>>('fab');
 
   readonly diceTypes: readonly DiceType[] = DICE_TYPES;
 
@@ -126,6 +136,22 @@ export class DiceRoller implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.rollingInterval) clearInterval(this.rollingInterval);
     if (this.rollingTimeout) clearTimeout(this.rollingTimeout);
+  }
+
+  onCloseClick(): void {
+    this.service.close();
+    this.focusFab();
+  }
+
+  onEscape(): void {
+    if (!this.service.isOpen()) return;
+    this.service.close();
+    this.focusFab();
+  }
+
+  private focusFab(): void {
+    if (!this.isBrowser) return;
+    this.fabRef()?.nativeElement.focus();
   }
 
   outcomeLabel(result: RollResult): string {

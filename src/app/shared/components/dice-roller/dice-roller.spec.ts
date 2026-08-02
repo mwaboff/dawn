@@ -473,6 +473,52 @@ describe('DiceRoller', () => {
     expect(empty?.textContent).toContain('—');
   });
 
+  describe('Escape key', () => {
+    it('closes the popover on Escape when open', () => {
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      expect(service.isOpen()).toBe(false);
+    });
+
+    it('does nothing on Escape when already closed', () => {
+      service.isOpen.set(false);
+      fixture.detectChanges();
+      const spy = vi.spyOn(service, 'close');
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('returns focus to the FAB after closing via Escape', () => {
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      fixture.detectChanges();
+
+      const fab = fixture.nativeElement.querySelector('.ts-fab');
+      expect(document.activeElement).toBe(fab);
+    });
+  });
+
+  describe('closing via the in-menu close button', () => {
+    it('returns focus to the FAB', () => {
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const closeBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-close-btn');
+      closeBtn.click();
+      fixture.detectChanges();
+
+      const fab = fixture.nativeElement.querySelector('.ts-fab');
+      expect(document.activeElement).toBe(fab);
+    });
+  });
+
   it('pre-fills dice counts from consumePendingRequest on init', () => {
     service.pendingRequest.set({
       dice: [{ type: 'd8', count: 3 }],
