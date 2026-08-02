@@ -164,6 +164,16 @@ describe('LevelUpReview', () => {
     expect(allText.some(t => t?.includes('AGILITY, STRENGTH'))).toBe(true);
   });
 
+  it('should render a friendly label for the combo die advancement', () => {
+    host.advancements.set([{ type: 'UPGRADE_COMBO_DIE' }]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const allText = Array.from(compiled.querySelectorAll('.review-item')).map(i => i.textContent);
+
+    expect(allText.some(t => t?.includes('Upgrade Combo Die'))).toBe(true);
+  });
+
   it('should render domain card name', () => {
     host.selectedDomainCards.set([buildCardData({ name: 'Fireball' })]);
     hostFixture.detectChanges();
