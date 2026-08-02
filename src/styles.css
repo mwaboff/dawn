@@ -45,7 +45,10 @@
   /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
      renders directly above Equipped Domain Cards, and a rose accent read as a shade of
      --color-card-domainCard rather than as a separate kind of card. */
-  --color-card-transformation: #8f9fe8;
+  --color-card-transformationCard: #8f9fe8;
+  /* Crimson rose. Its neighbours on the sheet are beastform teal above and transformation
+     blue-violet below, so the red slot that was wrong for transformations is right here. */
+  --color-card-martialStance: #d4566e;
   --color-card-feature: #a89684;
 
   /* Typography */

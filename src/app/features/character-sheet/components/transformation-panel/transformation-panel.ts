@@ -11,7 +11,7 @@ const MAX_FEED_TOKENS = 6;
 /**
  * The transformation panel covers all of acquisition and display: an empty state with a
  * "Choose a transformation" entry point for the owner when nothing is attached, an attached card's
- * features/questions/mechanics, and a "Change"/"Remove" pair once one is attached. "Change" reuses
+ * features and mechanics, and a "Change"/"Remove" pair once one is attached. "Change" reuses
  * the same picker -- per the rule that a PC can have only one transformation, selecting a new card
  * always replaces the FK, it never adds to a collection.
  *
@@ -62,7 +62,6 @@ export class TransformationPanel {
   readonly isWerewolf = computed(() => isWerewolfTransformation(this.card()?.name));
   readonly currentTokens = computed(() => this.tokens() ?? 0);
   readonly features = computed(() => this.card()?.features ?? []);
-  readonly questions = computed(() => this.card()?.questions ?? []);
   readonly maxTokens = MAX_FEED_TOKENS;
 
   readonly catalogOptions = computed<CardData[]>(() => this.catalog().map(mapTransformationCardToCardData));

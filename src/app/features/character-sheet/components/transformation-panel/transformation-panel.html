@@ -65,17 +65,6 @@
               </div>
             }
 
-            @if (questions().length > 0) {
-              <div class="transformation-questions">
-                <h3 class="transformation-questions__heading">Questions</h3>
-                <ol class="transformation-questions__list">
-                  @for (question of questions(); track question.id) {
-                    <li>{{ question.questionText }}</li>
-                  }
-                </ol>
-              </div>
-            }
-
             @if (isOwner()) {
               <div class="transformation-actions">
                 <button type="button" class="transformation-action-btn" (click)="openPicker()" [disabled]="!canAct()">Change</button>

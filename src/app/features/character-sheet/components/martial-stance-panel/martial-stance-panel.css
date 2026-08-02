@@ -1,5 +1,11 @@
-.stance-active { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; padding: .5rem .75rem; border-radius: 4px; background: rgba(212,160,86,.08); border: 1px solid rgba(212,160,86,.25); }
-.stance-active__label { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.6); }
+/* Carries the same accent the wide martial stance card uses, so a stance is recognisable as the
+   same kind of thing here, in the level-up picker, and on the reference page. Generic controls
+   stay on the gold accent shared by every panel; only the identity-bearing elements take the type
+   colour, matching how the transformation group is treated. */
+.panel__title--martialStance { color: var(--color-card-martialStance); border-bottom-color: color-mix(in srgb, var(--color-card-martialStance) 25%, transparent); }
+
+.stance-active { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; padding: .5rem .75rem; border-radius: 4px; background: color-mix(in srgb, var(--color-card-martialStance) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-card-martialStance) 30%, transparent); }
+.stance-active__label { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: color-mix(in srgb, var(--color-card-martialStance) 75%, transparent); }
 .stance-active__name { font-weight: 700; color: var(--color-parchment); flex: 1; }
 
 .stance-empty { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.55); font-style: italic; }
@@ -9,10 +15,10 @@
 
 .stance-list { display: flex; flex-direction: column; gap: .5rem; }
 .stance-card { border: 1px solid rgba(212,160,86,.15); border-radius: 4px; padding: .5rem .65rem; }
-.stance-card--active { border-color: var(--color-accent); background: rgba(212,160,86,.06); }
+.stance-card--active { border-color: var(--color-card-martialStance); background: color-mix(in srgb, var(--color-card-martialStance) 8%, transparent); }
 .stance-card__header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
 .stance-card__name { font-weight: 700; color: var(--color-parchment); }
-.stance-card__active-badge { font-family: var(--font-display); font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--color-accent); }
+.stance-card__active-badge { font-family: var(--font-display); font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--color-card-martialStance); }
 .stance-card__description { font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); margin: .35rem 0 0; }
 
 .stance-btn { font-family: var(--font-display); font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; padding: .25rem .5rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }

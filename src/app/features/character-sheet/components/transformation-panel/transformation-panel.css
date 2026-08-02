@@ -6,12 +6,12 @@
 
 /* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only the
    transformation accent lives here. */
-.card-group__heading--transformation { color: var(--color-card-transformation); }
-.expandable-card--transformation { border-left-color: var(--color-card-transformation); }
-.expandable-card__meta-badge--transformation { color: var(--color-card-transformation); border-color: color-mix(in srgb, var(--color-card-transformation) 35%, transparent); }
+.card-group__heading--transformation { color: var(--color-card-transformationCard); }
+.expandable-card--transformation { border-left-color: var(--color-card-transformationCard); }
+.expandable-card__meta-badge--transformation { color: var(--color-card-transformationCard); border-color: color-mix(in srgb, var(--color-card-transformationCard) 35%, transparent); }
 /* Filled, mirroring .wolf-form__toggle--active so the collapsed badge and the expanded toggle read
    as the same state. */
-.expandable-card__meta-badge--active { background: var(--color-card-transformation); border-color: var(--color-card-transformation); color: rgba(20,15,10,.9); }
+.expandable-card__meta-badge--active { background: var(--color-card-transformationCard); border-color: var(--color-card-transformationCard); color: rgba(20,15,10,.9); }
 .expandable-card__meta-badge--depleted { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
 
 .transformation-description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.75); margin: 0 0 .75rem; }
@@ -32,9 +32,6 @@
 .wolf-form__toggle { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.75); cursor: pointer; }
 .wolf-form__toggle--active { background: var(--color-accent); border-color: var(--color-accent); color: rgba(20,15,10,.9); }
 .wolf-form__toggle:disabled { opacity: .4; cursor: not-allowed; }
-
-.transformation-questions__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.5); margin: 0 0 .35rem; }
-.transformation-questions__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); display: flex; flex-direction: column; gap: .3rem; }
 
 .transformation-empty { display: flex; flex-direction: column; gap: .6rem; padding: .75rem; border: 1px dashed rgba(212,160,86,.2); border-radius: 4px; }
 .transformation-empty__copy { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.6); font-style: italic; margin: 0; }

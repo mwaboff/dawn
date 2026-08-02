@@ -185,8 +185,9 @@ describe('TransformationPanel', () => {
       expect(el.querySelectorAll('.transformation-feature').length).toBe(2);
     });
 
-    it('renders all provided questions', () => {
-      expect(el.querySelectorAll('.transformation-questions__list li').length).toBe(2);
+    it('does not render questions even when the card carries them', () => {
+      expect(el.querySelector('.transformation-questions')).toBeFalsy();
+      expect(el.textContent).not.toContain('What deity favors you?');
     });
 
     it('does not show Feed tokens or Wolf Form for a non-special card', () => {
