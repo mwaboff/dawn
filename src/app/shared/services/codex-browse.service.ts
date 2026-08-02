@@ -6,6 +6,8 @@ import { LootService } from './loot.service';
 import { AdversaryService } from './adversary.service';
 import { EnvironmentService } from './environment.service';
 import { BeastformService } from './beastform.service';
+import { TransformationCardService } from './transformation-card.service';
+import { MartialStanceService } from './martial-stance.service';
 import { ClassService } from './class.service';
 import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
@@ -30,6 +32,7 @@ import { BrowseResult, SearchableEntityType } from '../models/search.model';
 export const SUPPORTED_BROWSE_TYPES = [
   'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'ENVIRONMENT', 'CLASS', 'ANCESTRY_CARD',
   'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE', 'BEASTFORM',
+  'TRANSFORMATION_CARD', 'MARTIAL_STANCE',
 ] as const satisfies readonly SearchableEntityType[];
 
 export type BrowsableType = typeof SUPPORTED_BROWSE_TYPES[number];
@@ -55,6 +58,8 @@ export class CodexBrowseService {
   private readonly adversaryService = inject(AdversaryService);
   private readonly environmentService = inject(EnvironmentService);
   private readonly beastformService = inject(BeastformService);
+  private readonly transformationCardService = inject(TransformationCardService);
+  private readonly martialStanceService = inject(MartialStanceService);
   private readonly classService = inject(ClassService);
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
@@ -131,6 +136,22 @@ export class CodexBrowseService {
         return this.beastformService.getBeastformsPaginated({
           page,
           size,
+          isOfficial: filters['isOfficial'] as boolean | undefined,
+          expansionId: filters['expansionId'] as number | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
+
+      case 'TRANSFORMATION_CARD':
+        return this.transformationCardService.getTransformationCardsPaginated({
+          page,
+          size,
+          expansionId: filters['expansionId'] as number | undefined,
+        }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
+
+      case 'MARTIAL_STANCE':
+        return this.martialStanceService.getMartialStancesPaginated({
+          page,
+          size,
+          tier: filters['tier'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
           expansionId: filters['expansionId'] as number | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));

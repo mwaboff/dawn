@@ -27,6 +27,7 @@ function buildSummary(overrides: Partial<CampaignCharacterSummary> = {}): Campai
     ancestryNames: [],
     classNames: [],
     subclassNames: [],
+    transformationEnabled: false,
     ...overrides,
   };
 }
@@ -55,11 +56,14 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
     <app-campaign-character-list
       [campaign]="campaign()"
       [canManage]="canManage()"
+      [canGrantTransformations]="canGrantTransformations()"
       [confirmingRemoveId]="confirmingRemoveId()"
       [characterSummaries]="characterSummaries()"
+      [openTransformationId]="openTransformationId()"
       (removeCharacter)="removedId = $event"
       (viewCharacter)="viewedId = $event"
       (cancelRemove)="cancelCalled = true"
+      (toggleTransformation)="toggledId = $event"
     />
   `,
   imports: [CampaignCharacterList],
@@ -67,11 +71,14 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
 class TestHost {
   campaign = signal(buildCampaign());
   canManage = signal(false);
+  canGrantTransformations = signal(false);
   confirmingRemoveId = signal<number | null>(null);
   characterSummaries = signal<CampaignCharacterSummary[]>([]);
+  openTransformationId = signal<number | null>(null);
   removedId: number | null = null;
   viewedId: number | null = null;
   cancelCalled = false;
+  toggledId: number | null = null;
 }
 
 describe('CampaignCharacterList', () => {
@@ -135,16 +142,7 @@ describe('CampaignCharacterList', () => {
     host.campaign.set(buildCampaign({
       playerCharacters: [buildCharacter()],
     }));
-    host.characterSummaries.set([{
-      id: 10,
-      name: 'Kael',
-      level: 3,
-      ownerId: 2,
-      ownerUsername: 'player1',
-      ancestryNames: [],
-      classNames: ['Guardian'],
-      subclassNames: ['Iron Wall'],
-    }]);
+    host.characterSummaries.set([buildSummary({ classNames: ['Guardian'], subclassNames: ['Iron Wall'] })]);
     fixture.detectChanges();
 
     const classText = el.querySelector('.character-class')?.textContent?.replace(/\s+/g, ' ').trim();
@@ -176,8 +174,109 @@ describe('CampaignCharacterList', () => {
     expect(host.viewedId).toBe(10);
   });
 
+  it('should not show the transformation button when canGrantTransformations is false', () => {
+    expect(el.querySelector('.character-transformation-btn')).toBeFalsy();
+  });
+
+  it('should keep remove available but hide the transformation button on an ended campaign', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(false);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-remove-btn')).toBeTruthy();
+    expect(el.querySelector('.character-transformation-btn')).toBeFalsy();
+  });
+
+  it('should show the transformation button when canGrantTransformations is true', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-transformation-btn')).toBeTruthy();
+  });
+
+  it('should place the transformation button before the destructive remove button', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    fixture.detectChanges();
+
+    const actionClasses = Array.from(el.querySelectorAll('.character-actions button')).map(b => b.className);
+    expect(actionClasses).toEqual(['character-transformation-btn', 'character-remove-btn']);
+  });
+
+  it('should show the On badge when the transformation panel is enabled', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    host.characterSummaries.set([buildSummary({ transformationEnabled: true })]);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-transformation-badge')?.textContent?.trim()).toBe('On');
+  });
+
+  it('should emit toggleTransformation without navigating when the transformation button is clicked', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    fixture.detectChanges();
+
+    (el.querySelector('.character-transformation-btn') as HTMLButtonElement).click();
+
+    expect(host.toggledId).toBe(10);
+  });
+
+  it('should not navigate to the sheet when the transformation button is clicked', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    fixture.detectChanges();
+
+    (el.querySelector('.character-transformation-btn') as HTMLButtonElement).click();
+
+    expect(host.viewedId).toBeNull();
+  });
+
+  it('should not render the drawer when no character is open', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('app-campaign-transformation-control')).toBeFalsy();
+  });
+
+  it('should render the drawer for the open character only', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    host.campaign.set(buildCampaign({
+      playerCharacters: [buildCharacter(), buildCharacter({ id: 11, name: 'Bryn' })],
+      playerCharacterIds: [10, 11],
+    }));
+    host.openTransformationId.set(11);
+    fixture.detectChanges();
+
+    const drawers = el.querySelectorAll('app-campaign-transformation-control');
+    expect(drawers.length).toBe(1);
+  });
+
+  it('should link the button to the drawer via aria-controls', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    host.openTransformationId.set(10);
+    fixture.detectChanges();
+
+    const controls = el.querySelector('.character-transformation-btn')?.getAttribute('aria-controls');
+    expect(el.querySelector(`#${controls}`)).toBeTruthy();
+  });
+
+  it('should mark the button expanded when its drawer is open', () => {
+    host.canManage.set(true);
+    host.canGrantTransformations.set(true);
+    host.openTransformationId.set(10);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-transformation-btn')?.getAttribute('aria-expanded')).toBe('true');
+  });
+
   it('should show confirmation when confirmingRemoveId matches', () => {
     host.canManage.set(true);
+    host.canGrantTransformations.set(true);
     host.confirmingRemoveId.set(10);
     fixture.detectChanges();
 

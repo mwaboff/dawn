@@ -22,6 +22,8 @@ const TYPE_TAGLINES: Partial<Record<SearchableEntityType, string>> = {
   ENVIRONMENT: 'Scenes and settings the GM can bring to life.',
   COMPANION: 'Loyal beasts and bonded allies at your side.',
   BEASTFORM: 'The creature shapes a Druid can become.',
+  TRANSFORMATION_CARD: 'The narrative identity a PC can be granted by their GM.',
+  MARTIAL_STANCE: 'The combat stances a Martial Artist can call upon.',
 };
 
 @Component({

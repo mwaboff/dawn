@@ -1,0 +1,52 @@
+:host {
+  display: block;
+}
+
+.martial-stance-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.selection-counter {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #7a6245);
+  font-style: italic;
+  text-align: center;
+}
+
+.stance-tier-group__heading {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text, #2c1a0e);
+  margin: 0 0 0.15rem;
+}
+
+.stance-tier-group__hint {
+  font-family: var(--font-body, 'Lora', serif);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-text-muted, #7a6245);
+  margin: 0 0 0.5rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-grid--wide {
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}

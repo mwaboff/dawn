@@ -1,3 +1,8 @@
+/**
+ * Adding a member here is only half the job: give it a matching `.card--type-<name>` rule in
+ * daggerheart-card-variants.css and a `--color-card-<name>` token in styles.css. A type with no
+ * rule compiles fine and renders as a white card with no accent, which has shipped twice.
+ */
 export type CardType =
   | 'class'
   | 'subclass'
@@ -13,7 +18,9 @@ export type CardType =
   | 'subclassPath'
   | 'feature'
   | 'environment'
-  | 'beastform';
+  | 'beastform'
+  | 'transformationCard'
+  | 'martialStance';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -31,6 +38,8 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   feature: 'Feature',
   environment: 'Environment',
   beastform: 'Beastform',
+  transformationCard: 'Transformation Card',
+  martialStance: 'Martial Stance',
 };
 
 export interface CardFeature {

@@ -28,6 +28,8 @@ const SEARCH_TYPE_TO_CATEGORY: Partial<Record<SearchableEntityType, string>> = {
   COMPANION: 'companion',
   FEATURE: 'feature',
   BEASTFORM: 'beastform',
+  TRANSFORMATION_CARD: 'transformationCard',
+  MARTIAL_STANCE: 'martialStance',
 };
 
 export function categoryForSearchType(type: SearchableEntityType): string | null {

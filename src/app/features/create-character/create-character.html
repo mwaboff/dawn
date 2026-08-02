@@ -48,6 +48,15 @@
               />
             }
           }
+          @case ('martial-stances') {
+            <app-martial-stance-selector
+              [cards]="martialStanceCards()"
+              [loading]="martialStanceCardsLoading()"
+              [error]="martialStanceCardsError()"
+              [selectedCards]="selectedMartialStances()"
+              (stancesSelected)="onMartialStancesSelected($event)"
+            />
+          }
           @case ('ancestry') {
             <app-ancestry-selector
               [cards]="ancestryCards()"

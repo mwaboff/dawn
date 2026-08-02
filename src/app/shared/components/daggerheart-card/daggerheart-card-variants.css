@@ -17,6 +17,8 @@
 .card--type-beastform { --ca: var(--color-card-beastform); }
 .card--type-environment { --ca: var(--color-card-environment); }
 .card--type-feature { --ca: var(--color-card-feature); }
+.card--type-transformationCard { --ca: var(--color-card-transformationCard); }
+.card--type-martialStance { --ca: var(--color-card-martialStance); }
 
 .card {
   --cd: color-mix(in srgb, var(--ca) 30%, transparent);

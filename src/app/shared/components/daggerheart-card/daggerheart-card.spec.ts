@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
-
 import { DaggerheartCard } from './daggerheart-card';
 import { CardData } from './daggerheart-card.model';
 
@@ -488,6 +487,15 @@ describe('DaggerheartCard', () => {
       const desc = fixture.nativeElement.querySelector('.card__description');
       expect(desc.innerHTML).not.toContain('<script>');
       expect(desc.textContent).toContain('<script>alert("xss")</script>');
+    });
+  });
+
+  describe('card type accents', () => {
+    it('should apply the type class the accent variants key off', () => {
+      host.card.set({ ...MOCK_CARD, cardType: 'transformationCard' });
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.card--type-transformationCard')).toBeTruthy();
     });
   });
 });

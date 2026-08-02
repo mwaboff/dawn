@@ -8,6 +8,7 @@ import { HAZARDS_DEATH_PANELS } from './hazards-death.content';
 import { INSPIRATION_PANELS } from './inspiration.content';
 import { REST_PANELS } from './rests.content';
 import { TABLES_PANELS } from './tables.content';
+import { TRANSFORMATIONS_STANCES_PANELS } from './transformations-stances.content';
 
 /**
  * Every static reference panel, in default display order. Content files are grouped by topic for
@@ -22,5 +23,6 @@ export const STATIC_GM_PANELS: readonly GmPanelDef[] = [
   ...ADVERSARY_PANELS,
   ...HAZARDS_DEATH_PANELS,
   ...INSPIRATION_PANELS,
+  ...TRANSFORMATIONS_STANCES_PANELS,
   ...TABLES_PANELS,
 ].sort((a, b) => a.defaultOrder - b.defaultOrder);

@@ -1,0 +1,30 @@
+/* The .card-group / .expandable-card vocabulary shared by the character sheet's own groups
+   (Class/Subclass/Domain, styled in character-sheet-layout.css and character-sheet-panels.css) and
+   by its child components. Those sheet-level stylesheets are view-encapsulated and cannot reach
+   child components, so this global copy is what BeastformSection, TransformationPanel, and any
+   future sibling section consume. Per-type colour modifiers (--beastform, --transformation,
+   --nested) stay in the owning component's stylesheet. */
+.card-group__heading-row { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .5rem; padding-bottom: .35rem; border-bottom: 1px solid rgba(212,160,86,.15); }
+.card-group__heading { font-family: var(--font-display); font-size: .875rem; text-transform: uppercase; letter-spacing: .2em; margin: 0; }
+.card-group__list { display: flex; flex-direction: column; gap: .5rem; }
+
+.expandable-card { background: rgba(26,20,15,.7); border: 1px solid rgba(212,160,86,.1); border-left: 3px solid; border-radius: 0 6px 6px 0; overflow: hidden; }
+.expandable-card__header { display: flex; align-items: center; gap: .5rem; width: 100%; padding: .6rem .75rem; background: none; border: none; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.expandable-card__header:hover { background: rgba(212,160,86,.04); }
+.expandable-card__header:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.expandable-card__chevron { font-size: .75rem; color: rgba(212,160,86,.65); transition: transform .2s; flex-shrink: 0; }
+.expandable-card__chevron--open { transform: rotate(90deg); }
+.expandable-card__name { font-family: var(--font-display); font-size: .9rem; font-weight: 700; color: var(--color-parchment); text-transform: uppercase; letter-spacing: .06em; margin: 0; flex: 1; }
+.expandable-card__meta { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.expandable-card__meta-badge { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: rgba(212,160,86,.75); border: 1px solid rgba(212,160,86,.2); border-radius: 2px; padding: .1rem .3rem; }
+.expandable-card__stats { font-family: var(--font-body); font-size: .8rem; color: rgba(212,160,86,.8); }
+.expandable-card__body { padding: .65rem .75rem .9rem; border-top: 1px solid rgba(212,160,86,.08); display: flex; flex-direction: column; gap: .5rem; }
+
+@media (max-width: 768px) {
+  .expandable-card__header { flex-wrap: wrap; }
+  .expandable-card__meta { flex-basis: 100%; padding-left: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-card__chevron { transition: none; }
+}

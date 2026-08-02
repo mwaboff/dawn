@@ -1,6 +1,6 @@
 import { Component, signal, computed, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { switchMap, forkJoin, of, map, Observable } from 'rxjs';
+import { switchMap, forkJoin, of, map, tap, Observable } from 'rxjs';
 
 import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
@@ -9,6 +9,7 @@ import { CardSelectionGrid } from '../../shared/components/card-selection-grid/c
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
 import { AncestrySelector, MixedAncestrySelection } from './components/ancestry-selector/ancestry-selector';
+import { MartialStanceSelector, REQUIRED_STANCE_COUNT } from './components/martial-stance-selector/martial-stance-selector';
 import { CHARACTER_TABS, CharacterSelections, Tab, TabId } from './models/create-character.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { ClassService } from '../../shared/services/class.service';
@@ -16,6 +17,9 @@ import { SubclassService } from '../../shared/services/subclass.service';
 import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
 import { DomainService } from '../../shared/services/domain.service';
+import { MartialStanceService } from '../../shared/services/martial-stance.service';
+import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
+import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
@@ -39,7 +43,7 @@ interface FeatureWithModifiers {
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, MartialStanceSelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +54,7 @@ export class CreateCharacter implements OnInit {
   private readonly ancestryService = inject(AncestryService);
   private readonly communityService = inject(CommunityService);
   private readonly domainService = inject(DomainService);
+  private readonly martialStanceService = inject(MartialStanceService);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly router = inject(Router);
 
@@ -82,6 +87,11 @@ export class CreateCharacter implements OnInit {
   readonly selectedDomainCards = signal<CardData[]>([]);
   private lastLoadedDomainSubclassId: number | null = null;
 
+  readonly martialStanceCards = signal<CardData[]>([]);
+  readonly martialStanceCardsLoading = signal(false);
+  readonly martialStanceCardsError = signal(false);
+  readonly selectedMartialStances = signal<CardData[]>([]);
+
   readonly traitAssignments = signal<TraitAssignments | null>(null);
   readonly experienceAssignments = signal<Experience[]>([]);
   readonly selectedPrimaryWeapon = signal<CardData | null>(null);
@@ -92,6 +102,11 @@ export class CreateCharacter implements OnInit {
   readonly characterPronouns = signal('');
   readonly submitting = signal(false);
   readonly submitError = signal<SubmitError | null>(null);
+  /**
+   * The sheet returned by a successful create. Guards the two-phase submit: if the follow-up
+   * stance PUT fails, resubmitting must NOT create a second character.
+   */
+  private readonly createdSheet = signal<CharacterSheetResponse | null>(null);
   readonly mixedAncestrySelection = signal<MixedAncestrySelection | null>(null);
 
   readonly selectedClassCard = computed(() => this.selectedCards()['class']);
@@ -102,6 +117,21 @@ export class CreateCharacter implements OnInit {
   readonly subclassHasMagicAccess = computed(() =>
     this.selectedSubclassCard()?.metadata?.['spellcastingTrait'] != null,
   );
+
+  /**
+   * True when the selected subclass grants "Stance Fighter" (Martial Artist's foundation
+   * feature). Reuses `hasMartialStances` -- the same predicate the character sheet uses to show
+   * the martial-stance panel -- rather than duplicating the feature-name check here. The
+   * predicate expects an array of subclass-card-shaped objects with a `features` array; the
+   * cast below satisfies that shape from the subclass `CardData`'s raw feature metadata without
+   * introducing a second copy of the rule.
+   */
+  readonly showMartialStanceStep = computed<boolean>(() => {
+    const subclass = this.selectedSubclassCard();
+    if (!subclass) return false;
+    const features = subclass.metadata?.['features'] as SubclassFeatureResponse[] | undefined;
+    return hasMartialStances([{ features }] as Parameters<typeof hasMartialStances>[0]);
+  });
 
   private static readonly CREATION_BASE_DOMAIN_CARDS = 2;
 
@@ -143,11 +173,13 @@ export class CreateCharacter implements OnInit {
     return sumFeatureModifier(sourceFeatures, 'BONUS_EXPERIENCE_MODIFIER');
   });
 
-  readonly tabs = computed<Tab[]>(() =>
-    this.experienceBonusPoints() > 0
-      ? CHARACTER_TABS
-      : CHARACTER_TABS.filter(t => t.id !== 'bonuses'),
-  );
+  readonly tabs = computed<Tab[]>(() => {
+    const showBonuses = this.experienceBonusPoints() > 0;
+    const showMartialStances = this.showMartialStanceStep();
+    return CHARACTER_TABS.filter(t =>
+      (showBonuses || t.id !== 'bonuses') && (showMartialStances || t.id !== 'martial-stances'),
+    );
+  });
 
   readonly characterSelections = computed<CharacterSelections>(() => {
     const cards = this.selectedCards();
@@ -174,6 +206,9 @@ export class CreateCharacter implements OnInit {
       this.activeTab.set(tabId);
       if (tabId === 'subclass') {
         this.loadSubclassCards();
+      }
+      if (tabId === 'martial-stances') {
+        this.loadMartialStanceCards();
       }
       if (tabId === 'ancestry') {
         this.loadAncestryCards();
@@ -217,6 +252,7 @@ export class CreateCharacter implements OnInit {
 
       if (currentTab === 'subclass' && previousCard && previousCard.id !== card.id) {
         this.clearDomainCardSelections();
+        this.clearMartialStanceSelections();
       }
     }
   }
@@ -338,6 +374,44 @@ export class CreateCharacter implements OnInit {
         this.domainCardsLoading.set(false);
       },
     });
+  }
+
+  loadMartialStanceCards(): void {
+    if (this.martialStanceCards().length > 0) {
+      return;
+    }
+
+    this.martialStanceCardsLoading.set(true);
+    this.martialStanceCardsError.set(false);
+
+    this.martialStanceService.getAllMartialStances().subscribe({
+      next: (stances) => {
+        this.martialStanceCards.set(stances.map(mapMartialStanceToCardData));
+        this.martialStanceCardsLoading.set(false);
+      },
+      error: () => {
+        this.martialStanceCardsError.set(true);
+        this.martialStanceCardsLoading.set(false);
+      },
+    });
+  }
+
+  onMartialStancesSelected(cards: CardData[]): void {
+    this.selectedMartialStances.set(cards);
+    if (cards.length === REQUIRED_STANCE_COUNT) {
+      this.markStepComplete('martial-stances');
+    } else {
+      const updated = new Set(this.completedStepsSignal());
+      updated.delete('martial-stances');
+      this.completedStepsSignal.set(updated);
+    }
+  }
+
+  private clearMartialStanceSelections(): void {
+    this.selectedMartialStances.set([]);
+    const updated = new Set(this.completedStepsSignal());
+    updated.delete('martial-stances');
+    this.completedStepsSignal.set(updated);
   }
 
   onDomainCardsSelected(cards: CardData[]): void {
@@ -463,7 +537,13 @@ export class CreateCharacter implements OnInit {
     const baseCount = CreateCharacter.CREATION_BASE_DOMAIN_CARDS;
     const effectiveExperiences = this.effectiveExperiences();
 
-    ancestryCard$.pipe(
+    // Creation and the stance attach are two calls. If creation lands but the stance PUT fails,
+    // the sheet ALREADY exists -- resubmitting would create a duplicate character. So remember the
+    // created sheet and, on retry, resume from the stance PUT instead of creating again.
+    const alreadyCreated = this.createdSheet();
+    const creation$ = alreadyCreated
+      ? of(alreadyCreated)
+      : ancestryCard$.pipe(
       switchMap(ancestryCard => {
         const characterData = assembleCharacterSheet({
           name: this.characterName(),
@@ -482,6 +562,11 @@ export class CreateCharacter implements OnInit {
         });
         return this.submitCharacterSheet(characterData);
       }),
+      tap(sheet => this.createdSheet.set(sheet)),
+    );
+
+    creation$.pipe(
+      switchMap(sheet => this.attachMartialStances(sheet)),
     ).subscribe({
       next: (sheet) => {
         this.submitting.set(false);
@@ -489,7 +574,11 @@ export class CreateCharacter implements OnInit {
       },
       error: (err: unknown) => {
         this.submitting.set(false);
-        this.submitError.set(parseSubmitError(err));
+        this.submitError.set(
+          this.createdSheet()
+            ? { message: 'Your character was created, but the martial stances could not be saved. Submit again to retry saving them.' }
+            : parseSubmitError(err),
+        );
       },
     });
   }
@@ -514,6 +603,21 @@ export class CreateCharacter implements OnInit {
         return forkJoin(experienceRequests).pipe(map(() => sheet));
       }),
     );
+  }
+
+  /**
+   * `CreateCharacterSheetRequest` has no field for known martial stances -- per the backend
+   * contract, stances are set via a follow-up `PUT /character-sheets/{id}` with
+   * `knownMartialStanceIds`, the same endpoint level-up uses to add one at a time.
+   */
+  private attachMartialStances(sheet: CharacterSheetResponse): Observable<CharacterSheetResponse> {
+    const stances = this.selectedMartialStances();
+    if (stances.length !== REQUIRED_STANCE_COUNT) {
+      return of(sheet);
+    }
+    return this.characterSheetService.updateCharacterSheet(sheet.id, {
+      knownMartialStanceIds: stances.map(c => c.id),
+    });
   }
 
   private loadClassCards(): void {
@@ -553,6 +657,7 @@ export class CreateCharacter implements OnInit {
     this.completedStepsSignal.set(updatedSteps);
     this.selectedCards.set(updatedCards);
     this.experienceBonusAllocations.set([]);
+    this.clearMartialStanceSelections();
   }
 
   private isTabReachable(tabId: TabId): boolean {

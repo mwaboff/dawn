@@ -1,4 +1,9 @@
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
+import { TransformationCardResponse } from '../../../shared/models/transformation-card-api.model';
+import { MartialStanceResponse } from '../../../shared/models/martial-stance-api.model';
+
+/** Dice size for the Brawler's stored Combo Die, serialized uppercase by the backend's `DiceType` enum. */
+export type ComboDieType = 'D4' | 'D6' | 'D8' | 'D10' | 'D12' | 'D20';
 
 export interface CreateCharacterSheetRequest {
   name: string;
@@ -40,6 +45,29 @@ export interface CreateCharacterSheetRequest {
 }
 
 export interface UpdateCharacterSheetRequest {
+  /** Hope & Fear resources -- see the matching fields on {@link CharacterSheetResponse}. */
+  focusMarked?: number;
+  focusMax?: number;
+  favor?: number;
+  /**
+   * ID of the transformation card to attach. Ignored (left unchanged) if
+   * {@link clearTransformationCard} is true.
+   */
+  transformationCardId?: number;
+  /** Explicit flag to detach the character's transformation card. See backend javadoc for why a
+   * boolean flag is needed instead of a plain null `transformationCardId`. */
+  clearTransformationCard?: boolean;
+  /** Vampire "Feed" token count, clamped to 0..6 by the service. */
+  transformationTokens?: number;
+  /** Whether the Werewolf transformation's "Wolf Form" is currently active. */
+  wolfFormActive?: boolean;
+  /** IDs of martial stances this character knows (null to leave unchanged, empty to clear all). */
+  knownMartialStanceIds?: number[];
+  /** ID of the martial stance to shift into. Ignored (left unchanged) if
+   * {@link clearActiveMartialStance} is true. */
+  activeMartialStanceId?: number;
+  /** Explicit flag to drop the character's active stance back to none. */
+  clearActiveMartialStance?: boolean;
   name?: string;
   pronouns?: string;
   level?: number;
@@ -302,6 +330,40 @@ export interface CharacterSheetResponse {
   inventoryWeapons?: InventoryWeaponResponse[];
   inventoryArmors?: InventoryArmorResponse[];
   inventoryItems?: InventoryLootResponse[];
+
+  /** Focus currently held (Martial Artist's "Stance Fighter" resource). Zero and harmless for
+   * characters without the Martial Artist subclass. Always present on real backend responses (a
+   * `NOT NULL DEFAULT 0` column); optional here only so pre-existing fixtures/mocks that predate
+   * this field still typecheck. */
+  focusMarked?: number;
+  /** Maximum Focus this character can hold. See {@link focusMarked} on optionality. */
+  focusMax?: number;
+  /** Favor points currently held (Warlock resource). See {@link focusMarked} on optionality. */
+  favor?: number;
+  /** Current Combo Die size (Brawler resource), null when the character has no Combo Die. */
+  comboDie?: ComboDieType;
+  /**
+   * Whether transformations are unlocked for this character. The sheet hides the Transformation
+   * panel entirely -- owner included -- until a GM enables it from the Campaign page, so it is
+   * deliberately absent from every update-request type: a player must not be able to self-grant.
+   */
+  transformationEnabled?: boolean;
+  /** ID of the transformation card attached to this character (null if none). */
+  transformationCardId?: number;
+  /** Full transformation card object (included only when `expand=transformationCard`). */
+  transformationCard?: TransformationCardResponse;
+  /** Vampire "Feed" token count. Null when the character's transformation does not use a token pool. */
+  transformationTokens?: number;
+  /** Whether the Werewolf transformation's "Wolf Form" is currently active. */
+  wolfFormActive?: boolean;
+  /** IDs of martial stances this character knows (always included). */
+  knownMartialStanceIds?: number[];
+  /** Full martial stance objects (included only when `expand=knownMartialStances`). */
+  knownMartialStances?: MartialStanceResponse[];
+  /** ID of the martial stance the character is currently shifted into (null if none). */
+  activeMartialStanceId?: number;
+  /** Full active martial stance object (included only when `expand=activeMartialStance`). */
+  activeMartialStance?: MartialStanceResponse;
 }
 
 export interface UpdateCharacterSheetNotesRequest {

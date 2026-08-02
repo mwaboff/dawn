@@ -1,0 +1,36 @@
+<div class="transformation-control" [id]="controlId()">
+  <div class="transformation-row">
+    <button
+      type="button"
+      class="transformation-toggle"
+      [disabled]="saving()"
+      (click)="onToggle()"
+    >{{ toggleLabel() }}</button>
+
+    @if (catalogLoading()) {
+      <p class="transformation-loading">Loading transformations…</p>
+    } @else if (catalogError()) {
+      <p class="transformation-error">
+        Could not load the transformation list.
+        <button type="button" class="transformation-retry" (click)="onRetry()">Try again</button>
+      </p>
+    } @else {
+      <label class="transformation-field" [for]="controlId() + '-select'">
+        <span class="transformation-field-label">Assigned transformation</span>
+        <select
+          class="form-input--sm transformation-select"
+          [id]="controlId() + '-select'"
+          [disabled]="saving()"
+          (change)="onCardChange($event)"
+        >
+          <option value="" [selected]="cardId() === undefined">None</option>
+          @for (card of catalog(); track card.id) {
+            <option [value]="card.id" [selected]="card.id === cardId()">{{ card.name }}</option>
+          }
+        </select>
+      </label>
+    }
+  </div>
+
+  <p class="transformation-status">{{ statusText() }}</p>
+</div>

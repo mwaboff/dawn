@@ -178,6 +178,112 @@ describe('Campaign', () => {
     expect(link?.getAttribute('href')).toBe('/campaign/1/gm-screen');
   });
 
+  it('should not fetch the transformation catalog before a drawer is opened', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    expect(httpTesting.match(r => r.url.includes('/transformation-cards')).length).toBe(0);
+  });
+
+  it('should fetch the transformation catalog when the first drawer is opened', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    component.onToggleTransformation(10);
+
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards')).flush({ content: [], currentPage: 0, totalPages: 1, totalElements: 0 });
+    expect(component.transformationCatalog()).toEqual([]);
+  });
+
+  it('should fetch the transformation catalog only once across drawers', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleTransformation(10);
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards')).flush({ content: [], currentPage: 0, totalPages: 1, totalElements: 0 });
+
+    component.onToggleTransformation(11);
+
+    expect(httpTesting.match(r => r.url.includes('/transformation-cards')).length).toBe(0);
+  });
+
+  it('should flag a catalog error when the fetch fails', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleTransformation(10);
+
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards'))
+      .flush('Boom', { status: 500, statusText: 'Server Error' });
+
+    expect(component.transformationCatalogError()).toBe(true);
+  });
+
+  it('should close the open drawer when the same character is toggled again', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleTransformation(10);
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards')).flush({ content: [], currentPage: 0, totalPages: 1, totalElements: 0 });
+
+    component.onToggleTransformation(10);
+
+    expect(component.openTransformationId()).toBeNull();
+  });
+
+  it('should keep only one drawer open at a time', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleTransformation(10);
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards')).flush({ content: [], currentPage: 0, totalPages: 1, totalElements: 0 });
+
+    component.onToggleTransformation(11);
+
+    expect(component.openTransformationId()).toBe(11);
+  });
+
+  it('should PUT the transformation change for the character', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    component.onTransformationChange({ sheetId: 10, request: { enabled: true, transformationCardId: 5 } });
+
+    const req = httpTesting.expectOne(r => r.url.includes('/campaigns/1/character-sheets/10/transformation'));
+    expect(req.request.body).toEqual({ enabled: true, transformationCardId: 5 });
+    req.flush({ id: 10, transformationEnabled: true, transformationCardId: 5 });
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+  });
+
+  it('should reload the campaign after a successful transformation change', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onTransformationChange({ sheetId: 10, request: { enabled: false } });
+    httpTesting.expectOne(r => r.url.includes('/transformation'))
+      .flush({ id: 10, transformationEnabled: false });
+
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign({ name: 'Reloaded' }));
+
+    expect(component.campaign()?.name).toBe('Reloaded');
+  });
+
+  it('should clear the saving flag when the transformation change fails', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onTransformationChange({ sheetId: 10, request: { enabled: true } });
+
+    httpTesting.expectOne(r => r.url.includes('/transformation'))
+      .flush('Boom', { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    expect(component.savingTransformationId()).toBeNull();
+  });
+
   it('should hide the GM Screen button once the campaign has ended, even for game masters', () => {
     setup();
     const authService = TestBed.inject(AuthService);
