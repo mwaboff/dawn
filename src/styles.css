@@ -11,6 +11,7 @@
 @import "./app/shared/styles/gm-panel.css";
 @import "./app/shared/styles/gm-screen-shell.css";
 @import "./app/shared/styles/expandable-card.css";
+@import "./app/shared/styles/density.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -36,12 +37,12 @@
   --color-card-community: #56d478;
   --color-card-domain: #d48056;
   --color-card-domainCard: #d4569a;
-  --color-card-weapon: #c75050;
+  --color-card-weapon: #d17070;
   --color-card-armor: #5080c7;
   --color-card-loot: #c7a850;
   --color-card-companion: #6bad56;
   --color-card-beastform: #3fae8f;
-  --color-card-environment: #7a6fd4;
+  --color-card-environment: #8b82da;
   /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
      renders directly above Equipped Domain Cards, and a rose accent read as a shade of
      --color-card-domainCard rather than as a separate kind of card. */
@@ -58,12 +59,70 @@
   /* Height of the fixed navbar. `app.css` pads the page by it and anything `position: sticky`
      must offset by it too, or it scrolls underneath. */
   --nav-height: 4.5rem;
+
+  /* Gold text read directly on parchment (not on the dark background) needs a darker ink or it
+     washes out -- this is that ink, added as a real token rather than a one-off hex per rule. */
+  --color-accent-ink: #8b5e34;
+  /* Alpha-variant tokens for the floors below, reused across several rules each. */
+  --color-accent-a75: rgba(212, 160, 86, .75);
+  --color-parchment-a55: rgba(245, 230, 211, .55);
+  --color-accent-ring: rgba(212, 160, 86, .5);
+
+  /* Type scale. WCAG has no minimum font size -- these exist to separate content text (prose,
+     hints, inputs, table body) from decorative tracked-uppercase micro-labels, which stay at
+     --text-xs and get contrast fixes instead of size increases. */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-md: 1.125rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+
+  /* Spacing scale for `--density`. Steps are the paddings/gaps already in use across the shared
+     global styles, so the comfortable default never drifts -- condensed applies roughly a
+     25-30% reduction per step. */
+  --space-1: 0.25rem;
+  --space-2: 0.4rem;
+  --space-3: 0.5rem;
+  --space-4: 0.625rem;
+  --space-5: 0.75rem;
+  --space-6: 0.875rem;
+  --space-7: 1rem;
+  --space-8: 1.125rem;
+  --space-9: 1.25rem;
+  --space-10: 1.5rem;
+  --space-11: 2rem;
+
+  --control-min-h: 2.25rem;
+  --row-gap: 0.6rem;
+  --panel-pad-y: var(--space-7);
+  --panel-pad-x: var(--space-9);
 }
 
 @media (max-width: 768px) {
   :root {
     --nav-height: 4rem;
   }
+}
+
+/* Condensed density: spacing and control heights only -- never font sizes (see --text-* above).
+   `--panel-pad-y`/`--panel-pad-x` alias into the scale, so they follow automatically. */
+:root[data-density='condensed'] {
+  --space-1: 0.2rem;
+  --space-2: 0.3rem;
+  --space-3: 0.375rem;
+  --space-4: 0.45rem;
+  --space-5: 0.55rem;
+  --space-6: 0.65rem;
+  --space-7: 0.75rem;
+  --space-8: 0.85rem;
+  --space-9: 0.95rem;
+  --space-10: 1.1rem;
+  --space-11: 1.5rem;
+
+  --control-min-h: 1.75rem;
+  --row-gap: 0.4rem;
 }
 
 * {
@@ -89,13 +148,13 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-bg-dark);
 }
 
-.panel { background: rgba(26,20,15,.5); border: 1px solid rgba(212,160,86,.12); border-radius: 6px; padding: 1rem 1.25rem; }
-.panel__title { font-family: var(--font-display); font-size: .75rem; text-transform: uppercase; letter-spacing: .2em; color: var(--color-accent); margin: 0 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid rgba(212,160,86,.2); }
+.panel { background: rgba(26,20,15,.5); border: 1px solid rgba(212,160,86,.12); border-radius: 6px; padding: var(--panel-pad-y) var(--panel-pad-x); }
+.panel__title { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .2em; color: var(--color-accent); margin: 0 0 var(--space-5); padding-bottom: var(--space-2); border-bottom: 1px solid rgba(212,160,86,.2); }
 
-.resource-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; }
-.resource-row__label { font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(212,160,86,.65); min-width: 3rem; }
+.resource-row { display: flex; align-items: center; gap: var(--row-gap); margin-bottom: var(--row-gap); }
+.resource-row__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--color-accent-a75); min-width: 3rem; }
 .resource-row__boxes { display: flex; gap: 4px; flex-wrap: wrap; }
-.resource-row__count { font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.65); }
+.resource-row__count { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.65); }
 
 .resource-box { width: 36px; height: 36px; border: 1.5px solid rgba(212,160,86,.35); border-radius: 3px; background:0 0; cursor: pointer; padding: 0; flex-shrink: 0; transition: background-color .12s,border-color .12s; }
 .resource-box:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
@@ -107,7 +166,7 @@ h1, h2, h3, h4, h5, h6 {
 .resource-box--hope:hover::before { border-color: rgba(212,160,86,.65); background: rgba(212,160,86,.1); }
 .resource-box--hope.resource-box--marked::before { background: var(--color-accent); border-color: var(--color-accent); }
 
-.empty-state { font-family: var(--font-body); color: rgba(245,230,211,.65); font-style: italic; font-size: .85rem; margin: 0; }
+.empty-state { font-family: var(--font-body); color: rgba(245,230,211,.65); font-style: italic; font-size: var(--text-sm); margin: 0; }
 
 /* Shared decorative overlays */
 .grain-overlay {
@@ -151,7 +210,7 @@ h1, h2, h3, h4, h5, h6 {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 
 .form-label {
@@ -165,12 +224,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .form-input {
-  padding: 0.875rem 1.125rem;
+  padding: var(--space-6) var(--space-8);
+  min-height: var(--control-min-h);
   background: rgba(18, 14, 10, 0.7);
   border: 1px solid rgba(212, 160, 86, 0.2);
   border-radius: 3px;
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: var(--text-base);
   color: var(--color-parchment);
   transition: all 0.25s ease;
 }
@@ -183,28 +243,28 @@ h1, h2, h3, h4, h5, h6 {
 .form-input:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(212, 160, 86, 0.15), 0 0 16px rgba(212, 160, 86, 0.1);
+  box-shadow: 0 0 0 3px var(--color-accent-ring), 0 0 16px rgba(212, 160, 86, 0.1);
   background: rgba(18, 14, 10, 0.95);
 }
 
 .form-input::placeholder {
   color: var(--color-parchment);
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .form-error {
-  padding: 0.875rem 1.125rem;
+  padding: var(--space-6) var(--space-8);
   background: rgba(220, 38, 38, 0.12);
   border: 1px solid rgba(220, 38, 38, 0.35);
   border-radius: 3px;
   color: #fca5a5;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .field-error {
   color: #fca5a5;
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
 }
 
 .input-error {
@@ -215,4 +275,77 @@ h1, h2, h3, h4, h5, h6 {
 .input-error:focus {
   border-color: rgba(220, 38, 38, 0.8);
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Motion preference. `--motion` itself isn't read by any rule below -- it exists for components
+   that branch on it directly (e.g. skipping an entrance animation via JS/host binding). The
+   actual CSS-level reduction is the duration/delay collapse below: entrance animations end on
+   `forwards` frames, so a near-zero duration plus zero delay lands them on their end state
+   instantly, without touching opacity or transform and breaking the static styles that reuse
+   those properties (Hope-pip diamonds, the nav underline's off-state scaleX(0), CDK drag inline
+   transforms, chevron rotations). */
+@media (prefers-reduced-motion: reduce) { :root { --motion: 0; } }
+:root[data-motion='reduced'] { --motion: 0; }
+:root[data-motion='full']    { --motion: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) *, :root:not([data-motion='full']) *::before,
+  :root:not([data-motion='full']) *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0s !important;
+  }
+}
+:root[data-motion='reduced'] *, :root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: .01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  transition-delay: 0s !important;
+}
+
+@media (prefers-contrast: more) {
+  .resource-row__label { color: var(--color-accent); }
+  .resource-row__count,
+  .empty-state,
+  .form-input::placeholder { color: rgba(245, 230, 211, 0.85); }
+}
+
+/* Visually hidden but still reachable by screen readers and, on focus, sighted keyboard users
+   (the skip link below unhides itself the same way). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: .6rem 1.25rem;
+  background: var(--color-accent);
+  color: var(--color-bg-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: .04em;
+  text-decoration: none;
+  border-radius: 0 0 4px 4px;
+  transition: top .15s ease;
+}
+
+.skip-link:focus {
+  top: var(--nav-height);
 }
