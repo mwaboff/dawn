@@ -25,7 +25,6 @@
   flex: 1;
   background: transparent;
   border: none;
-  outline: none;
   font-family: var(--font-body);
   font-style: italic;
   font-size: 1.25rem;
@@ -41,9 +40,12 @@
   display: none;
 }
 
-.search-input:focus {
-  outline: none;
-  box-shadow: inset 0 -1px 0 var(--color-accent);
+/* This bar sits on the light parchment panel, not the dark app background, so the global gold
+   focus ring (~1.9:1 here) fails 1.4.11 -- dark ink matches the row's own text/icon color and
+   clears 3:1 comfortably. */
+.search-input:focus-visible {
+  outline: 2px solid var(--color-text-dark);
+  outline-offset: 2px;
 }
 
 .kbd-hint {
@@ -116,16 +118,4 @@
   .filter-chip {
     transition: none;
   }
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }

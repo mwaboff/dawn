@@ -51,7 +51,7 @@
 
 .cd-row__max {
   margin-left: .15rem;
-  font-size: .8rem;
+  font-size: var(--text-sm);
   color: var(--gm-dim);
 }
 
@@ -76,7 +76,7 @@
 .cd-row__trigger,
 .cd-row__note {
   margin: 0;
-  font-size: .8rem;
+  font-size: var(--text-sm);
   color: var(--gm-dim);
 }
 

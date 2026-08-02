@@ -65,7 +65,7 @@
 }
 
 .party__level {
-  font-size: .72rem;
+  font-size: var(--text-sm);
   color: rgba(245, 230, 211, .68);
 }
 

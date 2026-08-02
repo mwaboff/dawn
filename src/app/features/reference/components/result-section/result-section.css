@@ -1,4 +1,4 @@
-:root {
+:host {
   --color-parchment-shadow: oklch(from var(--color-parchment) 0.72 c h);
   --color-seal-wax: oklch(from var(--color-accent) 0.48 0.12 h);
 }
