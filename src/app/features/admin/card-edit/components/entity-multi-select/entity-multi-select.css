@@ -5,8 +5,8 @@
 }
 
 .loading-text {
-  font-size: 0.875rem;
-  color: rgba(212, 160, 86, 0.65);
+  font-size: var(--text-sm);
+  color: rgba(212, 160, 86, 0.75);
   margin: 0;
 }
 
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-text, #e8dcc8);
   cursor: pointer;
 }

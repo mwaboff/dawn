@@ -39,7 +39,7 @@
 .form-label {
   display: block;
   font-family: 'Lora', serif;
-  font-size: .875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: #3e2723;
   margin-bottom: .375rem;
@@ -48,7 +48,7 @@
 .form-label--checkbox {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: var(--space-3);
   cursor: pointer;
   font-weight: 400;
 }
@@ -60,7 +60,7 @@
   border-radius: 4px;
   background: #fffdf8;
   font-family: 'Lora', serif;
-  font-size: .9rem;
+  font-size: var(--text-base);
   color: #3e2723;
   box-sizing: border-box;
   transition: border-color .2s ease;

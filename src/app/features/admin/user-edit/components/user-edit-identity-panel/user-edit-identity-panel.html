@@ -6,13 +6,13 @@
       <label for="username" class="form-label">Username</label>
       <input id="username" type="text" class="form-input" formControlName="username" maxlength="100" />
       @if (hasError('username', 'required')) {
-        <p class="form-error">Username is required.</p>
+        <span class="field-error">Username is required.</span>
       } @else if (hasError('username', 'minlength')) {
-        <p class="form-error">Username must be at least 3 characters.</p>
+        <span class="field-error">Username must be at least 3 characters.</span>
       } @else if (hasError('username', 'maxlength')) {
-        <p class="form-error">Username must be 100 characters or fewer.</p>
+        <span class="field-error">Username must be 100 characters or fewer.</span>
       } @else if (backendError('username')) {
-        <p class="form-error">{{ backendError('username') }}</p>
+        <span class="field-error">{{ backendError('username') }}</span>
       }
     </div>
 
@@ -20,9 +20,9 @@
       <label for="avatarUrl" class="form-label">Avatar URL</label>
       <input id="avatarUrl" type="text" class="form-input" formControlName="avatarUrl" maxlength="500" />
       @if (hasError('avatarUrl', 'maxlength')) {
-        <p class="form-error">Avatar URL must be 500 characters or fewer.</p>
+        <span class="field-error">Avatar URL must be 500 characters or fewer.</span>
       } @else if (backendError('avatarUrl')) {
-        <p class="form-error">{{ backendError('avatarUrl') }}</p>
+        <span class="field-error">{{ backendError('avatarUrl') }}</span>
       }
     </div>
 
@@ -35,7 +35,7 @@
       </select>
       <p class="form-hint">Changing the role revokes all active sessions for this user.</p>
       @if (backendError('role')) {
-        <p class="form-error">{{ backendError('role') }}</p>
+        <span class="field-error">{{ backendError('role') }}</span>
       }
     </div>
   </div>

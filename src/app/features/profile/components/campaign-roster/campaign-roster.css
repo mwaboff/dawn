@@ -1,12 +1,12 @@
 :host { display: block; }
 
 .roster-badge {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(245, 230, 211, 0.35);
+  color: rgba(245, 230, 211, 0.55);
   border: 1px solid rgba(245, 230, 211, 0.15);
   border-radius: 2px;
   padding: 0.125rem 0.5rem;

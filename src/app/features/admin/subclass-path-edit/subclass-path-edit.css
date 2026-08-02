@@ -2,15 +2,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  margin-bottom: var(--space-11);
+  padding-bottom: var(--space-7);
   border-bottom: 1px solid rgba(212, 160, 86, 0.2);
 }
 
 .path-edit__title-group {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: var(--space-5);
 }
 
 .path-edit__title {
@@ -24,7 +24,7 @@
 
 .path-edit__class-badge {
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-accent);
   background: rgba(212, 160, 86, 0.08);
@@ -54,14 +54,14 @@
 }
 
 .path-edit__domains {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-10);
 }
 
 .path-edit__domains-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-5);
 }
 
 .path-edit__domains-header .panel__title {
@@ -73,13 +73,13 @@
 .path-edit__domains-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-5);
 }
 
 .path-edit__domains-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem 1.5rem;
+  gap: var(--space-7) var(--space-10);
 }
 
 .path-edit__domain-field {
@@ -90,7 +90,7 @@
 
 .path-edit__domain-label {
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: rgba(245, 230, 211, 0.6);
   text-transform: uppercase;
@@ -98,13 +98,13 @@
 }
 
 .path-edit__domain-select {
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-3) var(--space-5);
   background: rgba(26, 20, 15, 0.6);
   border: 1px solid rgba(212, 160, 86, 0.2);
   border-radius: 4px;
   color: var(--color-parchment);
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
@@ -117,11 +117,6 @@
   outline: none;
   border-color: var(--color-accent);
   box-shadow: 0 0 0 2px rgba(212, 160, 86, 0.15);
-}
-
-.btn--sm {
-  padding: 0.4rem 0.9rem;
-  font-size: 0.775rem;
 }
 
 .path-edit__tabs {
@@ -183,9 +178,9 @@
 .path-edit__content {
   display: grid;
   grid-template-columns: 1fr 400px;
-  gap: 2rem;
+  gap: var(--space-11);
   align-items: start;
-  padding-top: 1.5rem;
+  padding-top: var(--space-10);
 }
 
 .path-edit__forms {
@@ -209,7 +204,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-9);
 }
 
 .level-section__title {
@@ -225,7 +220,7 @@
 .level-section__actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-5);
 }
 
 .level-section__status {
@@ -242,72 +237,19 @@
 }
 
 .level-section__form {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-7);
 }
 
+/* Global `.panel` has no margin-bottom -- this file stacks panels back-to-back inside a
+   `@for`, so the gap has to come from somewhere. */
 .panel {
-  background: rgba(26, 20, 15, 0.5);
-  border: 1px solid rgba(212, 160, 86, 0.12);
-  border-radius: 6px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.panel__title {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  color: var(--color-accent);
-  margin: 0 0 0.75rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid rgba(212, 160, 86, 0.2);
+  margin-bottom: var(--space-7);
 }
 
 .panel__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem 1.5rem;
-}
-
-.btn {
-  padding: 0.625rem 1.25rem;
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  text-decoration: none;
-}
-
-.btn--primary {
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-bright));
-  color: var(--color-bg-dark);
-}
-
-.btn--primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(212, 160, 86, 0.35);
-}
-
-.btn--primary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn--secondary {
-  background: transparent;
-  border: 1px solid rgba(212, 160, 86, 0.3);
-  color: var(--color-parchment);
-}
-
-.btn--secondary:hover {
-  background: rgba(212, 160, 86, 0.08);
-  border-color: rgba(212, 160, 86, 0.5);
+  gap: var(--space-7) var(--space-10);
 }
 
 @media (max-width: 900px) {
@@ -331,25 +273,29 @@
   .path-edit__domains-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: var(--space-3);
   }
 
   .path-edit__toolbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: var(--space-5);
   }
 
   .level-section__header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: var(--space-5);
   }
 }
 
 @media (max-width: 540px) {
+  .path-edit__tabs {
+    flex-wrap: wrap;
+  }
+
   .path-edit__tab {
-    padding: 0.5rem 1rem;
-    font-size: 0.7rem;
+    padding: var(--space-3) var(--space-7);
+    font-size: var(--text-sm);
   }
 }

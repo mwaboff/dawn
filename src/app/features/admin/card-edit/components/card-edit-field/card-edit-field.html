@@ -1,6 +1,6 @@
 @if (field().kind === 'checkbox') {
   <div class="form-group" [class]="columnClass()">
-    <label class="form-label--inline" [for]="field().name">
+    <label class="form-label form-label--inline" [for]="field().name">
       <input [id]="field().name" type="checkbox" [formControl]="asFormControl()" />
       {{ field().label }}
     </label>

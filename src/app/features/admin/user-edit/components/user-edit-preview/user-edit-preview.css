@@ -11,7 +11,7 @@
 }
 
 .preview-live-pill {
-  font-size: 0.625rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.1em;
   padding: 0.125rem 0.4rem;
   border-radius: 2px;
