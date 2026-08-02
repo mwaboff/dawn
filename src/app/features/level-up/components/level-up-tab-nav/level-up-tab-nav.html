@@ -12,9 +12,11 @@
         [attr.aria-selected]="activeTab() === tab.id"
         [attr.aria-disabled]="isTabDisabled(tab.id)"
         [attr.aria-label]="'Step ' + (i + 1) + ': ' + tab.label"
+        [attr.tabindex]="getTabIndex(tab.id)"
         [id]="'lu-tab-' + tab.id"
         [attr.aria-controls]="'lu-panel-' + tab.id"
         (click)="selectTab(tab.id)"
+        (keydown)="onTabKeydown($event, i)"
       >
         <span class="marker-pip" aria-hidden="true">
           @if (isTabCompleted(tab.id) && activeTab() !== tab.id) {

@@ -3,12 +3,12 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal,
   computed,
   ElementRef,
   ViewChild,
 } from '@angular/core';
 import { SearchableEntityType, typeLabels, typeGlyphs, BROWSABLE_TYPES } from '../../../../shared/models/search.model';
+import { isRovingTabKey, nextRovingTabIndex } from '../../../../shared/utils/roving-tabindex.utils';
 
 export interface FacetTab {
   type: SearchableEntityType | null;
@@ -40,8 +40,6 @@ export class TypeFacetTabs {
     })),
   ];
 
-  private readonly focusedIndex = signal(0);
-
   readonly activeIndex = computed(() => {
     const active = this.activeType();
     const idx = this.tabs.findIndex(t => t.type === active);
@@ -57,37 +55,16 @@ export class TypeFacetTabs {
   }
 
   onKeydown(event: KeyboardEvent, index: number): void {
-    const tabCount = this.tabs.length;
-    let nextIndex = index;
-
-    switch (event.key) {
-      case 'ArrowRight':
-        event.preventDefault();
-        nextIndex = (index + 1) % tabCount;
-        break;
-      case 'ArrowLeft':
-        event.preventDefault();
-        nextIndex = (index - 1 + tabCount) % tabCount;
-        break;
-      case 'Home':
-        event.preventDefault();
-        nextIndex = 0;
-        break;
-      case 'End':
-        event.preventDefault();
-        nextIndex = tabCount - 1;
-        break;
-      case 'Enter':
-      case ' ':
-        event.preventDefault();
-        this.typeChange.emit(this.tabs[index].type);
-        return;
-      default:
-        return;
+    if (isRovingTabKey(event.key)) {
+      event.preventDefault();
+      const nextIndex = nextRovingTabIndex(event.key, index, this.tabs.length);
+      this.focusTab(nextIndex);
+      return;
     }
-
-    this.focusedIndex.set(nextIndex);
-    this.focusTab(nextIndex);
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.typeChange.emit(this.tabs[index].type);
+    }
   }
 
   private focusTab(index: number): void {

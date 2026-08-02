@@ -4,38 +4,61 @@
   <div class="identity-grid">
     <div class="form-group">
       <label for="username" class="form-label">Username</label>
-      <input id="username" type="text" class="form-input" formControlName="username" maxlength="100" />
+      <input
+        id="username"
+        type="text"
+        class="form-input"
+        formControlName="username"
+        maxlength="100"
+        aria-required="true"
+        [attr.aria-invalid]="hasError('username', 'required') || hasError('username', 'minlength') || hasError('username', 'maxlength') || !!backendError('username')"
+        [attr.aria-describedby]="hasError('username', 'required') || hasError('username', 'minlength') || hasError('username', 'maxlength') || backendError('username') ? 'username-error' : null"
+      />
       @if (hasError('username', 'required')) {
-        <span class="field-error">Username is required.</span>
+        <span id="username-error" class="field-error" role="alert">Username is required.</span>
       } @else if (hasError('username', 'minlength')) {
-        <span class="field-error">Username must be at least 3 characters.</span>
+        <span id="username-error" class="field-error" role="alert">Username must be at least 3 characters.</span>
       } @else if (hasError('username', 'maxlength')) {
-        <span class="field-error">Username must be 100 characters or fewer.</span>
+        <span id="username-error" class="field-error" role="alert">Username must be 100 characters or fewer.</span>
       } @else if (backendError('username')) {
-        <span class="field-error">{{ backendError('username') }}</span>
+        <span id="username-error" class="field-error" role="alert">{{ backendError('username') }}</span>
       }
     </div>
 
     <div class="form-group">
       <label for="avatarUrl" class="form-label">Avatar URL</label>
-      <input id="avatarUrl" type="text" class="form-input" formControlName="avatarUrl" maxlength="500" />
+      <input
+        id="avatarUrl"
+        type="text"
+        class="form-input"
+        formControlName="avatarUrl"
+        maxlength="500"
+        [attr.aria-invalid]="hasError('avatarUrl', 'maxlength') || !!backendError('avatarUrl')"
+        [attr.aria-describedby]="hasError('avatarUrl', 'maxlength') || backendError('avatarUrl') ? 'avatarUrl-error' : null"
+      />
       @if (hasError('avatarUrl', 'maxlength')) {
-        <span class="field-error">Avatar URL must be 500 characters or fewer.</span>
+        <span id="avatarUrl-error" class="field-error" role="alert">Avatar URL must be 500 characters or fewer.</span>
       } @else if (backendError('avatarUrl')) {
-        <span class="field-error">{{ backendError('avatarUrl') }}</span>
+        <span id="avatarUrl-error" class="field-error" role="alert">{{ backendError('avatarUrl') }}</span>
       }
     </div>
 
     <div class="form-group">
       <label for="role" class="form-label">Role</label>
-      <select id="role" class="form-input" formControlName="role">
+      <select
+        id="role"
+        class="form-input"
+        formControlName="role"
+        [attr.aria-invalid]="!!backendError('role')"
+        [attr.aria-describedby]="backendError('role') ? 'role-hint role-error' : 'role-hint'"
+      >
         @for (role of roleOptions(); track role) {
           <option [value]="role">{{ role }}</option>
         }
       </select>
-      <p class="form-hint">Changing the role revokes all active sessions for this user.</p>
+      <p id="role-hint" class="form-hint">Changing the role revokes all active sessions for this user.</p>
       @if (backendError('role')) {
-        <span class="field-error">{{ backendError('role') }}</span>
+        <span id="role-error" class="field-error" role="alert">{{ backendError('role') }}</span>
       }
     </div>
   </div>

@@ -8,6 +8,7 @@
           class="exp-input exp-name"
           placeholder="e.g. Blacksmith, Sailor..."
           maxlength="50"
+          [attr.aria-label]="'Experience ' + ($index + 1) + ' name'"
           [value]="exp.name"
           (input)="onNameChange($index, $event)"
         />
@@ -17,6 +18,7 @@
           placeholder="+2"
           min="-5"
           max="5"
+          [attr.aria-label]="'Experience ' + ($index + 1) + ' modifier'"
           [value]="exp.modifier !== null ? exp.modifier : ''"
           (input)="onModifierChange($index, $event)"
         />

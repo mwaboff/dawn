@@ -2,6 +2,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .selection-tag {

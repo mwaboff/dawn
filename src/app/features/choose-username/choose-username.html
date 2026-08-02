@@ -27,17 +27,20 @@
           class="form-input"
           placeholder="Your adventurer name"
           autocomplete="username"
+          aria-required="true"
           [class.input-error]="usernameControl.touched && usernameControl.invalid"
+          [attr.aria-invalid]="usernameControl.touched && usernameControl.invalid"
+          [attr.aria-describedby]="usernameControl.touched && usernameControl.errors ? 'username-error' : null"
         />
         @if (usernameControl.touched && usernameControl.errors) {
           @if (usernameControl.errors['required']) {
-            <span class="field-error" role="alert">Username is required</span>
+            <span id="username-error" class="field-error" role="alert">Username is required</span>
           } @else if (usernameControl.errors['minlength']) {
-            <span class="field-error" role="alert">Must be at least 3 characters</span>
+            <span id="username-error" class="field-error" role="alert">Must be at least 3 characters</span>
           } @else if (usernameControl.errors['maxlength']) {
-            <span class="field-error" role="alert">Must be 30 characters or fewer</span>
+            <span id="username-error" class="field-error" role="alert">Must be 30 characters or fewer</span>
           } @else if (usernameControl.errors['pattern']) {
-            <span class="field-error" role="alert">Only letters, numbers, underscores, and hyphens</span>
+            <span id="username-error" class="field-error" role="alert">Only letters, numbers, underscores, and hyphens</span>
           }
         }
         <span class="form-hint">3-30 characters. Letters, numbers, underscores, hyphens.</span>

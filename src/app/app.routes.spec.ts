@@ -95,4 +95,13 @@ describe('App Routes', () => {
     const activated = router.routerState.snapshot.root.firstChild?.firstChild;
     expect(activated?.routeConfig?.path).toBe('campaign/:id');
   });
+
+  it('should set a title on every child route except the home route and redirects', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const children = guardedRoute?.children ?? [];
+    const missingTitle = children.filter(
+      r => r.path !== '' && !r.redirectTo && !r.title
+    );
+    expect(missingTitle.map(r => r.path)).toEqual([]);
+  });
 });

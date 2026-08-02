@@ -28,22 +28,44 @@
         type="text"
         formControlName="name"
         placeholder="The ritual completes"
+        aria-required="true"
+        [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+        [attr.aria-describedby]="form.controls.name.touched && form.controls.name.invalid ? 'cd-name-error' : null"
       />
       @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-        <p class="form-error">Give the countdown a name.</p>
+        <p id="cd-name-error" class="form-error" role="alert">Give the countdown a name.</p>
       }
     </div>
 
     <div class="cd-form__inline">
       <div class="cd-form__field">
         <label class="form-label" for="cd-start">Segments</label>
-        <input id="cd-start" class="form-input form-input--sm" type="number" min="1" max="99" formControlName="startingValue" />
-        <p class="cd-form__hint">2–4 soon · 5+ across a scene</p>
+        <input
+          id="cd-start"
+          class="form-input form-input--sm"
+          type="number"
+          min="1"
+          max="99"
+          formControlName="startingValue"
+          aria-required="true"
+          [attr.aria-invalid]="form.controls.startingValue.touched && form.controls.startingValue.invalid"
+          [attr.aria-describedby]="form.controls.startingValue.touched && form.controls.startingValue.invalid ? 'cd-start-error' : 'cd-start-hint'"
+        />
+        <p id="cd-start-hint" class="cd-form__hint">2–4 soon · 5+ across a scene</p>
+        @if (form.controls.startingValue.touched && form.controls.startingValue.invalid) {
+          <p id="cd-start-error" class="form-error" role="alert">Enter a value between 1 and 99.</p>
+        }
       </div>
 
       <div class="cd-form__field">
         <label class="form-label" for="cd-type">Advances</label>
-        <select id="cd-type" class="form-input" formControlName="type">
+        <select
+          id="cd-type"
+          class="form-input"
+          formControlName="type"
+          aria-required="true"
+          [attr.aria-invalid]="form.controls.type.touched && form.controls.type.invalid"
+        >
           @for (option of typeOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }
@@ -52,7 +74,13 @@
 
       <div class="cd-form__field">
         <label class="form-label" for="cd-loop">At zero</label>
-        <select id="cd-loop" class="form-input" formControlName="loopBehavior">
+        <select
+          id="cd-loop"
+          class="form-input"
+          formControlName="loopBehavior"
+          aria-required="true"
+          [attr.aria-invalid]="form.controls.loopBehavior.touched && form.controls.loopBehavior.invalid"
+        >
           @for (option of loopOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
           }

@@ -5,6 +5,7 @@
   } @else {
     <div class="history-table-wrapper">
       <table class="history-table">
+        <caption class="sr-only">{{ title() }}</caption>
         <thead>
           <tr>
             @for (col of columns(); track col.key) {

@@ -52,7 +52,7 @@
         <li class="user-entry">
           <div class="user-avatar" aria-hidden="true">
             @if (user.avatarUrl) {
-              <img [src]="user.avatarUrl" [alt]="" class="user-avatar-img" />
+              <img [src]="user.avatarUrl" alt="" class="user-avatar-img" />
             } @else {
               <span class="user-avatar-initial">{{ avatarInitial(user.username) }}</span>
             }

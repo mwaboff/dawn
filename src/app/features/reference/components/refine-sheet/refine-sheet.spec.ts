@@ -79,15 +79,17 @@ describe('RefineSheet', () => {
   });
 
   it('emits close on Escape keydown', () => {
+    const panel = hostFixture.debugElement.query(By.css('.refine-panel')).nativeElement as HTMLElement;
     const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
-    document.dispatchEvent(escapeEvent);
+    panel.dispatchEvent(escapeEvent);
     hostFixture.detectChanges();
     expect(host.closeCount).toBeGreaterThan(0);
   });
 
   it('does not emit close on other key presses', () => {
+    const panel = hostFixture.debugElement.query(By.css('.refine-panel')).nativeElement as HTMLElement;
     const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
-    document.dispatchEvent(event);
+    panel.dispatchEvent(event);
     hostFixture.detectChanges();
     expect(host.closeCount).toBe(0);
   });
@@ -116,13 +118,13 @@ describe('RefineSheet', () => {
     expect(sheetInstance.filters()).toEqual({ isOfficial: true });
   });
 
-  it('adds body-scroll-lock class on mount', () => {
-    expect(document.body.classList.contains('body-scroll-lock')).toBe(true);
+  it('locks body scroll on mount', () => {
+    expect(document.body.style.overflow).toBe('hidden');
   });
 
-  it('removes body-scroll-lock class on destroy', () => {
+  it('restores body scroll on destroy', () => {
     hostFixture.destroy();
-    expect(document.body.classList.contains('body-scroll-lock')).toBe(false);
+    expect(document.body.style.overflow).toBe('');
   });
 
   it('has role="dialog" on the panel', () => {
@@ -144,8 +146,6 @@ describe('RefineSheet', () => {
   });
 
   it('traps Tab focus within the panel (cycles back to first element)', () => {
-    const sheetEl = hostFixture.debugElement.query(By.directive(RefineSheet));
-    const sheetInstance = sheetEl.componentInstance as RefineSheet;
     const panel = hostFixture.debugElement.query(By.css('.refine-panel')).nativeElement as HTMLElement;
     const focusable = Array.from(
       panel.querySelectorAll<HTMLElement>(
@@ -153,10 +153,12 @@ describe('RefineSheet', () => {
       ),
     );
     if (focusable.length < 2) return;
+    const first = focusable[0];
     const last = focusable[focusable.length - 1];
     last.focus();
-    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true });
-    sheetInstance.onPanelKeydown(tabEvent);
+    const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    panel.dispatchEvent(tabEvent);
+    expect(document.activeElement).toBe(first);
   });
 });
 
