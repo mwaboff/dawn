@@ -8,7 +8,7 @@
   overflow: clip;
   max-height: 340px;
   border-radius: 12px;
-  background: linear-gradient(160deg, #2d2520, #231e18 50%, #1a1610);
+  background: linear-gradient(160deg, #1a1513, #14110e 50%, #0f0d09);
   border: 1px solid #3a3020;
   box-shadow: 0 4px 16px rgba(0,0,0,.5);
 }
@@ -19,7 +19,7 @@
   left: 0;
   right: 0;
   height: 80px;
-  background: linear-gradient(to bottom, transparent, #1a1610);
+  background: linear-gradient(to bottom, transparent, #0f0d09);
   z-index: 4;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -36,9 +36,9 @@
   min-height: 0;
   padding: 2rem 1.75rem 2.5rem;
 }
-.card--selected .card__content { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ca) #2d2520; }
+.card--selected .card__content { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ca) #1a1513; }
 .card--selected .card__content::-webkit-scrollbar { width: 6px; }
-.card--selected .card__content::-webkit-scrollbar-track { background: #2d2520; border-radius: 3px; }
+.card--selected .card__content::-webkit-scrollbar-track { background: #1a1513; border-radius: 3px; }
 .card--selected .card__content::-webkit-scrollbar-thumb { background: var(--ca); border-radius: 3px; }
 .card--selected .card__content::-webkit-scrollbar-thumb:hover { background: #e0b46a; }
 .card__header, .card__body, .card__tags, .card__features { position: relative; z-index: 2; }

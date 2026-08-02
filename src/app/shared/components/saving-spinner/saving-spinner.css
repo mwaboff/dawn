@@ -3,7 +3,7 @@
   align-items: center;
   gap: 0.35rem;
   vertical-align: middle;
-  margin-left: 0.4rem;
+  margin-left: var(--space-2);
 }
 
 .saving-spinner {
@@ -17,8 +17,8 @@
 
 .saving-label {
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  color: rgba(212, 160, 86, 0.6);
+  font-size: var(--text-xs);
+  color: rgba(212, 160, 86, 0.75);
   letter-spacing: 0.05em;
   font-style: italic;
 }
