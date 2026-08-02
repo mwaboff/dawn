@@ -310,8 +310,9 @@ h1, h2, h3, h4, h5, h6 {
 @media (prefers-contrast: more) {
   .resource-row__label { color: var(--color-accent); }
   .resource-row__count,
-  .empty-state,
-  .form-input::placeholder { color: rgba(245, 230, 211, 0.85); }
+  .empty-state { color: rgba(245, 230, 211, 0.85); }
+  /* placeholder alpha comes from `opacity`, so a color override would still be multiplied by it */
+  .form-input::placeholder { opacity: 0.85; }
 }
 
 /* Visually hidden but still reachable by screen readers and, on focus, sighted keyboard users
