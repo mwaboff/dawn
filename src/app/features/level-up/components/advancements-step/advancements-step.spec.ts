@@ -156,6 +156,35 @@ describe('AdvancementsStep', () => {
     expect(label?.textContent?.trim()).toBe('Upgrade Combo Die');
   });
 
+  it('should show a die preview arrow when the combo die advancement is selected', () => {
+    host.advancements.set([
+      { type: 'UPGRADE_COMBO_DIE', description: 'Step your Combo Die up one size', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: null },
+    ]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    (compiled.querySelector('.advancement-tile') as HTMLElement).click();
+    hostFixture.detectChanges();
+
+    const arrow = compiled.querySelector('.stat-boost-arrow');
+    expect(arrow?.textContent).toContain('d4 → d6');
+  });
+
+  it('should base the combo die preview arrow on the sheet\'s current die', () => {
+    host.characterSheet.set({ ...mockCharacterSheet, comboDie: 'D8' });
+    host.advancements.set([
+      { type: 'UPGRADE_COMBO_DIE', description: 'Step your Combo Die up one size', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: null },
+    ]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    (compiled.querySelector('.advancement-tile') as HTMLElement).click();
+    hostFixture.detectChanges();
+
+    const arrow = compiled.querySelector('.stat-boost-arrow');
+    expect(arrow?.textContent).toContain('d8 → d10');
+  });
+
   it('should display remaining counts', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
     const counts = compiled.querySelectorAll('.advancement-tile__count');

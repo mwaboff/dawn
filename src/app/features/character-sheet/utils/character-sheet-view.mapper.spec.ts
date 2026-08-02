@@ -119,6 +119,18 @@ describe('mapToCharacterSheetView', () => {
       expect(result.ownerName).toBe('player1');
     });
 
+    it('maps comboDie when present', () => {
+      const result = mapToCharacterSheetView(makeSheet({ comboDie: 'D8' }));
+
+      expect(result.comboDie).toBe('D8');
+    });
+
+    it('maps comboDie as undefined when not present', () => {
+      const result = mapToCharacterSheetView(makeSheet());
+
+      expect(result.comboDie).toBeUndefined();
+    });
+
     it('maps ownerName as undefined when not present', () => {
       const result = mapToCharacterSheetView(makeSheet());
 

@@ -1,3 +1,5 @@
+import { ComboDieType } from '../../create-character/models/character-sheet-api.model';
+
 export interface CharacterSheetView {
   id: number;
   ownerId: number;
@@ -43,6 +45,7 @@ export interface CharacterSheetView {
   experiences: ExperienceDisplay[];
   classEntries: ClassEntry[];
   notes?: string;
+  comboDie?: ComboDieType;
 }
 
 export interface ClassEntry {
