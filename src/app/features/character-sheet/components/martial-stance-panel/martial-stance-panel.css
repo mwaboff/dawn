@@ -1,32 +1,38 @@
-/* Carries the same accent the wide martial stance card uses, so a stance is recognisable as the
-   same kind of thing here, in the level-up picker, and on the reference page. Generic controls
-   stay on the gold accent shared by every panel; only the identity-bearing elements take the type
-   colour, matching how the transformation group is treated. */
-.panel__title--martialStance { color: var(--color-card-martialStance); border-bottom-color: color-mix(in srgb, var(--color-card-martialStance) 25%, transparent); }
+/* The gap between groups lives on the host, not on .card-group: inside this component the group is
+   always the last child, so a `.card-group:last-child { margin-bottom: 0 }` rule would zero it out
+   and let the next group's heading crowd the card. */
+:host { display: block; margin-bottom: 1.25rem; }
+:host(:last-child) { margin-bottom: 0; }
 
-.stance-active { display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; padding: .5rem .75rem; border-radius: 4px; background: color-mix(in srgb, var(--color-card-martialStance) 8%, transparent); border: 1px solid color-mix(in srgb, var(--color-card-martialStance) 30%, transparent); }
-.stance-active__label { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: color-mix(in srgb, var(--color-card-martialStance) 75%, transparent); }
-.stance-active__name { font-weight: 700; color: var(--color-parchment); flex: 1; }
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only the
+   crimson stance accent and the active-stance state live here. */
+.card-group__heading--martialStance { color: var(--color-card-martialStance); }
+.expandable-card--martialStance { border-left-color: color-mix(in srgb, var(--color-card-martialStance) 45%, transparent); }
+.expandable-card__meta-badge--martialStance { color: var(--color-card-martialStance); border-color: color-mix(in srgb, var(--color-card-martialStance) 35%, transparent); }
+/* Only one stance can be held at a time, so the active card is the single loud thing in the group:
+   full-strength edge, tinted field, and the filled badge that TransformationPanel uses for its own
+   on/off state. Declared after --martialStance so the edge colour wins at equal specificity. */
+.expandable-card--stanceActive { border-left-color: var(--color-card-martialStance); background: color-mix(in srgb, var(--color-card-martialStance) 8%, rgba(26,20,15,.7)); }
+.expandable-card__meta-badge--active { background: var(--color-card-martialStance); border-color: var(--color-card-martialStance); color: rgba(20,15,10,.9); }
 
-.stance-empty { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.55); font-style: italic; }
+.stance-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-.stance-tier-group { margin-bottom: 1rem; }
-.stance-tier-group__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.5); margin: 0 0 .4rem; }
+.stance-empty { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.55); font-style: italic; margin: 0; }
 
-.stance-list { display: flex; flex-direction: column; gap: .5rem; }
-.stance-card { border: 1px solid rgba(212,160,86,.15); border-radius: 4px; padding: .5rem .65rem; }
-.stance-card--active { border-color: var(--color-card-martialStance); background: color-mix(in srgb, var(--color-card-martialStance) 8%, transparent); }
-.stance-card__header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
-.stance-card__name { font-weight: 700; color: var(--color-parchment); }
-.stance-card__active-badge { font-family: var(--font-display); font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--color-card-martialStance); }
-.stance-card__description { font-family: var(--font-body); font-size: .8rem; color: rgba(245,230,211,.75); margin: .35rem 0 0; }
+.stance-description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
 
-.stance-btn { font-family: var(--font-display); font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; padding: .25rem .5rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }
+.stance-actions { display: flex; gap: .4rem; }
+.stance-btn { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; padding: .25rem .55rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }
 .stance-btn:hover:not(:disabled) { background: rgba(212,160,86,.1); border-color: var(--color-accent); }
+.stance-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .stance-btn:disabled { opacity: .4; cursor: not-allowed; }
 .stance-btn--clear { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
 .stance-btn--clear:hover:not(:disabled) { background: rgba(200,110,90,.1); border-color: rgba(200,110,90,.6); }
 
-.stance-drop-reminder { margin-top: 1rem; padding-top: .75rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.stance-drop-reminder { margin-top: .75rem; padding-top: .6rem; border-top: 1px dashed rgba(212,160,86,.15); }
 .stance-drop-reminder__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.45); margin: 0 0 .35rem; }
 .stance-drop-reminder__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: .78rem; color: rgba(245,230,211,.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .stance-btn { transition: none; }
+}
