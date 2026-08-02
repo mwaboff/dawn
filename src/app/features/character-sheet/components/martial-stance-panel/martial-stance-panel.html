@@ -1,56 +1,58 @@
-<div class="panel">
-  <h2 class="panel__title panel__title--martialStance">Martial Stances</h2>
+<div class="card-group">
+  <div class="card-group__heading-row">
+    <h3 class="card-group__heading card-group__heading--martialStance">Martial Stances</h3>
+  </div>
 
-  @if (activeStanceId() !== null) {
-    <div class="stance-active" role="status">
-      <span class="stance-active__label">Active</span>
-      @for (group of tierGroups(); track group.tier) {
-        @for (stance of group.stances; track stance.id) {
-          @if (stance.id === activeStanceId()) {
-            <span class="stance-active__name">{{ stance.name }}</span>
-          }
-        }
-      }
-      @if (canAct()) {
-        <button type="button" class="stance-btn stance-btn--clear" (click)="onClear()" [disabled]="actionInFlight()">
-          Drop Stance
-        </button>
-      }
-    </div>
-  }
+  <p class="stance-status" role="status">{{ activeStanceAnnouncement() }}</p>
 
-  @if (knownStances().length === 0) {
+  @if (stances().length === 0) {
     <p class="stance-empty">No martial stances known yet.</p>
   } @else {
-    @for (group of tierGroups(); track group.tier) {
-      <div class="stance-tier-group">
-        <h3 class="stance-tier-group__heading">Tier {{ group.tier }}</h3>
-        <div class="stance-list">
-          @for (stance of group.stances; track stance.id) {
-            <div class="stance-card" [class.stance-card--active]="isActive(stance.id)">
-              <div class="stance-card__header">
-                <span class="stance-card__name">{{ stance.name }}</span>
-                @if (canAct() && !isActive(stance.id)) {
-                  <button type="button" class="stance-btn" (click)="onActivate(stance.id)" [disabled]="!canActivateAnotherStance()">
-                    Enter (1 Focus)
-                  </button>
-                }
-                @if (isActive(stance.id)) {
-                  <span class="stance-card__active-badge">Active</span>
-                }
-              </div>
+    <div class="card-group__list">
+      @for (stance of stances(); track stance.id) {
+        <div class="expandable-card expandable-card--martialStance" [class.expandable-card--stanceActive]="isActive(stance.id)">
+          <button type="button" class="expandable-card__header" (click)="toggleStance(stance.id)"
+                  [attr.aria-expanded]="isExpanded(stance.id)"
+                  [attr.aria-controls]="'stance-body-' + stance.id">
+            <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="isExpanded(stance.id)" aria-hidden="true">&#9654;</span>
+            <h4 class="expandable-card__name">{{ stance.name }}</h4>
+            <div class="expandable-card__meta">
+              @if (isActive(stance.id)) {
+                <span class="expandable-card__meta-badge expandable-card__meta-badge--active">Active</span>
+              }
+              @if (stance.tier !== undefined) {
+                <span class="expandable-card__meta-badge expandable-card__meta-badge--martialStance">Tier {{ stance.tier }}</span>
+              }
+            </div>
+          </button>
+
+          @if (isExpanded(stance.id)) {
+            <div class="expandable-card__body" [id]="'stance-body-' + stance.id">
               @if (stance.description) {
-                <p class="stance-card__description">{{ stance.description }}</p>
+                <p class="stance-description" [innerHTML]="stance.description | formatText"></p>
+              }
+              @if (canAct()) {
+                <div class="stance-actions">
+                  @if (isActive(stance.id)) {
+                    <button type="button" class="stance-btn stance-btn--clear" (click)="onClear()" [disabled]="actionInFlight()">
+                      Drop stance
+                    </button>
+                  } @else {
+                    <button type="button" class="stance-btn" (click)="onActivate(stance.id)" [disabled]="!canActivateAnotherStance()">
+                      Enter (1 Focus)
+                    </button>
+                  }
+                </div>
               }
             </div>
           }
         </div>
-      </div>
-    }
+      }
+    </div>
   }
 
   <div class="stance-drop-reminder">
-    <h3 class="stance-drop-reminder__heading">A stance drops when...</h3>
+    <h4 class="stance-drop-reminder__heading">A stance drops when...</h4>
     <ul class="stance-drop-reminder__list">
       @for (condition of dropConditions; track condition) {
         <li>{{ condition }}</li>
