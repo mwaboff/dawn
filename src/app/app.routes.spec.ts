@@ -54,6 +54,12 @@ describe('App Routes', () => {
     expect(gmScreenRoute).toBeDefined();
   });
 
+  it('should have preferences route as child', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const preferencesRoute = guardedRoute?.children?.find(r => r.path === 'preferences');
+    expect(preferencesRoute).toBeDefined();
+  });
+
   it('should have campaign/:id/gm-screen route declared before campaign/:id', () => {
     const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
     const children = guardedRoute?.children ?? [];
