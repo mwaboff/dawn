@@ -71,7 +71,7 @@
         </div>
         @if (showBrawlerResources()) {
           <div class="shield">
-            <span class="shield__label">Combo Die</span>
+            <span class="shield__label">Combo</span>
             <span class="shield__value-row">
               <span class="shield__value">{{ comboDie() | lowercase }}</span>
             </span>
@@ -79,7 +79,7 @@
         }
         @if (showWarlockResources()) {
           <div class="shield">
-            <span class="shield__label">Patron Die</span>
+            <span class="shield__label">Patron</span>
             <span class="shield__value-row">
               <span class="shield__value">{{ patronDie() | lowercase }}</span>
             </span>
@@ -426,7 +426,9 @@
     <section class="cards-section" aria-label="Cards">
       @if (sheet.classCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.classCards; track card.id) {
               <div class="expandable-card expandable-card--class">
@@ -466,7 +468,9 @@
 
       @if (sheet.subclassCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.subclassCards; track card.id) {
               <div class="expandable-card expandable-card--subclass">
@@ -517,7 +521,9 @@
 
       @if (sheet.ancestryCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.ancestryCards; track card.id) {
               <div class="expandable-card expandable-card--ancestry">
@@ -557,7 +563,9 @@
 
       @if (sheet.communityCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.communityCards; track card.id) {
               <div class="expandable-card expandable-card--community">

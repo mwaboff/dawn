@@ -13,25 +13,25 @@
    full-strength edge, tinted field, and the filled badge that TransformationPanel uses for its own
    on/off state. Declared after --martialStance so the edge colour wins at equal specificity. */
 .expandable-card--stanceActive { border-left-color: var(--color-card-martialStance); background: color-mix(in srgb, var(--color-card-martialStance) 8%, rgba(26,20,15,.7)); }
-.expandable-card__meta-badge--active { background: var(--color-card-martialStance); border-color: var(--color-card-martialStance); color: rgba(20,15,10,.9); }
+.expandable-card__meta-badge--active { background: var(--color-card-martialStance); border-color: var(--color-card-martialStance); color: #1a1412; }
 
 .stance-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-.stance-empty { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.55); font-style: italic; margin: 0; }
+.stance-empty { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.55); font-style: italic; margin: 0; }
 
-.stance-description { font-family: var(--font-body); font-size: .85rem; color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+.stance-description { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
 
-.stance-actions { display: flex; gap: .4rem; }
-.stance-btn { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; padding: .25rem .55rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }
+.stance-actions { display: flex; gap: var(--space-2); }
+.stance-btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .08em; padding: .25rem .55rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; white-space: nowrap; transition: background-color .15s, border-color .15s; }
 .stance-btn:hover:not(:disabled) { background: rgba(212,160,86,.1); border-color: var(--color-accent); }
 .stance-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
 .stance-btn:disabled { opacity: .4; cursor: not-allowed; }
 .stance-btn--clear { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
 .stance-btn--clear:hover:not(:disabled) { background: rgba(200,110,90,.1); border-color: rgba(200,110,90,.6); }
 
-.stance-drop-reminder { margin-top: .75rem; padding-top: .6rem; border-top: 1px dashed rgba(212,160,86,.15); }
-.stance-drop-reminder__heading { font-family: var(--font-display); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: rgba(212,160,86,.45); margin: 0 0 .35rem; }
-.stance-drop-reminder__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: .78rem; color: rgba(245,230,211,.6); }
+.stance-drop-reminder { margin-top: var(--space-5); padding-top: .6rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.stance-drop-reminder__heading { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .12em; color: var(--color-accent-a75); margin: 0 0 .35rem; }
+.stance-drop-reminder__list { margin: 0; padding-left: 1.1rem; font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.6); }
 
 @media (prefers-reduced-motion: reduce) {
   .stance-btn { transition: none; }

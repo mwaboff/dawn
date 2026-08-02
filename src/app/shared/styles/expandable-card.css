@@ -29,4 +29,14 @@
   .expandable-card__chevron { transition: none; }
 }
 
-/* feature-row block appended by character-sheet consolidation (C1) */
+/* feature-row block appended by character-sheet consolidation (C1). Canonical values are the
+   majority across the three drifted copies this replaces (character-sheet-equipment.css,
+   equipment-card.css, beastform-section.css): description line-height 1.55, alpha .8, name
+   margin-bottom .25rem, tags margin-top .35rem. */
+.feature-row__name { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--color-accent); margin-bottom: .25rem; }
+.feature-row__description { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); line-height: 1.55; margin: 0; }
+.feature-row__tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
+.feature-tag { font-family: var(--font-body); font-size: var(--text-xs); color: rgba(212,160,86,.85); background: rgba(212,160,86,.08); border: 1px solid rgba(212,160,86,.2); border-radius: 2px; padding: .1rem .3rem; }
+.feature-row__modifiers { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .25rem; }
+.modifier-badge { font-family: var(--font-body); font-size: var(--text-xs); padding: .1rem .35rem; border-radius: 2px; border: 1px solid; background: rgba(86,160,120,.08); border-color: rgba(86,160,120,.25); color: rgba(120,210,160,.9); }
+.modifier-badge--negative { background: rgba(160,86,86,.08); border-color: rgba(160,86,86,.25); color: rgba(210,120,120,.9); }
