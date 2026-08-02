@@ -1,5 +1,14 @@
 /* Shared button system. Populated by Slice 3 of .plans/css-consolidation.md. */
 
+/* One keyboard focus ring for the whole app, replacing the UA default. Wrapped in :where() so it
+   carries zero specificity -- any component that needs its own treatment (an inset ring on a full
+   width card header, say) still wins without having to fight this. Lives here because the same
+   three lines had started being copy-pasted into component stylesheets. */
+:where(button, select, summary, [role='button']):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .btn {
   padding: 0.625rem 1.25rem;
   border-radius: 4px;
