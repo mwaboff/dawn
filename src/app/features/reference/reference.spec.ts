@@ -935,7 +935,7 @@ describe('Reference — refine sheet integration', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    document.body.classList.remove('body-scroll-lock');
+    document.body.style.overflow = '';
   });
 
   it('refineSheetOpen starts as false', () => {

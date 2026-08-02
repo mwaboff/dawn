@@ -175,11 +175,6 @@
   outline-offset: 2px;
 }
 
-/* Scroll-lock class applied to body when the refine sheet is open */
-:global(.body-scroll-lock) {
-  overflow: hidden;
-}
-
 /* 768–1099px: tablet — rail collapses to Refine button, results take full width */
 @media (max-width: 1099px) {
   .reference-layout {
