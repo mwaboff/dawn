@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 
 import { TabNav } from './tab-nav';
 import { Tab, TabId, CHARACTER_TABS } from '../../models/create-character.model';
+import { PreferencesService } from '../../../../core/services/preferences.service';
 
 @Component({
   template: `
@@ -635,6 +636,108 @@ describe('TabNav', () => {
         hostFixture.detectChanges();
         vi.advanceTimersByTime(0);
       }).not.toThrow();
+    });
+
+    it('should pass behavior "auto" instead of "smooth" when the user prefers reduced motion', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [TestHost],
+        providers: [
+          { provide: PreferencesService, useValue: { effectiveMotion: () => 'reduced' } },
+        ],
+      });
+      const reducedFixture = TestBed.createComponent(TestHost);
+      const reducedHost = reducedFixture.componentInstance;
+      reducedHost.completedSteps.set(new Set(['class']));
+      reducedFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      const compiled = reducedFixture.nativeElement as HTMLElement;
+      const scrollIntoViewMock = vi.fn();
+      const subclassTab = compiled.querySelector('#tab-subclass') as HTMLElement;
+      subclassTab.scrollIntoView = scrollIntoViewMock;
+
+      reducedHost.activeTab.set('subclass');
+      reducedFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'auto',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+  });
+
+  describe('Keyboard navigation (roving tabindex)', () => {
+    it('gives the active tab tabindex 0 and all others -1', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+
+      expect(markers[0].tabIndex).toBe(0);
+      markers.slice(1).forEach(m => expect(m.tabIndex).toBe(-1));
+    });
+
+    it('moves focus to the next tab on ArrowRight without changing the active tab', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+      markers[0].focus();
+
+      const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+      markers[0].dispatchEvent(event);
+      hostFixture.detectChanges();
+
+      expect(document.activeElement).toBe(markers[1]);
+      expect(host.activeTab()).toBe('class');
+    });
+
+    it('skips disabled tabs when moving focus with ArrowRight', () => {
+      // Only "class" is completed, so every later tab past "subclass" is disabled.
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+      markers[0].focus();
+
+      // class -> subclass is enabled, subclass -> martial-stances is disabled and should be skipped.
+      markers[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      hostFixture.detectChanges();
+      expect(document.activeElement).toBe(markers[1]);
+    });
+
+    it('activates the focused tab on Enter', () => {
+      host.completedSteps.set(new Set(['class']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+
+      const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+      markers[1].dispatchEvent(event);
+
+      expect(host.selectedTab).toBe('subclass');
+    });
+
+    it('jumps to the last tab on End, skipping disabled tabs', () => {
+      const allCompleted = new Set<TabId>([
+        'class', 'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
+        'starting-weapon', 'starting-armor', 'experiences', 'domain-cards', 'bonuses', 'review',
+      ]);
+      host.completedSteps.set(allCompleted);
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+      markers[0].focus();
+
+      markers[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      hostFixture.detectChanges();
+
+      expect(document.activeElement).toBe(markers[markers.length - 1]);
     });
   });
 

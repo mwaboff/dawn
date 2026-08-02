@@ -24,6 +24,11 @@ export class CreateCampaign {
     description: ['', [Validators.maxLength(2000)]],
   });
 
+  isFieldInvalid(fieldName: 'name' | 'description'): boolean {
+    const control = this.form.controls[fieldName];
+    return control.invalid && control.touched;
+  }
+
   onSubmit(): void {
     if (this.form.invalid || this.submitting()) return;
 

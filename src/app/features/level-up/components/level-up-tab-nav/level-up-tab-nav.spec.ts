@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 
 import { LevelUpTabNav } from './level-up-tab-nav';
 import { LevelUpTab, LevelUpTabId, ALL_LEVEL_UP_TABS } from '../../models/level-up.model';
+import { PreferencesService } from '../../../../core/services/preferences.service';
 
 @Component({
   template: `
@@ -379,6 +380,122 @@ describe('LevelUpTabNav', () => {
 
       tradesMarker.click();
       expect(host.selectedTab).toBe('domain-trades');
+    });
+  });
+
+  describe('Auto-scroll', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('calls scrollIntoView with behavior "smooth" when navigating via the next arrow', () => {
+      host.completedSteps.set(new Set(['tier-achievements']));
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const scrollIntoViewMock = vi.fn();
+      const advancementsTab = compiled.querySelector('#lu-tab-advancements') as HTMLElement;
+      advancementsTab.scrollIntoView = scrollIntoViewMock;
+
+      const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
+      nextBtn.click();
+      hostFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+
+    it('passes behavior "auto" instead of "smooth" when the user prefers reduced motion', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [TestHost],
+        providers: [
+          { provide: PreferencesService, useValue: { effectiveMotion: () => 'reduced' } },
+        ],
+      });
+      const reducedFixture = TestBed.createComponent(TestHost);
+      const reducedHost = reducedFixture.componentInstance;
+      reducedHost.completedSteps.set(new Set(['tier-achievements']));
+      reducedFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      const compiled = reducedFixture.nativeElement as HTMLElement;
+      const scrollIntoViewMock = vi.fn();
+      const advancementsTab = compiled.querySelector('#lu-tab-advancements') as HTMLElement;
+      advancementsTab.scrollIntoView = scrollIntoViewMock;
+
+      reducedHost.activeTab.set('advancements');
+      reducedFixture.detectChanges();
+      vi.advanceTimersByTime(0);
+
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'auto',
+        inline: 'center',
+        block: 'nearest',
+      });
+    });
+  });
+
+  describe('Keyboard navigation (roving tabindex)', () => {
+    it('gives the active tab tabindex 0 and all others -1', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+
+      expect(markers[0].tabIndex).toBe(0);
+      markers.slice(1).forEach(m => expect(m.tabIndex).toBe(-1));
+    });
+
+    it('moves focus to the next tab on ArrowRight without changing the active tab', () => {
+      host.completedSteps.set(new Set(['tier-achievements']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+      markers[0].focus();
+
+      markers[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      hostFixture.detectChanges();
+
+      expect(document.activeElement).toBe(markers[1]);
+      expect(host.activeTab()).toBe('tier-achievements');
+    });
+
+    it('activates the focused tab on Enter', () => {
+      host.completedSteps.set(new Set(['tier-achievements']));
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+
+      markers[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+      expect(host.selectedTab).toBe('advancements');
+    });
+
+    it('jumps to the last tab on End, skipping disabled tabs', () => {
+      const allCompleted = new Set<LevelUpTabId>([
+        'tier-achievements', 'advancements', 'martial-stance', 'domain-card', 'domain-trades', 'review',
+      ]);
+      host.completedSteps.set(allCompleted);
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const markers = Array.from(compiled.querySelectorAll<HTMLButtonElement>('.chapter-marker'));
+      markers[0].focus();
+
+      markers[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      hostFixture.detectChanges();
+
+      expect(document.activeElement).toBe(markers[markers.length - 1]);
     });
   });
 

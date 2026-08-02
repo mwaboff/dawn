@@ -87,6 +87,7 @@
                       formControlName="newLabel"
                       class="form-input--sm"
                       placeholder="Tag label…"
+                      aria-label="Tag label"
                       [attr.list]="'tags-' + feature.id"
                       (input)="onTagLabelInput(getGlobalIndex(feature), $any($event.target).value)"
                       autocomplete="off"
@@ -96,7 +97,7 @@
                         <option [value]="t.label">{{ t.category }}</option>
                       }
                     </datalist>
-                    <select formControlName="newCategory" class="form-input--sm form-input-category">
+                    <select formControlName="newCategory" class="form-input--sm form-input-category" aria-label="Tag category">
                       @for (c of costTagCategories; track c) {
                         <option [value]="c">{{ c }}</option>
                       }
@@ -128,17 +129,17 @@
                 </div>
                 @if (feature.showAddModifier) {
                   <div class="add-row" [formGroup]="feature.addModifierForm">
-                    <select formControlName="target" class="form-input--sm">
+                    <select formControlName="target" class="form-input--sm" aria-label="Modifier target">
                       @for (t of modifierTargets; track t) {
                         <option [value]="t">{{ t.replace('_', ' ') }}</option>
                       }
                     </select>
-                    <select formControlName="operation" class="form-input--sm form-input-op">
+                    <select formControlName="operation" class="form-input--sm form-input-op" aria-label="Modifier operation">
                       @for (o of modifierOperations; track o) {
                         <option [value]="o">{{ o }}</option>
                       }
                     </select>
-                    <input type="number" formControlName="value" class="form-input--sm form-input-value" />
+                    <input type="number" formControlName="value" class="form-input--sm form-input-value" aria-label="Modifier value" />
                     <button type="button" class="btn-confirm-sm" (click)="addModifier(getGlobalIndex(feature))" [disabled]="saving()">Add</button>
                   </div>
                 }

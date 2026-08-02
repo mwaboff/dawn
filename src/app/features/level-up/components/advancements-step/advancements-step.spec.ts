@@ -146,6 +146,16 @@ describe('AdvancementsStep', () => {
     expect(descriptions[0].textContent?.trim()).toBe('Increase HP by 1');
   });
 
+  it('should display a friendly label for the combo die advancement', () => {
+    host.advancements.set([
+      { type: 'UPGRADE_COMBO_DIE', description: 'Step your Combo Die up one size', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: null },
+    ]);
+    hostFixture.detectChanges();
+
+    const label = (hostFixture.nativeElement as HTMLElement).querySelector('.advancement-tile__label');
+    expect(label?.textContent?.trim()).toBe('Upgrade Combo Die');
+  });
+
   it('should display remaining counts', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
     const counts = compiled.querySelectorAll('.advancement-tile__count');

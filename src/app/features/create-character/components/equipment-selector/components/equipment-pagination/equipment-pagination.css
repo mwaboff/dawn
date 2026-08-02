@@ -17,7 +17,7 @@
   height: 2rem;
   cursor: pointer;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #3a2817;
   display: inline-flex;
   align-items: center;
@@ -28,7 +28,7 @@
 
 .pagination__btn:hover {
   border-color: #d4a056;
-  color: #d4a056;
+  color: #8b5e34;
 }
 
 .pagination__btn--active {

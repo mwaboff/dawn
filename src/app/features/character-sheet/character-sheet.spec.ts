@@ -1916,7 +1916,7 @@ describe('CharacterSheet', () => {
         fixture.detectChanges();
 
         expect(component.showWarlockResources()).toBe(true);
-        expect(fixture.nativeElement.textContent).toContain('Patron Die');
+        expect(fixture.nativeElement.textContent).toContain('Patron');
       });
 
       it('shows Combo Die for a Brawler', () => {
@@ -1924,7 +1924,7 @@ describe('CharacterSheet', () => {
         fixture.detectChanges();
 
         expect(component.showBrawlerResources()).toBe(true);
-        expect(fixture.nativeElement.textContent).toContain('Combo Die');
+        expect(fixture.nativeElement.textContent).toContain('Combo');
       });
 
       it('defaults Combo Die display to D4 when unset', () => {

@@ -11,15 +11,15 @@
 
 .toolbar-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 
-.save-success { color: #8fd4a4; font-family: var(--font-body); font-size: 0.875rem; }
-.save-error { color: #f5a5ad; font-family: var(--font-body); font-size: 0.875rem; }
+.save-success { color: #8fd4a4; font-family: var(--font-body); font-size: var(--text-sm); }
+.save-error { color: #f5a5ad; font-family: var(--font-body); font-size: var(--text-sm); }
 
 .ban-confirm { display: flex; align-items: center; gap: 0.5rem; }
 
 .ban-confirm-text {
   color: #c47a7a;
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
@@ -30,7 +30,7 @@
   border-radius: 3px;
   color: var(--color-parchment);
   font-family: var(--font-body);
-  font-size: 0.8125rem;
+  font-size: var(--text-base);
   min-width: 200px;
 }
 

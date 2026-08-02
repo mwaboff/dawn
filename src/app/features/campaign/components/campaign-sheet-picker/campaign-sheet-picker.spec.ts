@@ -182,6 +182,19 @@ describe('CampaignSheetPicker', () => {
     expect(el.querySelector('.sheet-picker-entry.selected')).toBeTruthy();
   });
 
+  it('should select a sheet on Space key', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/character-sheets')).flush(wrapPaged([buildSheet()]));
+    fixture.detectChanges();
+
+    const entry = el.querySelector('.sheet-picker-entry') as HTMLElement;
+    entry.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+
+    expect(el.querySelector('.sheet-picker-entry.selected')).toBeTruthy();
+  });
+
   it('should disable confirm button when no sheet selected', () => {
     setup();
     fixture.detectChanges();

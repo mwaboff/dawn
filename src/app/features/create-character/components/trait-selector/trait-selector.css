@@ -37,7 +37,7 @@
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 2rem;
-  color: #c9a87c;
+  color: #8b6839;
   min-height: 2.5rem;
   display: flex;
   align-items: center;
@@ -52,7 +52,7 @@
   width: 100%;
   padding: 0.4rem 0.5rem;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--text-base, 1rem);
   color: #3a2817;
   background: #f5ede0;
   border: 1px solid #c9a87c;
@@ -67,7 +67,7 @@
 
 .stepper-actions {
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #8a7060;
   text-align: center;
 }
@@ -82,7 +82,7 @@
 
 .reset-btn {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #7a5c46;
   background: none;
   border: 1px solid #c9a87c;
@@ -94,12 +94,12 @@
 
 .reset-btn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-ink, #8b5e34);
 }
 
 .complete-badge {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   font-weight: 600;
   color: #5a8a3a;
   letter-spacing: 0.05em;

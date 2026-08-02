@@ -9,14 +9,14 @@
   </div>
 
   @if (selectedCards().length > 0) {
-    <div class="selected-tiles" role="list" aria-label="Selected domain cards">
+    <ul class="selected-tiles" aria-label="Selected domain cards">
       @for (card of selectedCards(); track card.id) {
-        <div class="selected-tile" role="listitem">
+        <li class="selected-tile">
           <span class="selected-tile__label">Selected</span>
           <span class="selected-tile__name">{{ card.name }}</span>
-        </div>
+        </li>
       }
-    </div>
+    </ul>
   }
 
   @if (availableLevels().length > 1) {

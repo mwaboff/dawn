@@ -5,9 +5,9 @@
 }
 
 .admin-header {
-  padding-bottom: 1.5rem;
+  padding-bottom: var(--space-10);
   border-bottom: 1px solid rgba(212, 160, 86, 0.3);
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-11);
 }
 
 .admin-title {
@@ -15,19 +15,19 @@
   color: var(--color-accent);
   font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-7);
 }
 
 .admin-nav {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-3);
 }
 
 .admin-tab {
   font-family: var(--font-display);
   color: var(--color-parchment);
   text-decoration: none;
-  padding: 0.5rem 1rem;
+  padding: var(--space-3) var(--space-7);
   border-bottom: 2px solid transparent;
   font-size: 1rem;
   font-weight: 600;

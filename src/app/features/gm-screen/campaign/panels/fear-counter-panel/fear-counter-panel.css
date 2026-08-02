@@ -12,7 +12,7 @@
 
 .fear__label {
   font-family: var(--font-display);
-  font-size: .7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: .14em;
   text-transform: uppercase;

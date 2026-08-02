@@ -17,13 +17,16 @@
         class="form-textarea"
         rows="20"
         placeholder='[&#10;  { "name": "Example", ... },&#10;  ...&#10;]'
+        aria-required="true"
+        [attr.aria-invalid]="!!validationError()"
+        [attr.aria-describedby]="validationError() ? 'jsonInput-error' : null"
         [ngModel]="jsonInput()"
         (ngModelChange)="onJsonChange($event)"
       ></textarea>
     </div>
 
     @if (validationError()) {
-      <div class="message message--error">{{ validationError() }}</div>
+      <div id="jsonInput-error" class="message message--error" role="alert">{{ validationError() }}</div>
     }
     @if (validationSuccess()) {
       <div class="message message--success">{{ validationSuccess() }}</div>

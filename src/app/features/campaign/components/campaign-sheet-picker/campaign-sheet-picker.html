@@ -27,6 +27,7 @@
           role="option"
           [attr.aria-selected]="selectedSheetId() === sheet.id"
           (keydown.enter)="onSelect(sheet.id)"
+          (keydown.space)="onSelect(sheet.id); $event.preventDefault()"
         >
           <span class="sheet-picker-level">{{ sheet.level }}</span>
           <div class="sheet-picker-info">

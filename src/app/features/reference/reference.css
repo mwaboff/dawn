@@ -1,13 +1,13 @@
 .reference-page {
   min-height: 100vh;
   background-color: var(--color-bg-dark);
-  padding: 2rem 1.5rem;
+  padding: var(--space-11) var(--space-10);
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .reference-header {
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-9);
   text-align: center;
 }
 
@@ -24,19 +24,19 @@
   font-family: var(--font-body);
   font-style: italic;
   font-size: 1.05rem;
-  color: rgba(245, 230, 211, 0.5);
+  color: rgba(245, 230, 211, 0.55);
   margin: 0;
 }
 
 .reference-search-wrap {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-7);
 }
 
 .reference-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
-  gap: 2rem;
-  margin-top: 1rem;
+  gap: var(--space-11);
+  margin-top: var(--space-7);
 }
 
 .reference-rail {
@@ -53,12 +53,12 @@
   background: none;
   border: none;
   font-family: var(--font-display);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-accent);
   cursor: pointer;
   letter-spacing: 0.05em;
-  padding: 0.25rem 0;
-  margin-bottom: 1rem;
+  padding: var(--space-1) 0;
+  margin-bottom: var(--space-7);
   display: block;
 }
 
@@ -77,7 +77,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-7);
 }
 
 .focused-card-item {
@@ -87,7 +87,7 @@
 .reference-status {
   font-family: var(--font-body);
   font-style: italic;
-  color: rgba(245, 230, 211, 0.5);
+  color: rgba(245, 230, 211, 0.55);
   margin: 2rem 0;
 }
 
@@ -98,7 +98,7 @@
 .reference-empty-text {
   font-family: var(--font-body);
   font-style: italic;
-  color: rgba(245, 230, 211, 0.4);
+  color: rgba(245, 230, 211, 0.55);
   margin: 2rem 0;
   text-align: center;
 }
@@ -106,10 +106,10 @@
 .reference-hint {
   font-family: var(--font-body);
   font-style: italic;
-  font-size: 0.85rem;
-  color: rgba(212, 160, 86, 0.55);
+  font-size: var(--text-sm);
+  color: rgba(212, 160, 86, 0.75);
   margin: 0.4rem 0 0;
-  padding-left: 0.25rem;
+  padding-left: var(--space-1);
 }
 
 .reference-rail.loading {
@@ -118,7 +118,7 @@
 }
 
 .codex-error-surface {
-  padding: 1.5rem;
+  padding: var(--space-10);
   background: color-mix(in srgb, var(--color-parchment, #f5ede0) 8%, transparent);
   border: 1px solid rgba(212, 160, 86, 0.15);
   border-radius: 8px;
@@ -129,7 +129,7 @@
   border: 1px solid color-mix(in srgb, #8b3a2a 40%, rgba(212, 160, 86, 0.3));
   border-left: 3px solid #8b3a2a;
   border-radius: 4px;
-  padding: 0.75rem 1rem;
+  padding: var(--space-5) var(--space-7);
 }
 
 .codex-error-title {
@@ -153,7 +153,7 @@
 .refine-toggle-btn {
   display: none;
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-accent);
@@ -173,11 +173,6 @@
 .refine-toggle-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-}
-
-/* Scroll-lock class applied to body when the refine sheet is open */
-:global(.body-scroll-lock) {
-  overflow: hidden;
 }
 
 /* 768–1099px: tablet — rail collapses to Refine button, results take full width */
@@ -200,7 +195,7 @@
 /* < 768px: mobile — edge-to-edge search panel, shrink illuminated capitals */
 @media (max-width: 767px) {
   .reference-page {
-    padding: 1.5rem 1rem;
+    padding: var(--space-10) var(--space-7);
   }
 
   .reference-title {
@@ -215,16 +210,16 @@
 
 app-subclass-path-selector {
   --tab-bg: rgba(26, 20, 15, 0.4);
-  --tab-color: rgba(245, 230, 211, 0.5);
+  --tab-color: rgba(245, 230, 211, 0.85);
   --tab-hover-color: rgba(245, 230, 211, 0.8);
   --tab-hover-bg: rgba(212, 160, 86, 0.08);
   --tab-active-color: var(--color-accent);
   --tab-active-bg: rgba(212, 160, 86, 0.15);
   --tab-active-border: rgba(212, 160, 86, 0.3);
   --tab-active-shadow: none;
-  --tab-owned-color: rgba(245, 230, 211, 0.35);
+  --tab-owned-color: rgba(245, 230, 211, 0.70);
   --tab-next-color: var(--color-accent);
-  --tab-locked-color: rgba(245, 230, 211, 0.2);
+  --tab-locked-color: rgba(245, 230, 211, 0.55);
   --tab-badge-owned: #8fd4a4;
   --tab-font-size: 0.875rem;
 }

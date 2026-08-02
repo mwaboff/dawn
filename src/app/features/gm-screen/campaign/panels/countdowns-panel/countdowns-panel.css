@@ -38,7 +38,7 @@
 
 .cd-form__hint {
   margin: 0;
-  font-size: .75rem;
+  font-size: var(--text-sm);
   color: var(--gm-dim);
 }
 
@@ -53,7 +53,8 @@
   gap: .5rem;
 }
 
-/* 16px minimum, or iOS Safari zooms the page when a field takes focus. */
+/* Stays px, not rem: a user with a smaller browser default font would still drop below 16px
+   and re-trigger iOS Safari's zoom-on-focus, which this field's absolute floor prevents. */
 .cd-form input,
 .cd-form select {
   font-size: 16px;

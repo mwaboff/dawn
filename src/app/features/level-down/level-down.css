@@ -19,8 +19,8 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   min-height: 60vh; text-align: center;
 }
-.loading-text { color: #d4a056; font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: .1em; }
-.error-title { color: #d4a056; font-family: 'Cinzel', serif; font-size: 1.75rem; margin-bottom: .5rem; }
+.loading-text { color: #8b5e34; font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: .1em; }
+.error-title { color: #8b5e34; font-family: 'Cinzel', serif; font-size: 1.75rem; margin-bottom: .5rem; }
 .error-message { font-family: 'Lora', serif; color: #5a4230; }
 
 .max-level-container {
@@ -30,17 +30,17 @@
 .max-level-crest { margin-bottom: 1.5rem; }
 .crest-diamond { width: 64px; height: 64px; }
 .max-level-epithet {
-  font: italic .8rem 'Lora', serif; color: #8b6f47;
+  font: italic .8rem 'Lora', serif; color: #846a44;
   letter-spacing: .15em; text-transform: uppercase; margin: 0 0 .25rem;
 }
 .max-level-name { font: 700 2rem/1.2 'Cinzel', serif; color: #3e2723; margin: 0 0 1.25rem; }
 .max-level-badge { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .badge-rule { width: 3rem; height: 1px; background: linear-gradient(90deg, transparent, #c9a87c, transparent); }
-.badge-text { font: 600 .85rem 'Cinzel', serif; color: #d4a056; letter-spacing: .2em; text-transform: uppercase; }
-.max-level-message { font: .95rem/1.6 'Lora', serif; color: #5a4230; max-width: 28rem; margin: 0 0 2.5rem; }
+.badge-text { font: 600 .85rem 'Cinzel', serif; color: #8b5e34; letter-spacing: .2em; text-transform: uppercase; }
+.max-level-message { font: 1rem/1.6 'Lora', serif; color: #5a4230; max-width: 28rem; margin: 0 0 2.5rem; }
 .max-level-actions { display: flex; align-items: center; gap: 1.5rem; }
 .max-level-back {
-  font: 600 .8rem 'Cinzel', serif; color: #faf7f2; text-decoration: none;
+  font: 600 var(--text-sm, 0.875rem)/1.4 'Cinzel', serif; color: #faf7f2; text-decoration: none;
   padding: .55rem 1.5rem; border-radius: 4px;
   background: #3e2723; border: 1px solid #3e2723;
   transition: background .2s, border-color .2s;
@@ -49,7 +49,7 @@
 .max-level-back:focus-visible { outline: 2px solid #d4a056; outline-offset: 2px; }
 .max-level-level-down {
   padding: .5rem 1.25rem; background: transparent; border: 1px solid #c9a87c; border-radius: 4px;
-  font: 600 .75rem 'Cinzel', serif; color: #7a5c46;
+  font: 600 var(--text-sm, 0.875rem)/1.4 'Cinzel', serif; color: #7a5c46;
   cursor: pointer; transition: all .2s;
 }
 .max-level-level-down:hover { border-color: #b33; color: #b33; background: rgba(180,50,50,.04); }

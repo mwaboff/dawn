@@ -1,0 +1,67 @@
+<div class="preferences">
+  <div class="grain-overlay preferences-grain"></div>
+
+  <header class="preferences-header">
+    <span class="preferences-eyebrow">Your Table, Your Way</span>
+    <h1 class="preferences-title">Display Preferences</h1>
+    <p class="preferences-intro">
+      Changes apply instantly — there's nothing to save. These settings live only in this
+      browser, so they won't follow you to another device.
+    </p>
+  </header>
+
+  <form class="preferences-form">
+    <fieldset class="preferences-fieldset">
+      <legend class="preferences-legend">Density</legend>
+      <p class="preferences-hint">Adjust spacing and control sizing across the whole site.</p>
+
+      <div class="preferences-options">
+        @for (option of densityOptions; track option.value) {
+          <label
+            class="preferences-option"
+            [class.preferences-option--selected]="density() === option.value"
+          >
+            <input
+              type="radio"
+              name="density"
+              class="sr-only"
+              [value]="option.value"
+              [checked]="density() === option.value"
+              (change)="onDensityChange(option.value)"
+            />
+            <span class="preferences-option__label">{{ option.label }}</span>
+            <span class="preferences-option__desc">{{ option.description }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="preferences-fieldset">
+      <legend class="preferences-legend">Motion</legend>
+      <p class="preferences-hint">
+        Controls animations and transitions across the site. System follows your operating
+        system's reduced-motion setting.
+      </p>
+
+      <div class="preferences-options">
+        @for (option of motionOptions; track option.value) {
+          <label
+            class="preferences-option"
+            [class.preferences-option--selected]="motion() === option.value"
+          >
+            <input
+              type="radio"
+              name="motion"
+              class="sr-only"
+              [value]="option.value"
+              [checked]="motion() === option.value"
+              (change)="onMotionChange(option.value)"
+            />
+            <span class="preferences-option__label">{{ option.label }}</span>
+            <span class="preferences-option__desc">{{ option.description }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+  </form>
+</div>

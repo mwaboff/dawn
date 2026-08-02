@@ -33,6 +33,7 @@
     @case ('table') {
       <div class="gm-panel__table-wrap">
         <table class="gm-panel__table" [class.gm-panel__table--dense]="block.dense">
+          <caption class="sr-only">GM reference table</caption>
           <thead>
             <tr>
               @for (header of block.headers; track $index) {

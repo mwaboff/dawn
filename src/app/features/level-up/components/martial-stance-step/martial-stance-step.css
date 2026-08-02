@@ -11,7 +11,7 @@
 
 .step-instruction {
   font-family: var(--font-body, 'Lora', serif);
-  font-size: 0.9rem;
+  font-size: var(--text-base, 1rem);
   color: var(--color-text-muted, #7a6245);
   font-style: italic;
   margin: 0;
@@ -31,9 +31,9 @@
 }
 
 .selection-badge.complete {
-  color: var(--color-parchment-light, #f5ede0);
-  background: var(--color-gold, #d4a056);
-  border-color: var(--color-gold, #d4a056);
+  color: #e8f5e9;
+  background: #2e7d32;
+  border-color: #388e3c;
 }
 
 .selection-badge__sep {
@@ -56,7 +56,7 @@
 
 .stance-tier-group__hint {
   font-family: var(--font-body, 'Lora', serif);
-  font-size: 0.75rem;
+  font-size: var(--text-sm, 0.875rem);
   font-style: italic;
   color: var(--color-text-muted, #7a6245);
   margin: 0 0 0.5rem;

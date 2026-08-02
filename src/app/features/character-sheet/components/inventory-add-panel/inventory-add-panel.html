@@ -45,9 +45,9 @@
     }
 
     @if (itemType() === 'weapon' && weaponItems().length > 0) {
-      <ul class="add-panel__list" role="listbox" aria-label="Select a weapon">
+      <ul class="add-panel__list" aria-label="Select a weapon">
         @for (weapon of weaponItems(); track weapon.id) {
-          <li class="add-panel__item" role="option" aria-selected="false">
+          <li class="add-panel__item">
             <button class="add-panel__item-btn" (click)="onSelectWeapon(weapon)">
               <span class="add-panel__item-name">
                 {{ weapon.name }}
@@ -67,9 +67,9 @@
     }
 
     @if (itemType() === 'armor' && armorItems().length > 0) {
-      <ul class="add-panel__list" role="listbox" aria-label="Select armor">
+      <ul class="add-panel__list" aria-label="Select armor">
         @for (armor of armorItems(); track armor.id) {
-          <li class="add-panel__item" role="option" aria-selected="false">
+          <li class="add-panel__item">
             <button class="add-panel__item-btn" (click)="onSelectArmor(armor)">
               <span class="add-panel__item-name">{{ armor.name }}</span>
               <span class="add-panel__item-tier">@if (armor.tier) { T{{ armor.tier }} }</span>
@@ -81,9 +81,9 @@
     }
 
     @if (itemType() === 'loot' && lootItems().length > 0) {
-      <ul class="add-panel__list" role="listbox" aria-label="Select loot">
+      <ul class="add-panel__list" aria-label="Select loot">
         @for (loot of lootItems(); track loot.id) {
-          <li class="add-panel__item" role="option" aria-selected="false">
+          <li class="add-panel__item">
             <button class="add-panel__item-btn" (click)="onSelectLoot(loot)">
               <span class="add-panel__item-name">{{ loot.name }}</span>
               <span class="add-panel__item-stat--end">@if (loot.isConsumable) { Consumable }</span>

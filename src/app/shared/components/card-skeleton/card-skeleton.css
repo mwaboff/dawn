@@ -1,8 +1,8 @@
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.25rem;
-  padding: 1rem 0;
+  gap: var(--space-9);
+  padding: var(--space-7) 0;
 }
 
 .skeleton-card {
@@ -11,10 +11,10 @@
   border-radius: 12px;
   border: 1px solid rgba(212, 160, 86, 0.15);
   background: rgba(30, 20, 12, 0.6);
-  padding: 1.25rem;
+  padding: var(--space-9);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-5);
   animation: fadeInUp 0.4s ease both;
 }
 
@@ -41,8 +41,8 @@
 .skeleton-body {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
 }
 
 .skeleton-bar--line {
@@ -60,8 +60,8 @@
 
 .skeleton-tags {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
 }
 
 .skeleton-bar--tag {

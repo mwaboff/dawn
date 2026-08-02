@@ -17,6 +17,7 @@
   @if (activeCategory()) {
     <div class="toolbar">
       <input type="text" class="search-input" [placeholder]="isAllTypes() ? 'Search all card types…' : 'Search by name or text…'"
+        [attr.aria-label]="isAllTypes() ? 'Search all card types' : 'Search by name or text'"
         [ngModel]="queryValue()" (ngModelChange)="onSearchChange($event)" />
 
       <label class="toolbar__field">

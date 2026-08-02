@@ -1,11 +1,11 @@
-<main class="sheet-page">
+<div class="sheet-page">
   @if (loading()) {
     <div class="sheet-loading" role="status" aria-live="polite">
       <p class="loading-text">Loading character sheet...</p>
     </div>
   } @else if (error()) {
     <div class="sheet-error" role="alert">
-      <h2 class="error-title">Character Not Found</h2>
+      <h1 class="error-title">Character Not Found</h1>
       <p class="error-message">This character sheet could not be loaded.</p>
     </div>
   } @else if (characterSheet(); as sheet) {
@@ -71,7 +71,7 @@
         </div>
         @if (showBrawlerResources()) {
           <div class="shield">
-            <span class="shield__label">Combo Die</span>
+            <span class="shield__label">Combo</span>
             <span class="shield__value-row">
               <span class="shield__value">{{ comboDie() | lowercase }}</span>
             </span>
@@ -79,7 +79,7 @@
         }
         @if (showWarlockResources()) {
           <div class="shield">
-            <span class="shield__label">Patron Die</span>
+            <span class="shield__label">Patron</span>
             <span class="shield__value-row">
               <span class="shield__value">{{ patronDie() | lowercase }}</span>
             </span>
@@ -262,6 +262,7 @@
                         <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
                         </svg>
+                        <span class="sr-only">Two-Handed</span>
                       </span>
                     }
                     @default {
@@ -269,6 +270,7 @@
                         <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
                         </svg>
+                        <span class="sr-only">One-Handed</span>
                       </span>
                     }
                   }
@@ -426,7 +428,9 @@
     <section class="cards-section" aria-label="Cards">
       @if (sheet.classCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.classCards; track card.id) {
               <div class="expandable-card expandable-card--class">
@@ -466,7 +470,9 @@
 
       @if (sheet.subclassCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.subclassCards; track card.id) {
               <div class="expandable-card expandable-card--subclass">
@@ -517,7 +523,9 @@
 
       @if (sheet.ancestryCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.ancestryCards; track card.id) {
               <div class="expandable-card expandable-card--ancestry">
@@ -557,7 +565,9 @@
 
       @if (sheet.communityCards.length > 0) {
         <div class="card-group">
-          <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          </div>
           <div class="card-group__list">
             @for (card of sheet.communityCards; track card.id) {
               <div class="expandable-card expandable-card--community">
@@ -717,7 +727,7 @@
     @if (sheet.vaultDomainCards.length > 0) {
       <section class="vault-section" aria-label="Domain Card Vault">
         <div class="vault-header">
-          <h2 class="vault-header__title">Domain Card Vault</h2>
+          <h3 class="vault-header__title">Domain Card Vault</h3>
           <span class="vault-header__count">{{ sheet.vaultDomainCards.length }}</span>
         </div>
         <div class="vault-list">
@@ -832,4 +842,4 @@
     }
     <app-dice-roller />
   }
-</main>
+</div>

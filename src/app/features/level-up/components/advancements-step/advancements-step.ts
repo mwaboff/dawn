@@ -179,6 +179,7 @@ export class AdvancementsStep implements OnInit {
       BOOST_PROFICIENCY: 'Boost Proficiency',
       MULTICLASS: 'Multiclass',
       FEATURE_DOMAIN_CARD: 'Bonus Domain Card',
+      UPGRADE_COMBO_DIE: 'Upgrade Combo Die',
     };
     return labels[type] ?? type;
   }

@@ -52,7 +52,7 @@
       />
       @if (canProceedToFeatures()) {
         <div class="step-action">
-          <button class="proceed-button" (click)="proceedToFeatures()">
+          <button class="btn btn--primary" (click)="proceedToFeatures()">
             Choose Features
           </button>
         </div>
@@ -94,7 +94,7 @@
       @if (mixedSelectionComplete()) {
         <div class="forge-result">
           <p class="forge-result__name">{{ mixedName() }}</p>
-          <button class="proceed-button" (click)="confirmMixedSelection()">
+          <button class="btn btn--primary" (click)="confirmMixedSelection()">
             Forge Ancestry
           </button>
         </div>
