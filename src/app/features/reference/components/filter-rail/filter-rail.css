@@ -58,7 +58,7 @@
 
 .control-label {
   font-family: var(--font-display);
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(245, 230, 211, 0.6);

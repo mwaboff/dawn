@@ -24,7 +24,7 @@
   padding: .05rem .35rem;
   border: 1px solid var(--gm-border-strong);
   border-radius: .2rem;
-  font-size: .7rem;
+  font-size: var(--text-xs);
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--gm-muted);

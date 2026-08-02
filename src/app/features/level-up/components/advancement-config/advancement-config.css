@@ -21,7 +21,7 @@
 .trait-boost-arrow, .experience-boost-arrow { color: #2e7d32; font-weight: 600; }
 
 .experience-checkbox__tag {
-  font-family: 'Cinzel', serif; font-size: .65rem; font-weight: 700;
+  font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700;
   color: #8b5e34; background: rgba(212, 160, 86, .15);
   padding: .1rem .4rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .03em;
 }

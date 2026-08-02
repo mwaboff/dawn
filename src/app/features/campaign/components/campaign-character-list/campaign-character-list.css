@@ -144,7 +144,7 @@
 }
 
 .character-transformation-badge {
-  font-size: 0.625rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);

@@ -156,7 +156,7 @@
   border-radius: 3px;
   color: var(--color-accent);
   font-family: var(--font-display);
-  font-size: 0.625rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -266,9 +266,9 @@
   background: none;
   border: 1px solid rgba(212, 160, 86, 0.25);
   border-radius: 3px;
-  color: rgba(212, 160, 86, 0.6);
+  color: var(--color-accent-a75);
   font-family: var(--font-body);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.03em;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -318,7 +318,7 @@
   border-radius: 2px;
   color: rgba(212, 160, 86, 0.82);
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -379,7 +379,7 @@
 
 .modifier-op {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -60,7 +60,7 @@
 
 .toolbar__label {
   font-family: var(--font-display);
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(245, 230, 211, 0.6);
