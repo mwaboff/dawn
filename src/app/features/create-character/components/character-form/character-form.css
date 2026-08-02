@@ -22,13 +22,11 @@
   gap: 0.5rem;
 }
 
+/* .form-label/.form-input override only the properties that differ from the global
+   (src/styles.css): this page renders on light parchment, not the app's default dark
+   panels, so color/background/border stay component-local. */
 .form-label {
-  font-family: 'Cinzel', serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
   color: #3e2723;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .required-indicator {
@@ -37,14 +35,9 @@
 }
 
 .form-input {
-  padding: 0.875rem 1rem;
   border: 1px solid #c9a87c;
-  border-radius: 3px;
   background: #fff;
   color: #2d241f;
-  font-family: 'Lora', serif;
-  font-size: 1rem;
-  transition: all 0.25s ease;
 }
 
 .form-input::placeholder {
@@ -71,7 +64,7 @@
 
 .error-message {
   color: #c62828;
-  font-size: 0.875rem;
+  font-size: var(--text-sm, 0.875rem);
   font-weight: 500;
 }
 

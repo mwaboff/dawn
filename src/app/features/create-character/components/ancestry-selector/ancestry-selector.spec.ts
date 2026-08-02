@@ -124,7 +124,7 @@ describe('AncestrySelector', () => {
     const banners = fixture.nativeElement.querySelectorAll('.bloodline-banner');
     banners[1].click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.proceed-button')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.btn--primary')).toBeNull();
   });
 
   it('should reset mixed state when switching back to single mode', () => {

@@ -239,7 +239,7 @@ describe('LevelUpReview', () => {
 
   it('should emit submitClicked when submit button is clicked', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     btn.click();
     expect(host.submitClickedCount).toBe(1);
@@ -250,7 +250,7 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     btn.click();
     expect(host.submitClickedCount).toBe(0);
@@ -261,7 +261,7 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     expect(btn.disabled).toBe(true);
   });
@@ -271,14 +271,14 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn');
+    const btn = compiled.querySelector('.btn--primary');
 
     expect(btn?.textContent?.trim()).toBe('Leveling Up...');
   });
 
   it('should show "Level Up!" text when not submitting', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn');
+    const btn = compiled.querySelector('.btn--primary');
 
     expect(btn?.textContent?.trim()).toBe('Level Up!');
   });

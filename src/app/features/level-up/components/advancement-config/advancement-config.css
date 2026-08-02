@@ -1,5 +1,5 @@
 .config-section { display: flex; flex-direction: column; gap: .75rem; }
-.config-hint { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; font-style: italic; margin: 0; }
+.config-hint { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #7a5c46; font-style: italic; margin: 0; }
 
 .trait-checkboxes, .experience-checkboxes { display: flex; flex-direction: column; gap: .375rem; }
 
@@ -10,33 +10,33 @@
 .trait-checkbox:hover, .experience-checkbox:hover { border-color: #d4a056; }
 .trait-checkbox.selected, .experience-checkbox.selected { border-color: #d4a056; background: rgba(212, 160, 86, .1); }
 .trait-checkbox input, .experience-checkbox input { accent-color: #d4a056; }
-.trait-checkbox__name { font-family: 'Cinzel', serif; font-size: .85rem; font-weight: 600; color: #3e2723; flex: 1; }
-.trait-checkbox__modifier { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
-.experience-checkbox__desc { font-family: 'Lora', serif; font-size: .85rem; color: #3e2723; flex: 1; }
-.experience-checkbox__mod { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+.trait-checkbox__name { font-family: 'Cinzel', serif; font-size: var(--text-sm, .875rem); font-weight: 600; color: #3e2723; flex: 1; }
+.trait-checkbox__modifier { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #7a5c46; }
+.experience-checkbox__desc { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #3e2723; flex: 1; }
+.experience-checkbox__mod { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #7a5c46; }
 
-.equip-toggle { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: .85rem; color: #5a4230; cursor: pointer; margin-top: .5rem; }
+.equip-toggle { display: flex; align-items: center; gap: .5rem; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #5a4230; cursor: pointer; margin-top: .5rem; }
 .equip-toggle input { accent-color: #d4a056; }
 
 .trait-boost-arrow, .experience-boost-arrow { color: #2e7d32; font-weight: 600; }
 
 .experience-checkbox__tag {
   font-family: 'Cinzel', serif; font-size: .65rem; font-weight: 700;
-  color: #d4a056; background: rgba(212, 160, 86, .15);
+  color: #8b5e34; background: rgba(212, 160, 86, .15);
   padding: .1rem .4rem; border-radius: 3px; text-transform: uppercase; letter-spacing: .03em;
 }
 
 .trait-checkbox.excluded { opacity: .5; border-color: #ccc; cursor: not-allowed; }
 .trait-checkbox.excluded:hover { border-color: #ccc; }
-.trait-excluded-note { font-family: 'Lora', serif; font-size: .75rem; color: #999; font-style: italic; }
+.trait-excluded-note { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #6e6e6e; font-style: italic; }
 
 .class-filter { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
-.class-filter__label { font-family: 'Lora', serif; font-size: .85rem; color: #7a5c46; }
+.class-filter__label { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #7a5c46; }
 .class-filter__pills { display: flex; gap: .375rem; flex-wrap: wrap; }
 .class-pill {
-  font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600;
+  font-family: 'Cinzel', serif; font-size: var(--text-sm, .875rem); font-weight: 600;
   padding: .25rem .75rem; border-radius: 999px; border: 1px solid #d8c8a8;
   background: #faf7f2; color: #5a4230; cursor: pointer; transition: all .15s ease;
 }
 .class-pill:hover { border-color: #d4a056; }
-.class-pill.active { background: #d4a056; color: #fff; border-color: #d4a056; }
+.class-pill.active { background: #d4a056; color: #1a1412; border-color: #d4a056; }
