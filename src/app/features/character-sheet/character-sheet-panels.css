@@ -1,15 +1,15 @@
-.damage-bar { display: flex; align-items: stretch; border-radius: 4px; overflow: hidden; margin-bottom: var(--space-5); height: 36px; border: 1px solid rgba(212,160,86,.15); }
+/* No overflow:hidden here — it would clip the modifier tooltip that opens above the bar;
+   the end zones carry their own corner radii instead. */
+.damage-bar { display: flex; align-items: stretch; border-radius: 4px; margin-bottom: var(--space-5); height: 36px; border: 1px solid rgba(212,160,86,.15); }
 .damage-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
-.damage-zone--minor { background: rgba(74,124,89,.14); }
+.damage-zone--minor { background: rgba(74,124,89,.14); border-radius: 3px 0 0 3px; }
 .damage-zone--major { background: rgba(180,120,40,.14); }
-.damage-zone--severe { background: rgba(160,50,50,.14); }
+.damage-zone--severe { background: rgba(160,50,50,.14); border-radius: 0 3px 3px 0; }
 .damage-zone__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
 .damage-zone--minor .damage-zone__label { color: var(--color-damage-minor); }
 .damage-zone--major .damage-zone__label { color: var(--color-damage-major); }
 .damage-zone--severe .damage-zone__label { color: var(--color-damage-severe); }
-/* `.damage-marker` is a fixed 22px box holding a 1-2 digit threshold value -- widening it is out of
-   scope here, so its font-size stays put (hard-gate exception). */
-.damage-marker { display: flex; align-items: center; justify-content: center; width: 22px; flex-shrink: 0; background: rgba(13,8,6,.5); border-left: 1px solid rgba(212,160,86,.2); border-right: 1px solid rgba(212,160,86,.2); }
+.damage-marker { display: flex; align-items: center; justify-content: center; gap: 1px; min-width: 22px; padding: 0 3px; flex-shrink: 0; background: rgba(13,8,6,.5); border-left: 1px solid rgba(212,160,86,.2); border-right: 1px solid rgba(212,160,86,.2); }
 .damage-marker__value { font-size: .8rem; font-weight: 700; color: var(--color-parchment); }
 
 .experience-item { display: flex; align-items: baseline; gap: var(--space-3); padding: .3rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }
