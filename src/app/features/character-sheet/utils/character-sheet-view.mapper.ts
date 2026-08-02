@@ -129,6 +129,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
 
     classEntries: extractClassEntries(sheet.subclassCards ?? []),
     notes: sheet.notes,
+    comboDie: sheet.comboDie,
   };
 }
 
