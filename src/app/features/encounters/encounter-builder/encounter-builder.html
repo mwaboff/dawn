@@ -1,0 +1,87 @@
+<div class="builder">
+  <a [routerLink]="encountersListPath" class="builder__back">&larr; Back to Encounters</a>
+
+  @if (loading()) {
+    <p class="builder__loading">Loading encounter&hellip;</p>
+  } @else if (loadError()) {
+    <p class="builder__load-error">Something went wrong loading this encounter.</p>
+  } @else {
+    <header class="builder__header">
+      <div class="builder__identity">
+        <input
+          type="text"
+          class="builder__name-input"
+          placeholder="Encounter name"
+          aria-label="Encounter name"
+          [value]="name()"
+          (change)="onNameInput($event)"
+        />
+        <textarea
+          class="builder__description-input"
+          placeholder="Optional description or scene-setting notes"
+          aria-label="Encounter description"
+          [value]="description()"
+          (change)="onDescriptionInput($event)"
+        ></textarea>
+      </div>
+      <div class="builder__save">
+        <button type="button" class="btn btn--primary" [disabled]="saving() || !name().trim()" (click)="onSave()">
+          Save Encounter
+        </button>
+        @if (saving()) {
+          <app-saving-spinner />
+        } @else if (savedRecently()) {
+          <span class="builder__saved-note">Saved</span>
+        } @else if (saveError()) {
+          <span class="builder__save-error">Save failed — try again.</span>
+        }
+      </div>
+    </header>
+
+    <section class="builder__section" aria-label="Battle Points">
+      <app-battle-point-meter
+        [instances]="roster()"
+        [partySize]="partySize()"
+        [adjustments]="adjustments()"
+        (partySizeChange)="onPartySizeChange($event)"
+        (adjustmentsChange)="onAdjustmentsChange($event)"
+      />
+    </section>
+
+    <app-collapsible-section
+      title="Roster"
+      sectionId="roster"
+      [collapsed]="sections.isCollapsed('roster')"
+      (toggled)="sections.toggle('roster')"
+    >
+      <span section-badge class="expandable-card__meta-badge">{{ roster().length }} in roster</span>
+      <app-encounter-roster
+        [instances]="roster()"
+        [justAddedId]="justAddedInstanceId()"
+        (removeInstance)="onRemoveInstance($event)"
+        (retierInstance)="onRetierInstance($event)"
+        (labelChange)="onLabelChange($event)"
+      />
+    </app-collapsible-section>
+
+    <app-collapsible-section
+      title="Environment"
+      sectionId="environment"
+      [collapsed]="sections.isCollapsed('environment')"
+      (toggled)="sections.toggle('environment')"
+    >
+      <app-environment-picker [selectedEnvironmentId]="environmentId()" (environmentSelected)="onEnvironmentSelected($event)" />
+    </app-collapsible-section>
+
+    <app-collapsible-section
+      title="Add Adversaries"
+      sectionId="adversaries"
+      [collapsed]="sections.isCollapsed('adversaries')"
+      (toggled)="sections.toggle('adversaries')"
+    >
+      <app-adversary-browser (adversaryAdded)="onAddAdversary($event)" />
+    </app-collapsible-section>
+  }
+
+  <p class="sr-only" aria-live="polite">{{ addAnnouncement() }}</p>
+</div>

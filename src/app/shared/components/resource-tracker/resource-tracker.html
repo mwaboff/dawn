@@ -1,0 +1,22 @@
+<div class="resource-row">
+  @if (label()) {
+    <span class="resource-row__label">{{ label() }}</span>
+  }
+  <div class="resource-row__boxes">
+    @for (i of boxNumbers(); track i) {
+      <button
+        type="button"
+        class="resource-box"
+        [class.resource-box--hope]="variant() === 'hope'"
+        [class.resource-box--stress]="variant() === 'stress'"
+        [class.resource-box--marked]="i <= marked()"
+        [attr.id]="boxId(i)"
+        (click)="toggle(i)"
+        [attr.aria-label]="boxAriaLabel() + ' ' + i"
+        [attr.aria-pressed]="i <= marked()"
+      ></button>
+    }
+  </div>
+  <span class="resource-row__count">{{ marked() }}/{{ max() }}</span>
+  <ng-content />
+</div>

@@ -136,26 +136,23 @@
             </div>
           </div>
 
-          <div class="resource-row">
-            <span class="resource-row__label">HP</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.hitPointMax.modified); track i) {
-                <button class="resource-box" [class.resource-box--marked]="i <= markedHp()" (click)="toggleResourceBox('hp', i)" [attr.aria-label]="'HP ' + i" [attr.aria-pressed]="i <= markedHp()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedHp() }}/{{ sheet.hitPointMax.modified }}</span>
+          <app-resource-tracker
+            [max]="sheet.hitPointMax.modified"
+            [marked]="markedHp()"
+            label="HP"
+            idPrefix="hp"
+            (markedChange)="setResourceMarked('hp', $event)"
+          >
             <app-modifier-indicator [stat]="sheet.hitPointMax" statLabel="Hit Points max" />
-          </div>
+          </app-resource-tracker>
 
-          <div class="resource-row">
-            <span class="resource-row__label">Armor</span>
-            <div class="resource-row__boxes">
-              @for (i of getRange(sheet.armorScore.modified); track i) {
-                <button class="resource-box" [class.resource-box--marked]="i <= markedArmor()" (click)="toggleResourceBox('armor', i)" [attr.aria-label]="'Armor ' + i" [attr.aria-pressed]="i <= markedArmor()"></button>
-              }
-            </div>
-            <span class="resource-row__count">{{ markedArmor() }}/{{ sheet.armorScore.modified }}</span>
-          </div>
+          <app-resource-tracker
+            [max]="sheet.armorScore.modified"
+            [marked]="markedArmor()"
+            label="Armor"
+            idPrefix="armor"
+            (markedChange)="setResourceMarked('armor', $event)"
+          />
         </div>
 
         <div class="panel panel--hope-stress">
@@ -164,26 +161,32 @@
           <div class="hope-stress-grid">
             <div class="hope-stress-track">
               <span class="hope-stress-track__label hope-stress-track__label--hope">Hope</span>
-              <div class="resource-row__boxes">
-                @for (i of getRange(sheet.hopeMax.modified); track i) {
-                  <button class="resource-box resource-box--hope" [class.resource-box--marked]="i <= markedHope()" (click)="toggleResourceBox('hope', i)" [attr.aria-label]="'Hope ' + i" [attr.aria-pressed]="i <= markedHope()"></button>
-                }
-              </div>
-              <span class="resource-row__count">{{ markedHope() }}/{{ sheet.hopeMax.modified }}</span>
-              <app-modifier-indicator [stat]="sheet.hopeMax" statLabel="Hope max" />
+              <app-resource-tracker
+                [max]="sheet.hopeMax.modified"
+                [marked]="markedHope()"
+                variant="hope"
+                ariaLabel="Hope"
+                idPrefix="hope"
+                (markedChange)="setResourceMarked('hope', $event)"
+              >
+                <app-modifier-indicator [stat]="sheet.hopeMax" statLabel="Hope max" />
+              </app-resource-tracker>
             </div>
 
             <div class="hope-stress-divider" aria-hidden="true"></div>
 
             <div class="hope-stress-track">
               <span class="hope-stress-track__label hope-stress-track__label--stress">Stress</span>
-              <div class="resource-row__boxes">
-                @for (i of getRange(sheet.stressMax.modified); track i) {
-                  <button class="resource-box resource-box--stress" [class.resource-box--marked]="i <= markedStress()" (click)="toggleResourceBox('stress', i)" [attr.aria-label]="'Stress ' + i" [attr.aria-pressed]="i <= markedStress()"></button>
-                }
-              </div>
-              <span class="resource-row__count">{{ markedStress() }}/{{ sheet.stressMax.modified }}</span>
-              <app-modifier-indicator [stat]="sheet.stressMax" statLabel="Stress max" />
+              <app-resource-tracker
+                [max]="sheet.stressMax.modified"
+                [marked]="markedStress()"
+                variant="stress"
+                ariaLabel="Stress"
+                idPrefix="stress"
+                (markedChange)="setResourceMarked('stress', $event)"
+              >
+                <app-modifier-indicator [stat]="sheet.stressMax" statLabel="Stress max" />
+              </app-resource-tracker>
             </div>
           </div>
         </div>
@@ -191,15 +194,13 @@
         @if (showMartialStances()) {
           <div class="panel">
             <h2 class="panel__title">Focus @if (isSavingFocus()) { <app-saving-spinner /> }</h2>
-            <div class="resource-row">
-              <span class="resource-row__label">Focus</span>
-              <div class="resource-row__boxes">
-                @for (i of getRange(focusMax()); track i) {
-                  <button class="resource-box" [class.resource-box--marked]="i <= markedFocus()" (click)="toggleResourceBox('focus', i)" [attr.aria-label]="'Focus ' + i" [attr.aria-pressed]="i <= markedFocus()"></button>
-                }
-              </div>
-              <span class="resource-row__count">{{ markedFocus() }}/{{ focusMax() }}</span>
-            </div>
+            <app-resource-tracker
+              [max]="focusMax()"
+              [marked]="markedFocus()"
+              label="Focus"
+              idPrefix="focus"
+              (markedChange)="setResourceMarked('focus', $event)"
+            />
             @if (isOwner()) {
               <button type="button" class="refresh-focus-btn" (click)="refreshFocus()">Refresh Focus</button>
               @if (lastFocusRoll(); as roll) {

@@ -1,0 +1,18 @@
+<button
+  type="button"
+  class="expandable-card__header"
+  [attr.aria-expanded]="!collapsed()"
+  [attr.aria-controls]="bodyId()"
+  (click)="toggled.emit()"
+>
+  <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="!collapsed()" aria-hidden="true">&#9656;</span>
+  <h2 class="expandable-card__name">{{ title() }}</h2>
+  <div class="expandable-card__meta">
+    <ng-content select="[section-badge]" />
+  </div>
+</button>
+@if (!collapsed()) {
+  <div class="expandable-card__body" [id]="bodyId()">
+    <ng-content />
+  </div>
+}

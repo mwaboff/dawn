@@ -32,10 +32,6 @@
 .hope-stress-track__label--hope { color: var(--color-hope, #d4a056); }
 .hope-stress-track__label--stress { color: var(--color-stress, #c05050); }
 .hope-stress-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(212,160,86,.15) 20%, rgba(212,160,86,.15) 80%, transparent); }
-.resource-box--stress { border-color: rgba(160,50,50,.35); }
-.resource-box--stress:hover { border-color: rgba(160,50,50,.6); background: rgba(160,50,50,.1); }
-.resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
-.resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
 
 .gold-total { display: flex; align-items: baseline; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-5); }
 .gold-total__icon { font-size: 1.25rem; color: var(--ca); }

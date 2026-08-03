@@ -19,4 +19,6 @@ export interface AdversaryData {
   motivesAndTactics?: string;
   expansionId?: number;
   features?: CardFeature[];
+  /** GM spends a Fear to add `modifier` to a roll -- printed on the card as e.g. "Thief +2". */
+  experiences?: { description: string; modifier: number }[];
 }

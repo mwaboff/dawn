@@ -35,11 +35,17 @@ describe('CAMPAIGN_GM_PANELS', () => {
   });
 
   it('uses the contract column spans', () => {
-    expect(CAMPAIGN_GM_PANELS.map(p => p.colSpan)).toEqual([3, 2, 2, 1]);
+    expect(CAMPAIGN_GM_PANELS.map(p => p.colSpan)).toEqual([3, 2, 2, 3]);
   });
 
-  it('ships the unbuilt encounter builder collapsed', () => {
+  it('never renames the encounter builder id -- it is the stored layout key', () => {
     const encounterBuilder = CAMPAIGN_GM_PANELS.find(p => p.id === 'encounter-builder');
-    expect(encounterBuilder?.defaultCollapsed).toBe(true);
+    expect(encounterBuilder).toBeTruthy();
+    expect(encounterBuilder?.defaultOrder).toBe(-100);
+  });
+
+  it('ships the built encounter panel expanded', () => {
+    const encounterBuilder = CAMPAIGN_GM_PANELS.find(p => p.id === 'encounter-builder');
+    expect(encounterBuilder?.defaultCollapsed).toBeFalsy();
   });
 });

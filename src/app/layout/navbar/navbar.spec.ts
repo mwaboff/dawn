@@ -213,6 +213,24 @@ describe('Navbar', () => {
     });
   });
 
+  describe('Encounters link', () => {
+    it('should render Encounters link when logged in', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/encounters"]');
+      expect(links.length).toBeGreaterThan(0);
+    });
+
+    it('should not render Encounters link when logged out', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      const links = compiled.querySelectorAll('a[routerLink="/encounters"]');
+      expect(links.length).toBe(0);
+    });
+  });
+
   describe('dropdown', () => {
     it('should start with dropdown closed', () => {
       fixture.detectChanges();
@@ -355,6 +373,7 @@ describe('Navbar', () => {
       const texts = Array.from(items).map(el => el.textContent?.trim());
       expect(texts).toContain('Reference');
       expect(texts).toContain('GM Screen');
+      expect(texts).toContain('Encounters');
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('Profile');

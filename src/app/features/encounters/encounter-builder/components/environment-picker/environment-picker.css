@@ -1,0 +1,32 @@
+:host { display: block; }
+
+.env-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.env-picker__note {
+  margin: 0;
+  font-style: italic;
+  font-size: .85rem;
+  color: rgba(245, 230, 211, .55);
+}
+
+.env-picker__clear-btn {
+  flex-shrink: 0;
+  padding: .35rem .8rem;
+  border-radius: 3px;
+  border: 1px solid rgba(212, 160, 86, .3);
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: .75rem;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.env-picker__clear-btn:hover { background: rgba(212, 160, 86, .08); border-color: var(--color-accent); }

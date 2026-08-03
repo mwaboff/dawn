@@ -1,0 +1,51 @@
+<div class="browser">
+  <div class="browser__filters">
+    <div class="browser__tiers" role="group" aria-label="Filter by tier">
+      @for (tier of tierOptions; track tier) {
+        <button
+          type="button"
+          class="browser__tier-btn"
+          [class.browser__tier-btn--active]="isTierSelected(tier)"
+          [attr.aria-pressed]="isTierSelected(tier)"
+          (click)="toggleTier(tier)"
+        >T{{ tier }}</button>
+      }
+    </div>
+    <select class="form-select browser__type-select" [value]="selectedType()" (change)="onTypeChange($event)" aria-label="Filter by adversary type">
+      <option value="">Any Type</option>
+      @for (opt of typeOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (loading()) {
+    <app-card-skeleton [count]="6" />
+  } @else if (error()) {
+    <app-card-error />
+  } @else if (adversaries().length === 0) {
+    <p class="browser__empty">No adversaries match these filters.</p>
+  } @else {
+    <div class="browser__grid">
+      @for (adversary of adversaries(); track adversary.id) {
+        <app-adversary-card [adversary]="adversary" [collapsible]="true">
+          <button
+            card-actions
+            type="button"
+            class="browser__add-btn"
+            [class.browser__add-btn--added]="justAddedId() === adversary.id"
+            [attr.aria-label]="'Add ' + adversary.name + ' to the encounter'"
+            (click)="onAdd(adversary)"
+          >
+            @if (justAddedId() === adversary.id) {
+              <span aria-hidden="true">&#10003;</span>
+            } @else {
+              <span aria-hidden="true">+</span>
+            }
+          </button>
+        </app-adversary-card>
+      }
+    </div>
+    <app-pagination-controls [currentPage]="page()" [totalPages]="totalPages()" (pageChanged)="onPageChange($event)" />
+  }
+</div>

@@ -14,6 +14,7 @@ import { CampaignInvite } from './components/campaign-invite/campaign-invite';
 import { CampaignPendingList } from './components/campaign-pending-list/campaign-pending-list';
 import { CampaignNpcList } from './components/campaign-npc-list/campaign-npc-list';
 import { CampaignSheetPicker } from './components/campaign-sheet-picker/campaign-sheet-picker';
+import { isCampaignGameMaster } from '../../shared/utils/campaign-access.utils';
 
 @Component({
   selector: 'app-campaign',
@@ -53,12 +54,9 @@ export class Campaign implements OnInit {
   readonly transformationCatalogError = signal(false);
   private readonly transformationCatalogLoaded = signal(false);
 
-  readonly isGameMaster = computed(() => {
-    const c = this.campaign();
-    const userId = this.authService.user()?.id;
-    if (!c || !userId) return false;
-    return c.gameMasterIds.includes(userId);
-  });
+  readonly isGameMaster = computed(() =>
+    isCampaignGameMaster(this.campaign(), this.authService.user()?.id),
+  );
 
   readonly canManage = computed(() => {
     return this.isGameMaster() || this.authService.isAdmin();

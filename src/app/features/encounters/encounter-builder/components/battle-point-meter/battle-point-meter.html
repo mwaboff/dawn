@@ -1,0 +1,70 @@
+<div class="meter" [class.meter--over]="isOverBudget()">
+  <div class="meter__top">
+    <div class="meter__party">
+      <label class="meter__party-label" for="bp-party-size">Party Size</label>
+      <input
+        id="bp-party-size"
+        type="number"
+        min="1"
+        max="12"
+        class="meter__party-input"
+        [value]="partySize()"
+        (change)="onPartySizeInput($event)"
+      />
+    </div>
+
+    <div class="meter__readout">
+      <span class="meter__spent">{{ spent() }}</span>
+      <span class="meter__sep" aria-hidden="true">/</span>
+      <span class="meter__suggested">{{ suggested() }}</span>
+      <span class="meter__unit">Battle Points</span>
+      @if (isOverBudget()) {
+        <span class="meter__status meter__status--over">{{ -remaining() }} over budget</span>
+      } @else {
+        <span class="meter__status">{{ remaining() }} to spare</span>
+      }
+    </div>
+  </div>
+
+  <div
+    class="meter__track"
+    role="img"
+    [attr.aria-label]="spent() + ' of ' + suggested() + ' suggested Battle Points spent'"
+  >
+    @for (segment of segments(); track segment.key) {
+      <div
+        class="meter__segment"
+        [class.meter__segment--elite]="segment.kind === 'elite'"
+        [class.meter__segment--minion]="segment.kind === 'minion'"
+        [style.width.%]="segmentWidthPercent(segment)"
+        [attr.title]="segment.label + ' — ' + segment.costPoints + ' pt' + (segment.costPoints === 1 ? '' : 's')"
+      ></div>
+    }
+    <div class="meter__marker" [style.left.%]="suggestedMarkerPercent()" aria-hidden="true">
+      <span class="meter__marker-flag">Suggested</span>
+    </div>
+  </div>
+
+  @if (minionCount() > 0) {
+    <p class="meter__minion-note">
+      {{ minionCount() }} Minion{{ minionCount() === 1 ? '' : 's' }} grouped into
+      {{ minionGroups() }} group{{ minionGroups() === 1 ? '' : 's' }} of up to {{ partySize() }} —
+      1 point per group, not per Minion.
+    </p>
+  }
+
+  <fieldset class="meter__adjustments">
+    <legend class="meter__adjustments-legend">Adjustments</legend>
+    @for (opt of adjustmentOptions; track opt.key) {
+      <label class="meter__adjustment">
+        <input
+          type="checkbox"
+          [checked]="isAdjustmentActive(opt.key)"
+          (change)="onAdjustmentToggle(opt.key)"
+        />
+        <span class="meter__adjustment-label">{{ opt.label }}</span>
+        <span class="meter__adjustment-delta">{{ opt.deltaLabel }}</span>
+      </label>
+    }
+  </fieldset>
+</div>

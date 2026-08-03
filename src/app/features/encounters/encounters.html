@@ -1,0 +1,141 @@
+<div class="encounters-page">
+  <div class="grain-overlay encounters-grain"></div>
+
+  <header class="encounters-header">
+    <div class="encounters-identity">
+      <span class="encounters-eyebrow">Battle Ready</span>
+      <h1 class="encounters-title">Encounters</h1>
+    </div>
+    <a [routerLink]="newEncounterPath" class="encounters-create-btn">+ New Encounter</a>
+  </header>
+
+  <div class="encounters-divider">
+    <div class="encounters-divider-line"></div>
+    <span class="encounters-divider-label">Saved Encounters</span>
+    <div class="encounters-divider-line"></div>
+  </div>
+
+  @if (deleteError()) {
+    <p class="encounters-delete-error" role="alert">Couldn't delete this encounter — try again.</p>
+  }
+
+  @if (discardError()) {
+    <p class="encounters-delete-error" role="alert">Couldn't discard this run — try again.</p>
+  }
+
+  @if (!activeRunsLoading() && activeRunEntries().length > 0) {
+    <section class="active-runs" aria-labelledby="active-runs-heading">
+      <span id="active-runs-heading" class="active-runs-eyebrow">In Progress</span>
+      <ol class="active-runs-list">
+        @for (entry of activeRunEntries(); track entry.run.id) {
+          <li class="active-runs-entry">
+            <div class="active-runs-info">
+              <span class="active-runs-pulse" aria-hidden="true"></span>
+              <div class="active-runs-text">
+                <span class="active-runs-name">{{ entry.encounterName }}</span>
+                <span class="active-runs-meta">
+                  {{ entry.run.adversaries.length }} adversar{{ entry.run.adversaries.length === 1 ? 'y' : 'ies' }} in the field
+                </span>
+              </div>
+            </div>
+            <div class="active-runs-actions">
+              <button type="button" class="btn btn--primary btn--sm" (click)="onResume(entry.run)">Resume</button>
+              <button
+                type="button"
+                class="btn btn--danger-ghost btn--sm"
+                [disabled]="discardingId() === entry.run.id"
+                [attr.aria-label]="'Discard ' + entry.encounterName"
+                (click)="onDiscardRequest(entry.run.id)"
+              >{{ discardingId() === entry.run.id ? 'Discarding…' : 'Discard' }}</button>
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+  <section class="roster">
+    @if (loading()) {
+      <div class="roster-loading">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="roster-skeleton"></div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="roster-message">
+        <p>Something went wrong loading your encounters.</p>
+      </div>
+    } @else if (encounters().length === 0) {
+      <div class="roster-empty">
+        <p class="roster-empty-text">No encounters yet — build your first fight.</p>
+        <button type="button" class="roster-create-btn" (click)="onCreate()">Create Your First Encounter</button>
+      </div>
+    } @else {
+      <ol class="roster-list">
+        @for (encounter of encounters(); track encounter.id) {
+          <li class="roster-entry" tabindex="0" role="button" (click)="onEdit(encounter.id)" (keydown.enter)="onEdit(encounter.id)">
+            <div class="roster-info">
+              <div class="roster-name-row">
+                <span class="roster-character-name">{{ encounter.name }}</span>
+              </div>
+              <p class="roster-class">
+                {{ getTierRangeLabel(encounter) }}
+                <span class="roster-class-sep" aria-hidden="true"> · </span>
+                <span [class.encounters-points--over]="isOverBudget(encounter)">
+                  {{ encounter.spentBattlePoints }}/{{ encounter.suggestedBattlePoints }} pts
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              class="encounters-run-btn"
+              [attr.aria-label]="'Run ' + encounter.name"
+              (click)="onRun(encounter.id); $event.stopPropagation()"
+            >Run</button>
+            <button
+              type="button"
+              class="encounters-copy-btn"
+              [disabled]="copyingId() === encounter.id"
+              [attr.aria-label]="'Copy ' + encounter.name"
+              (click)="onCopy(encounter.id); $event.stopPropagation()"
+            >{{ copyingId() === encounter.id ? 'Copying…' : 'Copy' }}</button>
+            <app-inline-delete-confirm
+              [itemLabel]="encounter.name"
+              [active]="pendingDeleteId() === encounter.id"
+              (requested)="onDeleteRequest(encounter.id)"
+              (confirmed)="onDeleteConfirm()"
+              (cancelled)="onDeleteCancel()"
+            />
+            <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </li>
+        }
+      </ol>
+    }
+  </section>
+
+  @if (confirmingDeleteId() !== null) {
+    <app-confirm-dialog
+      title="Delete Encounter"
+      message="This will permanently delete this encounter. This action cannot be undone."
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      [processing]="deletingId() !== null"
+      (confirmed)="onConfirmDelete()"
+      (cancelled)="onCancelDelete()"
+    />
+  }
+
+  @if (pendingDiscardId() !== null) {
+    <app-confirm-dialog
+      title="Discard Run"
+      message="This will permanently end this fight and delete its progress. This action cannot be undone."
+      confirmLabel="Discard"
+      cancelLabel="Cancel"
+      [processing]="discardingId() !== null"
+      (confirmed)="onDiscardConfirm()"
+      (cancelled)="onDiscardCancel()"
+    />
+  }
+</div>

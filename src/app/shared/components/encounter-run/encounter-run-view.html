@@ -1,0 +1,48 @@
+@if (loading()) {
+  <app-card-skeleton [count]="3" />
+} @else if (loadFailed()) {
+  <app-card-error />
+  <button type="button" class="btn btn--secondary btn--sm" (click)="retryLoad()">Try again</button>
+} @else if (run(); as currentRun) {
+  <header class="run-view__header">
+    @if (showHeader()) {
+      <div class="run-view__heading">
+        <h2 class="run-view__title">{{ title() }}</h2>
+        @if (standingCount(); as standing) {
+          <p class="run-view__standing">{{ standing }}</p>
+        }
+      </div>
+    }
+    <app-run-lifecycle-actions [runId]="currentRun.id" (completed)="completed.emit()" />
+  </header>
+
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+
+  @if (actionError()) {
+    <p class="run-view__error" role="alert">{{ actionError() }}</p>
+  }
+
+  @if (currentRun.environmentId !== undefined) {
+    <section class="run-view__environment">
+      <app-run-environment-panel [environmentId]="currentRun.environmentId" />
+    </section>
+  }
+
+  @if (adversaries().length === 0) {
+    <p class="run-view__empty">No adversaries in this encounter.</p>
+  } @else {
+    <div class="run-view__adversaries" [class.run-view__adversaries--compact]="density() === 'compact'">
+      @for (row of adversaries(); track row.id) {
+        <app-run-adversary-row
+          [adversary]="row"
+          [density]="density()"
+          (hpMarkedChange)="onHpChange(row, $event)"
+          (stressMarkedChange)="onStressChange(row, $event)"
+          (tokensChange)="onTokensChange(row, $event)"
+          (defeatedToggle)="onDefeatToggle(row)"
+          (noteChange)="onNoteChange(row, $event)"
+        />
+      }
+    </div>
+  }
+}

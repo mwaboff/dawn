@@ -1,0 +1,22 @@
+<div class="run-page">
+  <div class="grain-overlay run-page-grain"></div>
+
+  @if (loading()) {
+    <div class="run-page-loading" role="status" aria-live="polite">
+      <p class="run-page-loading-text">Readying the field…</p>
+    </div>
+  } @else if (error()) {
+    <div class="run-page-error">
+      <app-card-error />
+      <button type="button" class="btn btn--secondary" (click)="retryLoad()">Try Again</button>
+    </div>
+  } @else if (runId(); as id) {
+    <app-encounter-run-view
+      [runId]="id"
+      [density]="'comfortable'"
+      [showHeader]="true"
+      [title]="encounterName() ?? 'Running Encounter'"
+      (completed)="onCompleted()"
+    />
+  }
+</div>

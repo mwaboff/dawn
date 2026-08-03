@@ -1,0 +1,203 @@
+:host { display: block; }
+
+.meter {
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(58, 40, 23, .35), rgba(26, 20, 18, .55));
+  border: 1px solid rgba(212, 160, 86, .25);
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+
+.meter--over {
+  border-color: rgba(196, 68, 68, .5);
+  box-shadow: 0 0 0 1px rgba(196, 68, 68, .15), 0 0 24px rgba(196, 68, 68, .12);
+}
+
+.meter__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+
+.meter__party { display: flex; align-items: center; gap: .5rem; }
+
+.meter__party-label {
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: .85;
+}
+
+.meter__party-input {
+  width: 3.5rem;
+  padding: .3rem .5rem;
+  background: rgba(26, 20, 18, .8);
+  border: 1px solid rgba(212, 160, 86, .3);
+  border-radius: 3px;
+  color: var(--color-text-light);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-align: center;
+}
+
+.meter__readout {
+  display: flex;
+  align-items: baseline;
+  gap: .35rem;
+  flex-wrap: wrap;
+}
+
+.meter__spent {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--color-accent-bright);
+}
+
+.meter--over .meter__spent { color: #d47a7a; }
+
+.meter__sep { color: rgba(245, 230, 211, .4); font-size: 1.1rem; }
+.meter__suggested { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--color-parchment); opacity: .8; }
+.meter__unit { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(245, 230, 211, .5); margin-left: .25rem; }
+
+.meter__status {
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: rgba(120, 200, 150, .85);
+  margin-left: .5rem;
+}
+
+.meter__status--over { color: #e08a8a; }
+
+/* The track is drawn like a war-ledger tally: a single engraved bar whose fill is built from
+   one segment per adversary instance rather than a plain percentage, so the composition of the
+   spend (not just its total) is legible at a glance. */
+.meter__track {
+  position: relative;
+  display: flex;
+  height: 1.5rem;
+  border-radius: 3px;
+  background: rgba(10, 8, 7, .6);
+  border: 1px solid rgba(212, 160, 86, .2);
+  overflow: visible;
+  margin-bottom: .5rem;
+}
+
+.meter__segment {
+  height: 100%;
+  background: linear-gradient(180deg, var(--color-accent-bright), var(--color-accent));
+  border-right: 1px solid rgba(10, 8, 7, .5);
+  transition: width .25s ease;
+}
+
+.meter__segment:first-child { border-radius: 2px 0 0 2px; }
+.meter__segment:last-child { border-radius: 0 2px 2px 0; border-right: none; }
+
+.meter__segment--elite {
+  background: linear-gradient(180deg, #e08a4a, #b85a28);
+}
+
+.meter__segment--minion {
+  background-color: rgba(180, 140, 80, .35);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(212, 160, 86, .55) 0,
+    rgba(212, 160, 86, .55) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+}
+
+.meter--over .meter__segment { background: linear-gradient(180deg, #d47a7a, #a33030); }
+.meter--over .meter__segment--minion {
+  background-color: rgba(163, 48, 48, .35);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(212, 100, 86, .6) 0,
+    rgba(212, 100, 86, .6) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+}
+
+.meter__marker {
+  position: absolute;
+  top: -.4rem;
+  bottom: -.4rem;
+  width: 2px;
+  background: var(--color-parchment);
+  opacity: .8;
+}
+
+.meter__marker-flag {
+  position: absolute;
+  top: -1.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(245, 230, 211, .6);
+}
+
+.meter__minion-note {
+  margin: 0 0 1rem;
+  font-size: .8rem;
+  font-style: italic;
+  color: rgba(245, 230, 211, .55);
+}
+
+.meter__adjustments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: .5rem .75rem;
+  border: none;
+  padding: .75rem 0 0;
+  margin: 0;
+  border-top: 1px solid rgba(212, 160, 86, .15);
+}
+
+.meter__adjustments-legend {
+  grid-column: 1 / -1;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: .85;
+  margin-bottom: .15rem;
+}
+
+.meter__adjustment {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  cursor: pointer;
+  font-size: .82rem;
+  color: rgba(245, 230, 211, .82);
+}
+
+.meter__adjustment-label { flex: 1; }
+
+.meter__adjustment-delta {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .75rem;
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meter, .meter__segment { transition: none; }
+}

@@ -1,17 +1,48 @@
 <div
   class="adversary-card"
   [class.adversary-card--wide]="layout() === 'wide'"
+  [class.adversary-card--compact]="compact()"
   [attr.aria-label]="adversary().name + ', ' + adversary().adversaryType + ' adversary'"
 >
   <div class="adversary-card__header">
     <div class="adversary-card__header-main">
-      <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+      @if (collapsible()) {
+        <button
+          type="button"
+          class="adversary-card__toggle"
+          [attr.aria-expanded]="isExpanded()"
+          [attr.aria-controls]="isExpanded() ? bodyId : null"
+          (click)="toggleCard()"
+        >
+          <span class="adversary-card__chevron" [class.adversary-card__chevron--open]="isExpanded()" aria-hidden="true">&#9656;</span>
+          <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+        </button>
+      } @else {
+        <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+      }
+      <ng-content select="[card-actions]" />
     </div>
-    <p class="adversary-card__subtitle">{{ adversary().adversaryType }}</p>
+    <p
+      class="adversary-card__subtitle adversary-card__type-badge"
+      [class.adversary-card__type-badge--elite]="isEliteType"
+      [class.adversary-card__type-badge--minion]="isMinionType"
+      [class.adversary-card__type-badge--solo]="isSoloType"
+      [attr.data-glyph]="typeGlyph"
+    >{{ adversary().adversaryType }}</p>
     <p class="adversary-card__subtitle adversary-card__subtitle--secondary">{{ tierLabel }}</p>
+    @if (isRetiered()) {
+      <p class="adversary-card__subtitle adversary-card__subtitle--retiered">
+        <span aria-hidden="true">&#10227;</span> {{ retieredFromLabel }}
+      </p>
+    }
+
+    <!-- Rendered whether the card is collapsed or expanded -- a GM scanning a long fight needs
+         live HP/Stress on collapsed rows, which is the entire point of collapsing them. -->
+    <ng-content select="[card-counters]" />
   </div>
 
-  <div class="adversary-card__body">
+  @if (isExpanded()) {
+    <div class="adversary-card__body" [id]="bodyId">
     @if (adversary().hitPointMax !== undefined || adversary().stressMax !== undefined || adversary().evasion !== undefined || adversary().difficulty !== undefined) {
       <div class="adversary-card__stats">
         @if (adversary().hitPointMax !== undefined) {
@@ -34,7 +65,7 @@
         }
         <div class="adversary-card__stat">
           <span class="adversary-card__stat-label">Difficulty</span>
-          <span class="adversary-card__stat-value">{{ adversary().difficulty ?? '—' }}</span>
+          <span class="adversary-card__stat-value">{{ effectiveDifficulty ?? '—' }}</span>
         </div>
       </div>
     }
@@ -43,11 +74,11 @@
       <div class="adversary-card__thresholds">
         <div class="adversary-card__threshold">
           <span class="adversary-card__threshold-label">Major</span>
-          <span class="adversary-card__threshold-value">{{ adversary().majorThreshold ?? '—' }}</span>
+          <span class="adversary-card__threshold-value">{{ effectiveMajorThreshold ?? '—' }}</span>
         </div>
         <div class="adversary-card__threshold">
           <span class="adversary-card__threshold-label">Severe</span>
-          <span class="adversary-card__threshold-value">{{ adversary().severeThreshold ?? '—' }}</span>
+          <span class="adversary-card__threshold-value">{{ effectiveSevereThreshold ?? '—' }}</span>
         </div>
       </div>
     }
@@ -99,6 +130,17 @@
       </div>
     }
 
+    @if (adversary().experiences?.length) {
+      <div class="adversary-card__experiences">
+        <span class="adversary-card__tactics-label">Experiences</span>
+        <ul class="adversary-card__experience-list">
+          @for (experience of adversary().experiences; track experience.description) {
+            <li class="adversary-card__experience">{{ experience.description }} {{ formatModifier(experience.modifier) }}</li>
+          }
+        </ul>
+      </div>
+    }
+
     @if (adversary().motivesAndTactics) {
       <div class="adversary-card__tactics">
         <span class="adversary-card__tactics-label">Motives &amp; Tactics</span>
@@ -112,4 +154,5 @@
       </div>
     }
   </div>
+  }
 </div>

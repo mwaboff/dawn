@@ -1,0 +1,15 @@
+:host { display: contents; }
+
+.run-lifecycle-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.run-lifecycle-actions__error {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: #d49090;
+}

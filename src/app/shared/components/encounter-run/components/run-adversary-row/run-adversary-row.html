@@ -1,0 +1,60 @@
+@if (adversaryData(); as data) {
+  <div class="run-row" [class.run-row--defeated]="adversary().isDefeated" [class.run-row--compact]="density() === 'compact'">
+    <app-adversary-card
+      [adversary]="data"
+      [effectiveTier]="adversary().tierOverride"
+      [collapsible]="true"
+      [compact]="density() === 'compact'"
+    >
+      <div card-actions class="run-row__actions">
+        @if (adversary().isDefeated) {
+          <span class="run-row__defeated-badge">Defeated</span>
+        }
+        <button type="button" class="run-row__defeat-btn" (click)="defeatedToggle.emit()">
+          {{ adversary().isDefeated ? 'Revive' : 'Mark Defeated' }}
+        </button>
+      </div>
+
+      <div card-counters class="run-row__counters">
+        <app-resource-tracker
+          label="HP"
+          [max]="adversary().hitPointMax"
+          [marked]="adversary().hitPointsMarked"
+          [idPrefix]="idPrefix() + '-hp'"
+          [ariaLabel]="rowLabel() + ' HP box'"
+          (markedChange)="hpMarkedChange.emit($event)"
+        />
+        <app-resource-tracker
+          label="Stress"
+          variant="stress"
+          [max]="adversary().stressMax"
+          [marked]="adversary().stressMarked"
+          [idPrefix]="idPrefix() + '-stress'"
+          [ariaLabel]="rowLabel() + ' Stress box'"
+          (markedChange)="stressMarkedChange.emit($event)"
+        />
+        <div class="run-row__tokens">
+          <span class="run-row__tokens-label">Tokens</span>
+          <button type="button" class="run-row__token-btn" [disabled]="adversary().tokens === 0" [attr.aria-label]="'Remove a token from ' + rowLabel()" (click)="onTokensDecrement()">&minus;</button>
+          <span class="run-row__tokens-value" aria-live="polite">{{ adversary().tokens }}</span>
+          <button type="button" class="run-row__token-btn" [attr.aria-label]="'Add a token to ' + rowLabel()" (click)="onTokensIncrement()">+</button>
+        </div>
+      </div>
+    </app-adversary-card>
+
+    <div class="run-row__notes">
+      <label [for]="idPrefix() + '-note'" class="run-row__notes-label">Notes</label>
+      <textarea
+        [id]="idPrefix() + '-note'"
+        class="run-row__notes-input"
+        rows="2"
+        [attr.maxlength]="noteMaxLength"
+        [value]="noteDraft()"
+        (input)="onNoteInput($event)"
+      ></textarea>
+      <span class="run-row__notes-count">{{ noteDraft().length }}/{{ noteMaxLength }}</span>
+    </div>
+  </div>
+} @else {
+  <div class="run-row run-row--error" role="alert">{{ rowLabel() }} — stat block unavailable.</div>
+}

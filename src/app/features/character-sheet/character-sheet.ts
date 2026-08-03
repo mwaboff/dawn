@@ -7,6 +7,7 @@ import { CharacterSheetService } from '../../core/services/character-sheet.servi
 import { AuthService } from '../../core/services/auth.service';
 import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
+import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
 import { isAtLeast } from '../../shared/models/role.model';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
@@ -46,7 +47,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -275,9 +276,8 @@ export class CharacterSheet implements OnInit {
       });
   }
 
-  toggleResourceBox(resource: 'hp' | 'stress' | 'hope' | 'armor' | 'focus', index: number): void {
-    const current = { hp: this.markedHp, stress: this.markedStress, hope: this.markedHope, armor: this.markedArmor, focus: this.markedFocus }[resource]();
-    const newValue = current === index ? index - 1 : index;
+  /** Applies a `ResourceTracker`'s already-resolved `markedChange` value and queues the save. */
+  setResourceMarked(resource: 'hp' | 'stress' | 'hope' | 'armor' | 'focus', newValue: number): void {
     switch (resource) {
       case 'hp': this.localHpMarked.set(newValue); break;
       case 'stress': this.localStressMarked.set(newValue); break;
@@ -487,10 +487,6 @@ export class CharacterSheet implements OnInit {
 
   isCardExpanded(id: number): boolean {
     return this.expandedCardIds().has(id);
-  }
-
-  getRange(max: number): number[] {
-    return Array.from({ length: max }, (_, i) => i + 1);
   }
 
   getSubSkills(traitName: string): string[] {
