@@ -1,3 +1,11 @@
+@if (selectedEnvironment(); as environment) {
+  <div class="roster-panel__environment-group">
+    <span class="roster-panel__environment-label">Environment</span>
+    <div class="roster-panel__environment">
+      <app-daggerheart-card [card]="environment" [readOnly]="true" />
+    </div>
+  </div>
+}
 @if (instances().length === 0) {
   <p class="roster-panel__empty">No adversaries yet — add some from the browser below.</p>
 } @else {
@@ -13,7 +21,7 @@
         <div card-actions class="roster-panel__actions">
           <input
             type="text"
-            class="roster-panel__label-input"
+            class="form-input roster-panel__label-input"
             placeholder="Nickname"
             [attr.aria-label]="'Nickname for ' + instance.adversary.name"
             [value]="instance.label ?? ''"

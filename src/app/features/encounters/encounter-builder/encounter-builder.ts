@@ -10,11 +10,17 @@ import { EnvironmentPicker } from './components/environment-picker/environment-p
 import { SavingSpinner } from '../../../shared/components/saving-spinner/saving-spinner';
 import { EncounterService } from '../../../shared/services/encounter.service';
 import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
+import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { EncounterResponse } from '../../../shared/models/encounter-api.model';
 import { BattlePointAdjustments } from '../../../shared/utils/battle-points.utils';
 import { EncounterRosterInstance } from './models/encounter-roster-instance.model';
 import { ENCOUNTERS_LIST_PATH, encounterEditPath } from '../encounter-routes';
-import { buildEncounterPayload, fromApiAdjustments, mapResponseToRosterInstances } from './encounter-builder.mapper';
+import {
+  buildEncounterPayload,
+  fromApiAdjustments,
+  mapResponseToEnvironmentCard,
+  mapResponseToRosterInstances,
+} from './encounter-builder.mapper';
 
 let nextLocalId = 0;
 function generateLocalId(): string {
@@ -41,7 +47,15 @@ interface SectionCollapseState {
  * single linear form filled out once per visit, not a layout preference worth remembering.
  */
 function createSectionCollapse(): SectionCollapseState {
-  const collapsed = signal<ReadonlySet<BuilderSection>>(new Set());
+  // Environment starts collapsed -- it's a one-off scene stat block, not something every
+  // encounter needs. This does NOT defer EnvironmentPicker's fetch: it's content projected into
+  // CollapsibleSection's <ng-content>, and Angular creates projected component instances (firing
+  // their ngOnInit) as part of *this* component's own view construction, before
+  // CollapsibleSection's internal `@if` around <ng-content> is even evaluated. So the fetch still
+  // fires on load regardless of collapse state (see encounter-builder.spec.ts's
+  // "still fetches environments on load even though the section starts collapsed"). Collapsing
+  // this section is purely a decluttering choice, not a load-deferral one.
+  const collapsed = signal<ReadonlySet<BuilderSection>>(new Set(['environment']));
   return {
     isCollapsed: section => collapsed().has(section),
     toggle: section => {
@@ -87,6 +101,11 @@ export class EncounterBuilder implements OnInit {
   readonly partySize = signal(DEFAULT_PARTY_SIZE);
   readonly adjustments = signal<BattlePointAdjustments>({});
   readonly environmentId = signal<number | undefined>(undefined);
+  /** The environment's display data (name/type/tier), kept alongside `environmentId` purely so
+   * the roster can show what's attached without re-fetching -- see `onEnvironmentSelected` and
+   * `mapResponseToEnvironmentCard`. Environments cost no Battle Points, so this never touches
+   * `roster` or the meter. */
+  readonly selectedEnvironment = signal<CardData | undefined>(undefined);
   readonly roster = signal<EncounterRosterInstance[]>([]);
 
   readonly loading = signal(false);
@@ -172,8 +191,9 @@ export class EncounterBuilder implements OnInit {
     this.adjustments.set(adjustments);
   }
 
-  onEnvironmentSelected(environmentId: number | undefined): void {
-    this.environmentId.set(environmentId);
+  onEnvironmentSelected(card: CardData | undefined): void {
+    this.environmentId.set(card?.id);
+    this.selectedEnvironment.set(card);
   }
 
   onNameInput(event: Event): void {
@@ -201,6 +221,7 @@ export class EncounterBuilder implements OnInit {
     });
     const id = this.encounterId();
     const previousRoster = this.roster();
+    const previousEnvironment = this.selectedEnvironment();
     const request$ = id === null
       ? this.encounterService.createEncounter(payload)
       : this.encounterService.updateEncounter(id, payload);
@@ -211,7 +232,7 @@ export class EncounterBuilder implements OnInit {
         this.saving.set(false);
         if (!response) return;
 
-        this.applyEncounter(response, previousRoster);
+        this.applyEncounter(response, previousRoster, previousEnvironment);
         if (id === null) {
           this.router.navigate([encounterEditPath(response.id)], { replaceUrl: true });
         } else {
@@ -220,13 +241,18 @@ export class EncounterBuilder implements OnInit {
       });
   }
 
-  private applyEncounter(response: EncounterResponse, previousRoster: EncounterRosterInstance[] = []): void {
+  private applyEncounter(
+    response: EncounterResponse,
+    previousRoster: EncounterRosterInstance[] = [],
+    previousEnvironment?: CardData,
+  ): void {
     this.encounterId.set(response.id);
     this.name.set(response.name);
     this.description.set(response.description ?? '');
     this.partySize.set(response.partySize ?? DEFAULT_PARTY_SIZE);
     this.adjustments.set(fromApiAdjustments(response));
     this.environmentId.set(response.environmentId);
+    this.selectedEnvironment.set(mapResponseToEnvironmentCard(response, previousEnvironment));
     this.roster.set(mapResponseToRosterInstances(response, previousRoster));
   }
 }

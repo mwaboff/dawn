@@ -13,34 +13,34 @@
 
     <ul class="party">
       @for (member of group.members; track member.id) {
-        <li class="party__item" [class.is-open]="isExpanded(member.id)">
+        <li class="stat-row__item" [class.is-open]="isExpanded(member.id)">
           <button
             type="button"
-            class="party__row"
+            class="stat-row__toggle"
             [attr.aria-expanded]="isExpanded(member.id)"
             [attr.aria-controls]="'party-detail-' + member.id"
             (click)="toggle(member.id)"
           >
-            <span class="party__identity">
-              <span class="party__name">{{ member.name }}</span>
-              <span class="party__level">Level {{ member.level }}</span>
+            <span class="stat-row__identity">
+              <span class="stat-row__name">{{ member.name }}</span>
+              <span class="stat-row__secondary">Level {{ member.level }}</span>
             </span>
 
             @if (sheetFor(member.id); as s) {
-              <span class="party__vitals">
-                <span class="party__vital">
+              <span class="stat-row__vitals">
+                <span class="stat-row__vital">
                   <b>{{ s.evasion.modified }}</b><small>Evasion</small>
                 </span>
-                <span class="party__vital">
+                <span class="stat-row__vital">
                   <b>{{ s.hitPointMarked }}/{{ s.hitPointMax.modified }}</b><small>HP marked</small>
                 </span>
-                <span class="party__vital">
+                <span class="stat-row__vital">
                   <b>{{ s.stressMarked }}/{{ s.stressMax.modified }}</b><small>Stress</small>
                 </span>
-                <span class="party__vital">
+                <span class="stat-row__vital">
                   <b>{{ s.hopeMarked }}/{{ s.hopeMax.modified }}</b><small>Hope</small>
                 </span>
-                <span class="party__vital">
+                <span class="stat-row__vital">
                   <b>{{ s.majorDamageThreshold.modified }}/{{ s.severeDamageThreshold.modified }}</b>
                   <small>Maj / Sev</small>
                 </span>
@@ -51,7 +51,7 @@
               <span class="party__status">Vitals unavailable</span>
             }
 
-            <span class="party__chevron" [class.is-open]="isExpanded(member.id)" aria-hidden="true">▾</span>
+            <span class="stat-row__chevron" [class.stat-row__chevron--open]="isExpanded(member.id)" aria-hidden="true">▾</span>
           </button>
 
           <div [id]="'party-detail-' + member.id" [hidden]="!isExpanded(member.id)">

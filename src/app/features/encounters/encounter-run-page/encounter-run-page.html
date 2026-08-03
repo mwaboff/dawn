@@ -11,12 +11,15 @@
       <button type="button" class="btn btn--secondary" (click)="retryLoad()">Try Again</button>
     </div>
   } @else if (runId(); as id) {
+    <a class="run-page-back" [routerLink]="[encountersListPath]">&larr; Back to Encounters</a>
     <app-encounter-run-view
       [runId]="id"
       [density]="'comfortable'"
       [showHeader]="true"
       [title]="encounterName() ?? 'Running Encounter'"
+      [editHref]="editHref() ?? undefined"
       (completed)="onCompleted()"
+      (encounterDeleted)="onCompleted()"
     />
   }
 </div>

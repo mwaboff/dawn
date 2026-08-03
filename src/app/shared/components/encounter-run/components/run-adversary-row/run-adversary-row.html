@@ -1,60 +1,72 @@
 @if (adversaryData(); as data) {
-  <div class="run-row" [class.run-row--defeated]="adversary().isDefeated" [class.run-row--compact]="density() === 'compact'">
-    <app-adversary-card
-      [adversary]="data"
-      [effectiveTier]="adversary().tierOverride"
-      [collapsible]="true"
-      [compact]="density() === 'compact'"
-    >
-      <div card-actions class="run-row__actions">
-        @if (adversary().isDefeated) {
-          <span class="run-row__defeated-badge">Defeated</span>
-        }
-        <button type="button" class="run-row__defeat-btn" (click)="defeatedToggle.emit()">
-          {{ adversary().isDefeated ? 'Revive' : 'Mark Defeated' }}
-        </button>
-      </div>
+  <app-run-stat-row
+    [expanded]="isExpanded()"
+    [detailId]="detailId()"
+    [muted]="adversary().isDefeated"
+    [density]="density()"
+    (toggled)="toggleExpanded()"
+  >
+    <span row-identity class="stat-row__name-line">
+      @if (adversary().isDefeated) {
+        <span class="stat-row__skull" [attr.aria-label]="rowLabel() + ' is defeated'">
+          <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" focusable="false">
+            <path
+              fill="currentColor"
+              d="M8 1C4.5 1 2 3.5 2 6.8c0 1.9.9 3.5 2.3 4.6l-.2 1.6c-.1.6.4 1 .9 1h.7l.2-1h4.2l.2 1h.7c.5 0 1-.4.9-1l-.2-1.6C13.1 10.3 14 8.7 14 6.8 14 3.5 11.5 1 8 1z"
+            />
+            <circle class="stat-row__skull-socket" cx="5.6" cy="6.6" r="1.15" />
+            <circle class="stat-row__skull-socket" cx="10.4" cy="6.6" r="1.15" />
+            <path class="stat-row__skull-socket" d="M7.1 9.2h1.8l-.4 1.5h-1z" />
+          </svg>
+        </span>
+      }
+      <span class="stat-row__name">{{ rowLabel() }}</span>
+      @if (catalogName(); as catalogName) {
+        <span class="stat-row__catalog-name">{{ catalogName }}</span>
+      }
+    </span>
+    <span row-secondary class="stat-row__secondary">
+      <span class="stat-row__secondary-type" [class.stat-row__secondary-type--elite]="isEliteType()">{{ typeLabel() }}</span>
+      &middot; {{ tierLabel() }}
+    </span>
 
-      <div card-counters class="run-row__counters">
-        <app-resource-tracker
-          label="HP"
-          [max]="adversary().hitPointMax"
-          [marked]="adversary().hitPointsMarked"
-          [idPrefix]="idPrefix() + '-hp'"
-          [ariaLabel]="rowLabel() + ' HP box'"
-          (markedChange)="hpMarkedChange.emit($event)"
-        />
-        <app-resource-tracker
-          label="Stress"
-          variant="stress"
-          [max]="adversary().stressMax"
-          [marked]="adversary().stressMarked"
-          [idPrefix]="idPrefix() + '-stress'"
-          [ariaLabel]="rowLabel() + ' Stress box'"
-          (markedChange)="stressMarkedChange.emit($event)"
-        />
-        <div class="run-row__tokens">
-          <span class="run-row__tokens-label">Tokens</span>
-          <button type="button" class="run-row__token-btn" [disabled]="adversary().tokens === 0" [attr.aria-label]="'Remove a token from ' + rowLabel()" (click)="onTokensDecrement()">&minus;</button>
-          <span class="run-row__tokens-value" aria-live="polite">{{ adversary().tokens }}</span>
-          <button type="button" class="run-row__token-btn" [attr.aria-label]="'Add a token to ' + rowLabel()" (click)="onTokensIncrement()">+</button>
-        </div>
-      </div>
-    </app-adversary-card>
+    <ng-container row-vitals>
+      <span class="stat-row__vital">
+        <b>{{ effectiveDifficulty() ?? '—' }}</b><small>Difficulty</small>
+      </span>
+      <span class="stat-row__vital">
+        <b>{{ adversary().hitPointsMarked }}/{{ adversary().hitPointMax }}</b><small>HP marked</small>
+      </span>
+      <span class="stat-row__vital">
+        <b>{{ adversary().stressMarked }}/{{ adversary().stressMax }}</b><small>Stress</small>
+      </span>
+      <span class="stat-row__vital">
+        <b>{{ effectiveMajorThreshold() ?? '—' }}/{{ effectiveSevereThreshold() ?? '—' }}</b><small>Maj / Sev</small>
+      </span>
+      <span class="stat-row__vital">
+        <b>{{ adversary().tokens }}</b><small>Tokens</small>
+      </span>
+      @if (attackModifierLabel(); as atk) {
+        <span class="stat-row__vital">
+          <b>{{ atk }}</b><small>ATK</small>
+        </span>
+      }
+    </ng-container>
 
-    <div class="run-row__notes">
-      <label [for]="idPrefix() + '-note'" class="run-row__notes-label">Notes</label>
-      <textarea
-        [id]="idPrefix() + '-note'"
-        class="run-row__notes-input"
-        rows="2"
-        [attr.maxlength]="noteMaxLength"
-        [value]="noteDraft()"
-        (input)="onNoteInput($event)"
-      ></textarea>
-      <span class="run-row__notes-count">{{ noteDraft().length }}/{{ noteMaxLength }}</span>
-    </div>
-  </div>
+    <app-run-adversary-detail
+      row-detail
+      [adversary]="adversary()"
+      [statBlock]="data"
+      [idPrefix]="idPrefix()"
+      [rowLabel]="rowLabel()"
+      [isRetiered]="isRetiered()"
+      (hpMarkedChange)="hpMarkedChange.emit($event)"
+      (stressMarkedChange)="stressMarkedChange.emit($event)"
+      (tokensChange)="tokensChange.emit($event)"
+      (defeatedToggle)="defeatedToggle.emit()"
+      (noteChange)="noteChange.emit($event)"
+    />
+  </app-run-stat-row>
 } @else {
-  <div class="run-row run-row--error" role="alert">{{ rowLabel() }} — stat block unavailable.</div>
+  <div class="stat-row__item stat-row__item--error" role="alert">{{ rowLabel() }} — stat block unavailable.</div>
 }

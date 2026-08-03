@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
@@ -74,7 +75,7 @@ describe('EncounterRunView', () => {
   function setup(runId = 5): void {
     TestBed.configureTestingModule({
       imports: [EncounterRunView],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
 
     fixture = TestBed.createComponent(EncounterRunView);
@@ -121,7 +122,7 @@ describe('EncounterRunView', () => {
     flushRun();
 
     expect(fixture.nativeElement.querySelector('app-run-adversary-row')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.adversary-card__name').textContent.trim()).toBe('Giant Mosquito');
+    expect(fixture.nativeElement.querySelector('.stat-row__name').textContent.trim()).toBe('Giant Mosquito');
   });
 
   describe('showHeader', () => {
@@ -177,15 +178,20 @@ describe('EncounterRunView', () => {
 
     it('updates live as an adversary is marked defeated', () => {
       setup();
-      flushRun(buildRun({ adversaries: [buildRunAdversary({ id: 1, isDefeated: false })] }));
+      flushRun(buildRun({ adversaries: [buildRunAdversary({ id: 1, isDefeated: false, hitPointMax: 3 })] }));
       expect(fixture.nativeElement.querySelector('.run-view__standing').textContent.trim()).toBe('1 of 1 standing');
 
-      const defeatBtn = fixture.nativeElement.querySelector('.run-row__defeat-btn');
-      defeatBtn.click();
+      // Marking the last HP box is one path to a fresh defeat, alongside the standalone Mark
+      // Defeated control in the expanded detail (see `RunAdversaryDetail`'s doc comment) -- this
+      // exercises the HP path specifically.
+      fixture.nativeElement.querySelector('.stat-row__toggle').click();
+      fixture.detectChanges();
+      const boxes = fixture.nativeElement.querySelectorAll('.resource-box');
+      boxes[2].click();
       fixture.detectChanges();
       httpTesting
         .expectOne(`${runsBaseUrl}/5/adversaries/1`)
-        .flush(buildRun({ adversaries: [buildRunAdversary({ id: 1, isDefeated: true })] }));
+        .flush(buildRun({ adversaries: [buildRunAdversary({ id: 1, hitPointMax: 3, hitPointsMarked: 3, isDefeated: true })] }));
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('.run-view__standing').textContent.trim()).toBe('0 of 1 standing');
@@ -216,12 +222,50 @@ describe('EncounterRunView', () => {
       const list = fixture.nativeElement.querySelector('.run-view__adversaries');
       expect(list.classList.contains('run-view__adversaries--compact')).toBe(true);
     });
+
+    it('should render the adversary list as an explicit role="list" container, matching the party-list pattern', () => {
+      // A plain div, not a <ul> -- its direct children are component selectors
+      // (<app-run-environment-panel>, <app-run-adversary-row>), not <li> elements, which a native
+      // <ul> may not contain. See `encounter-run-view.html`'s comment on this element.
+      setup();
+      flushRun();
+
+      const list = fixture.nativeElement.querySelector('.run-view__adversaries');
+      expect(list.tagName).toBe('DIV');
+      expect(list.getAttribute('role')).toBe('list');
+    });
+
+    it('should give every direct child of the list container role="listitem", so AT can compute list position correctly', () => {
+      setup();
+      flushRun(
+        buildRun({
+          environmentId: 7,
+          adversaries: [buildRunAdversary({ id: 1 }), buildRunAdversary({ id: 2, adversaryId: 10 })],
+        }),
+      );
+      httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.run-view__adversaries');
+      const children = Array.from<Element>(list.children);
+      expect(children.length).toBe(3); // the environment panel + 2 adversary rows
+      expect(children.every(el => el.getAttribute('role') === 'listitem')).toBe(true);
+    });
   });
 
   describe('marking HP', () => {
+    // The HP/Stress pip trackers live in the expanded detail panel now (see `run-adversary-row`'s
+    // doc comment for why), so every one of these tests expands the row first -- exactly what a
+    // GM has to do in the real app to reach them.
+    function expandFirstRow(): void {
+      fixture.nativeElement.querySelector('.stat-row__toggle').click();
+      fixture.detectChanges();
+    }
+
     it('should PATCH the absolute value, not a delta', () => {
       setup();
       flushRun();
+      expandFirstRow();
 
       const boxes = fixture.nativeElement.querySelectorAll('.resource-box');
       boxes[1].click();
@@ -236,6 +280,7 @@ describe('EncounterRunView', () => {
     it('should send isDefeated: true in the same PATCH when the last HP box is marked', () => {
       setup();
       flushRun();
+      expandFirstRow();
 
       const boxes = fixture.nativeElement.querySelectorAll('.resource-box');
       boxes[2].click(); // hitPointMax is 3
@@ -246,11 +291,12 @@ describe('EncounterRunView', () => {
       req.flush(buildRun({ adversaries: [buildRunAdversary({ hitPointsMarked: 3, isDefeated: true })] }));
     });
 
-    it('should let the GM toggle defeat back off', () => {
+    it('should let the GM toggle defeat back off via the Revive action in the expanded detail', () => {
       setup();
       flushRun(buildRun({ adversaries: [buildRunAdversary({ hitPointsMarked: 3, isDefeated: true })] }));
+      expandFirstRow();
 
-      const revive = fixture.nativeElement.querySelector('.run-row__defeat-btn');
+      const revive = fixture.nativeElement.querySelector('.run-detail__defeat-toggle-btn');
       expect(revive.textContent.trim()).toBe('Revive');
       revive.click();
       fixture.detectChanges();
@@ -260,9 +306,33 @@ describe('EncounterRunView', () => {
       req.flush(buildRun({ adversaries: [buildRunAdversary({ hitPointsMarked: 3, isDefeated: false })] }));
     });
 
+    it('should let the GM mark an adversary defeated directly, without first maxing out HP -- the standalone control regression', () => {
+      // A prior round of trimming removed the standalone "Mark Defeated" control on the (wrong)
+      // assumption that marking the last HP box covered every path to a fresh defeat. It doesn't:
+      // a GM narrating a surrender or a retreat needs to mark defeat without touching HP at all.
+      setup();
+      flushRun(buildRun({ adversaries: [buildRunAdversary({ hitPointsMarked: 1, hitPointMax: 5, isDefeated: false })] }));
+      expandFirstRow();
+
+      const markDefeated = fixture.nativeElement.querySelector('.run-detail__defeat-toggle-btn');
+      expect(markDefeated.textContent.trim()).toBe('Mark Defeated');
+      markDefeated.click();
+      fixture.detectChanges();
+
+      const req = httpTesting.expectOne(`${runsBaseUrl}/5/adversaries/1`);
+      // The PATCH carries only isDefeated -- hitPointsMarked is never touched by this control.
+      expect(req.request.body).toEqual({ isDefeated: true });
+      req.flush(buildRun({ adversaries: [buildRunAdversary({ hitPointsMarked: 1, hitPointMax: 5, isDefeated: true })] }));
+      fixture.detectChanges();
+
+      // The HP tracker's marked count is exactly what it was before -- untouched by the toggle.
+      expect(fixture.nativeElement.querySelectorAll('.resource-box--marked').length).toBe(1);
+    });
+
     it('should roll back and surface an error when the PATCH fails', () => {
       setup();
       flushRun();
+      expandFirstRow();
 
       const boxes = fixture.nativeElement.querySelectorAll('.resource-box');
       boxes[1].click();
@@ -286,7 +356,10 @@ describe('EncounterRunView', () => {
       setup();
       flushRun(buildRun({ adversaries: [buildRunAdversary({ tokens: 5 })] }));
 
-      const [, incrementBtn] = fixture.nativeElement.querySelectorAll('.run-row__token-btn');
+      // The +/- controls live in the expanded detail now -- the row itself only shows the count.
+      fixture.nativeElement.querySelector('.stat-row__toggle').click();
+      fixture.detectChanges();
+      const [, incrementBtn] = fixture.nativeElement.querySelectorAll('.run-detail__token-btn');
       incrementBtn.click();
       fixture.detectChanges();
 
@@ -296,12 +369,27 @@ describe('EncounterRunView', () => {
     });
   });
 
-  // Complete/Discard's own behaviour (POST/DELETE, rollback-free error handling, the confirm
-  // dialog) is `RunLifecycleActions`'s own concern and is covered in its spec. This just checks
-  // the parent wires it up: the right runId goes in, and its `completed` reaches the parent's own
-  // `completed` output.
+  // Complete/Reset/Delete Encounter's own behaviour (POST/DELETE/start, rollback-free error
+  // handling, the confirm dialog and inline trashcan) is `RunLifecycleActions`'s own concern and
+  // is covered in its spec. This just checks the parent wires it up: the right ids go in, and its
+  // outputs reach the parent's own outputs/state correctly.
   describe('RunLifecycleActions wiring', () => {
-    it('should pass the run id to the lifecycle actions and forward its completed event', () => {
+    it('should pass runId, encounterId, encounterLabel, campaignId, and editHref to the lifecycle actions', () => {
+      setup();
+      fixture.componentRef.setInput('title', 'Ambush at the Ford');
+      fixture.componentRef.setInput('editHref', '/encounters/12/edit');
+      flushRun(buildRun({ encounterId: 12, campaignId: 42 }));
+
+      const actions = fixture.debugElement.query(By.directive(RunLifecycleActions));
+      expect(actions).toBeTruthy();
+      expect(actions.componentInstance.runId()).toBe(5);
+      expect(actions.componentInstance.encounterId()).toBe(12);
+      expect(actions.componentInstance.encounterLabel()).toBe('Ambush at the Ford');
+      expect(actions.componentInstance.campaignId()).toBe(42);
+      expect(actions.componentInstance.editHref()).toBe('/encounters/12/edit');
+    });
+
+    it('should forward the completed event', () => {
       setup();
       flushRun();
 
@@ -309,13 +397,39 @@ describe('EncounterRunView', () => {
       fixture.componentInstance.completed.subscribe(() => completedCount++);
 
       const actions = fixture.debugElement.query(By.directive(RunLifecycleActions));
-      expect(actions).toBeTruthy();
-      expect(actions.componentInstance.runId()).toBe(5);
 
       // Triggers the child's own output directly rather than driving its full click/HTTP flow --
       // that flow is RunLifecycleActions's own spec's concern; this only checks the binding.
       actions.componentInstance.completed.emit();
       expect(completedCount).toBe(1);
+    });
+
+    it('should forward the encounterDeleted event', () => {
+      setup();
+      flushRun();
+
+      let deletedCount = 0;
+      fixture.componentInstance.encounterDeleted.subscribe(() => deletedCount++);
+
+      const actions = fixture.debugElement.query(By.directive(RunLifecycleActions));
+      actions.componentInstance.encounterDeleted.emit();
+      expect(deletedCount).toBe(1);
+    });
+
+    it('should swap in the fresh run when reset emits, without a second getRun round trip', () => {
+      setup();
+      flushRun(buildRun({ adversaries: [buildRunAdversary({ id: 1, hitPointsMarked: 2, isDefeated: true })] }));
+
+      const actions = fixture.debugElement.query(By.directive(RunLifecycleActions));
+      const freshRun = buildRun({
+        id: 20,
+        adversaries: [buildRunAdversary({ id: 1, hitPointsMarked: 0, isDefeated: false })],
+      });
+      actions.componentInstance.runReset.emit(freshRun);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.run()).toEqual(freshRun);
+      expect(fixture.nativeElement.querySelector('.run-view__standing').textContent.trim()).toBe('1 of 1 standing');
     });
   });
 
@@ -336,11 +450,36 @@ describe('EncounterRunView', () => {
       httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
     });
 
-    it('should not render the environment panel when the run has no environment', () => {
+    it('should show a plain empty state, not a faded panel, when the run has no environment', () => {
       setup();
       flushRun();
 
       expect(fixture.nativeElement.querySelector('app-run-environment-panel')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.run-view__no-environment').textContent.trim()).toBe(
+        'No environment set for this encounter.',
+      );
+    });
+
+    it('should pass density through to the environment row, matching the adversary rows', () => {
+      setup();
+      fixture.componentRef.setInput('density', 'compact');
+      flushRun(buildRun({ environmentId: 7 }));
+
+      const panel = fixture.debugElement.query(By.directive(RunEnvironmentPanel));
+      expect(panel.componentInstance.density()).toBe('compact');
+
+      httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
+    });
+
+    it('should render the environment as the first row in the shared list, alongside the adversaries', () => {
+      setup();
+      flushRun(buildRun({ environmentId: 7 }));
+      httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
+      fixture.detectChanges();
+
+      const list = fixture.nativeElement.querySelector('.run-view__adversaries');
+      const firstRow = list.querySelector('.stat-row__item');
+      expect(firstRow.classList.contains('stat-row__item--environment')).toBe(true);
     });
   });
 });

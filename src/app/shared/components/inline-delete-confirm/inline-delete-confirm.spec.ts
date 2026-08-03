@@ -64,7 +64,7 @@ describe('InlineDeleteConfirm', () => {
       fixture.detectChanges();
     });
 
-    it('renders inline confirm with Delete? text', () => {
+    it('renders inline confirm with the default Delete? text when no confirmText is supplied', () => {
       expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
       expect(el.querySelector('.roster-inline-confirm-text')?.textContent?.trim()).toBe('Delete?');
     });
@@ -143,6 +143,74 @@ describe('InlineDeleteConfirm', () => {
       btn.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  // Created directly (not through TestHost above) specifically so the confirmText input is never
+  // bound in the two "default" tests -- an explicit `[confirmText]="undefined"` binding would
+  // override the input's own default rather than falling through to it, which would make those
+  // tests pass without actually proving the no-arg default every existing call site relies on.
+  describe('confirmText', () => {
+    let soloFixture: ComponentFixture<InlineDeleteConfirm>;
+
+    function create(): void {
+      soloFixture = TestBed.createComponent(InlineDeleteConfirm);
+      soloFixture.componentRef.setInput('itemLabel', 'Pirate Ambush');
+      soloFixture.componentRef.setInput('active', true);
+    }
+
+    it('defaults to "Delete?" when not supplied, matching every existing call site', () => {
+      create();
+      soloFixture.detectChanges();
+
+      expect(soloFixture.nativeElement.querySelector('.roster-inline-confirm-text').textContent.trim()).toBe(
+        'Delete?',
+      );
+    });
+
+    // `.roster-inline-confirm` is `flex-shrink: 0` globally (`shared/styles/roster.css`) so it
+    // never gets squeezed in a roster row -- correct for every existing caller's short "Delete?",
+    // but it means a longer custom confirmText would silently overflow instead of wrapping,
+    // confirmed by rendering the real compiled markup/CSS at the GM panel's ~300px floor (see the
+    // team report for the screenshots). `.roster-inline-confirm--wrap` opts a custom-copy caller
+    // into `flex-wrap: wrap` + `flex-shrink: 1` instead, scoped to this component's own stylesheet
+    // so the global rule -- and every other call site -- is untouched. This only checks that the
+    // class is wired to the right condition; the CSS declarations themselves aren't jsdom-visible
+    // (same limitation as the global `stat-row.css` classes, see that spec's comment).
+    it('does not add the wrap modifier for the default confirmText', () => {
+      create();
+      soloFixture.detectChanges();
+
+      expect(
+        soloFixture.nativeElement.querySelector('.roster-inline-confirm').classList.contains(
+          'roster-inline-confirm--wrap',
+        ),
+      ).toBe(false);
+    });
+
+    it('adds the wrap modifier once a caller supplies custom confirmText', () => {
+      create();
+      soloFixture.componentRef.setInput('confirmText', "Deletes the saved encounter and this run's live state.");
+      soloFixture.detectChanges();
+
+      expect(
+        soloFixture.nativeElement.querySelector('.roster-inline-confirm').classList.contains(
+          'roster-inline-confirm--wrap',
+        ),
+      ).toBe(true);
+    });
+
+    it('renders caller-supplied copy instead, for a delete with consequences beyond the item itself', () => {
+      create();
+      soloFixture.componentRef.setInput(
+        'confirmText',
+        "Deletes the saved encounter and this run's live HP, Stress, tokens, and notes. This cannot be undone.",
+      );
+      soloFixture.detectChanges();
+
+      expect(soloFixture.nativeElement.querySelector('.roster-inline-confirm-text').textContent.trim()).toBe(
+        "Deletes the saved encounter and this run's live HP, Stress, tokens, and notes. This cannot be undone.",
+      );
     });
   });
 });

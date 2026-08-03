@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 
-import { Encounters, tierRangeLabel } from './encounters';
+import { Encounters } from './encounters';
 import { AuthService } from '../../core/services/auth.service';
 import { EncounterService } from '../../shared/services/encounter.service';
 import { EncounterRunService } from '../../shared/services/encounter-run.service';
@@ -53,36 +53,6 @@ function buildUser(overrides: Partial<UserResponse> = {}): UserResponse {
   return { id: 1, username: 'gm', role: 'USER', createdAt: '', lastModifiedAt: '', usernameChosen: true, ...overrides };
 }
 
-describe('tierRangeLabel', () => {
-  it('returns a placeholder for an empty roster', () => {
-    expect(tierRangeLabel(buildEncounterResponse({ adversaries: [] }))).toBe('No adversaries yet');
-  });
-
-  it('returns a single tier label when every instance shares a tier', () => {
-    const encounter = buildEncounterResponse({
-      adversaries: [{ id: 1, adversaryId: 5, adversary: { id: 5, name: 'A', tier: 2, adversaryType: 'MINION' }, displayOrder: 0 }],
-    });
-    expect(tierRangeLabel(encounter)).toBe('Tier 2');
-  });
-
-  it('returns a range when instances span multiple tiers', () => {
-    const encounter = buildEncounterResponse({
-      adversaries: [
-        { id: 1, adversaryId: 5, adversary: { id: 5, name: 'A', tier: 1, adversaryType: 'MINION' }, displayOrder: 0 },
-        { id: 2, adversaryId: 6, adversary: { id: 6, name: 'B', tier: 3, adversaryType: 'SOLO' }, displayOrder: 1 },
-      ],
-    });
-    expect(tierRangeLabel(encounter)).toBe('Tier 1–3');
-  });
-
-  it('prefers tierOverride over the printed tier', () => {
-    const encounter = buildEncounterResponse({
-      adversaries: [{ id: 1, adversaryId: 5, adversary: { id: 5, name: 'A', tier: 1, adversaryType: 'MINION' }, tierOverride: 4, displayOrder: 0 }],
-    });
-    expect(tierRangeLabel(encounter)).toBe('Tier 4');
-  });
-});
-
 describe('Encounters', () => {
   let fixture: ComponentFixture<Encounters>;
   let component: Encounters;
@@ -109,23 +79,30 @@ describe('Encounters', () => {
     TestBed.inject(HttpTestingController).verify();
   });
 
-  it('filters the response to the current user\'s own encounters', () => {
-    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-      of({
-        content: [buildEncounterResponse({ id: 1, creatorId: 1 }), buildEncounterResponse({ id: 2, creatorId: 99 })],
-        currentPage: 0, pageSize: 50, totalElements: 2, totalPages: 1,
-      }),
-    );
+  it('fetches only the current user\'s own encounters via the shared service, keyed by their id', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 7 }));
+    const ownEncounters = [buildEncounterResponse({ id: 1, creatorId: 7 })];
+    const getOwnEncountersSpy = vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of(ownEncounters));
 
     fixture.detectChanges();
 
-    expect(component.encounters()).toHaveLength(1);
-    expect(component.encounters()[0].id).toBe(1);
+    expect(getOwnEncountersSpy).toHaveBeenCalledWith(7);
+    expect(component.encounters()).toEqual(ownEncounters);
+  });
+
+  it('never fetches and clears loading when there is no signed-in user', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(null);
+    const getOwnEncountersSpy = vi.spyOn(encounterService, 'getOwnEncounters');
+
+    fixture.detectChanges();
+
+    expect(getOwnEncountersSpy).not.toHaveBeenCalled();
+    expect(component.loading()).toBe(false);
   });
 
   it('sets error and clears loading when the request fails', () => {
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(throwError(() => new Error('boom')));
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(throwError(() => new Error('boom')));
 
     fixture.detectChanges();
 
@@ -135,9 +112,7 @@ describe('Encounters', () => {
 
   it('shows the empty state with no encounters', () => {
     vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-      of({ content: [], currentPage: 0, pageSize: 50, totalElements: 0, totalPages: 0 }),
-    );
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([]));
 
     fixture.detectChanges();
 
@@ -147,6 +122,23 @@ describe('Encounters', () => {
   it('flags an over-budget encounter', () => {
     expect(component.isOverBudget(buildEncounterResponse({ spentBattlePoints: 20, suggestedBattlePoints: 14 }))).toBe(true);
     expect(component.isOverBudget(buildEncounterResponse({ spentBattlePoints: 10, suggestedBattlePoints: 14 }))).toBe(false);
+  });
+
+  describe('getTierRangeLabel', () => {
+    // The full tier-resolution rule (single tier, range, tierOverride, "Mixed Tier" fallback) is
+    // covered once in shared/utils/encounter-tier.utils.spec.ts -- this only proves the wrapper
+    // composes with it correctly and adds the page-specific empty-roster case on top.
+    it('shows "No adversaries yet" for an empty roster, regardless of overall tier', () => {
+      expect(component.getTierRangeLabel(buildEncounterResponse({ tier: 3, adversaries: [] }))).toBe('No adversaries yet');
+    });
+
+    it('delegates to the shared tier-resolution rule when the roster is non-empty', () => {
+      const encounter = buildEncounterResponse({
+        tier: 2,
+        adversaries: [{ id: 1, adversaryId: 5, displayOrder: 0 }],
+      });
+      expect(component.getTierRangeLabel(encounter)).toBe('Tier 2');
+    });
   });
 
   it('navigates to the edit route for a row', () => {
@@ -180,9 +172,7 @@ describe('Encounters', () => {
 
   it('removes the encounter from the list after a confirmed delete', () => {
     vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-      of({ content: [buildEncounterResponse({ id: 1, creatorId: 1 })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
-    );
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 1, creatorId: 1 })]));
     fixture.detectChanges();
     // A real 204 No Content DELETE response reaches HttpClient subscribers as `null` at runtime,
     // despite the `Observable<void>` type -- mocking it as `undefined` let this pass while a
@@ -197,11 +187,28 @@ describe('Encounters', () => {
     expect(component.confirmingDeleteId()).toBeNull();
   });
 
+  // `deleteEncounter` cascades: the backend hard-deletes the encounter's ACTIVE run (if any) in
+  // the same transaction, destroying that run's live HP/Stress/tokens/notes with no way back --
+  // unlike the encounter itself, which is soft-deleted and admin-restorable. The dialog's copy
+  // must name that consequence rather than a blanket "permanently deleted" claim that overstates
+  // the encounter side and understates the run side.
+  it('names the in-progress run\'s data loss in the delete confirmation, without overclaiming the encounter is unrecoverable', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 1, creatorId: 1 })]));
+    fixture.detectChanges();
+
+    component.onDeleteRequest(1);
+    component.onDeleteConfirm();
+    fixture.detectChanges();
+
+    const message = fixture.nativeElement.querySelector('.dialog-message')?.textContent?.trim();
+    expect(message).toContain('live HP, Stress, tokens, and notes');
+    expect(message).not.toContain('permanently delete this encounter');
+  });
+
   it('keeps the encounter and shows an error when delete fails', () => {
     vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-      of({ content: [buildEncounterResponse({ id: 1, creatorId: 1 })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
-    );
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 1, creatorId: 1 })]));
     fixture.detectChanges();
     vi.spyOn(encounterService, 'deleteEncounter').mockReturnValue(throwError(() => new Error('boom')));
 
@@ -216,9 +223,7 @@ describe('Encounters', () => {
 
   it('cancels a pending delete without removing anything', () => {
     vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-      of({ content: [buildEncounterResponse({ id: 1, creatorId: 1 })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
-    );
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 1, creatorId: 1 })]));
     fixture.detectChanges();
 
     component.onDeleteRequest(1);
@@ -228,21 +233,67 @@ describe('Encounters', () => {
     expect(component.encounters()).toHaveLength(1);
   });
 
-  it('navigates to the run route for a row', () => {
+  it('makes the card itself a link to the run route, as the row\'s primary action', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 3, creatorId: 1, name: 'Goblin Ambush' })]));
+
+    fixture.detectChanges();
+
+    const link: HTMLAnchorElement | null = fixture.nativeElement.querySelector('.roster-entry-link');
+    expect(link?.getAttribute('href')).toBe('/encounters/3/run');
+    expect(link?.getAttribute('aria-label')).toBe('Run Goblin Ambush');
+  });
+
+  // The row itself used to be the focusable/interactive element, so shared/styles/roster.css's
+  // `.roster-entry:focus-visible` gave the whole row a 2px accent outline on tab-focus. Focus now
+  // lives on .roster-entry-link instead, which that shared rule can no longer match -- this
+  // asserts the local `:has()` rule in encounters.css restores the same outline on the row, not
+  // just a default ring around the name text.
+  // jsdom's :focus-visible does not match a programmatically-.focus()'d element (with or without
+  // a preceding keydown to establish keyboard modality -- both were tried), so live-DOM assertion
+  // isn't possible here, the same legitimate limitation already accepted for the pure-CSS layout
+  // fixes elsewhere in this PR. This instead inspects the compiled stylesheet rule itself, so a
+  // future edit that weakens or deletes the outline (not just the tint) still fails a test.
+  it('keeps an outline declaration on the :has() rule that restores row-level focus, not just the tint', () => {
+    fixture.detectChanges();
+
+    const rule = Array.from(document.styleSheets)
+      .flatMap(sheet => {
+        try {
+          return Array.from(sheet.cssRules);
+        } catch {
+          return [];
+        }
+      })
+      .find((r): r is CSSStyleRule => r instanceof CSSStyleRule && r.selectorText?.includes('roster-entry-link:focus-visible'));
+
+    expect(rule).toBeTruthy();
+    expect(rule?.style.getPropertyValue('outline')).toContain('2px');
+    expect(rule?.style.getPropertyValue('outline')).toContain('solid');
+  });
+
+  // This clicks the real rendered button rather than calling component.onEdit() directly --
+  // the Edit button sits inside the same row as the stretched run link (see .roster-entry-link
+  // in encounters.css), so a wiring mistake that let the row's link swallow the click would pass
+  // a method-level test while still being broken in the browser.
+  it('navigates to the edit route -- not the run route -- when the Edit button is clicked', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+    vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 3, creatorId: 1, name: 'Goblin Ambush' })]));
+    fixture.detectChanges();
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate');
 
-    component.onRun(3);
+    const editBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.encounters-edit-btn');
+    editBtn.click();
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/encounters/3/run']);
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+    expect(navigateSpy).toHaveBeenCalledWith(['/encounters/3/edit']);
   });
 
   describe('active runs', () => {
     beforeEach(() => {
       vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
-      vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
-        of({ content: [buildEncounterResponse({ id: 1, creatorId: 1, name: 'Goblin Ambush' })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
-      );
+      vi.spyOn(encounterService, 'getOwnEncounters').mockReturnValue(of([buildEncounterResponse({ id: 1, creatorId: 1, name: 'Goblin Ambush' })]));
     });
 
     it('lists an active run paired with its encounter name', () => {
@@ -252,6 +303,19 @@ describe('Encounters', () => {
 
       expect(component.activeRunEntries()).toEqual([{ run: expect.objectContaining({ id: 10 }), encounterName: 'Goblin Ambush' }]);
       expect(fixture.nativeElement.querySelector('.active-runs-name').textContent).toContain('Goblin Ambush');
+    });
+
+    // The discard control's aria-label used to read "Discard {{encounterName}}" -- indistinguishable
+    // from deleting the saved encounter itself, when it only ends the in-progress run. Locking the
+    // wording in place so it can't regress back to that ambiguity.
+    it('labels the discard control as ending the run, not deleting the encounter', () => {
+      vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([buildRunResponse({ id: 10, encounterId: 1 })]));
+
+      fixture.detectChanges();
+
+      const discardBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.active-runs-actions .btn--danger-ghost');
+      expect(discardBtn.getAttribute('aria-label')).toBe('Discard the in-progress run of Goblin Ambush');
+      expect(discardBtn.textContent?.trim()).toBe('Discard Run');
     });
 
     it('resumes an active run by navigating to its encounter\'s run route', () => {

@@ -1,1 +1,13 @@
-/* Styles live in src/app/shared/styles/roster.css (global). */
+/* The base `.roster-inline-confirm`/`.roster-inline-confirm-text`/etc. styles live in
+   src/app/shared/styles/roster.css (global) -- every existing call site relies on that file
+   unchanged. This override is scoped here instead, component-local, only for a caller whose
+   `confirmText` isn't the default (see `wrapsConfirmText`'s doc in inline-delete-confirm.ts for
+   why: `.roster-inline-confirm` is deliberately `flex-shrink: 0` globally, correct for a short
+   "Delete?" but wrong for longer copy, which would overflow rather than wrap). Reachable without
+   `::ng-deep` because `.roster-inline-confirm` is this component's own template markup, not
+   projected content -- Angular's emulated encapsulation only blocks a component-scoped rule from
+   reaching *projected* (`<ng-content>`) markup, not its own. */
+.roster-inline-confirm--wrap {
+  flex-wrap: wrap;
+  flex-shrink: 1;
+}

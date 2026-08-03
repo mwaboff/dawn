@@ -7,7 +7,7 @@
         type="number"
         min="1"
         max="12"
-        class="meter__party-input"
+        class="form-input meter__party-input"
         [value]="partySize()"
         (change)="onPartySizeInput($event)"
       />
@@ -59,6 +59,7 @@
       <label class="meter__adjustment">
         <input
           type="checkbox"
+          class="form-checkbox"
           [checked]="isAdjustmentActive(opt.key)"
           (change)="onAdjustmentToggle(opt.key)"
         />

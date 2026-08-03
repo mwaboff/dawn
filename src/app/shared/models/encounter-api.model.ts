@@ -93,4 +93,10 @@ export interface EncounterFilters {
   isOfficial?: boolean;
   name?: string;
   expand?: string;
+  /**
+   * Narrows within the usual official/public/own visibility rules -- it never widens them.
+   * Filtering to another user's id returns only that user's official or public encounters, never
+   * their private ones (see `EncounterService.getOwnEncounters`, which relies on this).
+   */
+  creatorId?: number;
 }

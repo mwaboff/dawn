@@ -20,8 +20,38 @@
   z-index: 2;
 }
 
-.run-page { position: relative; max-width: 720px; margin: 0 auto; padding: 6rem 2rem 6rem; }
+/* Widened from the original 720px reading-column cap, but pulled back in from the 1600px this
+   held briefly during the multi-column grid design: the adversary list is now full-width scannable
+   rows (the party-list pattern), not tiled cards, so an ultra-wide column just stretches each row
+   thin with a wide gap between its identity/vitals and its actions rather than showing more at
+   once. ~960px comfortably fits name + type + tier + every vital + the attack detail on one line
+   at `comfortable` density without the sparse, over-stretched look a full-bleed row would have. */
+.run-page { position: relative; max-width: min(960px, 100%); margin: 0 auto; padding: 6rem 2rem 6rem; }
 .run-page-grain { position: fixed; opacity: 0.15; }
+
+/* Mirrors `.gm-screen-back` (shared/styles/gm-screen-shell.css) token-for-token -- same
+   font/size/tracking/case/colour treatment, so the two read as one convention -- but declared
+   locally rather than reused. That shared stylesheet is GM-screen chrome; this page isn't part
+   of the GM screen, so borrowing its class would widen what that stylesheet means for a page it
+   was never meant to style. */
+.run-page-back {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-bottom: .35rem;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-decoration: none;
+  opacity: .85;
+  transition: opacity .2s ease;
+}
+.run-page-back:hover,
+.run-page-back:focus-visible { opacity: 1; }
+.run-page-back:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
 
 .run-page-loading {
   position: relative;

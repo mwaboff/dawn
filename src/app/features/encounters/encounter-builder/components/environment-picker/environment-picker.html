@@ -5,11 +5,13 @@
       <button type="button" class="env-picker__clear-btn" (click)="onClear()">Clear environment</button>
     }
   </div>
-  <app-card-selection-grid
-    [cards]="environments()"
-    [loading]="loading()"
-    [error]="error()"
-    [selectedCard]="selectedCard()"
-    (cardSelected)="onCardSelected($event)"
-  />
+  <div class="env-picker__grid">
+    <app-card-selection-grid
+      [cards]="environments()"
+      [loading]="loading()"
+      [error]="error()"
+      [selectedCard]="selectedCard()"
+      (cardSelected)="onCardSelected($event)"
+    />
+  </div>
 </div>

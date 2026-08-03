@@ -1,21 +1,66 @@
 <div class="run-lifecycle-actions">
-  <button type="button" class="btn btn--primary btn--sm" [disabled]="completing()" (click)="onComplete()">
-    {{ completing() ? 'Completing…' : 'Complete Encounter' }}
-  </button>
-  <button type="button" class="btn btn--danger-ghost btn--sm" (click)="requestDiscard()">Discard</button>
+  <button
+    type="button"
+    class="btn btn--primary btn--sm"
+    [disabled]="completing() || resetting() || deleting()"
+    (click)="onComplete()"
+  >{{ completing() ? 'Completing…' : 'Complete Encounter' }}</button>
+
+  <button
+    type="button"
+    class="btn btn--secondary btn--sm"
+    [disabled]="completing() || resetting() || deleting()"
+    (click)="requestReset()"
+  >Reset</button>
+
+  @if (editHref(); as href) {
+    <span class="run-lifecycle-actions__edit-wrap">
+      <a
+        class="btn btn--secondary btn--sm"
+        [routerLink]="href"
+        target="_blank"
+        rel="noopener"
+        [attr.aria-label]="'Edit ' + encounterLabel() + ' (opens in a new tab)'"
+        (click)="onEditClick()"
+      >Edit<span class="run-lifecycle-actions__new-tab-icon" aria-hidden="true">&#8599;</span></a>
+
+      @if (showEditNote()) {
+        <span class="run-lifecycle-actions__edit-note" role="status" aria-live="polite">
+          Edits apply the next time this encounter runs. Reset restarts the fight with them.
+          <button
+            type="button"
+            class="run-lifecycle-actions__edit-note-dismiss"
+            aria-label="Dismiss"
+            (click)="dismissEditNote()"
+          >&times;</button>
+        </span>
+      }
+    </span>
+  }
+
+  <span class="run-lifecycle-actions__delete-wrap" title="Delete encounter">
+    <app-inline-delete-confirm
+      [itemLabel]="encounterLabel()"
+      [active]="deletePending()"
+      [confirmText]="deleteConfirmText"
+      (requested)="requestDelete()"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  </span>
 
   @if (error()) {
     <p class="run-lifecycle-actions__error" role="alert">{{ error() }}</p>
   }
 </div>
 
-@if (discardPending()) {
+@if (resetPending()) {
   <app-confirm-dialog
-    title="Discard this run?"
-    message="This permanently deletes the run's live HP, Stress, tokens, and notes. This cannot be undone."
-    confirmLabel="Discard"
-    [processing]="discarding()"
-    (confirmed)="confirmDiscard()"
-    (cancelled)="cancelDiscard()"
+    title="Reset this encounter?"
+    message="Marked HP, Stress, tokens, notes, and defeated flags all clear back to the encounter's starting state. The roster stays exactly as built. This cannot be undone."
+    confirmLabel="Reset"
+    [processing]="resetting()"
+    (confirmed)="confirmReset()"
+    (cancelled)="cancelReset()"
   />
 }

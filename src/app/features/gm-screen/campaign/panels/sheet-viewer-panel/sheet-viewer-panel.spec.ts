@@ -136,7 +136,7 @@ describe('SheetViewerPanel', () => {
     const detail = fixture.nativeElement.querySelector('#party-detail-42') as HTMLElement;
     expect(detail.hidden).toBe(true);
 
-    fixture.nativeElement.querySelector('.party__row').click();
+    fixture.nativeElement.querySelector('.stat-row__toggle').click();
     fixture.detectChanges();
     expect(detail.hidden).toBe(false);
     expect(component.isExpanded(42)).toBe(true);

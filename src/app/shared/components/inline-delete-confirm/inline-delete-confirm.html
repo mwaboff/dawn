@@ -1,6 +1,6 @@
 @if (active()) {
-  <span class="roster-inline-confirm">
-    <span class="roster-inline-confirm-text">Delete?</span>
+  <span class="roster-inline-confirm" [class.roster-inline-confirm--wrap]="wrapsConfirmText()">
+    <span class="roster-inline-confirm-text">{{ confirmText() }}</span>
     <button type="button" class="roster-inline-confirm-btn" (click)="onYesClick($event)">Yes</button>
     <button type="button" class="roster-inline-cancel-btn" (click)="onNoClick($event)">No</button>
   </span>

@@ -7,6 +7,61 @@
   flex-wrap: wrap;
 }
 
+.run-lifecycle-actions__edit-wrap { position: relative; display: flex; align-items: center; }
+
+.run-lifecycle-actions__new-tab-icon { margin-left: .35rem; }
+
+/* Appears only once Edit is actually clicked (`showEditNote`) -- never a persistent line, so the
+   default state costs no layout space. A quiet popover, not a modal: no backdrop, doesn't block
+   the rest of the cluster, and doesn't steal focus from a GM whose attention is about to move to
+   the new tab anyway. */
+.run-lifecycle-actions__edit-note {
+  position: absolute;
+  top: calc(100% + .4rem);
+  left: 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  width: max-content;
+  max-width: 20rem;
+  padding: .55rem .7rem;
+  background: var(--color-bg-darker);
+  border: 1px solid rgba(212, 160, 86, .3);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-parchment);
+}
+
+.run-lifecycle-actions__edit-note-dismiss {
+  flex: 0 0 auto;
+  padding: 0 .2rem;
+  background: none;
+  border: none;
+  color: rgba(245, 230, 211, .68);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.run-lifecycle-actions__edit-note-dismiss:hover { color: var(--color-parchment); }
+.run-lifecycle-actions__edit-note-dismiss:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+/* Pushed to the far side of the cluster and set off with its own rule, rather than sitting next
+   to Complete/Reset/Edit -- Complete is the button a GM reaches for every single fight, Reset and
+   Edit are both recoverable-in-spirit; this is the only one of the four with no way back, so it
+   gets the most physical distance from where a thumb naturally lands after tapping any of the
+   others. */
+.run-lifecycle-actions__delete-wrap {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: .75rem;
+  border-left: 1px solid rgba(212, 160, 86, .2);
+}
+
 .run-lifecycle-actions__error {
   margin: 0;
   font-family: var(--font-body);

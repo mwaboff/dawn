@@ -34,12 +34,12 @@
   opacity: .85;
 }
 
+/* Color/border/chrome come from the shared .form-input class -- this just sets local sizing and
+   the display-font weight this readout wants. */
 .meter__party-input {
   width: 3.5rem;
+  min-height: 0;
   padding: .3rem .5rem;
-  background: rgba(26, 20, 18, .8);
-  border: 1px solid rgba(212, 160, 86, .3);
-  border-radius: 3px;
   color: var(--color-text-light);
   font-family: var(--font-display);
   font-weight: 700;
@@ -179,10 +179,14 @@
   margin-bottom: .15rem;
 }
 
+/* min-height keeps the whole label -- the checkbox's actual click/tap target, since the input is
+   wrapped in it -- at least 24px tall per WCAG 2.5.8, even though the row's own text sits smaller
+   than that. */
 .meter__adjustment {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: .5rem;
+  min-height: 1.5rem;
   cursor: pointer;
   font-size: .82rem;
   color: rgba(245, 230, 211, .82);

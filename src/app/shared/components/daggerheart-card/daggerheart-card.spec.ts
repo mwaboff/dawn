@@ -37,6 +37,7 @@ const MOCK_CARD_WITH_FEATURES: CardData = {
       [card]="card()"
       [selected]="selected()"
       [disabled]="disabled()"
+      [readOnly]="readOnly()"
       [layout]="layout()"
       [collapsibleFeatures]="collapsibleFeatures()"
       (cardClicked)="onClicked($event)"
@@ -47,6 +48,7 @@ class TestHost {
   card = signal<CardData>(MOCK_CARD);
   selected = signal(false);
   disabled = signal(false);
+  readOnly = signal(false);
   layout = signal<'default' | 'wide'>('default');
   collapsibleFeatures = signal(false);
   clickedCard: CardData | null = null;
@@ -319,6 +321,53 @@ describe('DaggerheartCard', () => {
 
       const cardComponent = fixture.debugElement.children[0].componentInstance as DaggerheartCard;
       cardComponent.onKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(host.clickedCard).toBeNull();
+    });
+  });
+
+  describe('Read-Only State', () => {
+    it('should add card--static class and not card--disabled when readOnly is true', () => {
+      host.readOnly.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--static')).toBe(true);
+      expect(card.classList.contains('card--disabled')).toBe(false);
+    });
+
+    it('should not fade or grayscale a read-only card the way a disabled one is', () => {
+      host.readOnly.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card') as HTMLElement;
+      expect(getComputedStyle(card).opacity).not.toBe('0.5');
+      expect(getComputedStyle(card).filter).not.toContain('grayscale');
+    });
+
+    it('should not cap height or clip overflow, so long content is fully readable', () => {
+      host.readOnly.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card') as HTMLElement;
+      expect(getComputedStyle(card).overflow).not.toBe('clip');
+    });
+
+    it('should have no role or tabindex, since nothing happens on click', () => {
+      host.readOnly.set(true);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.hasAttribute('role')).toBe(false);
+      expect(card.getAttribute('tabindex')).toBe('-1');
+    });
+
+    it('should not emit cardClicked when read-only and clicked', () => {
+      host.readOnly.set(true);
+      fixture.detectChanges();
+
+      const cardComponent = fixture.debugElement.children[0].componentInstance as DaggerheartCard;
+      cardComponent.onCardClick();
 
       expect(host.clickedCard).toBeNull();
     });

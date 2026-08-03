@@ -1,9 +1,7 @@
 import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
-import { EnvironmentFeatureResponse, EnvironmentResponse, EnvironmentType } from '../models/environment-api.model';
-
-function formatEnvironmentType(type: EnvironmentType): string {
-  return type.charAt(0) + type.slice(1).toLowerCase();
-}
+import { EnvironmentFeatureResponse, EnvironmentResponse } from '../models/environment-api.model';
+import { parseFeatureTiming } from '../utils/feature-timing.utils';
+import { titleCase } from '../utils/text.utils';
 
 /**
  * Formats the printed Difficulty for the card's tags. Environments mutually-exclusively
@@ -17,10 +15,12 @@ function formatDifficulty(response: EnvironmentResponse): string {
 }
 
 function mapFeature(feature: EnvironmentFeatureResponse): CardFeature {
+  const { name, timing } = parseFeatureTiming(feature.name);
   return {
     id: feature.id,
-    name: feature.name,
+    name,
     description: feature.description ?? '',
+    subtitle: timing,
   };
 }
 
@@ -32,7 +32,7 @@ export function mapEnvironmentToCardData(response: EnvironmentResponse): CardDat
     name: response.name,
     description: response.description ?? '',
     cardType: 'environment',
-    subtitle: formatEnvironmentType(response.environmentType),
+    subtitle: titleCase(response.environmentType),
     subtitleSecondary: `Tier ${response.tier}`,
     tags: [formatDifficulty(response)],
     features: features.length > 0 ? features : undefined,

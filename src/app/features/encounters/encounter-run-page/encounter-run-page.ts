@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of, switchMap } from 'rxjs';
 
@@ -7,7 +7,7 @@ import { EncounterRunService } from '../../../shared/services/encounter-run.serv
 import { EncounterService } from '../../../shared/services/encounter.service';
 import { EncounterRunView } from '../../../shared/components/encounter-run/encounter-run-view';
 import { CardError } from '../../../shared/components/card-error/card-error';
-import { ENCOUNTERS_LIST_PATH } from '../encounter-routes';
+import { ENCOUNTERS_LIST_PATH, encounterEditPath } from '../encounter-routes';
 
 /**
  * Thin host for `/encounters/:id/run` -- `:id` is the encounter, not the run. Resolves to a run
@@ -23,7 +23,7 @@ import { ENCOUNTERS_LIST_PATH } from '../encounter-routes';
   selector: 'app-encounter-run-page',
   templateUrl: './encounter-run-page.html',
   styleUrl: './encounter-run-page.css',
-  imports: [EncounterRunView, CardError],
+  imports: [EncounterRunView, CardError, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EncounterRunPage implements OnInit {
@@ -33,10 +33,18 @@ export class EncounterRunPage implements OnInit {
   private readonly encounterService = inject(EncounterService);
   private readonly destroyRef = inject(DestroyRef);
 
+  /** Only this standalone page renders a back link -- the GM panel hosts the same run view with
+   * `showHeader="false"` inside a campaign screen, where "back to encounters" would be wrong. */
+  readonly encountersListPath = ENCOUNTERS_LIST_PATH;
+
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly runId = signal<number | null>(null);
   readonly encounterName = signal<string | null>(null);
+  /** Derived from `encounterEditPath()` (never a retyped literal) -- `shared/` code can't import
+   * this itself (shared must never import from `features/`), so it's computed here and handed
+   * down through `EncounterRunView` as a plain string. */
+  readonly editHref = signal<string | null>(null);
 
   private encounterId: number | null = null;
 
@@ -77,6 +85,7 @@ export class EncounterRunPage implements OnInit {
       .subscribe({
         next: ({ encounter, run }) => {
           this.encounterName.set(encounter.name);
+          this.editHref.set(encounterEditPath(encounter.id));
           this.runId.set(run.id);
           this.loading.set(false);
         },

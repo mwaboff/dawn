@@ -1,0 +1,76 @@
+<section class="roster">
+  @if (loading()) {
+    <div class="roster-loading">
+      @for (i of skeletonIndexes(); track i) {
+        <div class="roster-skeleton"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="roster-message">
+      <p>{{ errorText() }}</p>
+    </div>
+  } @else {
+    @if (items().length === 0) {
+      <div class="roster-empty">
+        <p class="roster-empty-text">
+          {{ showCreateButton() ? emptyTextSelf() : emptyTextOther() }}
+        </p>
+        @if (showCreateButton()) {
+          <button type="button" class="roster-create-btn" (click)="create.emit()">
+            {{ createButtonLabel() }}
+          </button>
+        }
+      </div>
+    } @else {
+      <ol class="roster-list">
+        @for (item of items(); track item.id) {
+          <li class="roster-entry" tabindex="0" role="button"
+              (click)="view.emit(item.id)"
+              (keydown.enter)="view.emit(item.id)">
+            <div class="roster-info">
+              <div class="roster-name-row">
+                <span class="roster-character-name">{{ item.name }}</span>
+                @if (item.badge) {
+                  <span class="roster-badge">{{ item.badge }}</span>
+                }
+              </div>
+              <p class="roster-class">
+                <span class="roster-class-name">{{ item.metaPrimary }}</span>
+                <span class="roster-class-sep" aria-hidden="true"> · </span>
+                <span class="roster-class-subclass">{{ item.metaSecondary }}</span>
+              </p>
+            </div>
+            @if (canDelete()) {
+              <app-inline-delete-confirm
+                [itemLabel]="item.name"
+                [active]="pendingDeleteId() === item.id"
+                (requested)="onDeleteRequest(item.id)"
+                (confirmed)="onDeleteConfirm()"
+                (cancelled)="onDeleteCancel()" />
+            }
+            <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </li>
+        }
+      </ol>
+    }
+    @if (showCreateButton()) {
+      <div class="roster-footer">
+        <a [routerLink]="listPath()" class="roster-add-link">View All {{ listLabel() }}</a>
+      </div>
+    }
+  }
+  @if (confirmingDeleteId() !== null) {
+    <app-confirm-dialog
+      [title]="'Delete ' + itemTypeLabel()"
+      [message]="'This will permanently delete this ' + itemTypeLabel().toLowerCase() + '. This action cannot be undone.'"
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      [processing]="deletingId() !== null"
+      (confirmed)="onConfirmDelete()"
+      (cancelled)="onCancelDelete()"
+    />
+  }
+</section>

@@ -1,22 +1,7 @@
 import { CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { AdversaryData } from '../components/adversary-card/adversary-card.model';
 import { AdversaryApiResponse, AdversaryFeature, ExperienceResponse } from '../models/adversary-api.model';
-
-/**
- * `Feature.timing` is null on every row in the DB (a known, deferred data issue -- see
- * `adversary.mapper.spec.ts`). The printed timing survives as a name suffix instead, e.g.
- * `"Relentless (3) - Passive"`, `"Earth Eruption - Action"`, `"Team-Up - Reaction"`. A name with
- * no recognized suffix is returned unchanged, with no timing.
- */
-const FEATURE_TIMING_SUFFIX = /^(.+?)\s*-\s*(Passive|Action|Reaction)$/i;
-
-function parseFeatureTiming(name: string): { name: string; timing?: string } {
-  const match = FEATURE_TIMING_SUFFIX.exec(name);
-  if (!match) return { name };
-
-  const [, cleanName, timing] = match;
-  return { name: cleanName.trim(), timing: timing.charAt(0).toUpperCase() + timing.slice(1).toLowerCase() };
-}
+import { parseFeatureTiming } from '../utils/feature-timing.utils';
 
 function mapAdversaryFeature(feature: AdversaryFeature): CardFeature {
   const { name, timing } = parseFeatureTiming(feature.name);

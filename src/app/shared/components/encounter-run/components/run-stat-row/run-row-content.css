@@ -1,0 +1,19 @@
+/* Styles for markup `RunAdversaryRow` projects into `RunStatRow` via `[row-identity]` that's
+ * specific to an adversary row -- NOT for `RunStatRow`'s own template (`run-stat-row.css`), and
+ * not for the genuinely-shared identity/vitals rules any row can use (those are global now, see
+ * `shared/styles/stat-row.css`'s header comment for why).
+ *
+ * This file exists because of a real Angular encapsulation bug: content passed through
+ * `<ng-content>` keeps the *projecting* component's `_ngcontent-*` attribute, not the component
+ * doing the projecting-into, so a rule declared in `RunStatRow`'s own `styleUrl` can never match
+ * `<span class="stat-row__catalog-name">` written in `run-adversary-row.html`. Fix: this file is
+ * listed in `RunAdversaryRow`'s own `styleUrls` (the same multi-file pattern already used for
+ * `run-detail-shell.css` and `daggerheart-card.ts`'s variant partials), so the compiled selectors
+ * carry the attribute the projected markup actually has. `RunEnvironmentPanel` doesn't need this
+ * file at all -- everything it projects uses only the global shared classes.
+ */
+
+.stat-row__catalog-name {
+  font-size: var(--text-sm);
+  color: rgba(245, 230, 211, .68);
+}

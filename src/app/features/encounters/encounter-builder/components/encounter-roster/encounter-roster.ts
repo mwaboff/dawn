@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
+import { DaggerheartCard } from '../../../../../shared/components/daggerheart-card/daggerheart-card';
+import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { EncounterRosterInstance } from '../../models/encounter-roster-instance.model';
 
 const TIER_OPTIONS = [1, 2, 3, 4] as const;
@@ -24,13 +26,17 @@ export interface LabelChangeEvent {
   selector: 'app-encounter-roster',
   templateUrl: './encounter-roster.html',
   styleUrl: './encounter-roster.css',
-  imports: [AdversaryCard],
+  imports: [AdversaryCard, DaggerheartCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EncounterRoster {
   readonly instances = input.required<EncounterRosterInstance[]>();
   /** localId of the instance to briefly highlight, set by the builder right after an add. */
   readonly justAddedId = input<string | null>(null);
+  /** The encounter's environment, if one is attached -- shown here so picking one is visible
+   * without expanding the (collapsed-by-default) Environment section. Purely a display: it costs
+   * no Battle Points and never reaches the meter. */
+  readonly selectedEnvironment = input<CardData | undefined>(undefined);
 
   readonly removeInstance = output<string>();
   readonly retierInstance = output<RetierEvent>();

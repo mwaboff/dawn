@@ -66,6 +66,18 @@ function createActivatedRoute(paramId: string | null) {
   };
 }
 
+function dividerLabels(fixture: ComponentFixture<Profile>): (string | undefined)[] {
+  const el: HTMLElement = fixture.nativeElement;
+  return Array.from(el.querySelectorAll('.profile-divider-label'))
+    .map(label => label.textContent?.trim());
+}
+
+function viewAllLinks(fixture: ComponentFixture<Profile>): (string | undefined)[] {
+  const el: HTMLElement = fixture.nativeElement;
+  return Array.from(el.querySelectorAll('.roster-add-link'))
+    .map(link => link.textContent?.trim());
+}
+
 describe('Profile', () => {
   let component: Profile;
   let fixture: ComponentFixture<Profile>;
@@ -97,9 +109,10 @@ describe('Profile', () => {
     httpMock.verify();
   });
 
-  function flushOwnProfileRequests(sheetData: unknown[] = [], campaignData: unknown[] = []) {
+  function flushOwnProfileRequests(sheetData: unknown[] = [], campaignData: unknown[] = [], encounterData: unknown[] = []) {
     httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged(sheetData));
     httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged(campaignData));
+    httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged(encounterData));
   }
 
   function flushOtherProfileRequests(userData: UserResponse = mockOtherUser, sheetData: unknown[] = []) {
@@ -149,6 +162,7 @@ describe('Profile', () => {
       expect(req.request.params.get('expand')).toBe('subclassCards');
       req.flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
     });
 
     it('should render the roster-list child component', () => {
@@ -174,6 +188,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
         .flush(null, { status: 403, statusText: 'Forbidden' });
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
       fixture.detectChanges();
       expect(component.charactersError()).toBe(false);
       expect(component.characters().length).toBe(0);
@@ -185,6 +200,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets'))
         .flush(null, { status: 500, statusText: 'Server Error' });
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
       fixture.detectChanges();
       expect(component.charactersError()).toBe(true);
     });
@@ -228,14 +244,16 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
     });
 
-    it('should render CampaignRoster component', () => {
+    it('should render a roster panel for campaigns', () => {
       setup();
       fixture.detectChanges();
       flushOwnProfileRequests();
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeTruthy();
+      expect(dividerLabels(fixture)).toContain('Campaigns');
+      expect(viewAllLinks(fixture)).toContain('View All Campaigns');
     });
 
     it('should handle campaign fetch error', () => {
@@ -244,6 +262,7 @@ describe('Profile', () => {
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns'))
         .flush(null, { status: 500, statusText: 'Server Error' });
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
       fixture.detectChanges();
       expect(component.campaignsError()).toBe(true);
     });
@@ -261,6 +280,59 @@ describe('Profile', () => {
       component.onCreateCampaign();
       expect(navigateSpy).toHaveBeenCalledWith(['/campaigns/create']);
     });
+
+    it('should fetch encounters on init, sending creatorId scoped to the current user', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      // The server now does the creatorId scoping (composes as an AND on the usual
+      // official/public/own visibility rule), so the response here is already narrowed --
+      // this just confirms the request asks for the right user.
+      const req = httpMock.expectOne(r => r.url.includes('/dh/encounters'));
+      expect(req.request.params.get('creatorId')).toBe('42');
+      req.flush(wrapPaged([
+        { id: 1, name: 'Mine', isOfficial: false, isPublic: false, creatorId: 42, adversaries: [], adjustmentEasier: false, adjustmentTwoPlusSolos: false, adjustmentBonusDamage: false, adjustmentLowerTier: false, adjustmentNoElites: false, adjustmentHarder: false, suggestedBattlePoints: 10, spentBattlePoints: 5, createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00' },
+      ]));
+      fixture.detectChanges();
+
+      expect(component.encounters().length).toBe(1);
+      expect(component.encounters()[0].name).toBe('Mine');
+    });
+
+    it('should render a roster panel for encounters', () => {
+      setup();
+      fixture.detectChanges();
+      flushOwnProfileRequests();
+      fixture.detectChanges();
+      expect(dividerLabels(fixture)).toContain('Encounters');
+      expect(viewAllLinks(fixture)).toContain('View All Encounters');
+    });
+
+    it('should handle encounter fetch error', () => {
+      setup();
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters'))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      fixture.detectChanges();
+      expect(component.encountersError()).toBe(true);
+    });
+
+    it('should navigate to the encounter builder on createEncounter', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onCreateEncounter();
+      expect(navigateSpy).toHaveBeenCalledWith(['/encounters/new']);
+    });
+
+    it('should navigate to the encounter edit page on viewEncounter', () => {
+      setup();
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.onViewEncounter(7);
+      expect(navigateSpy).toHaveBeenCalledWith(['/encounters/7/edit']);
+    });
   });
 
   describe('own profile via /profile/:id', () => {
@@ -272,6 +344,7 @@ describe('Profile', () => {
       httpMock.expectNone(r => r.url.includes('/users/42') && !r.url.includes('/campaigns') && !r.url.includes('/character-sheets'));
       httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
       httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
 
       expect(component.profileUser()).toEqual(mockUser);
       expect(component.isOwnProfile()).toBe(true);
@@ -284,6 +357,7 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/42/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged([]));
     });
   });
 
@@ -323,7 +397,18 @@ describe('Profile', () => {
 
       httpMock.expectNone(r => r.url.includes('/users/99/campaigns'));
       expect(component.canViewCampaigns()).toBe(false);
-      expect(fixture.nativeElement.querySelector('app-campaign-roster')).toBeFalsy();
+      expect(dividerLabels(fixture)).not.toContain('Campaigns');
+    });
+
+    it('should not fetch encounters when non-admin views other profile', () => {
+      setup('99');
+      fixture.detectChanges();
+      flushOtherProfileRequests();
+      fixture.detectChanges();
+
+      httpMock.expectNone(r => r.url.includes('/dh/encounters'));
+      expect(component.canViewEncounters()).toBe(false);
+      expect(dividerLabels(fixture)).not.toContain('Encounters');
     });
 
     it('should fetch campaigns when admin views other profile', () => {
@@ -334,6 +419,31 @@ describe('Profile', () => {
       const req = httpMock.expectOne(r => r.url.includes('/users/99/campaigns'));
       expect(req.request.params.get('expand')).toBe('creator');
       req.flush(wrapPaged([]));
+    });
+
+    /**
+     * Unlike campaigns, there's no per-user encounters endpoint, so even an admin's request to
+     * `/dh/encounters` only ever answers "what the admin themselves can see" -- it can't answer
+     * "what user 99 owns". Fetching and filtering it client-side would silently under-report user
+     * 99's private encounters, so this stays gated to the profile's own user regardless of role.
+     */
+    it('should NOT fetch encounters and should NOT render an encounters roster when admin views another profile, showing an explanatory note instead', () => {
+      setup('99', mockAdminUser);
+      fixture.detectChanges();
+      httpMock.expectOne(r => r.url.includes('/users/99') && !r.url.includes('/campaigns')).flush(mockOtherUser);
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/99/campaigns')).flush(wrapPaged([]));
+      fixture.detectChanges();
+
+      httpMock.expectNone(r => r.url.includes('/dh/encounters'));
+      expect(component.canViewEncounters()).toBe(false);
+      // The divider still shows (this admin CAN see the Campaigns section, so a missing
+      // Encounters divider would read as "this user has none" rather than "hidden from you").
+      expect(dividerLabels(fixture)).toContain('Encounters');
+      // Only the Campaigns roster panel renders -- Encounters falls to the explanatory note instead.
+      expect(fixture.nativeElement.querySelectorAll('app-roster-panel').length).toBe(1);
+      expect(fixture.nativeElement.querySelector('.profile-encounters-note')?.textContent?.trim())
+        .toBe("Encounters aren't shown on another adventurer's profile.");
     });
 
     it('should map character sheets to summaries', () => {
@@ -462,6 +572,27 @@ describe('Profile', () => {
 
       expect(component.campaigns().length).toBe(1);
       expect(component.campaigns()[0].name).toBe('Goblin Hunters');
+    });
+
+    it('should remove encounter from list on successful delete', () => {
+      setup();
+      fixture.detectChanges();
+      const encounters = [
+        { id: 1, name: 'Goblin Ambush', isOfficial: false, isPublic: false, creatorId: 42, adversaries: [], adjustmentEasier: false, adjustmentTwoPlusSolos: false, adjustmentBonusDamage: false, adjustmentLowerTier: false, adjustmentNoElites: false, adjustmentHarder: false, suggestedBattlePoints: 10, spentBattlePoints: 5, createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00' },
+        { id: 2, name: 'Dragon Roost', isOfficial: false, isPublic: false, creatorId: 42, adversaries: [], adjustmentEasier: false, adjustmentTwoPlusSolos: false, adjustmentBonusDamage: false, adjustmentLowerTier: false, adjustmentNoElites: false, adjustmentHarder: false, suggestedBattlePoints: 10, spentBattlePoints: 5, createdAt: '2025-01-01T00:00:00', lastModifiedAt: '2025-01-01T00:00:00' },
+      ];
+      httpMock.expectOne(r => r.url.includes('/dh/character-sheets')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/users/42/campaigns')).flush(wrapPaged([]));
+      httpMock.expectOne(r => r.url.includes('/dh/encounters')).flush(wrapPaged(encounters));
+      fixture.detectChanges();
+      expect(component.encounters().length).toBe(2);
+
+      component.onDeleteEncounter(1);
+      httpMock.expectOne(r => r.url.includes('/dh/encounters/1') && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(component.encounters().length).toBe(1);
+      expect(component.encounters()[0].name).toBe('Dragon Roost');
     });
   });
 

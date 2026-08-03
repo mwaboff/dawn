@@ -42,17 +42,17 @@ describe('EnvironmentPicker', () => {
     expect(component.loading()).toBe(false);
   });
 
-  it('emits the card id when a new environment is selected', () => {
+  it('emits the full card when a new environment is selected', () => {
     vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
       of({ cards: [buildCard({ id: 9 })], currentPage: 0, totalPages: 1, totalElements: 1 }),
     );
-    let emitted: number | undefined;
-    component.environmentSelected.subscribe(id => (emitted = id));
+    let emitted: CardData | undefined;
+    component.environmentSelected.subscribe(card => (emitted = card));
 
     fixture.detectChanges();
     component.onCardSelected(buildCard({ id: 9 }));
 
-    expect(emitted).toBe(9);
+    expect(emitted).toEqual(buildCard({ id: 9 }));
   });
 
   it('emits undefined when the already-selected environment is clicked again', () => {
@@ -60,8 +60,8 @@ describe('EnvironmentPicker', () => {
     vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
       of({ cards: [buildCard({ id: 9 })], currentPage: 0, totalPages: 1, totalElements: 1 }),
     );
-    let emitted: number | undefined = -1 as unknown as undefined;
-    component.environmentSelected.subscribe(id => (emitted = id));
+    let emitted: CardData | undefined = { id: -1 } as unknown as CardData;
+    component.environmentSelected.subscribe(card => (emitted = card));
 
     fixture.detectChanges();
     component.onCardSelected(buildCard({ id: 9 }));
@@ -74,8 +74,8 @@ describe('EnvironmentPicker', () => {
     vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
       of({ cards: [buildCard({ id: 9 })], currentPage: 0, totalPages: 1, totalElements: 1 }),
     );
-    let emitted: number | undefined = -1 as unknown as undefined;
-    component.environmentSelected.subscribe(id => (emitted = id));
+    let emitted: CardData | undefined = { id: -1 } as unknown as CardData;
+    component.environmentSelected.subscribe(card => (emitted = card));
 
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.env-picker__clear-btn')).toBeTruthy();

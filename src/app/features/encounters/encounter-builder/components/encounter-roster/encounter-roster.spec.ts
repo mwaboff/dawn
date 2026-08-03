@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EncounterRoster } from './encounter-roster';
 import { EncounterRosterInstance } from '../../models/encounter-roster-instance.model';
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
+import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildInstance(overrides: Partial<EncounterRosterInstance> = {}): EncounterRosterInstance {
   return {
@@ -133,6 +134,42 @@ describe('EncounterRoster', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.adversary-card__body')).toBeTruthy();
+  });
+
+  describe('selectedEnvironment', () => {
+    it('does not render an environment card when none is selected', () => {
+      fixture.componentRef.setInput('instances', []);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-panel__environment')).toBeFalsy();
+    });
+
+    it('renders the selected environment alongside the adversaries', () => {
+      const environment: CardData = {
+        id: 9,
+        name: 'Collapsing Bridge',
+        description: '',
+        cardType: 'environment',
+        subtitle: 'Traversal',
+        subtitleSecondary: 'Tier 1',
+      };
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.componentRef.setInput('selectedEnvironment', environment);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.roster-panel__environment');
+      expect(card.textContent).toContain('Collapsing Bridge');
+      expect(card.textContent).toContain('Tier 1');
+    });
+
+    it('does not feed the environment into any adversary-card count', () => {
+      const environment: CardData = { id: 9, name: 'Collapsing Bridge', description: '', cardType: 'environment' };
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.componentRef.setInput('selectedEnvironment', environment);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('app-adversary-card')).toHaveLength(1);
+    });
   });
 
   describe('justAddedId highlight', () => {

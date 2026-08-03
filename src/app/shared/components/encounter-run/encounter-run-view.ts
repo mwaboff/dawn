@@ -12,20 +12,23 @@ import { RunLifecycleActions } from './components/run-lifecycle-actions/run-life
 
 /**
  * The screen a GM actually fights an encounter on: live HP/Stress/Tokens per adversary, the
- * scene's environment stat block, and Complete/Discard for the run as a whole.
+ * scene's environment stat block, and Complete/Reset/Delete Encounter for the run as a whole.
  *
  * Owns exactly one concern directly -- loading the run and the adversaries' optimistic
  * update/PATCH/rollback, all of it operating on the same owned `runState.adversaries` array
  * through a single `applyUpdate` helper. Two things that would otherwise add independent
  * loading/error/data triples to this file are split out instead: the environment stat block
  * (its own `environmentId`, its own load/error/retry -- {@link RunEnvironmentPanel}) and ending
- * the run (Complete/Discard touch `runId` only, never `runState.adversaries` --
- * {@link RunLifecycleActions}).
+ * the run (Complete/Reset/Delete touch `runId`/`encounterId` only, never `runState.adversaries`
+ * -- {@link RunLifecycleActions}). Reset is the one exception that reaches back in: it replaces
+ * `runState` wholesale with the fresh run {@link RunLifecycleActions} emits, rather than doing a
+ * second `getRun` round trip for data the child already has in hand.
  *
- * Campaign-free by construction -- no `GmScreenContext`, no `ActivatedRoute` reads, no
- * `campaignId` anywhere in this file. Phase 6 hosts this same component inside the campaign GM
- * screen; a standalone `/encounters/:id/run` page hosts it first. Either host decides what
- * happens after the run ends -- this component only emits `completed`.
+ * Campaign-free by construction -- no `GmScreenContext`, no `ActivatedRoute` reads read here.
+ * `campaignId` is read *off the loaded run* (never injected) purely to hand back to
+ * `RunLifecycleActions` so a Reset preserves it -- Phase 6 hosts this same component inside the
+ * campaign GM screen; a standalone `/encounters/:id/run` page hosts it first. Either host decides
+ * what happens after the run ends -- this component only emits `completed`/`encounterDeleted`.
  */
 @Component({
   selector: 'app-encounter-run-view',
@@ -47,7 +50,16 @@ export class EncounterRunView {
    * hides this title/standing block), so only the standalone run page -- the one place that
    * knows which encounter this is -- has a reason to override the generic default. */
   readonly title = input<string>('Running Encounter');
+  /** The encounter editor's URL, opened in a new tab from `RunLifecycleActions`'s Edit control.
+   * Optional and passed straight through with no fallback: this component can't import
+   * `encounterEditPath()` itself (`shared/` must never import from `features/`), so a host that
+   * doesn't supply one simply doesn't get an Edit control, rather than this component inventing a
+   * hand-typed URL that could drift from the real route. */
+  readonly editHref = input<string>();
   readonly completed = output<void>();
+  /** The encounter itself was deleted (not just this run) -- distinct from `completed` since a
+   * host may reasonably want to react differently (e.g. a toast confirming what's actually gone). */
+  readonly encounterDeleted = output<void>();
 
   private readonly runState = signal<EncounterRunResponse | null>(null);
   readonly run = this.runState.asReadonly();
@@ -81,6 +93,19 @@ export class EncounterRunView {
 
   retryLoad(): void {
     this.loadRun(this.runId());
+  }
+
+  /**
+   * `RunLifecycleActions` already deleted the old run and started this new one -- refetching by
+   * `runId` would just be a slower way to arrive at data already in hand, and `runId` itself is
+   * an input this component doesn't own, so there's nothing to redirect it to anyway. The next
+   * full load of this page (a refresh, or a fresh mount) resolves the new run normally since it's
+   * the only ACTIVE run left for this encounter.
+   */
+  onReset(newRun: EncounterRunResponse): void {
+    this.runState.set(newRun);
+    this.actionError.set(null);
+    this.announcement.set('Encounter reset to its starting state.');
   }
 
   onHpChange(row: EncounterRunAdversaryResponse, value: number): void {

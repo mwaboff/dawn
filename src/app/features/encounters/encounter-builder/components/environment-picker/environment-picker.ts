@@ -20,7 +20,9 @@ export class EnvironmentPicker implements OnInit {
   private readonly environmentService = inject(EnvironmentService);
 
   readonly selectedEnvironmentId = input<number | undefined>(undefined);
-  readonly environmentSelected = output<number | undefined>();
+  /** Emits the full card, not just its id, so the parent can show it (name/type/tier) in the
+   * roster without holding a second copy of the environment catalog. */
+  readonly environmentSelected = output<CardData | undefined>();
 
   readonly environments = signal<CardData[]>([]);
   readonly loading = signal(true);
@@ -46,7 +48,7 @@ export class EnvironmentPicker implements OnInit {
   }
 
   onCardSelected(card: CardData): void {
-    this.environmentSelected.emit(this.selectedEnvironmentId() === card.id ? undefined : card.id);
+    this.environmentSelected.emit(this.selectedEnvironmentId() === card.id ? undefined : card);
   }
 
   onClear(): void {

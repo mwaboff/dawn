@@ -6,11 +6,26 @@
     <button type="button" class="run-environment-panel__retry-link" (click)="retry()">Retry</button>
   </p>
 } @else if (card(); as env) {
-  <app-daggerheart-card [card]="env" [disabled]="true" />
-  @if (impulses(); as text) {
-    <p class="run-environment-panel__detail"><strong>Impulses</strong> {{ text }}</p>
-  }
-  @if (potentialAdversaries(); as text) {
-    <p class="run-environment-panel__detail"><strong>Potential Adversaries</strong> {{ text }}</p>
-  }
+  <app-run-stat-row
+    [expanded]="isExpanded()"
+    [detailId]="detailId()"
+    [variant]="'environment'"
+    [density]="density()"
+    (toggled)="toggleExpanded()"
+  >
+    <span row-identity class="stat-row__name-line">
+      <span class="stat-row__name">{{ env.name }}</span>
+    </span>
+    @if (env.subtitle) {
+      <span row-secondary class="stat-row__secondary">{{ env.subtitle }}</span>
+    }
+    <ng-container row-vitals>
+      @if (difficultyLabel(); as difficulty) {
+        <span class="stat-row__vital">
+          <b>{{ difficulty }}</b><small>Difficulty</small>
+        </span>
+      }
+    </ng-container>
+    <app-run-environment-detail row-detail [card]="env" [impulses]="impulses()" [potentialAdversaries]="potentialAdversaries()" />
+  </app-run-stat-row>
 }

@@ -42,6 +42,16 @@ describe('RunEnvironmentPanel', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   }
 
+  function flush(env: EnvironmentResponse = buildEnvironment()): void {
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/${env.id}`).flush(env);
+    fixture.detectChanges();
+  }
+
+  function toggle(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector('.stat-row__toggle');
+  }
+
   afterEach(() => {
     httpTesting.verify();
   });
@@ -63,34 +73,144 @@ describe('RunEnvironmentPanel', () => {
     httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
   });
 
-  it('should render the environment stat block once it loads', () => {
+  it('should render the environment as a row, styled like an adversary row', () => {
     setup();
-    fixture.detectChanges();
-    httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
-    fixture.detectChanges();
+    flush();
 
-    expect(fixture.nativeElement.querySelector('.card--type-environment')).toBeTruthy();
+    const row = fixture.nativeElement.querySelector('.stat-row__item--environment');
+    expect(row).toBeTruthy();
+    expect(toggle().textContent).toContain('Sundered Ruins');
   });
 
-  it('should render Impulses and Potential Adversaries alongside the card', () => {
+  it('should show the environment type as a secondary line under the name, title-cased -- no tier', () => {
     setup();
-    fixture.detectChanges();
-    httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
-    fixture.detectChanges();
+    flush(buildEnvironment({ environmentType: 'EXPLORATION', tier: 2 }));
 
-    const details = Array.from<Element>(fixture.nativeElement.querySelectorAll('.run-environment-panel__detail'))
-      .map(el => el.textContent?.trim());
-    expect(details.some(text => text?.includes('Trap the party'))).toBe(true);
-    expect(details.some(text => text?.includes('Skeletons'))).toBe(true);
+    const secondary = fixture.nativeElement.querySelector('.stat-row__secondary');
+    expect(secondary.textContent.trim()).toBe('Exploration');
+    // Unlike the adversary row's "Solo · Tier 3", the environment's secondary line is type alone
+    // -- Tier isn't shown on this row at all (the user was explicit that adding it back wasn't
+    // wanted unless it fell out naturally, and it doesn't here).
+    expect(toggle().textContent).not.toContain('Tier');
   });
 
-  it('should not render a detail line when impulses/potentialAdversaries are absent', () => {
+  it('should show Difficulty as a plain-number vital, matching the adversary row treatment', () => {
     setup();
-    fixture.detectChanges();
-    httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment({ impulses: undefined, potentialAdversaries: undefined }));
+    flush(buildEnvironment({ difficulty: 15, difficultySpecial: undefined }));
+
+    const vital = fixture.nativeElement.querySelector('.stat-row__vital');
+    expect(vital.textContent).toContain('15');
+    expect(vital.textContent).toContain('Difficulty');
+  });
+
+  // This component projects `.stat-row__vital`/`.stat-row__name`/`.stat-row__secondary` into
+  // `RunStatRow` via `[row-vitals]`/`[row-identity]`. This used to be a real bug (see
+  // `run-adversary-row.spec.ts`'s identical describe block for the full mechanism) -- fixed by
+  // promoting the rules to the global `shared/styles/stat-row.css`, which is structurally immune
+  // to the projection issue. These assert class-name/structure only, not computed style values:
+  // this project's Vitest/jsdom test environment doesn't apply the global stylesheet's cascade the
+  // way it applies a component's own scoped `styleUrl` (see the other spec's comment for how that
+  // was confirmed). The actual declared values were verified against the compiled build output.
+  describe('Projected vital/identity styling (ng-content + emulated encapsulation)', () => {
+    it('wires the Difficulty vital into the shared .stat-row__vital markup structure', () => {
+      setup();
+      flush(buildEnvironment({ difficulty: 15 }));
+
+      const vital = fixture.nativeElement.querySelector('.stat-row__vital');
+      expect(vital.querySelector('b')).toBeTruthy();
+      expect(vital.querySelector('small')).toBeTruthy();
+    });
+
+    // Regression coverage for a real bug the user saw on screen: the name and type used to render
+    // concatenated on one line ("CULT RITUALEvent") because both were plain inline children of one
+    // single projected element -- `.stat-row__identity`'s `flex-direction: column` (global, unreadable
+    // by jsdom) had only one real flex item, so nothing forced the type onto its own line. The
+    // adversary row happened to stack correctly anyway, purely because its name line was
+    // `display: flex` (block-level) and pushed the following inline span down as a side effect --
+    // the environment row had no such sibling, so the same latent bug showed up differently there.
+    // The fix makes the name line and the secondary line two *direct* children of `.stat-row__identity`
+    // (two separate `<ng-content>` slots in `RunStatRow`), so stacking is guaranteed by flexbox
+    // itself rather than incidental. This is the one thing jsdom *can* verify here, since it's DOM
+    // structure, not the CSS cascade -- see `run-adversary-row.spec.ts`'s identical test for the
+    // full mechanism, and the compiled-CSS verification noted in the team report for the rest.
+    it('renders the name line and the secondary line as direct siblings under the identity block, not nested inside each other', () => {
+      setup();
+      flush(buildEnvironment({ environmentType: 'EXPLORATION' }));
+
+      const identity = fixture.nativeElement.querySelector('.stat-row__identity');
+      const nameLine = fixture.nativeElement.querySelector('.stat-row__name-line');
+      const secondary = fixture.nativeElement.querySelector('.stat-row__secondary');
+
+      expect(nameLine.parentElement).toBe(identity);
+      expect(secondary.parentElement).toBe(identity);
+      expect(identity.children.length).toBe(2);
+    });
+  });
+
+  it('should show the verbatim Difficulty text when difficultySpecial is set instead of a number', () => {
+    setup();
+    flush(buildEnvironment({ difficulty: undefined, difficultySpecial: 'Special (see "Relative Strength")' }));
+
+    expect(fixture.nativeElement.querySelector('.stat-row__vital').textContent).toContain(
+      'Special (see "Relative Strength")',
+    );
+  });
+
+  it('should not show HP, Stress, tokens, or a defeated state -- an environment has none of those', () => {
+    setup();
+    flush();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).not.toContain('HP marked');
+    expect(text).not.toContain('Stress');
+    expect(text).not.toContain('Tokens');
+    expect(fixture.nativeElement.querySelector('.stat-row__skull')).toBeFalsy();
+  });
+
+  it('should not cap the detail panel height or clip long content, so it stays fully readable once expanded', () => {
+    setup();
+    flush(buildEnvironment({ description: 'A very long description. '.repeat(80) }));
+    toggle().click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.run-environment-panel__detail')).toBeFalsy();
+    const detail = fixture.nativeElement.querySelector('app-run-environment-detail');
+    expect(getComputedStyle(detail).overflow).not.toBe('clip');
+    expect(getComputedStyle(detail).maxHeight).not.toMatch(/^\d/);
+  });
+
+  it('should render Impulses and Potential Adversaries in the expanded detail', () => {
+    setup();
+    flush();
+    toggle().click();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Trap the party');
+    expect(text).toContain('Skeletons');
+  });
+
+  it('should not render an Impulses/Potential Adversaries section when absent', () => {
+    setup();
+    flush(buildEnvironment({ impulses: undefined, potentialAdversaries: undefined }));
+    toggle().click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Impulses');
+    expect(fixture.nativeElement.textContent).not.toContain('Potential Adversaries');
+  });
+
+  it('should start collapsed with aria-expanded false and the detail panel hidden', () => {
+    setup();
+    flush();
+
+    expect(toggle().getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('should mark its own host as a list item, for the run view\'s role="list" container', () => {
+    setup();
+    flush();
+
+    expect(fixture.nativeElement.getAttribute('role')).toBe('listitem');
   });
 
   it('should show a retryable, visible error state when the fetch fails, not a permanent spinner', () => {
@@ -107,6 +227,6 @@ describe('RunEnvironmentPanel', () => {
 
     httpTesting.expectOne(r => r.url === `${environmentsBaseUrl}/7`).flush(buildEnvironment());
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.card--type-environment')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.stat-row__item--environment')).toBeTruthy();
   });
 });

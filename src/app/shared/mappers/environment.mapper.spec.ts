@@ -114,6 +114,16 @@ describe('mapEnvironmentToCardData', () => {
     expect(result.features).toBeUndefined();
   });
 
+  it('should strip a printed timing suffix from a feature name and set it as the subtitle', () => {
+    const response = buildEnvironmentResponse({
+      features: [{ id: 1, name: 'Overwhelming Assault - Action', description: 'The siege presses forward.' }],
+    });
+    const result = mapEnvironmentToCardData(response);
+
+    expect(result.features![0].name).toBe('Overwhelming Assault');
+    expect(result.features![0].subtitle).toBe('Action');
+  });
+
   it('should store environmentType, tier, impulses, and potentialAdversaries in metadata', () => {
     const response = buildEnvironmentResponse({
       environmentType: 'SOCIAL',

@@ -10,9 +10,11 @@ import { Dashboard } from './dashboard';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../shared/services/user.service';
 import { CampaignService } from '../../shared/services/campaign.service';
+import { EncounterService } from '../../shared/services/encounter.service';
 import { DASHBOARD_PREVIEW_LIMIT } from './models/dashboard.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { CampaignResponse } from '../../shared/models/campaign-api.model';
+import { EncounterResponse } from '../../shared/models/encounter-api.model';
 import { PaginatedResponse } from '../../shared/models/api.model';
 
 function makeSheet(overrides: {
@@ -68,10 +70,41 @@ function campaignsPage(campaigns: CampaignResponse[]): PaginatedResponse<Campaig
   return { content: campaigns, totalElements: campaigns.length, totalPages: 1, currentPage: 0, pageSize: 20 };
 }
 
+function makeEncounter(overrides: {
+  id?: number;
+  name?: string;
+  tier?: number;
+  creatorId?: number;
+  lastModifiedAt?: string;
+  suggestedBattlePoints?: number;
+  spentBattlePoints?: number;
+} = {}): EncounterResponse {
+  return {
+    id: overrides.id ?? 1,
+    name: overrides.name ?? 'Goblin Ambush',
+    tier: overrides.tier,
+    isOfficial: false,
+    isPublic: false,
+    creatorId: overrides.creatorId ?? 1,
+    adversaries: [],
+    adjustmentEasier: false,
+    adjustmentTwoPlusSolos: false,
+    adjustmentBonusDamage: false,
+    adjustmentLowerTier: false,
+    adjustmentNoElites: false,
+    adjustmentHarder: false,
+    suggestedBattlePoints: overrides.suggestedBattlePoints ?? 10,
+    spentBattlePoints: overrides.spentBattlePoints ?? 5,
+    createdAt: overrides.lastModifiedAt ?? '2025-01-01T00:00:00',
+    lastModifiedAt: overrides.lastModifiedAt ?? '2025-01-01T00:00:00',
+  };
+}
+
 function setup(opts: {
   user?: { id: number; username: string; usernameChosen: boolean; role: string } | null;
   charactersResult?: Observable<PaginatedResponse<CharacterSheetResponse>>;
   campaignsResult?: Observable<PaginatedResponse<CampaignResponse>>;
+  encountersResult?: Observable<EncounterResponse[]>;
 } = {}) {
   const defaultUser = { id: 1, username: 'Aragorn', usernameChosen: true, role: 'USER' };
   const resolvedUser = 'user' in opts ? opts.user : defaultUser;
@@ -88,6 +121,11 @@ function setup(opts: {
       opts.campaignsResult ?? of(campaignsPage([]))
     ),
   };
+  const mockEncounterSvc = {
+    getOwnEncounters: vi.fn().mockReturnValue(
+      opts.encountersResult ?? of([])
+    ),
+  };
 
   TestBed.configureTestingModule({
     imports: [Dashboard],
@@ -95,6 +133,7 @@ function setup(opts: {
       { provide: AuthService, useValue: mockAuth },
       { provide: UserService, useValue: mockUserSvc },
       { provide: CampaignService, useValue: mockCampaignSvc },
+      { provide: EncounterService, useValue: mockEncounterSvc },
       provideHttpClient(),
       provideHttpClientTesting(),
       provideRouter([]),
@@ -102,7 +141,7 @@ function setup(opts: {
   });
 
   const fixture = TestBed.createComponent(Dashboard);
-  return { fixture, mockUserSvc, mockCampaignSvc };
+  return { fixture, mockUserSvc, mockCampaignSvc, mockEncounterSvc };
 }
 
 describe('Dashboard', () => {
@@ -130,14 +169,26 @@ describe('Dashboard', () => {
     expect(mockCampaignSvc.getMyCampaigns).toHaveBeenCalledWith(0, 20, 'creator');
   });
 
-  it('should not call services and set both loadings to false when user is null', () => {
-    const { fixture, mockUserSvc, mockCampaignSvc } = setup({ user: null });
+  it('should call getOwnEncounters with the current user id', () => {
+    const { fixture, mockEncounterSvc } = setup({
+      user: { id: 42, username: 'Frodo', usernameChosen: true, role: 'USER' },
+      encountersResult: of([makeEncounter({ id: 1, creatorId: 42 })]),
+    });
+    fixture.detectChanges();
+    expect(mockEncounterSvc.getOwnEncounters).toHaveBeenCalledWith(42);
+    expect(fixture.componentInstance.encounters().length).toBe(1);
+  });
+
+  it('should not call services and set all loadings to false when user is null', () => {
+    const { fixture, mockUserSvc, mockCampaignSvc, mockEncounterSvc } = setup({ user: null });
     fixture.detectChanges();
     const comp = fixture.componentInstance;
     expect(mockUserSvc.getUserCharacterSheets).not.toHaveBeenCalled();
     expect(mockCampaignSvc.getMyCampaigns).not.toHaveBeenCalled();
+    expect(mockEncounterSvc.getOwnEncounters).not.toHaveBeenCalled();
     expect(comp.charactersLoading()).toBe(false);
     expect(comp.campaignsLoading()).toBe(false);
+    expect(comp.encountersLoading()).toBe(false);
   });
 
   it('should set charactersError to true on non-403 character fetch failure', () => {
@@ -164,6 +215,22 @@ describe('Dashboard', () => {
     expect(fixture.componentInstance.campaignsError()).toBe(true);
   });
 
+  it('should set encountersError to true on non-403 encounter fetch failure', () => {
+    const { fixture } = setup({
+      encountersResult: throwError(() => new HttpErrorResponse({ status: 500 })),
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.encountersError()).toBe(true);
+  });
+
+  it('should NOT set encountersError on 403 encounter fetch failure', () => {
+    const { fixture } = setup({
+      encountersResult: throwError(() => new HttpErrorResponse({ status: 403 })),
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.encountersError()).toBe(false);
+  });
+
   it('should allow one section to error while the other succeeds', () => {
     const { fixture } = setup({
       charactersResult: throwError(() => new HttpErrorResponse({ status: 500 })),
@@ -176,21 +243,26 @@ describe('Dashboard', () => {
     expect(comp.campaigns().length).toBe(1);
   });
 
-  it('should limit characters and campaigns to DASHBOARD_PREVIEW_LIMIT', () => {
+  it('should limit characters, campaigns, and encounters to DASHBOARD_PREVIEW_LIMIT', () => {
     const sheets = Array.from({ length: 7 }, (_, i) =>
       makeSheet({ id: i + 1, lastModifiedAt: `2025-01-0${i + 1}T00:00:00` })
     );
     const campaigns = Array.from({ length: 7 }, (_, i) =>
       makeCampaign({ id: i + 1, lastModifiedAt: `2025-01-0${i + 1}T00:00:00` })
     );
+    const encounters = Array.from({ length: 7 }, (_, i) =>
+      makeEncounter({ id: i + 1, lastModifiedAt: `2025-01-0${i + 1}T00:00:00` })
+    );
     const { fixture } = setup({
       charactersResult: of(sheetsPage(sheets)),
       campaignsResult: of(campaignsPage(campaigns)),
+      encountersResult: of(encounters),
     });
     fixture.detectChanges();
     const comp = fixture.componentInstance;
     expect(comp.characters().length).toBe(DASHBOARD_PREVIEW_LIMIT);
     expect(comp.campaigns().length).toBe(DASHBOARD_PREVIEW_LIMIT);
+    expect(comp.encounters().length).toBe(DASHBOARD_PREVIEW_LIMIT);
   });
 
   it('should sort characters by lastModifiedAt descending before slicing', () => {
@@ -215,31 +287,15 @@ describe('Dashboard', () => {
     expect(fixture.componentInstance.campaigns()[0].id).toBe(2);
   });
 
-  it('should set bothEmpty() true when both lists are loaded, error-free, and empty', () => {
-    const { fixture } = setup({
-      charactersResult: of(sheetsPage([])),
-      campaignsResult: of(campaignsPage([])),
-    });
+  it('should sort encounters by lastModifiedAt descending before slicing', () => {
+    const encounters = [
+      makeEncounter({ id: 1, lastModifiedAt: '2025-01-01T00:00:00' }),
+      makeEncounter({ id: 2, lastModifiedAt: '2025-03-15T00:00:00' }),
+      makeEncounter({ id: 3, lastModifiedAt: '2025-02-10T00:00:00' }),
+    ];
+    const { fixture } = setup({ encountersResult: of(encounters) });
     fixture.detectChanges();
-    expect(fixture.componentInstance.bothEmpty()).toBe(true);
-  });
-
-  it('should keep bothEmpty() false when characters list has items', () => {
-    const { fixture } = setup({
-      charactersResult: of(sheetsPage([makeSheet()])),
-      campaignsResult: of(campaignsPage([])),
-    });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.bothEmpty()).toBe(false);
-  });
-
-  it('should keep bothEmpty() false while loading is still in progress', () => {
-    const { fixture } = setup({
-      charactersResult: new Observable(),
-      campaignsResult: of(campaignsPage([])),
-    });
-    fixture.detectChanges();
-    expect(fixture.componentInstance.bothEmpty()).toBe(false);
+    expect(fixture.componentInstance.encounters()[0].id).toBe(2);
   });
 
   it('should render character count in panel title', () => {
@@ -264,16 +320,27 @@ describe('Dashboard', () => {
     expect(titles).toContain('Campaigns (2)');
   });
 
-  it('should render zero counts when both lists are empty', () => {
+  it('should render encounter count in panel title', () => {
+    const encounters = [makeEncounter({ id: 1 }), makeEncounter({ id: 2 }), makeEncounter({ id: 3 })];
+    const { fixture } = setup({ encountersResult: of(encounters) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
+    expect(titles).toContain('Encounters (3)');
+  });
+
+  it('should render zero counts when all lists are empty', () => {
     const { fixture } = setup({
       charactersResult: of(sheetsPage([])),
       campaignsResult: of(campaignsPage([])),
+      encountersResult: of([]),
     });
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
     const titles = Array.from(el.querySelectorAll('.panel__title')).map(t => t.textContent?.trim());
     expect(titles).toContain('Characters (0)');
     expect(titles).toContain('Campaigns (0)');
+    expect(titles).toContain('Encounters (0)');
   });
 
   it('should render character entries with border-left color matching the class', () => {
@@ -342,6 +409,63 @@ describe('Dashboard', () => {
     expect(beginLink?.getAttribute('href')).toBe('/campaigns/create');
   });
 
+  it('should link encounter row to the encounter edit page', () => {
+    const encounters = [makeEncounter({ id: 9 })];
+    const { fixture } = setup({ encountersResult: of(encounters) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('ol[aria-label="Encounters"] .dashboard-row') as HTMLAnchorElement | null;
+    expect(link?.getAttribute('href')).toBe('/encounters/9/edit');
+  });
+
+  it('should show tier and points for an encounter row', () => {
+    const encounters = [makeEncounter({ tier: 2, spentBattlePoints: 7, suggestedBattlePoints: 15 })];
+    const { fixture } = setup({ encountersResult: of(encounters) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const row = el.querySelector('ol[aria-label="Encounters"] .roster-class');
+    expect(row?.textContent).toContain('Tier 2');
+    expect(row?.textContent).toContain('7/15 pts');
+  });
+
+  it('should show "Mixed Tier" for an encounter with no overall tier', () => {
+    const encounters = [makeEncounter({ tier: undefined })];
+    const { fixture } = setup({ encountersResult: of(encounters) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.roster-class-name')?.textContent?.trim()).toBe('Mixed Tier');
+  });
+
+  it('should link "+ Draft an encounter" dashed row to the encounter builder', () => {
+    const { fixture } = setup({ encountersResult: of([]) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const adds = Array.from(el.querySelectorAll('.roster-entry--add')) as HTMLAnchorElement[];
+    const draftLink = adds.find(a => a.textContent?.includes('Draft an encounter'));
+    expect(draftLink?.getAttribute('href')).toBe('/encounters/new');
+  });
+
+  it('should link the Encounters "View All" affordance to /encounters', () => {
+    const { fixture } = setup();
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const link = el.querySelector('.dashboard__wide .dashboard-viewall-link') as HTMLAnchorElement | null;
+    expect(link?.textContent?.trim()).toBe('View All');
+    expect(link?.getAttribute('href')).toBe('/encounters');
+  });
+
+  it('should give all three panels a "View All" header affordance, each to its own list destination', () => {
+    const { fixture } = setup();
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const links = Array.from(el.querySelectorAll('.dashboard-viewall-link')) as HTMLAnchorElement[];
+    expect(links.length).toBe(3);
+    const hrefs = links.map(a => a.getAttribute('href'));
+    expect(hrefs).toContain('/profile');
+    expect(hrefs).toContain('/campaigns');
+    expect(hrefs).toContain('/encounters');
+  });
+
   it('should render username in .dashboard__greeting', () => {
     const { fixture } = setup({
       user: { id: 1, username: 'Elara', usernameChosen: true, role: 'USER' },
@@ -378,5 +502,44 @@ describe('Dashboard', () => {
     const el: HTMLElement = fixture.nativeElement;
     const emptyTexts = Array.from(el.querySelectorAll('.dashboard-empty__text')).map(t => t.textContent?.trim());
     expect(emptyTexts).toContain('No sagas underway. Start your first.');
+  });
+
+  it('should render empty-state copy for encounters via .dashboard-empty__text', () => {
+    const { fixture } = setup({ encountersResult: of([]) });
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const emptyTexts = Array.from(el.querySelectorAll('.dashboard-empty__text')).map(t => t.textContent?.trim());
+    expect(emptyTexts).toContain('No encounters drafted. Ready your first fight.');
+  });
+
+  describe('scrollable list containers', () => {
+    it('should mark each populated list as a capped-height scroll region with an accessible name', () => {
+      const { fixture } = setup({
+        charactersResult: of(sheetsPage([makeSheet()])),
+        campaignsResult: of(campaignsPage([makeCampaign()])),
+        encountersResult: of([makeEncounter()]),
+      });
+      fixture.detectChanges();
+      const el: HTMLElement = fixture.nativeElement;
+      const lists = Array.from(el.querySelectorAll('.dashboard-scroll-list'));
+      expect(lists.length).toBe(3);
+      for (const list of lists) {
+        expect(list.getAttribute('aria-label')).toBeTruthy();
+      }
+    });
+
+    // No tabindex on the list itself: every row is a routerLink `<a>`, already a native tab
+    // stop, so making the `<ol>` focusable too would just add an inert stop before the first
+    // real link (WCAG 2.1 SC 2.1.1 only requires *something* focusable inside a scroll region,
+    // not the region itself).
+    it('should not add an extra tab stop on the scroll container', () => {
+      const { fixture } = setup({
+        encountersResult: of([makeEncounter()]),
+      });
+      fixture.detectChanges();
+      const el: HTMLElement = fixture.nativeElement;
+      const list = el.querySelector('.dashboard-scroll-list');
+      expect(list?.hasAttribute('tabindex')).toBe(false);
+    });
   });
 });

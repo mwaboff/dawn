@@ -69,16 +69,55 @@
         <div class="profile-divider-line"></div>
       </div>
 
-      <app-campaign-roster
-        [campaigns]="campaigns()"
+      <app-roster-panel
+        #campaignRosterPanel
+        [items]="campaignItems()"
         [loading]="campaignsLoading()"
         [error]="campaignsError()"
         [showCreateButton]="isOwnProfile()"
         [canDelete]="canDeleteItems()"
-        (viewCampaign)="onViewCampaign($event)"
-        (createCampaign)="onCreateCampaign()"
-        (deleteCampaign)="onDeleteCampaign($event)"
+        itemTypeLabel="Campaign"
+        listLabel="Campaigns"
+        [listPath]="campaignsListPath"
+        createButtonLabel="Create Your First Campaign"
+        emptyTextSelf="No adventures yet"
+        emptyTextOther="No campaigns yet"
+        errorText="Something went wrong loading your campaigns."
+        (view)="onViewCampaign($event)"
+        (create)="onCreateCampaign()"
+        (delete)="onDeleteCampaign($event)"
       />
+    }
+
+    @if (canViewEncounters() || showEncountersHiddenNote()) {
+      <div class="profile-divider">
+        <div class="profile-divider-line"></div>
+        <span class="profile-divider-label">Encounters</span>
+        <div class="profile-divider-line"></div>
+      </div>
+
+      @if (canViewEncounters()) {
+        <app-roster-panel
+          #encounterRosterPanel
+          [items]="encounterItems()"
+          [loading]="encountersLoading()"
+          [error]="encountersError()"
+          [showCreateButton]="isOwnProfile()"
+          [canDelete]="canDeleteItems()"
+          itemTypeLabel="Encounter"
+          listLabel="Encounters"
+          [listPath]="encountersListPath"
+          createButtonLabel="Create Your First Encounter"
+          emptyTextSelf="No fights drafted yet"
+          emptyTextOther="No encounters yet"
+          errorText="Something went wrong loading your encounters."
+          (view)="onViewEncounter($event)"
+          (create)="onCreateEncounter()"
+          (delete)="onDeleteEncounter($event)"
+        />
+      } @else {
+        <p class="roster-empty-text profile-encounters-note">Encounters aren't shown on another adventurer's profile.</p>
+      }
     }
   }
 </div>

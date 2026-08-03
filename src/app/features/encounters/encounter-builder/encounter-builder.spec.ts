@@ -202,13 +202,48 @@ describe('EncounterBuilder', () => {
       expect(battlePoints.querySelector('.expandable-card__header')).toBeFalsy();
     });
 
-    it('starts with the Roster, Environment, and Add Adversaries sections expanded', () => {
+    it('starts with the Roster and Add Adversaries sections expanded', () => {
       const { fixture } = setup(null);
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeTruthy();
-      expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('#builder-adversaries-body')).toBeTruthy();
+    });
+
+    it('starts with the Environment section collapsed', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls="builder-environment-body"]');
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+      expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeFalsy();
+    });
+
+    // EnvironmentPicker is content projected into CollapsibleSection, and Angular creates
+    // projected component instances (and fires their ngOnInit) as part of *this* component's own
+    // view -- CollapsibleSection's `@if` around `<ng-content>` only gates DOM insertion, not
+    // instantiation. So collapsing the section by default does not defer the fetch; it still
+    // fires on load exactly as it did before Environment defaulted to collapsed. Asserted here so
+    // this is documented rather than silently assumed.
+    it('still fetches environments on load even though the section starts collapsed', () => {
+      const { fixture } = setup(null);
+      const fetchSpy = vi.spyOn(TestBed.inject(EnvironmentService), 'getEnvironmentsPaginated');
+
+      fixture.detectChanges();
+
+      expect(fetchSpy).toHaveBeenCalled();
+    });
+
+    it('expands the Environment section on toggle, revealing the picker', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls="builder-environment-body"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeTruthy();
     });
 
     it('collapses the Roster section on toggle click, flipping aria-expanded and hiding its body', () => {
@@ -243,11 +278,11 @@ describe('EncounterBuilder', () => {
       const { fixture, component } = setup(null);
       fixture.detectChanges();
 
-      component.sections.toggle('environment');
+      component.sections.toggle('roster');
       fixture.detectChanges();
 
+      expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeFalsy();
       expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeFalsy();
-      expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('#builder-adversaries-body')).toBeTruthy();
     });
   });

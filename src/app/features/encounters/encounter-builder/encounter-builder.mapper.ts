@@ -1,4 +1,6 @@
 import { mapAdversaryToAdversaryData } from '../../../shared/mappers/adversary.mapper';
+import { mapEnvironmentToCardData } from '../../../shared/mappers/environment.mapper';
+import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import {
   CreateEncounterRequest,
   EncounterAdjustmentFlags,
@@ -52,6 +54,21 @@ export function buildEncounterPayload(state: EncounterBuilderFormState): CreateE
       tierOverride: i.tierOverride,
     })),
   };
+}
+
+/**
+ * The encounter's environment, for display in the roster. `response.environment` is only present
+ * with `?expand=environment` (the initial load), never on a create/update response -- `previous`
+ * backfills it by id in that case, the same way `mapResponseToRosterInstances` backfills
+ * adversary details the response didn't expand.
+ */
+export function mapResponseToEnvironmentCard(
+  response: EncounterResponse,
+  previous?: CardData,
+): CardData | undefined {
+  if (response.environmentId === undefined) return undefined;
+  if (response.environment) return mapEnvironmentToCardData(response.environment);
+  return previous?.id === response.environmentId ? previous : undefined;
 }
 
 /**
