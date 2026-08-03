@@ -1,5 +1,7 @@
-import { Component, input, output, computed, effect, viewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, computed, effect, viewChild, ElementRef, ChangeDetectionStrategy, inject } from '@angular/core';
 import { LevelUpTab, LevelUpTabId } from '../../models/level-up.model';
+import { PreferencesService } from '../../../../core/services/preferences.service';
+import { isRovingTabKey, nextRovingTabIndex } from '../../../../shared/utils/roving-tabindex.utils';
 
 @Component({
   selector: 'app-level-up-tab-nav',
@@ -12,6 +14,8 @@ export class LevelUpTabNav {
   readonly activeTab = input.required<LevelUpTabId>();
   readonly completedSteps = input.required<Set<LevelUpTabId>>();
   readonly tabSelected = output<LevelUpTabId>();
+
+  private readonly preferences = inject(PreferencesService);
 
   private readonly trailScroll = viewChild<ElementRef<HTMLElement>>('trailScroll');
   private readonly trailLine = viewChild<ElementRef<HTMLElement>>('trailLine');
@@ -73,10 +77,38 @@ export class LevelUpTabNav {
     return this.completedSteps().has(tabId);
   }
 
+  getTabIndex(tabId: LevelUpTabId): number {
+    return tabId === this.activeTab() ? 0 : -1;
+  }
+
   selectTab(tabId: LevelUpTabId): void {
     if (!this.isTabDisabled(tabId)) {
       this.tabSelected.emit(tabId);
     }
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const tabs = this.tabs();
+    if (isRovingTabKey(event.key)) {
+      event.preventDefault();
+      const nextIndex = nextRovingTabIndex(event.key, index, tabs.length, i =>
+        this.isTabDisabled(tabs[i].id),
+      );
+      this.focusTabAt(nextIndex);
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.selectTab(tabs[index].id);
+    }
+  }
+
+  private focusTabAt(index: number): void {
+    const container = this.trailScroll()?.nativeElement;
+    const tabs = this.tabs();
+    const target = tabs[index];
+    if (!container || !target) return;
+    container.querySelector<HTMLButtonElement>(`#lu-tab-${target.id}`)?.focus();
   }
 
   goToPrevious(): void {
@@ -97,7 +129,8 @@ export class LevelUpTabNav {
     const container = this.trailScroll()?.nativeElement;
     if (!container) return;
     const tabElement = container.querySelector<HTMLElement>(`#lu-tab-${tabId}`);
-    tabElement?.scrollIntoView?.({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    const behavior = this.preferences.effectiveMotion() === 'reduced' ? 'auto' : 'smooth';
+    tabElement?.scrollIntoView?.({ behavior, inline: 'center', block: 'nearest' });
   }
 
   private updateTrailLineWidth(): void {

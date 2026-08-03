@@ -236,39 +236,39 @@ describe('ReviewSection', () => {
   describe('Submit Button', () => {
     it('should render the submit button', () => {
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       expect(button).toBeTruthy();
     });
 
     it('should show "Create Character" text when not submitting', () => {
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       expect(button.textContent?.trim()).toContain('Create Character');
     });
 
     it('should show "Creating Character..." text when submitting', () => {
       host.submitting = true;
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       expect(button.textContent?.trim()).toContain('Creating Character...');
     });
 
     it('should disable the button when submitting', () => {
       host.submitting = true;
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       expect(button.disabled).toBe(true);
     });
 
     it('should not disable the button when not submitting', () => {
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       expect(button.disabled).toBe(false);
     });
 
     it('should emit submitClicked when button is clicked', () => {
       fixture.detectChanges();
-      const button = fixture.nativeElement.querySelector('.submit-button') as HTMLButtonElement;
+      const button = fixture.nativeElement.querySelector('.btn--primary') as HTMLButtonElement;
       button.click();
       expect(host.submitClickCount).toBe(1);
     });

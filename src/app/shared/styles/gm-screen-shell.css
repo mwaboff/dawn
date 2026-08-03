@@ -20,7 +20,7 @@
   position: relative;
   max-width: min(2100px, 100%);
   margin: 0 auto;
-  padding: 2rem 2rem 5rem;
+  padding: var(--space-11) var(--space-11) 5rem;
 }
 
 .gm-screen-grain {
@@ -31,7 +31,7 @@
 .gm-screen-header {
   position: relative;
   z-index: 1;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-10);
 }
 
 .gm-screen-eyebrow {
@@ -78,5 +78,5 @@
 }
 
 @media (max-width: 700px) {
-  .gm-screen-body { padding: 1.5rem 1.25rem 3.5rem; }
+  .gm-screen-body { padding: var(--space-10) var(--space-9) 3.5rem; }
 }

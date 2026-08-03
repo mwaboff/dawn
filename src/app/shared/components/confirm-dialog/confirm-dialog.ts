@@ -1,10 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { ModalFocusDirective } from '../../directives/modal-focus.directive';
 
 @Component({
   selector: 'app-confirm-dialog',
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ModalFocusDirective],
 })
 export class ConfirmDialog {
   readonly title = input.required<string>();
@@ -30,12 +32,6 @@ export class ConfirmDialog {
 
   onBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
-      this.onCancel();
-    }
-  }
-
-  onKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
       this.onCancel();
     }
   }

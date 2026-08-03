@@ -69,7 +69,7 @@
   display: inline-flex;
   align-items: center;
   margin-left: 0.25rem;
-  font-size: 0.6rem;
+  font-size: var(--text-sm);
   line-height: 1;
 }
 .tab-badge--owned { color: var(--tab-badge-owned); }
@@ -86,7 +86,7 @@
   top: 0.75rem;
   left: 0.75rem;
   font-family: 'Cinzel', serif;
-  font-size: 0.65rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   padding: 0.15rem 0.5rem;
   border-radius: 3px;
@@ -96,7 +96,7 @@
   pointer-events: none;
 }
 .card-state-badge--owned {
-  color: #5a4230;
+  color: var(--color-parchment-a55);
   background: rgba(212, 160, 86, 0.15);
   border: 1px solid rgba(212, 160, 86, 0.25);
 }

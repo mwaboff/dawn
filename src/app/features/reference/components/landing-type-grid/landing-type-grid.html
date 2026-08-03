@@ -1,9 +1,8 @@
-<div class="landing-grid" role="list" aria-label="Browse by type">
+<div class="landing-grid">
   @for (card of typeCards; track card.type) {
     <button
       class="type-card"
       type="button"
-      role="listitem"
       [attr.aria-label]="'Browse ' + card.label + ': ' + card.tagline"
       (click)="onTypeClick(card.type)"
     >

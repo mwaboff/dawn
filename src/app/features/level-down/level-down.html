@@ -1,4 +1,4 @@
-<main class="level-down-page">
+<div class="level-down-page">
   <div class="grain-overlay page-grain" aria-hidden="true"></div>
 
   @if (loading()) {
@@ -7,14 +7,14 @@
     </div>
   } @else if (error(); as err) {
     <div class="level-down-error" role="alert">
-      <h2 class="error-title">Error</h2>
+      <h1 class="error-title">Error</h1>
       <p class="error-message">{{ err }}</p>
     </div>
   } @else {
     <div class="content-area">
       <div class="parchment-container max-level-container">
         <div class="max-level-crest" aria-hidden="true">
-          <svg class="crest-diamond" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="crest-diamond" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M40 4L76 40L40 76L4 40Z" stroke="#d4a056" stroke-width="1.5" fill="none"/>
             <path d="M40 14L66 40L40 66L14 40Z" stroke="#c9a87c" stroke-width="0.75" fill="none" opacity="0.5"/>
             <text x="40" y="45" text-anchor="middle" font-family="Cinzel, serif" font-size="16" font-weight="700" fill="#d4a056">X</text>
@@ -53,4 +53,4 @@
       (cancelled)="onCancel()"
     />
   }
-</main>
+</div>

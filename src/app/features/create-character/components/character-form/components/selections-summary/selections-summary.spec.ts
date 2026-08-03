@@ -132,17 +132,17 @@ describe('SelectionsSummary', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have accessible role="list" on selections summary', () => {
+    it('should render selections summary as a native list', () => {
       fixture.componentRef.setInput('selections', { class: 'Wizard' });
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
       const summary = compiled.querySelector('.selections-summary');
-      expect(summary?.getAttribute('role')).toBe('list');
+      expect(summary?.tagName).toBe('UL');
       expect(summary?.getAttribute('aria-label')).toBe('Character selections');
     });
 
-    it('should have role="listitem" on each selection tag', () => {
+    it('should render each selection tag as a native list item', () => {
       fixture.componentRef.setInput('selections', { class: 'Sorcerer', subclass: 'Pyromancer', domains: 'Arcana · Midnight' });
       fixture.detectChanges();
 
@@ -150,7 +150,7 @@ describe('SelectionsSummary', () => {
       const tags = compiled.querySelectorAll('.selection-tag');
       expect(tags).toHaveLength(3);
       tags.forEach((tag) => {
-        expect(tag.getAttribute('role')).toBe('listitem');
+        expect(tag.tagName).toBe('LI');
       });
     });
   });

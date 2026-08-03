@@ -306,5 +306,51 @@ describe('AddExpansionDialog', () => {
       const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
       expect(dialog?.getAttribute('aria-label')).toBe('Create Expansion');
     });
+
+    it('should not set aria-invalid on the name input before it is touched', () => {
+      const input = fixture.nativeElement.querySelector('#expansion-name') as HTMLElement;
+      expect(input.getAttribute('aria-invalid')).toBe('false');
+    });
+
+    it('should set aria-invalid and aria-describedby on the name input when invalid', () => {
+      component.form.controls.name.markAsDirty();
+      component.form.controls.name.setValue('');
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#expansion-name') as HTMLElement;
+      expect(input.getAttribute('aria-invalid')).toBe('true');
+      expect(input.getAttribute('aria-describedby')).toBe('expansion-name-error');
+    });
+
+    it('should link aria-describedby to an element that actually renders the error text', () => {
+      component.form.controls.name.markAsDirty();
+      component.form.controls.name.setValue('');
+      fixture.detectChanges();
+
+      const input = fixture.nativeElement.querySelector('#expansion-name') as HTMLElement;
+      const describedById = input.getAttribute('aria-describedby')!;
+      const errorEl = fixture.nativeElement.querySelector(`#${describedById}`);
+      expect(errorEl?.textContent?.trim()).toBe('Name is required.');
+    });
+
+    it('should focus the name input on open (first focusable element)', () => {
+      const input = fixture.nativeElement.querySelector('#expansion-name');
+      expect(document.activeElement).toBe(input);
+    });
+
+    it('should trap Tab focus within the dialog', () => {
+      const backdrop = fixture.nativeElement.querySelector('.dialog-backdrop') as HTMLElement;
+      const submitBtn = fixture.nativeElement.querySelector('.dialog-btn--submit') as HTMLElement;
+      const nameInput = fixture.nativeElement.querySelector('#expansion-name') as HTMLElement;
+
+      component.form.controls.name.setValue('Core Set');
+      fixture.detectChanges();
+      submitBtn.focus();
+
+      const event = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+      backdrop.dispatchEvent(event);
+
+      expect(document.activeElement).toBe(nameInput);
+    });
   });
 });

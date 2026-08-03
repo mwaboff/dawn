@@ -1,5 +1,6 @@
 <div class="ts-root">
   <button
+    #fab
     type="button"
     class="ts-fab"
     [attr.aria-label]="service.isOpen() ? 'Close dice roller' : 'Open dice roller'"
@@ -29,7 +30,7 @@
             type="button"
             class="ts-close-btn"
             aria-label="Close dice roller"
-            (click)="service.close()"
+            (click)="onCloseClick()"
           >✕</button>
         </div>
 

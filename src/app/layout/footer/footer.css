@@ -2,7 +2,7 @@
 .footer {
   background: var(--color-bg-darker);
   border-top: 1px solid rgba(212, 160, 86, 0.2);
-  padding: 2rem;
+  padding: var(--space-11);
 }
 
 .footer-container {
@@ -12,12 +12,12 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--space-7);
 }
 
 .footer-brand {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-accent);
   letter-spacing: 0.05em;
@@ -25,7 +25,7 @@
 
 .footer-copyright {
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-parchment);
   opacity: 0.6;
 }

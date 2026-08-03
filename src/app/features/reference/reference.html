@@ -42,7 +42,7 @@
             (filtersChange)="onFiltersChanged($event)"
           />
         </aside>
-        <main class="reference-results">
+        <div class="reference-results">
           @if (loading()) {
             <app-codex-skeleton variant="mixed" />
           } @else if (error()) {
@@ -70,7 +70,7 @@
               />
             }
           }
-        </main>
+        </div>
       </div>
     }
 
@@ -96,7 +96,7 @@
             (filtersChange)="onFiltersChanged($event)"
           />
         </aside>
-        <main class="reference-results">
+        <div class="reference-results">
           <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
           @if (loading()) {
             <app-codex-skeleton variant="focused" />
@@ -143,7 +143,7 @@
               (pageChanged)="onPageChanged($event)"
             />
           }
-        </main>
+        </div>
       </div>
     }
 
@@ -169,7 +169,7 @@
             (filtersChange)="onFiltersChanged($event)"
           />
         </aside>
-        <main class="reference-results">
+        <div class="reference-results">
           <button class="back-to-all" aria-label="Back to all types" (click)="onAllTypes()"><span aria-hidden="true">←</span> All types</button>
           @if (loading()) {
             <app-codex-skeleton variant="focused" />
@@ -215,7 +215,7 @@
               (pageChanged)="onPageChanged($event)"
             />
           }
-        </main>
+        </div>
       </div>
     }
   }

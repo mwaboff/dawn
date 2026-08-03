@@ -11,6 +11,7 @@
   border: 1px solid #d4a056;
   color: #d4a056;
   padding: 0.4rem 0.9rem;
+  min-height: var(--control-min-h);
   border-radius: 4px;
   cursor: pointer;
   font-family: inherit;
@@ -24,8 +25,8 @@
 }
 
 .page-btn:disabled {
-  border-color: #5a5040;
-  color: #5a5040;
+  border-color: #8a7a60;
+  color: #8a7a60;
   cursor: not-allowed;
 }
 

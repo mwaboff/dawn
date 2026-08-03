@@ -1,7 +1,8 @@
 <div class="create-character-container">
   <div class="grain-overlay page-grain" aria-hidden="true"></div>
 
-  <main class="content-area" role="main">
+  <div class="content-area">
+    <h1 class="sr-only">Create a Character</h1>
     <div class="parchment-container">
       <app-character-form
         [selections]="characterSelections()"
@@ -154,5 +155,5 @@
         }
       </div>
     </div>
-  </main>
+  </div>
 </div>

@@ -11,13 +11,13 @@
     </header>
   } @else if (profileError() === 'not-found') {
     <div class="profile-error">
-      <h2 class="profile-error-title">Player Not Found</h2>
+      <h1 class="profile-error-title">Player Not Found</h1>
       <p class="profile-error-text">This adventurer doesn't seem to exist.</p>
       <a routerLink="/" class="profile-error-link">Back to Home</a>
     </div>
   } @else if (profileError() === 'unknown') {
     <div class="profile-error">
-      <h2 class="profile-error-title">Something Went Wrong</h2>
+      <h1 class="profile-error-title">Something Went Wrong</h1>
       <p class="profile-error-text">We couldn't load this player's profile.</p>
       <a routerLink="/" class="profile-error-link">Back to Home</a>
     </div>

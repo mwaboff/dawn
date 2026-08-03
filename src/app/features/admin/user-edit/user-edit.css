@@ -5,7 +5,7 @@
 .user-edit-content {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 2rem;
+  gap: var(--space-11);
   align-items: start;
 }
 
@@ -32,7 +32,7 @@
   border-radius: 4px;
   color: #8fd4a4;
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   z-index: 50;
 }
 

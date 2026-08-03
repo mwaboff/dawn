@@ -2,6 +2,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .selection-tag {
@@ -16,12 +19,12 @@
 }
 
 .selection-label {
-  font-family: 'Cinzel', serif;
-  font-size: 0.6875rem;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #8b5e34;
+  color: var(--color-accent-ink);
 }
 
 .selection-value {

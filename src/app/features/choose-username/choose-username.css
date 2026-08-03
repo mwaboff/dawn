@@ -8,7 +8,7 @@
 }
 
 .form-hint {
-  font-size: 0.75rem;
-  color: rgba(245, 230, 211, 0.45);
+  font-size: var(--text-sm, 0.875rem);
+  color: rgba(245, 230, 211, 0.55);
   font-style: italic;
 }

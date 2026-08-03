@@ -27,7 +27,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.75rem;
-  color: #c9a87c;
+  color: #8b6839;
   min-width: 1.25rem;
   text-align: center;
 }
@@ -43,7 +43,7 @@
   background: #fff;
   color: #2d241f;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: var(--text-base, 1rem);
   transition: all 0.25s ease;
 }
 
@@ -97,7 +97,7 @@
 .name-error {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #c62828;
 }
 
@@ -111,7 +111,7 @@
 
 .add-btn {
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #7a5c46;
   background: none;
   border: 1px solid #c9a87c;
@@ -123,12 +123,12 @@
 
 .add-btn:hover {
   border-color: var(--color-accent);
-  color: var(--color-accent);
+  color: var(--color-accent-ink, #8b5e34);
 }
 
 .complete-badge {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   font-weight: 600;
   color: #5a8a3a;
   letter-spacing: 0.05em;

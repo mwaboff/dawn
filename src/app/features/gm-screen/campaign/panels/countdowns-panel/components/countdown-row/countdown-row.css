@@ -24,7 +24,7 @@
   padding: .05rem .35rem;
   border: 1px solid var(--gm-border-strong);
   border-radius: .2rem;
-  font-size: .7rem;
+  font-size: var(--text-xs);
   letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--gm-muted);
@@ -51,7 +51,7 @@
 
 .cd-row__max {
   margin-left: .15rem;
-  font-size: .8rem;
+  font-size: var(--text-sm);
   color: var(--gm-dim);
 }
 
@@ -76,7 +76,7 @@
 .cd-row__trigger,
 .cd-row__note {
   margin: 0;
-  font-size: .8rem;
+  font-size: var(--text-sm);
   color: var(--gm-dim);
 }
 

@@ -1,10 +1,13 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, input, output, signal, computed, viewChild } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character-sheet-view.model';
 import { WeaponResponse } from '../../../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../../../shared/models/loot-api.model';
 import { InventoryItemRow } from './components/inventory-item-row/inventory-item-row';
 import { InventoryAddPanel } from '../inventory-add-panel/inventory-add-panel';
+import { isRovingTabKey, nextRovingTabIndex } from '../../../../shared/utils/roving-tabindex.utils';
+
+type InventoryTab = 'weapons' | 'armor' | 'loot';
 
 export interface InventoryRemoveEvent {
   type: 'weapon' | 'armor' | 'loot';
@@ -53,6 +56,9 @@ export class InventorySection {
   readonly addPanelOpen = signal(false);
   readonly confirmingRemoveEntryId = signal<number | null>(null);
 
+  private readonly tabOrder: readonly InventoryTab[] = ['weapons', 'armor', 'loot'];
+  private readonly tabList = viewChild<ElementRef<HTMLElement>>('tabList');
+
   readonly activeItemType = computed<'weapon' | 'armor' | 'loot'>(() => {
     const tab = this.activeTab();
     if (tab === 'weapons') return 'weapon';
@@ -63,6 +69,29 @@ export class InventorySection {
     this.activeTab.set(tab);
     this.confirmingRemoveEntryId.set(null);
     this.addPanelOpen.set(false);
+  }
+
+  getTabIndex(tab: InventoryTab): number {
+    return tab === this.activeTab() ? 0 : -1;
+  }
+
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    if (isRovingTabKey(event.key)) {
+      event.preventDefault();
+      const nextIndex = nextRovingTabIndex(event.key, index, this.tabOrder.length);
+      this.focusTabAt(nextIndex);
+      return;
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      this.selectTab(this.tabOrder[index]);
+    }
+  }
+
+  private focusTabAt(index: number): void {
+    const container = this.tabList()?.nativeElement;
+    const buttons = container?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    buttons?.[index]?.focus();
   }
 
   getWeaponEquipState(weapon: WeaponDisplay): 'primary' | 'secondary' | null {

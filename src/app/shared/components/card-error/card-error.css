@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1.5rem;
+  padding: 3rem var(--space-10);
   text-align: center;
   border-radius: 12px;
   border: 1px solid rgba(212, 160, 86, 0.15);
@@ -14,20 +14,20 @@
   width: 48px;
   height: 48px;
   color: #d4a056;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-7);
   opacity: 0.7;
 }
 
 .error-title {
   font-family: 'Cinzel', serif;
-  font-size: 1.25rem;
+  font-size: var(--text-lg);
   color: #d4a056;
-  margin: 0 0 0.5rem;
+  margin: 0 0 var(--space-3);
 }
 
 .error-message {
   font-family: 'Lora', serif;
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: rgba(245, 235, 220, 0.7);
   margin: 0;
   max-width: 360px;

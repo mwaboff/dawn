@@ -10,6 +10,7 @@
         type="text"
         formControlName="name"
         class="form-input"
+        aria-required="true"
         [class.invalid]="isFieldInvalid('name')"
         [attr.aria-invalid]="isFieldInvalid('name')"
         [attr.aria-describedby]="isFieldInvalid('name') ? 'name-error' : null"

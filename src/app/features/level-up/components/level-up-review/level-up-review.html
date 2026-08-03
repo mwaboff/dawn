@@ -94,7 +94,7 @@
     <div class="review-error" role="alert">{{ submitError() }}</div>
   }
 
-  <button type="button" class="submit-btn" [disabled]="submitting()" (click)="onSubmit()">
+  <button type="button" class="btn btn--primary" [disabled]="submitting()" (click)="onSubmit()">
     @if (submitting()) {
       Leveling Up...
     } @else {

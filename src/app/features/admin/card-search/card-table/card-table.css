@@ -13,7 +13,7 @@
   border-collapse: collapse;
   table-layout: fixed;
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   color: var(--color-parchment);
 }
 
@@ -37,7 +37,7 @@ thead th {
   border: none;
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -65,7 +65,7 @@ tbody td {
 
 .card-row__id,
 .card-row__type {
-  color: rgba(245, 230, 211, 0.45);
+  color: rgba(245, 230, 211, 0.55);
   font-variant-numeric: tabular-nums;
 }
 

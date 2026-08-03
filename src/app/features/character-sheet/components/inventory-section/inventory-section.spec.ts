@@ -98,6 +98,64 @@ describe('InventorySection', () => {
     expect(el.querySelector('.equipment-card__name')?.textContent?.trim()).toBe('Dagger');
   });
 
+  describe('keyboard navigation (roving tabindex)', () => {
+    it('gives the active tab tabindex 0 and the others -1', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+      expect(tabs[0].tabIndex).toBe(0);
+      expect(tabs[1].tabIndex).toBe(-1);
+      expect(tabs[2].tabIndex).toBe(-1);
+    });
+
+    it('moves focus to the next tab on ArrowRight without switching the active tab', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+      tabs[0].focus();
+
+      tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(tabs[1]);
+      expect(el.querySelector('.inventory-tab--active')?.textContent).toContain('Weapons');
+    });
+
+    it('wraps from the last tab to the first on ArrowRight', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+      tabs[2].focus();
+
+      tabs[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(tabs[0]);
+    });
+
+    it('activates the focused tab on Enter', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+
+      tabs[2].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(el.querySelector('.inventory-tab--active')?.textContent).toContain('Loot');
+    });
+
+    it('activates the focused tab on Space', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+
+      tabs[1].dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(el.querySelector('.inventory-tab--active')?.textContent).toContain('Armor');
+    });
+
+    it('jumps to the last tab on End', () => {
+      const tabs = el.querySelectorAll<HTMLButtonElement>('.inventory-tab');
+      tabs[0].focus();
+
+      tabs[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+      fixture.detectChanges();
+
+      expect(document.activeElement).toBe(tabs[2]);
+    });
+  });
+
   it('switches to armor tab on click', () => {
     const armorTab = el.querySelectorAll<HTMLButtonElement>('.inventory-tab')[1];
     armorTab.click();

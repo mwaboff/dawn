@@ -151,7 +151,6 @@
 .nav-user-menu-item:focus-visible {
   background: rgba(212, 160, 86, 0.1);
   color: var(--color-accent);
-  outline: none;
 }
 .nav-user-btn {
   width: 38px;
@@ -220,7 +219,6 @@
 .nav-mobile-item:focus-visible {
   background: rgba(212, 160, 86, 0.1);
   color: var(--color-accent);
-  outline: none;
 }
 .nav-mobile-divider {
   height: 1px;

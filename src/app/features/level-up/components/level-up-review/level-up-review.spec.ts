@@ -164,6 +164,16 @@ describe('LevelUpReview', () => {
     expect(allText.some(t => t?.includes('AGILITY, STRENGTH'))).toBe(true);
   });
 
+  it('should render a friendly label for the combo die advancement', () => {
+    host.advancements.set([{ type: 'UPGRADE_COMBO_DIE' }]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const allText = Array.from(compiled.querySelectorAll('.review-item')).map(i => i.textContent);
+
+    expect(allText.some(t => t?.includes('Upgrade Combo Die'))).toBe(true);
+  });
+
   it('should render domain card name', () => {
     host.selectedDomainCards.set([buildCardData({ name: 'Fireball' })]);
     hostFixture.detectChanges();
@@ -239,7 +249,7 @@ describe('LevelUpReview', () => {
 
   it('should emit submitClicked when submit button is clicked', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     btn.click();
     expect(host.submitClickedCount).toBe(1);
@@ -250,7 +260,7 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     btn.click();
     expect(host.submitClickedCount).toBe(0);
@@ -261,7 +271,7 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn') as HTMLButtonElement;
+    const btn = compiled.querySelector('.btn--primary') as HTMLButtonElement;
 
     expect(btn.disabled).toBe(true);
   });
@@ -271,14 +281,14 @@ describe('LevelUpReview', () => {
     hostFixture.detectChanges();
 
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn');
+    const btn = compiled.querySelector('.btn--primary');
 
     expect(btn?.textContent?.trim()).toBe('Leveling Up...');
   });
 
   it('should show "Level Up!" text when not submitting', () => {
     const compiled = hostFixture.nativeElement as HTMLElement;
-    const btn = compiled.querySelector('.submit-btn');
+    const btn = compiled.querySelector('.btn--primary');
 
     expect(btn?.textContent?.trim()).toBe('Level Up!');
   });

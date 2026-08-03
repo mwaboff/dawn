@@ -132,7 +132,7 @@ describe('Home', () => {
   it('should always show Explore the Codex link', () => {
     setup(false);
     const compiled = fixture.nativeElement as HTMLElement;
-    const codexLink = compiled.querySelector('.btn-secondary');
+    const codexLink = compiled.querySelector('.btn--secondary');
     expect(codexLink?.textContent).toContain('Explore the Codex');
     expect(codexLink?.getAttribute('href')).toBe('/reference');
   });
@@ -161,7 +161,7 @@ describe('Home', () => {
   it('should have proper ARIA attributes on buttons', () => {
     setup();
     const compiled = fixture.nativeElement as HTMLElement;
-    const primaryButton = compiled.querySelector('.btn-primary');
+    const primaryButton = compiled.querySelector('.btn--primary');
     expect(primaryButton).toBeTruthy();
   });
 

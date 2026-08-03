@@ -6,6 +6,18 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    try {
+      var prefs = JSON.parse(localStorage.getItem('oh-sheet:preferences'));
+      var density = prefs && prefs.density === 'condensed' ? 'condensed' : 'comfortable';
+      var motion = prefs && (prefs.motion === 'reduced' || prefs.motion === 'full') ? prefs.motion : 'system';
+      document.documentElement.setAttribute('data-density', density);
+      document.documentElement.setAttribute('data-motion', motion);
+    } catch (e) {
+      document.documentElement.setAttribute('data-density', 'comfortable');
+      document.documentElement.setAttribute('data-motion', 'system');
+    }
+  </script>
 </head>
 <body>
   <app-root></app-root>

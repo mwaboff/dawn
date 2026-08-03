@@ -23,7 +23,7 @@
   font-family: var(--font-display, 'Cinzel', serif);
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-gold, #d4a056);
+  color: var(--color-accent-ink, #8b5e34);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0 0 0.75rem;
@@ -44,13 +44,13 @@
 }
 
 .review-label {
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   color: var(--color-text-muted, #7a6245);
   font-family: var(--font-body, 'Lora', serif);
 }
 
 .review-value {
-  font-size: 0.85rem;
+  font-size: var(--text-sm, 0.875rem);
   color: var(--color-text, #2c1a0e);
   font-family: var(--font-body, 'Lora', serif);
   font-weight: 500;
@@ -63,13 +63,13 @@
 }
 
 .review-modifier {
-  font-size: 0.75rem;
+  font-size: var(--text-sm, 0.875rem);
   color: var(--color-text-muted, #7a6245);
   margin-left: 0.25rem;
 }
 
 .review-empty {
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   color: var(--color-text-muted, #7a6245);
   font-style: italic;
   margin: 0.25rem 0 0;
@@ -105,7 +105,7 @@
 
 .review-domain-domain {
   font-size: 0.75rem;
-  color: var(--color-gold, #d4a056);
+  color: var(--color-accent-ink, #8b5e34);
   font-family: var(--font-display, 'Cinzel', serif);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -132,7 +132,7 @@
 
 .submit-error-title {
   font-family: var(--font-display, 'Cinzel', serif);
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   font-weight: 600;
   color: #6b2a1a;
   text-transform: uppercase;
@@ -148,7 +148,7 @@
 
 .submit-error-item {
   font-family: var(--font-body, 'Lora', serif);
-  font-size: 0.8rem;
+  font-size: var(--text-sm, 0.875rem);
   color: #5a2415;
   padding: 0.2rem 0;
 }
@@ -158,38 +158,14 @@
   text-transform: capitalize;
 }
 
-.submit-button {
-  font-family: var(--font-display, 'Cinzel', serif);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-parchment-light, #f5ede0);
-  background: var(--color-gold, #d4a056);
-  border: none;
-  border-radius: 6px;
-  padding: 0.75rem 2.5rem;
-  cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
-}
-
-.submit-button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-gold, #d4a056) 80%, #2c1a0e);
-}
-
-.submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .review-badge {
   display: inline-block;
   font-family: var(--font-display, 'Cinzel', serif);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-gold, #d4a056);
+  color: var(--color-accent-ink, #8b5e34);
   border: 1px solid var(--color-gold, #d4a056);
   border-radius: 3px;
   padding: 0.1rem 0.35rem;

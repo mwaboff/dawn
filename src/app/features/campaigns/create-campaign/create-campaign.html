@@ -23,12 +23,15 @@
         maxlength="200"
         placeholder="Enter a name for your campaign"
         autocomplete="off"
+        aria-required="true"
+        [attr.aria-invalid]="isFieldInvalid('name')"
+        [attr.aria-describedby]="isFieldInvalid('name') ? 'campaign-name-error' : null"
       />
-      @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-        <p class="form-error">Campaign name is required.</p>
+      @if (isFieldInvalid('name') && form.controls.name.hasError('required')) {
+        <p id="campaign-name-error" class="form-error" role="alert">Campaign name is required.</p>
       }
-      @if (form.controls.name.hasError('maxlength')) {
-        <p class="form-error">Name must be 200 characters or fewer.</p>
+      @if (isFieldInvalid('name') && form.controls.name.hasError('maxlength')) {
+        <p id="campaign-name-error" class="form-error" role="alert">Name must be 200 characters or fewer.</p>
       }
     </div>
 

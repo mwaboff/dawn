@@ -1,6 +1,7 @@
 @if (sheet(); as s) {
   <div class="gm-panel__table-wrap">
     <table class="gm-panel__table gm-panel__table--dense">
+      <caption class="sr-only">Character traits</caption>
       <thead>
         <tr>
           @for (trait of s.traits; track trait.abbreviation) {
@@ -47,6 +48,7 @@
   @if (equippedWeapons().length) {
     <div class="gm-panel__table-wrap">
       <table class="gm-panel__table gm-panel__table--dense">
+        <caption class="sr-only">Equipped weapons</caption>
         <thead>
           <tr>
             <th scope="col">Weapon</th>

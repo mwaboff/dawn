@@ -14,12 +14,14 @@
   </div>
 }
 
-<div class="inventory-tabs" role="tablist" aria-label="Inventory categories">
+<div class="inventory-tabs" role="tablist" aria-label="Inventory categories" #tabList>
   <button class="inventory-tab" role="tab"
           [class.inventory-tab--active]="activeTab() === 'weapons'"
           [attr.aria-selected]="activeTab() === 'weapons'"
+          [attr.tabindex]="getTabIndex('weapons')"
           aria-controls="inventory-panel-weapons"
-          (click)="selectTab('weapons')">
+          (click)="selectTab('weapons')"
+          (keydown)="onTabKeydown($event, 0)">
     Weapons
     @if (weapons().length > 0) {
       <span class="inventory-tab__count">{{ weapons().length }}</span>
@@ -28,8 +30,10 @@
   <button class="inventory-tab" role="tab"
           [class.inventory-tab--active]="activeTab() === 'armor'"
           [attr.aria-selected]="activeTab() === 'armor'"
+          [attr.tabindex]="getTabIndex('armor')"
           aria-controls="inventory-panel-armor"
-          (click)="selectTab('armor')">
+          (click)="selectTab('armor')"
+          (keydown)="onTabKeydown($event, 1)">
     Armor
     @if (armors().length > 0) {
       <span class="inventory-tab__count">{{ armors().length }}</span>
@@ -38,8 +42,10 @@
   <button class="inventory-tab" role="tab"
           [class.inventory-tab--active]="activeTab() === 'loot'"
           [attr.aria-selected]="activeTab() === 'loot'"
+          [attr.tabindex]="getTabIndex('loot')"
           aria-controls="inventory-panel-loot"
-          (click)="selectTab('loot')">
+          (click)="selectTab('loot')"
+          (keydown)="onTabKeydown($event, 2)">
     Loot
     @if (items().length > 0) {
       <span class="inventory-tab__count">{{ items().length }}</span>

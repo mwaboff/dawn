@@ -3,15 +3,7 @@
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-label {
-  display: block;
-  font-family: var(--font-display);
-  color: var(--color-parchment);
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-10);
 }
 
 .form-select {
@@ -22,7 +14,7 @@
   border-radius: 4px;
   color: var(--color-parchment);
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 .form-select:focus {
@@ -52,24 +44,14 @@
 
 .form-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-7);
   justify-content: flex-end;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
-
 .message {
-  padding: 1rem;
+  padding: var(--space-7);
   border-radius: 4px;
-  margin-top: 1rem;
+  margin-top: var(--space-7);
   font-family: var(--font-body);
 }
 
@@ -86,8 +68,8 @@
 }
 
 .field-error-list {
-  margin: 0.5rem 0 0;
-  padding-left: 1.25rem;
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-9);
   max-height: 300px;
   overflow-y: auto;
 }

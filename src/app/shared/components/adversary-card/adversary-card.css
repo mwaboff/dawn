@@ -34,10 +34,10 @@
 .adversary-card__stat-label,
 .adversary-card__attack-label,
 .adversary-card__tactics-label,
-.adversary-card__threshold-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
+.adversary-card__threshold-label { font-size: var(--text-sm); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
 
-.adversary-card__stat-label { font-size: .65rem; color: #c74040; opacity: .85; }
-.adversary-card__attack-label { color: #c74040; display: block; margin-bottom: .3rem; opacity: .85; }
+.adversary-card__stat-label { color: var(--color-card-weapon); }
+.adversary-card__attack-label { color: var(--color-card-weapon); display: block; margin-bottom: .3rem; }
 .adversary-card__tactics-label { color: var(--color-accent); display: block; margin-bottom: .3rem; opacity: .8; }
 .adversary-card__threshold-label { letter-spacing: .08em; color: var(--color-accent); opacity: .8; }
 

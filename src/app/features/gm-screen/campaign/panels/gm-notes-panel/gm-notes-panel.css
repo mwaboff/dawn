@@ -6,7 +6,7 @@
 
 .notes__label {
   font-family: var(--font-display);
-  font-size: .7rem;
+  font-size: var(--text-xs);
   letter-spacing: .1em;
   text-transform: uppercase;
   color: rgba(245, 230, 211, .68);
@@ -20,7 +20,8 @@
   border-radius: 4px;
   color: var(--color-parchment);
   font-family: var(--font-body);
-  /* 16px minimum: anything smaller makes iOS Safari zoom the page on focus. */
+  /* Stays px, not rem: a user with a smaller browser default font would still drop below 16px
+     and re-trigger iOS Safari's zoom-on-focus, which this field's absolute floor prevents. */
   font-size: 16px;
   line-height: 1.55;
   resize: vertical;
@@ -37,7 +38,7 @@
   justify-content: space-between;
   gap: .5rem;
   min-height: 1.25rem;
-  font-size: .75rem;
+  font-size: var(--text-sm);
   color: rgba(245, 230, 211, .68);
 }
 

@@ -3,6 +3,7 @@ import { AdvancementConfig } from '../advancement-config/advancement-config';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView } from '../../../character-sheet/models/character-sheet-view.model';
+import { formatComboDie, stepComboDie } from '../../../character-sheet/utils/combo-die.utils';
 
 @Component({
   selector: 'app-advancements-step',
@@ -164,6 +165,10 @@ export class AdvancementsStep implements OnInit {
       const cur = sheet.proficiency.modified;
       return `${cur} → ${cur + count}`;
     }
+    if (type === 'UPGRADE_COMBO_DIE') {
+      const cur = sheet.comboDie ?? 'D4';
+      return `${formatComboDie(cur)} → ${formatComboDie(stepComboDie(cur, count))}`;
+    }
     return null;
   }
 
@@ -179,6 +184,7 @@ export class AdvancementsStep implements OnInit {
       BOOST_PROFICIENCY: 'Boost Proficiency',
       MULTICLASS: 'Multiclass',
       FEATURE_DOMAIN_CARD: 'Bonus Domain Card',
+      UPGRADE_COMBO_DIE: 'Upgrade Combo Die',
     };
     return labels[type] ?? type;
   }

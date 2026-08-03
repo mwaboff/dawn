@@ -27,7 +27,7 @@
 
 .board-bar__label {
   font-family: var(--font-display);
-  font-size: .68rem;
+  font-size: var(--text-xs);
   letter-spacing: .1em;
   text-transform: uppercase;
   color: rgba(212, 160, 86, .9);
@@ -41,7 +41,8 @@
   border-radius: 4px;
   color: var(--color-parchment);
   font-family: var(--font-body);
-  /* 16px minimum keeps iOS Safari from zooming the page when the field takes focus. */
+  /* Stays px, not rem: a user with a smaller browser default font would still drop below 16px
+     and re-trigger iOS Safari's zoom-on-focus, which this field's absolute floor prevents. */
   font-size: 16px;
 }
 
@@ -52,9 +53,8 @@
 
 .board-bar__count {
   margin: 0;
-  font-size: .75rem;
+  font-size: var(--text-sm);
   color: rgba(245, 230, 211, .68);
-  white-space: nowrap;
 }
 
 .board-bar__actions { display: flex; gap: .4rem; flex-wrap: wrap; }
@@ -67,7 +67,7 @@
   border-radius: 4px;
   color: var(--color-accent-bright);
   font-family: var(--font-display);
-  font-size: .72rem;
+  font-size: var(--text-sm);
   letter-spacing: .08em;
   text-transform: uppercase;
   cursor: pointer;
