@@ -3,7 +3,13 @@
 } @else {
   <div class="roster-panel__grid">
     @for (instance of instances(); track instance.localId) {
-      <app-adversary-card [adversary]="instance.adversary" [effectiveTier]="instance.tierOverride">
+      <app-adversary-card
+        [adversary]="instance.adversary"
+        [effectiveTier]="instance.tierOverride"
+        [collapsible]="true"
+        [compact]="true"
+        [class.roster-panel__item--added]="instance.localId === justAddedId()"
+      >
         <div card-actions class="roster-panel__actions">
           <input
             type="text"
@@ -14,7 +20,7 @@
             (change)="onLabelInput(instance.localId, $event)"
           />
           <select
-            class="roster-panel__retier-select"
+            class="form-select roster-panel__retier-select"
             [attr.aria-label]="'Retier ' + instance.adversary.name"
             [value]="instance.tierOverride ?? ''"
             (change)="onRetierChange(instance.localId, $event)"

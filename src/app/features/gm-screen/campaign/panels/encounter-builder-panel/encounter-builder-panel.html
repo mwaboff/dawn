@@ -1,5 +1,45 @@
-<p class="eb__lead">Coming soon.</p>
-<p class="eb__body">
-  Spend Battle Points against your party's size and level to assemble an adversary lineup, then
-  track spotlight and Fear spends for the encounter from this panel.
-</p>
+@if (activeRun(); as active) {
+  <div class="eb__run-head">
+    <p class="eb__run-title">
+      <span class="eb__run-label">Running</span>
+      <span class="eb__run-name">{{ active.encounterName }}</span>
+    </p>
+    <div class="eb__run-actions">
+      <button type="button" class="btn btn--secondary btn--sm" (click)="onBackToList()">
+        Back to list
+      </button>
+    </div>
+  </div>
+
+  <app-encounter-run-view
+    [runId]="active.runId"
+    density="compact"
+    [showHeader]="false"
+    (completed)="onRunEnded()"
+  />
+} @else {
+  @if (loading()) {
+    <p class="gm-panel__note">Loading encounters…</p>
+  } @else if (loadFailed()) {
+    <app-card-error />
+    <button type="button" class="btn btn--secondary btn--sm" (click)="retryLoad()">Try again</button>
+  } @else {
+    @for (encounter of encounters(); track encounter.id) {
+      <app-panel-encounter-row
+        class="eb__row"
+        [encounter]="encounter"
+        [resuming]="resumingId(encounter.id)"
+        [starting]="startingEncounterId() === encounter.id"
+        (run)="onRun(encounter)"
+      />
+    } @empty {
+      <p class="gm-panel__note">
+        No encounters saved for this campaign yet. Build one from the Encounters page.
+      </p>
+    }
+
+    @if (startError(); as error) {
+      <p class="form-error" role="alert">{{ error }}</p>
+    }
+  }
+}

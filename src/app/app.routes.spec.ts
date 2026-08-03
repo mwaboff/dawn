@@ -120,6 +120,13 @@ describe('App Routes', () => {
     expect(activated?.routeConfig?.path).toBe('encounters/:id/edit');
   });
 
+  it('should resolve /encounters/5/run to the run route, not encounters/:id/edit', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/encounters/5/run');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('encounters/:id/run');
+  });
+
   it('should set a title on every child route except the home route and redirects', () => {
     const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
     const children = guardedRoute?.children ?? [];

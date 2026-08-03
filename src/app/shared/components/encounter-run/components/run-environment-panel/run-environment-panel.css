@@ -1,0 +1,36 @@
+:host { display: flex; flex-flow: column; gap: .4rem; }
+
+.run-environment-panel__status {
+  margin: 0;
+  font-style: italic;
+  color: rgba(245, 230, 211, .68);
+}
+
+.run-environment-panel__detail {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  line-height: 1.6;
+  color: rgba(245, 230, 211, .82);
+}
+.run-environment-panel__detail strong {
+  margin-right: .4rem;
+  font-family: var(--font-display);
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--color-accent);
+}
+
+.run-environment-panel__retry-link {
+  padding: 0;
+  margin-left: .5rem;
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-family: inherit;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

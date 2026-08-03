@@ -48,24 +48,40 @@
       />
     </section>
 
-    <section class="builder__section">
-      <h2 class="builder__section-title">Roster</h2>
+    <app-collapsible-section
+      title="Roster"
+      sectionId="roster"
+      [collapsed]="sections.isCollapsed('roster')"
+      (toggled)="sections.toggle('roster')"
+    >
+      <span section-badge class="expandable-card__meta-badge">{{ roster().length }} in roster</span>
       <app-encounter-roster
         [instances]="roster()"
+        [justAddedId]="justAddedInstanceId()"
         (removeInstance)="onRemoveInstance($event)"
         (retierInstance)="onRetierInstance($event)"
         (labelChange)="onLabelChange($event)"
       />
-    </section>
+    </app-collapsible-section>
 
-    <section class="builder__section">
-      <h2 class="builder__section-title">Environment</h2>
+    <app-collapsible-section
+      title="Environment"
+      sectionId="environment"
+      [collapsed]="sections.isCollapsed('environment')"
+      (toggled)="sections.toggle('environment')"
+    >
       <app-environment-picker [selectedEnvironmentId]="environmentId()" (environmentSelected)="onEnvironmentSelected($event)" />
-    </section>
+    </app-collapsible-section>
 
-    <section class="builder__section">
-      <h2 class="builder__section-title">Add Adversaries</h2>
+    <app-collapsible-section
+      title="Add Adversaries"
+      sectionId="adversaries"
+      [collapsed]="sections.isCollapsed('adversaries')"
+      (toggled)="sections.toggle('adversaries')"
+    >
       <app-adversary-browser (adversaryAdded)="onAddAdversary($event)" />
-    </section>
+    </app-collapsible-section>
   }
+
+  <p class="sr-only" aria-live="polite">{{ addAnnouncement() }}</p>
 </div>

@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { vi } from 'vitest';
 
 import { AdversaryBrowser } from './adversary-browser';
+import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { AdversaryService } from '../../../../../shared/services/adversary.service';
 import { AdversaryData } from '../../../../../shared/components/adversary-card/adversary-card.model';
 import { of, throwError } from 'rxjs';
@@ -145,5 +146,63 @@ describe('AdversaryBrowser', () => {
     component.onPageChange(1);
 
     expect(spy).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
+  });
+
+  it('uses the shared themed select for the type filter', () => {
+    vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+      of({ adversaries: [], currentPage: 0, totalPages: 0, totalElements: 0 }),
+    );
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.browser__type-select').classList.contains('form-select')).toBe(true);
+  });
+
+  it('renders each catalog card as whole-card collapsible, so a long page stays scannable', () => {
+    vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+      of({ adversaries: [buildAdversary()], currentPage: 0, totalPages: 1, totalElements: 1 }),
+    );
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(sel => sel.componentInstance instanceof AdversaryCard).componentInstance as AdversaryCard;
+    expect(card.collapsible()).toBe(true);
+  });
+
+  describe('Add feedback', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('flips the Add button to a checkmark after it is clicked', () => {
+      const adversary = buildAdversary({ name: 'Orc Warrior' });
+      vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+        of({ adversaries: [adversary], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+      fixture.detectChanges();
+
+      const addBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.browser__add-btn');
+      addBtn.click();
+      fixture.detectChanges();
+
+      expect(addBtn.classList.contains('browser__add-btn--added')).toBe(true);
+    });
+
+    it('reverts the Add button back to its default state after the flash window', () => {
+      const adversary = buildAdversary({ name: 'Orc Warrior' });
+      vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+        of({ adversaries: [adversary], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+      fixture.detectChanges();
+
+      const addBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.browser__add-btn');
+      addBtn.click();
+      vi.advanceTimersByTime(1200);
+      fixture.detectChanges();
+
+      expect(addBtn.classList.contains('browser__add-btn--added')).toBe(false);
+    });
   });
 });

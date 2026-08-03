@@ -11,6 +11,7 @@ import { CAMPAIGN_GM_PANELS } from './campaign-panels';
 import { DiceRoller } from '../../../shared/components/dice-roller/dice-roller';
 import { GmScreenContext } from './gm-screen-context.service';
 import { FearCounterPanel } from './panels/fear-counter-panel/fear-counter-panel';
+import { isCampaignGameMaster } from '../../../shared/utils/campaign-access.utils';
 
 @Component({
   selector: 'app-campaign-gm-screen',
@@ -33,14 +34,9 @@ export class CampaignGmScreen implements OnInit {
   readonly loading = signal(true);
   readonly errorStatus = signal<number | null>(null);
 
-  // Deliberately inline (copied from Campaign.canManage) rather than extracted:
-  // if a third consumer appears, promote to `isCampaignGameMaster` in shared/utils/.
-  readonly canManage = computed(() => {
-    const c = this.campaign();
-    const userId = this.authService.user()?.id;
-    const isGameMaster = c != null && userId != null && c.gameMasterIds.includes(userId);
-    return isGameMaster || this.authService.isAdmin();
-  });
+  readonly canManage = computed(() =>
+    isCampaignGameMaster(this.campaign(), this.authService.user()?.id) || this.authService.isAdmin(),
+  );
 
   protected readonly panels = computed(() => [...CAMPAIGN_GM_PANELS, ...STATIC_GM_PANELS]);
 

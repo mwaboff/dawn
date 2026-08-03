@@ -107,10 +107,74 @@ describe('mapAdversaryToAdversaryData', () => {
   });
 
   it('should map experiences when present', () => {
-    const response = buildAdversaryResponse({ experiences: ['Ambush', 'Patrol'] });
+    const response = buildAdversaryResponse({
+      experiences: [
+        { id: 1, description: 'Thief', modifier: 2 },
+        { id: 2, description: 'Ambush', modifier: 1 },
+      ],
+    });
     const result = mapAdversaryToAdversaryData(response);
 
-    expect(result).not.toHaveProperty('experiences');
+    expect(result.experiences).toEqual([
+      { description: 'Thief', modifier: 2 },
+      { description: 'Ambush', modifier: 1 },
+    ]);
+  });
+
+  it('should have undefined experiences when empty experiences array', () => {
+    const response = buildAdversaryResponse({ experiences: [] });
+    const result = mapAdversaryToAdversaryData(response);
+
+    expect(result.experiences).toBeUndefined();
+  });
+
+  it('should have undefined experiences when experiences is absent', () => {
+    const response = buildAdversaryResponse();
+    const result = mapAdversaryToAdversaryData(response);
+
+    expect(result.experiences).toBeUndefined();
+  });
+
+  describe('feature timing badge', () => {
+    it('should strip a Passive suffix and set it as the subtitle', () => {
+      const response = buildAdversaryResponse({
+        features: [{ name: 'Relentless (3) - Passive', description: 'Acts again.' }],
+      });
+      const result = mapAdversaryToAdversaryData(response);
+
+      expect(result.features![0].name).toBe('Relentless (3)');
+      expect(result.features![0].subtitle).toBe('Passive');
+    });
+
+    it('should strip an Action suffix and set it as the subtitle', () => {
+      const response = buildAdversaryResponse({
+        features: [{ name: 'Earth Eruption - Action', description: 'Deals damage.' }],
+      });
+      const result = mapAdversaryToAdversaryData(response);
+
+      expect(result.features![0].name).toBe('Earth Eruption');
+      expect(result.features![0].subtitle).toBe('Action');
+    });
+
+    it('should strip a Reaction suffix and set it as the subtitle', () => {
+      const response = buildAdversaryResponse({
+        features: [{ name: 'Team-Up - Reaction', description: 'Assists an ally.' }],
+      });
+      const result = mapAdversaryToAdversaryData(response);
+
+      expect(result.features![0].name).toBe('Team-Up');
+      expect(result.features![0].subtitle).toBe('Reaction');
+    });
+
+    it('should leave a name with no recognized suffix unchanged and set no subtitle', () => {
+      const response = buildAdversaryResponse({
+        features: [{ name: 'Horde', description: 'A group of minions.' }],
+      });
+      const result = mapAdversaryToAdversaryData(response);
+
+      expect(result.features![0].name).toBe('Horde');
+      expect(result.features![0].subtitle).toBeUndefined();
+    });
   });
 
   it('should map motivesAndTactics when present', () => {

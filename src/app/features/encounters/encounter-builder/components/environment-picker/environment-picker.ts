@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 
 import { CardSelectionGrid } from '../../../../../shared/components/card-selection-grid/card-selection-grid';
@@ -33,7 +32,7 @@ export class EnvironmentPicker implements OnInit {
     this.environmentService
       .getEnvironmentsPaginated({ size: 50 })
       .pipe(
-        catchError((err: HttpErrorResponse) => {
+        catchError(() => {
           this.error.set(true);
           return of(null);
         }),

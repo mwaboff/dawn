@@ -52,12 +52,11 @@ export const CAMPAIGN_GM_PANELS: readonly GmPanelDef[] = [
   },
   {
     id: 'encounter-builder',
-    title: 'Encounter Builder',
+    title: 'Encounters',
     category: 'This Campaign',
-    colSpan: 1,
+    colSpan: 3,
     defaultOrder: -100,
-    defaultCollapsed: true,
     body: { kind: 'component', component: EncounterBuilderPanel },
-    keywords: ['encounter', 'battle points', 'adversaries'],
+    keywords: ['encounter', 'battle points', 'adversaries', 'run', 'fight', 'combat', 'stat block'],
   },
 ];

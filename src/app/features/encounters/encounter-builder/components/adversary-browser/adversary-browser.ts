@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, signal } from '@angular/core';
 import { catchError, of } from 'rxjs';
 
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
@@ -12,6 +11,8 @@ import { AdversaryTypeKey } from '../../../../../shared/utils/battle-points.util
 
 const TIER_OPTIONS = [1, 2, 3, 4] as const;
 const PAGE_SIZE = 12;
+/** How long the clicked Add button shows its checkmark before reverting to "+". */
+const ADD_FLASH_MS = 1200;
 
 const TYPE_OPTIONS: readonly { value: AdversaryTypeKey; label: string }[] = [
   { value: 'MINION', label: 'Minion' },
@@ -40,6 +41,7 @@ const TYPE_OPTIONS: readonly { value: AdversaryTypeKey; label: string }[] = [
 })
 export class AdversaryBrowser implements OnInit {
   private readonly adversaryService = inject(AdversaryService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly adversaryAdded = output<AdversaryData>();
 
@@ -55,8 +57,24 @@ export class AdversaryBrowser implements OnInit {
   readonly loading = signal(true);
   readonly error = signal(false);
 
+  /** Id of the adversary whose Add button is showing its "just added" checkmark, if any. */
+  readonly justAddedId = signal<number | null>(null);
+  private addFlashTimeout?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => clearTimeout(this.addFlashTimeout));
+  }
+
   ngOnInit(): void {
     this.load();
+  }
+
+  onAdd(adversary: AdversaryData): void {
+    this.adversaryAdded.emit(adversary);
+
+    clearTimeout(this.addFlashTimeout);
+    this.justAddedId.set(adversary.id);
+    this.addFlashTimeout = setTimeout(() => this.justAddedId.set(null), ADD_FLASH_MS);
   }
 
   isTierSelected(tier: number): boolean {
@@ -94,7 +112,7 @@ export class AdversaryBrowser implements OnInit {
         size: PAGE_SIZE,
       })
       .pipe(
-        catchError((err: HttpErrorResponse) => {
+        catchError(() => {
           this.error.set(true);
           return of(null);
         }),

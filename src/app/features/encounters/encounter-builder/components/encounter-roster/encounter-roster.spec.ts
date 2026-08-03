@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EncounterRoster } from './encounter-roster';
 import { EncounterRosterInstance } from '../../models/encounter-roster-instance.model';
+import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 
 function buildInstance(overrides: Partial<EncounterRosterInstance> = {}): EncounterRosterInstance {
   return {
@@ -82,5 +83,75 @@ describe('EncounterRoster', () => {
 
     const card = fixture.nativeElement.querySelector('app-adversary-card');
     expect(card.textContent).toContain('Retiered from Tier 1');
+  });
+
+  it('uses the shared themed select for the retier control', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.roster-panel__retier-select').classList.contains('form-select')).toBe(true);
+  });
+
+  it('renders roster cards as collapsible and compact, so a long roster stays scannable', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(sel => sel.componentInstance instanceof AdversaryCard).componentInstance as AdversaryCard;
+    expect(card.collapsible()).toBe(true);
+    expect(card.compact()).toBe(true);
+  });
+
+  it('keeps the nickname, retier, and remove controls reachable while the card is collapsed', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+
+    // Roster cards start collapsed (collapsible defaults to closed) -- these three controls are
+    // projected as siblings of the collapse toggle, not gated behind it, so they must all still
+    // be in the DOM without the GM expanding the card first.
+    expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.roster-panel__remove-btn')).toBeTruthy();
+  });
+
+  it('still shows Name, type badge, and tier while collapsed', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.adversary-card__name').textContent.trim()).toBe('Goblin Scout');
+    expect(fixture.nativeElement.querySelector('.adversary-card__type-badge').textContent.trim()).toBe('MINION');
+    expect(fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary').textContent.trim()).toBe('Tier 1');
+  });
+
+  it('still allows expanding a roster card to see its full stat block', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.adversary-card__body')).toBeFalsy();
+
+    const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('.adversary-card__toggle');
+    toggle.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.adversary-card__body')).toBeTruthy();
+  });
+
+  describe('justAddedId highlight', () => {
+    it('highlights the instance matching justAddedId', () => {
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' }), buildInstance({ localId: 'b' })]);
+      fixture.componentRef.setInput('justAddedId', 'b');
+      fixture.detectChanges();
+
+      const cards = Array.from<Element>(fixture.nativeElement.querySelectorAll('app-adversary-card'));
+      expect(cards[0].classList.contains('roster-panel__item--added')).toBe(false);
+      expect(cards[1].classList.contains('roster-panel__item--added')).toBe(true);
+    });
+
+    it('highlights nothing when justAddedId is unset', () => {
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('app-adversary-card');
+      expect(card.classList.contains('roster-panel__item--added')).toBe(false);
+    });
   });
 });

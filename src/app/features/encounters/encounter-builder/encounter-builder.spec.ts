@@ -7,6 +7,8 @@ import { of, throwError } from 'rxjs';
 
 import { EncounterBuilder } from './encounter-builder';
 import { EncounterService } from '../../../shared/services/encounter.service';
+import { AdversaryService } from '../../../shared/services/adversary.service';
+import { EnvironmentService } from '../../../shared/services/environment.service';
 import { EncounterResponse } from '../../../shared/models/encounter-api.model';
 import { AdversaryBrowser } from './components/adversary-browser/adversary-browser';
 import { BattlePointMeter } from './components/battle-point-meter/battle-point-meter';
@@ -43,6 +45,16 @@ function setup(id: string | null): { fixture: ComponentFixture<EncounterBuilder>
       { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } } },
     ],
   });
+  // AdversaryBrowser and EnvironmentPicker fetch on their own ngOnInit -- stub them so every
+  // detectChanges() in this file doesn't leave real, un-flushed HTTP requests behind. Their own
+  // specs already cover their fetch behaviour; this file only asserts they render with the right
+  // inputs, per .agents/rules/testing.md's "don't duplicate assertions with children".
+  vi.spyOn(TestBed.inject(AdversaryService), 'getAdversaries').mockReturnValue(
+    of({ adversaries: [], currentPage: 0, totalPages: 0, totalElements: 0 }),
+  );
+  vi.spyOn(TestBed.inject(EnvironmentService), 'getEnvironmentsPaginated').mockReturnValue(
+    of({ cards: [], currentPage: 0, totalPages: 0, totalElements: 0 }),
+  );
   const fixture = TestBed.createComponent(EncounterBuilder);
   return {
     fixture,
@@ -178,6 +190,112 @@ describe('EncounterBuilder', () => {
       expect(updateSpy).toHaveBeenCalledWith(7, expect.anything());
       expect(navigateSpy).not.toHaveBeenCalled();
       expect(component.savedRecently()).toBe(true);
+    });
+  });
+
+  describe('Section collapse', () => {
+    it('does not render a collapse toggle for Battle Points -- it stays visible as the centrepiece', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+
+      const battlePoints = fixture.nativeElement.querySelector('section[aria-label="Battle Points"]');
+      expect(battlePoints.querySelector('.expandable-card__header')).toBeFalsy();
+    });
+
+    it('starts with the Roster, Environment, and Add Adversaries sections expanded', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#builder-adversaries-body')).toBeTruthy();
+    });
+
+    it('collapses the Roster section on toggle click, flipping aria-expanded and hiding its body', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls="builder-roster-body"]');
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+      toggle.click();
+      fixture.detectChanges();
+
+      expect(toggle.getAttribute('aria-expanded')).toBe('false');
+      expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeFalsy();
+    });
+
+    it('expands a collapsed section again on a second click', () => {
+      const { fixture } = setup(null);
+      fixture.detectChanges();
+      const toggle: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-controls="builder-adversaries-body"]');
+      toggle.click();
+      fixture.detectChanges();
+
+      toggle.click();
+      fixture.detectChanges();
+
+      expect(toggle.getAttribute('aria-expanded')).toBe('true');
+      expect(fixture.nativeElement.querySelector('#builder-adversaries-body')).toBeTruthy();
+    });
+
+    it('collapses sections independently of one another', () => {
+      const { fixture, component } = setup(null);
+      fixture.detectChanges();
+
+      component.sections.toggle('environment');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('#builder-environment-body')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('#builder-roster-body')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('#builder-adversaries-body')).toBeTruthy();
+    });
+  });
+
+  describe('Add-to-roster feedback', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('announces the addition by name and destination', () => {
+      const { fixture, component } = setup(null);
+      fixture.detectChanges();
+
+      component.onAddAdversary({ id: 5, name: 'Goblin Scout', tier: 1, adversaryType: 'MINION' });
+      vi.advanceTimersByTime(50);
+      fixture.detectChanges();
+
+      expect(component.addAnnouncement()).toBe('Goblin Scout added to roster');
+      const liveRegion = fixture.nativeElement.querySelector('[aria-live="polite"]');
+      expect(liveRegion.textContent.trim()).toBe('Goblin Scout added to roster');
+    });
+
+    it('marks the new instance as just-added, then clears it after the feedback window', () => {
+      const { fixture, component } = setup(null);
+      fixture.detectChanges();
+
+      component.onAddAdversary({ id: 5, name: 'Goblin Scout', tier: 1, adversaryType: 'MINION' });
+      const [instance] = component.roster();
+      expect(component.justAddedInstanceId()).toBe(instance.localId);
+
+      vi.advanceTimersByTime(1200);
+
+      expect(component.justAddedInstanceId()).toBeNull();
+    });
+
+    it('re-expands the Roster section if it was minimized when an adversary is added', () => {
+      const { fixture, component } = setup(null);
+      fixture.detectChanges();
+      component.sections.toggle('roster');
+      expect(component.sections.isCollapsed('roster')).toBe(true);
+
+      component.onAddAdversary({ id: 5, name: 'Goblin Scout', tier: 1, adversaryType: 'MINION' });
+
+      expect(component.sections.isCollapsed('roster')).toBe(false);
     });
   });
 });

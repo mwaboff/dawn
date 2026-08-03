@@ -10,6 +10,7 @@ import { CharacterSummary } from '../profile/models/profile.model';
 import { mapToSummary } from '../profile/models/profile.mapper';
 import { DASHBOARD_PREVIEW_LIMIT } from './models/dashboard.model';
 import { classBorderColor } from './utils/class-color.utils';
+import { isCampaignGameMaster } from '../../shared/utils/campaign-access.utils';
 
 @Component({
   selector: 'app-dashboard',
@@ -57,8 +58,7 @@ export class Dashboard implements OnInit {
   }
 
   gmsCampaign(c: CampaignResponse): boolean {
-    const userId = this.authService.user()?.id;
-    return userId != null && c.gameMasterIds.includes(userId);
+    return isCampaignGameMaster(c, this.authService.user()?.id);
   }
 
   private loadCharacters(ownerId: number): void {

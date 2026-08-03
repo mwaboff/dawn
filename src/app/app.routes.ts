@@ -36,6 +36,11 @@ export const routes: Routes = [
         title: 'Edit Encounter'
       },
       {
+        path: 'encounters/:id/run',
+        loadComponent: () => import('./features/encounters/encounter-run-page/encounter-run-page').then(m => m.EncounterRunPage),
+        title: 'Run Encounter'
+      },
+      {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)
       },

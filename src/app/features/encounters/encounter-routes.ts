@@ -8,3 +8,7 @@ export const ENCOUNTER_NEW_PATH = '/encounters/new';
 export function encounterEditPath(id: number): string {
   return `/encounters/${id}/edit`;
 }
+
+export function encounterRunPath(id: number): string {
+  return `/encounters/${id}/run`;
+}

@@ -56,11 +56,12 @@ describe('CampaignGmScreen', () => {
   }
 
   afterEach(() => {
-    // Once the campaign resolves, the Countdowns panel loads its own list. That belongs to the
-    // panel's spec, not the shell's, so drain it here rather than asserting on it in every test.
-    // Already-cancelled ones are the panel being torn down mid-flight, which cannot be flushed.
+    // Once the campaign resolves, the Countdowns and Encounters panels load their own lists.
+    // That belongs to each panel's own spec, not the shell's, so drain it here rather than
+    // asserting on it in every test. Already-cancelled ones are the panel being torn down
+    // mid-flight, which cannot be flushed.
     httpTesting
-      .match(r => r.url.includes('/countdowns'))
+      .match(r => r.url.includes('/countdowns') || r.url.includes('/encounters') || r.url.includes('/encounter-runs'))
       .filter(request => !request.cancelled)
       .forEach(request => request.flush([]));
     httpTesting.verify();

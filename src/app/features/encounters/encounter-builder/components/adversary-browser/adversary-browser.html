@@ -11,7 +11,7 @@
         >T{{ tier }}</button>
       }
     </div>
-    <select class="browser__type-select" [value]="selectedType()" (change)="onTypeChange($event)" aria-label="Filter by adversary type">
+    <select class="form-select browser__type-select" [value]="selectedType()" (change)="onTypeChange($event)" aria-label="Filter by adversary type">
       <option value="">Any Type</option>
       @for (opt of typeOptions; track opt.value) {
         <option [value]="opt.value">{{ opt.label }}</option>
@@ -28,14 +28,21 @@
   } @else {
     <div class="browser__grid">
       @for (adversary of adversaries(); track adversary.id) {
-        <app-adversary-card [adversary]="adversary">
+        <app-adversary-card [adversary]="adversary" [collapsible]="true">
           <button
             card-actions
             type="button"
             class="browser__add-btn"
+            [class.browser__add-btn--added]="justAddedId() === adversary.id"
             [attr.aria-label]="'Add ' + adversary.name + ' to the encounter'"
-            (click)="adversaryAdded.emit(adversary)"
-          >+</button>
+            (click)="onAdd(adversary)"
+          >
+            @if (justAddedId() === adversary.id) {
+              <span aria-hidden="true">&#10003;</span>
+            } @else {
+              <span aria-hidden="true">+</span>
+            }
+          </button>
         </app-adversary-card>
       }
     </div>

@@ -1,11 +1,62 @@
 :host { display: block; }
 
+/* Token audit (tokens-first CSS rule): none of this card's near-black/parchment literals have an
+   exact --color-* match, and the closest candidates all visibly shift the palette --
+   #1a1010 vs --color-bg-dark #1a1412 (+0,+4,+2 per channel), #2d2020 vs --color-text-dark #2d241f
+   (+0,+4,+1), #3a2020 vs --color-wood #3a2817 (+0,+8,+9). #231818, #ddd0c2 (below), and #b8a898
+   (description text, further down) have no candidate token at all. Kept literal on purpose
+   rather than swapped for a token that would change the rendered colour. */
 .adversary-card { display: flex; flex-flow: column; border-radius: 12px; background: linear-gradient(160deg, #2d2020, #231818 50%, #1a1010); border: 1px solid #3a2020; box-shadow: 0 4px 16px rgba(0,0,0,.5); overflow: hidden; font-family: var(--font-body); color: #ddd0c2; }
 
 .adversary-card__header { padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid rgba(199,64,64,.25); background: linear-gradient(rgba(199,64,64,.08), transparent); }
-.adversary-card__header-main { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+/* flex-wrap plus min-width: 0 on the name (below) -- without both, a long display-font name
+   refuses to shrink below its own min-content width and pushes projected card-actions (the
+   roster's nickname/retier/remove cluster) out past the card's edge, where it gets clipped
+   instead of just wrapping. Narrow contexts (the roster grid) are exactly where this bites. */
+.adversary-card__header-main { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .75rem; }
 
-.adversary-card__name { font-family: var(--font-display); font-weight: 900; margin: 0; font-size: 1.4rem; color: var(--color-text-light); letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; }
+.adversary-card__name { font-family: var(--font-display); font-weight: 900; margin: 0; font-size: 1.4rem; color: var(--color-text-light); letter-spacing: .06em; text-transform: uppercase; line-height: 1.2; min-width: 0; overflow-wrap: break-word; }
+
+/* Whole-card collapse toggle (browse list only -- see `collapsible` input). Wraps just the
+   chevron + name, matching the hit-target scope of the sheet's own `expandable-card__header`
+   toggles rather than swallowing the whole row, so projected card-actions (the browser's Add
+   button) stay independently clickable outside it. */
+.adversary-card__toggle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  min-height: 44px;
+  margin: -.1rem 0 -.1rem -.15rem;
+  padding: .1rem .4rem .1rem .15rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .12s ease;
+}
+/* rgb(199,64,64) is this card's own crimson accent, reused at various alphas throughout this
+   file (header border/wash above, stat/threshold panels and the attack/features rule below, this
+   hover). No --color-* token matches it -- the nearest reds, --color-card-weapon #d17070 and
+   --color-card-martialStance #d4566e, are both visibly lighter and pinker. Kept as the literal
+   already established across the file rather than invented as a new token. */
+.adversary-card__toggle:hover { background: rgba(199, 64, 64, .12); }
+.adversary-card__toggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+.adversary-card__chevron {
+  flex-shrink: 0;
+  font-size: .7rem;
+  color: var(--color-accent);
+  transition: transform .2s ease;
+}
+.adversary-card__chevron--open { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .adversary-card__chevron { transition: none; }
+}
 
 .adversary-card__subtitle { margin: 0.25rem 0 0; font-family: var(--font-body); font-size: 1rem; color: var(--color-accent); text-transform: uppercase; letter-spacing: .12em; }
 .adversary-card__subtitle--secondary { font-size: .85rem; opacity: .75; letter-spacing: .14em; }
@@ -25,6 +76,13 @@
 .adversary-card__type-badge--minion { border-style: dashed; background: transparent; opacity: .82; }
 .adversary-card__type-badge--elite { --tc: var(--color-accent-bright); border-width: 2px; font-weight: 900; }
 .adversary-card__type-badge--solo { border-width: 3px; letter-spacing: .22em; }
+
+/* Narrow-context sizing (the roster grid) -- same content, smaller display type so a long name
+   has room to sit next to the roster's nickname/retier/remove cluster instead of forcing it onto
+   its own wrapped line every time. */
+.adversary-card--compact .adversary-card__header { padding: .85rem 1rem .7rem; }
+.adversary-card--compact .adversary-card__name { font-size: 1.05rem; }
+.adversary-card--compact .adversary-card__body { padding: .75rem 1rem 1rem; }
 
 .adversary-card__body { padding: 1rem 1.5rem 1.25rem; display: flex; flex-flow: column; gap: .75rem; }
 .adversary-card__stats { display: flex; flex-wrap: wrap; gap: .5rem; }
@@ -63,8 +121,12 @@
 .adversary-card__damage::before { content: '\00b7'; margin-right: .4rem; opacity: .5; }
 .adversary-card__attack-modifier { font-size: .85rem; color: var(--color-accent); }
 
+.adversary-card__experiences,
 .adversary-card__tactics,
 .adversary-card__description-section { border-top: 1px solid rgba(212,160,86,.15); padding-top: .6rem; }
+
+.adversary-card__experience-list { margin: 0; padding: 0; list-style: none; display: flex; flex-flow: column; gap: .2rem; }
+.adversary-card__experience { font-size: .95rem; color: var(--color-text-light); }
 .adversary-card__description-section { border-top-color: rgba(212,160,86,.1); }
 .adversary-card__tactics-text,
 .adversary-card__description { margin: 0; font-size: .95rem; line-height: 1.6; }

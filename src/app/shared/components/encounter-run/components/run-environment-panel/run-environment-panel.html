@@ -1,0 +1,16 @@
+@if (loading()) {
+  <p class="run-environment-panel__status">Loading environment…</p>
+} @else if (failed()) {
+  <p class="run-environment-panel__status" role="alert">
+    Couldn't load the environment.
+    <button type="button" class="run-environment-panel__retry-link" (click)="retry()">Retry</button>
+  </p>
+} @else if (card(); as env) {
+  <app-daggerheart-card [card]="env" [disabled]="true" />
+  @if (impulses(); as text) {
+    <p class="run-environment-panel__detail"><strong>Impulses</strong> {{ text }}</p>
+  }
+  @if (potentialAdversaries(); as text) {
+    <p class="run-environment-panel__detail"><strong>Potential Adversaries</strong> {{ text }}</p>
+  }
+}

@@ -3,6 +3,14 @@ export interface AdversaryFeature {
   description?: string;
 }
 
+/** GM spends a Fear to add `modifier` to a roll against/by this adversary; `description` is the
+ * printed experience name (e.g. "Thief"), not free text. */
+export interface ExperienceResponse {
+  id: number;
+  description: string;
+  modifier: number;
+}
+
 /**
  * Mirrors `AdversaryResponse.DamageRollResponse` (core). `diceCount`/`modifier` are
  * nullable on the backend for flat-die attacks with no dice count or no modifier
@@ -33,7 +41,7 @@ export interface AdversaryApiResponse {
   attackRange?: string;
   damage?: AdversaryDamage;
   motivesAndTactics?: string;
-  experiences?: string[];
+  experiences?: ExperienceResponse[];
   features?: AdversaryFeature[];
   expansionId?: number;
   isOfficial?: boolean;

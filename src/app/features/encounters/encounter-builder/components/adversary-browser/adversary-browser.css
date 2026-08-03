@@ -33,14 +33,9 @@
   color: var(--color-bg-dark);
 }
 
+/* Color/border/chrome come from the shared .form-select class -- this just sets local sizing. */
 .browser__type-select {
-  padding: .4rem .6rem;
-  background: rgba(26, 20, 18, .8);
-  border: 1px solid rgba(212, 160, 86, .3);
-  border-radius: 3px;
-  color: var(--color-parchment);
-  font-family: var(--font-body);
-  font-size: .85rem;
+  min-width: 9rem;
 }
 
 .browser__empty {
@@ -76,6 +71,29 @@
   background: var(--color-accent);
   color: var(--color-bg-dark);
   transform: scale(1.08);
+}
+
+.browser__add-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* "Was my click registered?" feedback: the button itself flips to a filled checkmark for
+   ADD_FLASH_MS (see the component), right where the GM is already looking -- no need to find the
+   roster to confirm. The color/icon swap alone is the confirmation; the pulse on top of it is a
+   bonus for users who haven't asked for reduced motion. */
+.browser__add-btn--added {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-bg-dark);
+  animation: browser-add-btn-pulse .5s ease;
+}
+
+@keyframes browser-add-btn-pulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .browser__add-btn--added { animation: none; }
 }
 
 @media (max-width: 640px) {

@@ -1,0 +1,21 @@
+<div class="run-lifecycle-actions">
+  <button type="button" class="btn btn--primary btn--sm" [disabled]="completing()" (click)="onComplete()">
+    {{ completing() ? 'Completing…' : 'Complete Encounter' }}
+  </button>
+  <button type="button" class="btn btn--danger-ghost btn--sm" (click)="requestDiscard()">Discard</button>
+
+  @if (error()) {
+    <p class="run-lifecycle-actions__error" role="alert">{{ error() }}</p>
+  }
+</div>
+
+@if (discardPending()) {
+  <app-confirm-dialog
+    title="Discard this run?"
+    message="This permanently deletes the run's live HP, Stress, tokens, and notes. This cannot be undone."
+    confirmLabel="Discard"
+    [processing]="discarding()"
+    (confirmed)="confirmDiscard()"
+    (cancelled)="cancelDiscard()"
+  />
+}

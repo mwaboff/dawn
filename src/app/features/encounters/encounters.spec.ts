@@ -8,8 +8,24 @@ import { of, throwError } from 'rxjs';
 import { Encounters, tierRangeLabel } from './encounters';
 import { AuthService } from '../../core/services/auth.service';
 import { EncounterService } from '../../shared/services/encounter.service';
+import { EncounterRunService } from '../../shared/services/encounter-run.service';
 import { EncounterResponse } from '../../shared/models/encounter-api.model';
+import { EncounterRunResponse } from '../../shared/models/encounter-run-api.model';
 import { UserResponse } from '../../core/models/auth.model';
+
+function buildRunResponse(overrides: Partial<EncounterRunResponse> = {}): EncounterRunResponse {
+  return {
+    id: 10,
+    encounterId: 1,
+    startedById: 1,
+    status: 'ACTIVE',
+    startedAt: '2026-01-01T00:00:00',
+    adversaries: [],
+    createdAt: '2026-01-01T00:00:00',
+    lastModifiedAt: '2026-01-01T00:00:00',
+    ...overrides,
+  };
+}
 
 function buildEncounterResponse(overrides: Partial<EncounterResponse> = {}): EncounterResponse {
   return {
@@ -71,6 +87,7 @@ describe('Encounters', () => {
   let fixture: ComponentFixture<Encounters>;
   let component: Encounters;
   let encounterService: EncounterService;
+  let encounterRunService: EncounterRunService;
   let authService: AuthService;
 
   beforeEach(() => {
@@ -81,7 +98,11 @@ describe('Encounters', () => {
     fixture = TestBed.createComponent(Encounters);
     component = fixture.componentInstance;
     encounterService = TestBed.inject(EncounterService);
+    encounterRunService = TestBed.inject(EncounterRunService);
     authService = TestBed.inject(AuthService);
+    // Every ngOnInit also loads active runs -- most tests here aren't about that section, so
+    // default it to empty and let the active-runs-specific tests below override this spy.
+    vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([]));
   });
 
   afterEach(() => {
@@ -163,13 +184,33 @@ describe('Encounters', () => {
       of({ content: [buildEncounterResponse({ id: 1, creatorId: 1 })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
     );
     fixture.detectChanges();
-    vi.spyOn(encounterService, 'deleteEncounter').mockReturnValue(of(undefined));
+    // A real 204 No Content DELETE response reaches HttpClient subscribers as `null` at runtime,
+    // despite the `Observable<void>` type -- mocking it as `undefined` let this pass while a
+    // `result !== null` sentinel check silently ate every successful delete.
+    vi.spyOn(encounterService, 'deleteEncounter').mockReturnValue(of(null) as unknown as ReturnType<EncounterService['deleteEncounter']>);
 
     component.onDeleteRequest(1);
     component.onDeleteConfirm();
     component.onConfirmDelete();
 
     expect(component.encounters()).toHaveLength(0);
+    expect(component.confirmingDeleteId()).toBeNull();
+  });
+
+  it('keeps the encounter and shows an error when delete fails', () => {
+    vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+    vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
+      of({ content: [buildEncounterResponse({ id: 1, creatorId: 1 })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
+    );
+    fixture.detectChanges();
+    vi.spyOn(encounterService, 'deleteEncounter').mockReturnValue(throwError(() => new Error('boom')));
+
+    component.onDeleteRequest(1);
+    component.onDeleteConfirm();
+    component.onConfirmDelete();
+
+    expect(component.encounters()).toHaveLength(1);
+    expect(component.deleteError()).toBe(true);
     expect(component.confirmingDeleteId()).toBeNull();
   });
 
@@ -185,5 +226,81 @@ describe('Encounters', () => {
 
     expect(component.pendingDeleteId()).toBeNull();
     expect(component.encounters()).toHaveLength(1);
+  });
+
+  it('navigates to the run route for a row', () => {
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+
+    component.onRun(3);
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/encounters/3/run']);
+  });
+
+  describe('active runs', () => {
+    beforeEach(() => {
+      vi.spyOn(authService, 'user').mockReturnValue(buildUser({ id: 1 }));
+      vi.spyOn(encounterService, 'getEncounters').mockReturnValue(
+        of({ content: [buildEncounterResponse({ id: 1, creatorId: 1, name: 'Goblin Ambush' })], currentPage: 0, pageSize: 50, totalElements: 1, totalPages: 1 }),
+      );
+    });
+
+    it('lists an active run paired with its encounter name', () => {
+      vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([buildRunResponse({ id: 10, encounterId: 1 })]));
+
+      fixture.detectChanges();
+
+      expect(component.activeRunEntries()).toEqual([{ run: expect.objectContaining({ id: 10 }), encounterName: 'Goblin Ambush' }]);
+      expect(fixture.nativeElement.querySelector('.active-runs-name').textContent).toContain('Goblin Ambush');
+    });
+
+    it('resumes an active run by navigating to its encounter\'s run route', () => {
+      const router = TestBed.inject(Router);
+      const navigateSpy = vi.spyOn(router, 'navigate');
+
+      component.onResume(buildRunResponse({ id: 10, encounterId: 7 }));
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/encounters/7/run']);
+    });
+
+    it('removes the run from the rendered list after a confirmed discard', () => {
+      vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([buildRunResponse({ id: 10, encounterId: 1 })]));
+      // A real 204 No Content DELETE reaches HttpClient subscribers as `null`, not `undefined`.
+      vi.spyOn(encounterRunService, 'deleteRun').mockReturnValue(of(null) as unknown as ReturnType<EncounterRunService['deleteRun']>);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.active-runs-entry')).toBeTruthy();
+
+      component.onDiscardRequest(10);
+      component.onDiscardConfirm();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.active-runs-entry')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.active-runs')).toBeFalsy();
+    });
+
+    it('keeps the run and shows an error when discard fails', () => {
+      vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([buildRunResponse({ id: 10, encounterId: 1 })]));
+      vi.spyOn(encounterRunService, 'deleteRun').mockReturnValue(throwError(() => new Error('boom')));
+      fixture.detectChanges();
+
+      component.onDiscardRequest(10);
+      component.onDiscardConfirm();
+      fixture.detectChanges();
+
+      expect(component.activeRuns()).toHaveLength(1);
+      expect(component.discardError()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.active-runs-entry')).toBeTruthy();
+    });
+
+    it('cancels a pending discard without removing anything', () => {
+      vi.spyOn(encounterRunService, 'getRuns').mockReturnValue(of([buildRunResponse({ id: 10, encounterId: 1 })]));
+      fixture.detectChanges();
+
+      component.onDiscardRequest(10);
+      component.onDiscardCancel();
+
+      expect(component.pendingDiscardId()).toBeNull();
+      expect(component.activeRuns()).toHaveLength(1);
+    });
   });
 });

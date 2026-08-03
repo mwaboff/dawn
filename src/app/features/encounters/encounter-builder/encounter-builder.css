@@ -80,18 +80,10 @@
   color: #e08a8a;
 }
 
+/* Battle Points is the only section still using this directly -- it's the builder's centrepiece
+   and stays permanently visible. Roster / Environment / Add Adversaries get their spacing and
+   .expandable-card chrome from <app-collapsible-section> itself. */
 .builder__section { margin-bottom: 2.5rem; }
-
-.builder__section-title {
-  font-family: var(--font-display);
-  font-size: .82rem;
-  font-weight: 600;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  opacity: .85;
-  margin: 0 0 1rem;
-}
 
 @media (max-width: 640px) {
   .builder { padding: 6rem 1rem 4rem; }

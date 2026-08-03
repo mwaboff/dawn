@@ -29,6 +29,8 @@ export interface LabelChangeEvent {
 })
 export class EncounterRoster {
   readonly instances = input.required<EncounterRosterInstance[]>();
+  /** localId of the instance to briefly highlight, set by the builder right after an add. */
+  readonly justAddedId = input<string | null>(null);
 
   readonly removeInstance = output<string>();
   readonly retierInstance = output<RetierEvent>();

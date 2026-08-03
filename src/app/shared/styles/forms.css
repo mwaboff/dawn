@@ -30,3 +30,53 @@
 .form-input-value {
   flex: 0 0 72px;
 }
+
+/* Themed native <select>. The OS renders the open dropdown list itself (no cross-browser way to
+   restyle that part), but the closed control -- what's visible almost all the time -- reads as
+   part of the dark parchment chrome instead of OS-default chrome. The arrow is two CSS gradients
+   forming a chevron rather than an SVG asset, so it recolors for free via `--color-accent`. */
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: var(--control-min-h);
+  padding: var(--space-4) calc(var(--space-8) + 1rem) var(--space-4) var(--space-6);
+  background-color: rgba(26, 20, 18, 0.8);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-accent) 50%),
+    linear-gradient(135deg, var(--color-accent) 50%, transparent 50%);
+  background-position:
+    right var(--space-7) top 55%,
+    right calc(var(--space-7) - 5px) top 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.form-select:hover {
+  border-color: rgba(212, 160, 86, 0.55);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+.form-select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* The option list itself: Chromium/Firefox honor these for the popup, Safari ignores them and
+   falls back to its own native list -- an acceptable platform difference since the closed control
+   (the part visible almost all the time) is themed everywhere. */
+.form-select option {
+  background-color: var(--color-bg-darker);
+  color: var(--color-parchment);
+}

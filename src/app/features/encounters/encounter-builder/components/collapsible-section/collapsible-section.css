@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  margin-bottom: 2.5rem;
+  border-left-color: var(--color-accent);
+}
+
+.expandable-card__header {
+  padding: .75rem var(--space-7);
+}

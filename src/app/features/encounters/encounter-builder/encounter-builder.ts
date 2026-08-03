@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 
 import { AdversaryBrowser } from './components/adversary-browser/adversary-browser';
 import { BattlePointMeter } from './components/battle-point-meter/battle-point-meter';
+import { CollapsibleSection } from './components/collapsible-section/collapsible-section';
 import { EncounterRoster, LabelChangeEvent, RetierEvent } from './components/encounter-roster/encounter-roster';
 import { EnvironmentPicker } from './components/environment-picker/environment-picker';
 import { SavingSpinner } from '../../../shared/components/saving-spinner/saving-spinner';
@@ -23,6 +23,44 @@ function generateLocalId(): string {
 
 const DEFAULT_PARTY_SIZE = 4;
 
+/** Sections a GM can minimize. Battle Points is deliberately excluded -- it's the builder's
+ * centrepiece and always stays visible. */
+type BuilderSection = 'roster' | 'environment' | 'adversaries';
+
+interface SectionCollapseState {
+  isCollapsed(section: BuilderSection): boolean;
+  toggle(section: BuilderSection): void;
+  expand(section: BuilderSection): void;
+}
+
+/**
+ * Which of the three minimizable sections are collapsed. A plain factory (like
+ * `panel-layout.store.ts`'s, scaled down) rather than a class field group, so this one cohesive
+ * piece of view state -- and its three template call sites -- stay out of the component's own
+ * concern count. No persistence: unlike the GM screen's multi-panel dashboard, this builder is a
+ * single linear form filled out once per visit, not a layout preference worth remembering.
+ */
+function createSectionCollapse(): SectionCollapseState {
+  const collapsed = signal<ReadonlySet<BuilderSection>>(new Set());
+  return {
+    isCollapsed: section => collapsed().has(section),
+    toggle: section => {
+      const next = new Set(collapsed());
+      if (!next.delete(section)) next.add(section);
+      collapsed.set(next);
+    },
+    expand: section => {
+      if (!collapsed().has(section)) return;
+      const next = new Set(collapsed());
+      next.delete(section);
+      collapsed.set(next);
+    },
+  };
+}
+
+/** How long the newly-added roster card keeps its highlight, and the SR announcement its text. */
+const ADD_FEEDBACK_MS = 1200;
+
 /**
  * Create/edit shell for a saved encounter. Owns every field the API stores and hands instant
  * Battle Point feedback to `BattlePointMeter` via the roster it holds -- the server value is
@@ -32,13 +70,14 @@ const DEFAULT_PARTY_SIZE = 4;
   selector: 'app-encounter-builder',
   templateUrl: './encounter-builder.html',
   styleUrl: './encounter-builder.css',
-  imports: [RouterLink, AdversaryBrowser, BattlePointMeter, EncounterRoster, EnvironmentPicker, SavingSpinner],
+  imports: [RouterLink, AdversaryBrowser, BattlePointMeter, CollapsibleSection, EncounterRoster, EnvironmentPicker, SavingSpinner],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EncounterBuilder implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly encounterService = inject(EncounterService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly encountersListPath = ENCOUNTERS_LIST_PATH;
 
@@ -55,6 +94,22 @@ export class EncounterBuilder implements OnInit {
   readonly saving = signal(false);
   readonly saveError = signal(false);
   readonly savedRecently = signal(false);
+
+  readonly sections = createSectionCollapse();
+
+  /** Id of the roster instance to highlight, and the text an aria-live region announces, right
+   * after `onAddAdversary` -- see ADD_FEEDBACK_MS. */
+  readonly justAddedInstanceId = signal<string | null>(null);
+  readonly addAnnouncement = signal('');
+  private addFeedbackTimeout?: ReturnType<typeof setTimeout>;
+  private announceTimeout?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.addFeedbackTimeout);
+      clearTimeout(this.announceTimeout);
+    });
+  }
 
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
@@ -75,10 +130,24 @@ export class EncounterBuilder implements OnInit {
   }
 
   onAddAdversary(adversary: AdversaryData): void {
+    const localId = generateLocalId();
     this.roster.update(list => [
       ...list,
-      { localId: generateLocalId(), adversaryId: adversary.id, adversary, displayOrder: list.length },
+      { localId, adversaryId: adversary.id, adversary, displayOrder: list.length },
     ]);
+
+    // Reveal where it landed even if the GM had minimized the roster while browsing.
+    this.sections.expand('roster');
+
+    clearTimeout(this.addFeedbackTimeout);
+    this.justAddedInstanceId.set(localId);
+    this.addFeedbackTimeout = setTimeout(() => this.justAddedInstanceId.set(null), ADD_FEEDBACK_MS);
+
+    // Clear first so a second addition of the same-named adversary still changes the live
+    // region's text content and gets re-announced, not silently swallowed as a no-op update.
+    this.addAnnouncement.set('');
+    clearTimeout(this.announceTimeout);
+    this.announceTimeout = setTimeout(() => this.addAnnouncement.set(`${adversary.name} added to roster`), 50);
   }
 
   onRemoveInstance(localId: string): void {
@@ -137,7 +206,7 @@ export class EncounterBuilder implements OnInit {
       : this.encounterService.updateEncounter(id, payload);
 
     request$
-      .pipe(catchError((err: HttpErrorResponse) => { this.saveError.set(true); return of(null); }))
+      .pipe(catchError(() => { this.saveError.set(true); return of(null); }))
       .subscribe(response => {
         this.saving.set(false);
         if (!response) return;

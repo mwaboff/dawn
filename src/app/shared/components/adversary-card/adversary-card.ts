@@ -30,6 +30,8 @@ export const ELITE_ADVERSARY_TYPES = new Set(['BRUISER', 'HORDE', 'LEADER', 'SOL
 
 type AdversaryThreatTier = 'elite' | 'minion' | 'standard';
 
+let nextInstanceId = 0;
+
 @Component({
   selector: 'app-adversary-card',
   templateUrl: './adversary-card.html',
@@ -42,6 +44,17 @@ export class AdversaryCard {
   readonly layout = input<'default' | 'wide'>('default');
   readonly collapsibleFeatures = input<boolean>(false);
   /**
+   * Whole-card collapse, distinct from `collapsibleFeatures` (which only folds the Features
+   * list). Used by the encounter builder's browse list and roster so a long list of cards reads
+   * as scannable rows -- default false keeps `features/reference` exactly as it renders today.
+   * Projected `card-actions` content is a sibling of the toggle, not inside it, so it stays
+   * reachable (Add / Remove / retier / nickname) whether the card is expanded or not.
+   */
+  readonly collapsible = input<boolean>(false);
+  /** Smaller name type step for narrow contexts (the roster grid), where the default 1.4rem
+   * display name can overflow the header and squeeze out the projected actions next to it. */
+  readonly compact = input<boolean>(false);
+  /**
    * A per-instance retier target (encounter roster's "retier" control). When set and different
    * from the printed tier, the Attack Modifier/Difficulty/Thresholds swap to the book's
    * Improvised Statistics by Tier table and a "retiered from Tier N" marker appears.
@@ -50,6 +63,22 @@ export class AdversaryCard {
 
   private readonly featuresExpanded = signal(false);
   private readonly descriptionExpanded = signal(false);
+  private readonly cardExpanded = signal(false);
+
+  /** True whenever the body should render: always when not `collapsible`, else user-toggled. */
+  readonly isExpanded = computed(() => !this.collapsible() || this.cardExpanded());
+
+  toggleCard(): void {
+    this.cardExpanded.update(v => !v);
+  }
+
+  /** Per rendered instance, not per adversary -- the roster can hold several instances of the
+   * same catalog adversary (three Giant Mosquitoes), which would collide on a shared DOM id. */
+  private readonly instanceId = `adversary-card-${nextInstanceId++}`;
+
+  get bodyId(): string {
+    return `${this.instanceId}-body`;
+  }
 
   private readonly retieredStats = computed(() => {
     const tier = this.effectiveTier();
@@ -137,6 +166,11 @@ export class AdversaryCard {
   get attackModifierLabel(): string {
     const mod = this.retieredStats()?.attackModifier ?? this.adversary().attackModifier;
     if (mod === undefined || mod === null) return '';
+    return this.formatModifier(mod);
+  }
+
+  /** `Thief +2` -- the book's own format for an Experience's Fear-spend bonus. */
+  formatModifier(mod: number): string {
     return mod >= 0 ? `+${mod}` : `${mod}`;
   }
 }

@@ -5,6 +5,7 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { EnvironmentService } from './environment.service';
 import { PaginatedCards, PaginatedResponse } from '../models/api.model';
 import { EnvironmentResponse } from '../models/environment-api.model';
+import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildEnvironmentResponse(overrides: Partial<EnvironmentResponse> = {}): EnvironmentResponse {
   return {
@@ -117,6 +118,41 @@ describe('EnvironmentService', () => {
     expect(result!.currentPage).toBe(1);
     expect(result!.totalPages).toBe(2);
     expect(result!.totalElements).toBe(25);
+  });
+
+  describe('getEnvironment', () => {
+    it('should call correct URL with expand=features', () => {
+      service.getEnvironment(7).subscribe();
+
+      const req = httpTesting.expectOne(
+        r => r.url === `${baseUrl}/7` && r.params.get('expand') === 'features',
+      );
+      expect(req.request.method).toBe('GET');
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(buildEnvironmentResponse({ id: 7 }));
+    });
+
+    it('should map the response to CardData', () => {
+      let result: CardData | undefined;
+      service.getEnvironment(7).subscribe(card => (result = card));
+
+      const req = httpTesting.expectOne(r => r.url === `${baseUrl}/7`);
+      req.flush(buildEnvironmentResponse({ id: 7, name: 'Sundered Ruins' }));
+
+      expect(result?.id).toBe(7);
+      expect(result?.name).toBe('Sundered Ruins');
+      expect(result?.cardType).toBe('environment');
+    });
+
+    it('should propagate HTTP errors', () => {
+      let error: HttpErrorResponse | undefined;
+      service.getEnvironment(7).subscribe({ error: e => (error = e) });
+
+      const req = httpTesting.expectOne(r => r.url === `${baseUrl}/7`);
+      req.flush('Not found', { status: 404, statusText: 'Not Found' });
+
+      expect(error?.status).toBe(404);
+    });
   });
 
   it('should propagate HTTP errors', () => {

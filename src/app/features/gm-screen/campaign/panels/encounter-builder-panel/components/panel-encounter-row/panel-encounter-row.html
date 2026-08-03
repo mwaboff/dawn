@@ -1,0 +1,16 @@
+<div class="erow__meta">
+  <span class="erow__name">{{ encounter().name }}</span>
+  <span class="erow__detail">
+    {{ tierLabel() }} · {{ encounter().spentBattlePoints }}/{{ encounter().suggestedBattlePoints }} BP
+  </span>
+</div>
+
+<button
+  type="button"
+  class="btn btn--primary btn--sm erow__action"
+  [disabled]="starting()"
+  [attr.aria-label]="(resuming() ? 'Resume ' : 'Run ') + encounter().name"
+  (click)="run.emit()"
+>
+  {{ actionLabel() }}
+</button>
