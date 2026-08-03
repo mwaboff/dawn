@@ -1,12 +1,28 @@
-:host { display: block; }
+/* `inline-size` containment is what lets the narrow-floor rules below key off this component's
+   own rendered width rather than the viewport -- the GM screen panel hosts this same component
+   in a ~300px column on an otherwise full-width desktop, where a `@media` breakpoint would never
+   fire. Support: Chrome 105+/Safari 16+/Firefox 110+, already assumed elsewhere in this app (e.g.
+   `color-mix()` in daggerheart-card-variants.css needs Chrome 111+/Safari 16.2+). */
+:host { display: block; container-type: inline-size; container-name: run-view; }
 
+/* Sticky rather than static -- Complete/Discard and the standing count are the controls a GM
+   reaches for most often mid-fight, and a multi-column board is exactly the layout that makes
+   scrolling back to the top for them most annoying. The background keeps adversary cards from
+   showing through as they scroll underneath. */
 .run-view__header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: .75rem;
-  margin-bottom: 1rem;
+  margin: 0 -.25rem 1rem;
+  padding: .6rem .25rem;
+  background: color-mix(in srgb, var(--color-bg-dark) 92%, transparent);
+  backdrop-filter: blur(3px);
+  border-bottom: 1px solid rgba(212, 160, 86, .2);
 }
 
 .run-view__heading {
@@ -46,10 +62,12 @@
   font-family: var(--font-body);
 }
 
-.run-view__environment {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(212, 160, 86, .2);
+.run-view__no-environment {
+  margin: 0 0 1.25rem;
+  padding: .25rem;
+  font-style: italic;
+  font-size: var(--text-sm);
+  color: rgba(245, 230, 211, .45);
 }
 
 .run-view__empty {
@@ -61,5 +79,30 @@
   border-radius: 8px;
 }
 
-.run-view__adversaries { display: flex; flex-flow: column; gap: 1.5rem; }
-.run-view__adversaries--compact { gap: .85rem; }
+/* A vertical list of full-width rows, matching `sheet-viewer-panel`'s `.party` -- not a grid.
+ * The earlier design put condensed *cards* in a multi-column grid because a card's whole point
+ * was to be an independent tile; the party-list pattern this redesign moved to is the opposite
+ * shape on purpose -- one continuous scannable column of rows, each barely taller than its own
+ * text. Column-tiling full-width rows doesn't make sense (there's no "second column" for a row
+ * that's meant to span the available width), so the "see the whole encounter at once" win now
+ * comes from *row density* -- a collapsed row is ~48px tall, so a dozen adversaries fit in the
+ * space three of the old expanded cards used to take -- rather than from column count.
+ *
+ * The environment (when the run has one) renders as the first row in this same list --
+ * `RunStatRow`'s `environment` variant only changes its left accent, so it sits naturally among
+ * the adversary rows instead of a differently-shaped container above them.
+ */
+.run-view__adversaries {
+  display: flex;
+  flex-flow: column;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+}
+.run-view__adversaries--compact { gap: .3rem; }
+
+@container run-view (max-width: 420px) {
+  .run-view__header { padding: .4rem .25rem; }
+  .run-view__title { font-size: 1.1rem; }
+  .run-view__standing { font-size: 1rem; }
+}

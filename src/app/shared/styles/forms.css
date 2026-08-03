@@ -1,5 +1,65 @@
 /* Shared form control modifiers and density variants. Populated by Slice 4. */
 
+/* Themed native text/input/textarea -- same dark-parchment chrome as .form-select below. Feature
+   stylesheets that hand-roll this same look (background/border/color/padding) should migrate onto
+   this and keep only their own size/typography deltas as local overrides, per the "never redeclare
+   a global class" rule. */
+.form-input {
+  min-height: var(--control-min-h);
+  padding: var(--space-4) var(--space-6);
+  background-color: color-mix(in srgb, var(--color-bg-dark) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.form-input::placeholder {
+  color: color-mix(in srgb, var(--color-parchment) 40%, transparent);
+}
+
+.form-input:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-ring);
+}
+
+/* Removes each browser's native spinner chrome from a number input -- Firefox in particular
+   renders it as an unstyled white box that clashes with the dark chrome above. The up/down arrow
+   keys and scroll-to-change behavior on focus still work; this only hides the visual affordance,
+   which was never themeable cross-browser to begin with. */
+.form-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.form-input[type='number']::-webkit-outer-spin-button,
+.form-input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Themed checkbox. Deliberately kept as a *native* checkbox (no `appearance: none`) rather than a
+   custom-drawn box: `accent-color` re-themes the checked fill/border with zero extra markup, and
+   because we never opt out of native rendering, forced-colors/Windows High Contrast mode already
+   substitutes its own system colors for it automatically -- an `appearance: none` box would need
+   its own forced-colors fallback to get that same guarantee. Matches the `accent-color` pattern
+   already used for the app's other checkboxes (filter-rail, level-up); this is just its first
+   shared, reusable form. Sized to a 24x24 CSS px hit target per WCAG 2.5.8; the focus ring comes
+   for free from buttons.css's `:where(... input ...):focus-visible` rule. */
+.form-checkbox {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 .form-input--sm {
   flex: 1;
   min-width: 0;

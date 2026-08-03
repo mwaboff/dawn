@@ -46,3 +46,10 @@
 .card__features-list--expanded { max-height: 2000px; overflow: visible; }
 
 .card--disabled { opacity: 0.5; pointer-events: none; filter: grayscale(0.3); }
+
+/* A reference stat block, not a selection option -- full height, no clip/scroll cap, no hover
+   lift (nothing happens on click), and no bottom fade (that gradient signals "more below,
+   expand me", which doesn't apply once there's no cap to lift). */
+.card--static { max-height: none; overflow: visible; cursor: default; }
+.card--static::before { display: none; }
+.card--static:hover { transform: none; box-shadow: 0 4px 16px rgba(0,0,0,.5); border-color: #3a3020; }

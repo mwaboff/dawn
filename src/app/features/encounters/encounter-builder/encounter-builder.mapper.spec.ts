@@ -1,12 +1,15 @@
 import {
   buildEncounterPayload,
   fromApiAdjustments,
+  mapResponseToEnvironmentCard,
   mapResponseToRosterInstances,
   toApiAdjustments,
 } from './encounter-builder.mapper';
 import { EncounterResponse } from '../../../shared/models/encounter-api.model';
+import { EnvironmentResponse } from '../../../shared/models/environment-api.model';
 import { AdversaryApiResponse } from '../../../shared/models/adversary-api.model';
 import { EncounterRosterInstance } from './models/encounter-roster-instance.model';
+import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildEncounterResponse(overrides: Partial<EncounterResponse> = {}): EncounterResponse {
   return {
@@ -92,6 +95,49 @@ describe('buildEncounterPayload', () => {
     });
     expect(payload.adversaries).toEqual([{ adversaryId: 5, label: 'Archer A', tierOverride: 3 }]);
     expect(payload.environmentId).toBe(9);
+  });
+});
+
+function buildEnvironmentResponse(overrides: Partial<EnvironmentResponse> = {}): EnvironmentResponse {
+  return {
+    id: 9,
+    name: 'Collapsing Bridge',
+    tier: 1,
+    environmentType: 'TRAVERSAL',
+    isOfficial: false,
+    isPublic: false,
+    expansionId: 1,
+    createdAt: '2026-01-01T00:00:00',
+    lastModifiedAt: '2026-01-01T00:00:00',
+    ...overrides,
+  };
+}
+
+describe('mapResponseToEnvironmentCard', () => {
+  it('returns undefined when no environment is attached', () => {
+    const response = buildEncounterResponse({ environmentId: undefined });
+    expect(mapResponseToEnvironmentCard(response)).toBeUndefined();
+  });
+
+  it('maps the expanded environment straight from the response', () => {
+    const response = buildEncounterResponse({ environmentId: 9, environment: buildEnvironmentResponse() });
+    const card = mapResponseToEnvironmentCard(response);
+    expect(card?.name).toBe('Collapsing Bridge');
+    expect(card?.subtitleSecondary).toBe('Tier 1');
+  });
+
+  it('backfills from the previous card when the response omits the expanded environment', () => {
+    const response = buildEncounterResponse({ environmentId: 9 });
+    const previous: CardData = { id: 9, name: 'Collapsing Bridge', description: '', cardType: 'environment' };
+
+    expect(mapResponseToEnvironmentCard(response, previous)).toBe(previous);
+  });
+
+  it('drops the previous card if its id no longer matches the response', () => {
+    const response = buildEncounterResponse({ environmentId: 9 });
+    const previous: CardData = { id: 3, name: 'Stale', description: '', cardType: 'environment' };
+
+    expect(mapResponseToEnvironmentCard(response, previous)).toBeUndefined();
   });
 });
 

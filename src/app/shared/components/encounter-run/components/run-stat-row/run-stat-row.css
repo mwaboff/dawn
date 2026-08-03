@@ -1,0 +1,19 @@
+/* The genuinely-shared row/toggle/identity/vitals/chevron rules live in the global
+   `shared/styles/stat-row.css` (`.stat-row__*`) now, reachable from both this component and the
+   GM screen's `sheet-viewer-panel.css` without the copy-rename fork the two used to be. All that's
+   left here is what's specific to *this* component: the container-query setup (only the run
+   screen's rows need to respond to their own width rather than the viewport -- see the container
+   query below) and the environment-only accent, which has no party-row equivalent. */
+:host {
+  display: block;
+  container-type: inline-size;
+  container-name: run-row;
+}
+
+/* The stage, not a combatant -- same shell, a quieter left accent instead of a different design
+   language, so the run screen still reads as one system top to bottom. */
+.stat-row__item--environment { border-left: 3px solid rgba(139, 130, 218, .55); }
+
+@container run-row (max-width: 360px) {
+  .stat-row__vitals { gap: .1rem .5rem; }
+}

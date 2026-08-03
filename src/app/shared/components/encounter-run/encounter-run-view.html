@@ -13,7 +13,16 @@
         }
       </div>
     }
-    <app-run-lifecycle-actions [runId]="currentRun.id" (completed)="completed.emit()" />
+    <app-run-lifecycle-actions
+      [runId]="currentRun.id"
+      [encounterId]="currentRun.encounterId"
+      [encounterLabel]="title()"
+      [campaignId]="currentRun.campaignId"
+      [editHref]="editHref()"
+      (completed)="completed.emit()"
+      (runReset)="onReset($event)"
+      (encounterDeleted)="encounterDeleted.emit()"
+    />
   </header>
 
   <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
@@ -22,16 +31,20 @@
     <p class="run-view__error" role="alert">{{ actionError() }}</p>
   }
 
-  @if (currentRun.environmentId !== undefined) {
-    <section class="run-view__environment">
-      <app-run-environment-panel [environmentId]="currentRun.environmentId" />
-    </section>
+  @if (currentRun.environmentId === undefined) {
+    <p class="run-view__no-environment">No environment set for this encounter.</p>
   }
 
-  @if (adversaries().length === 0) {
-    <p class="run-view__empty">No adversaries in this encounter.</p>
-  } @else {
-    <div class="run-view__adversaries" [class.run-view__adversaries--compact]="density() === 'compact'">
+  @if (currentRun.environmentId !== undefined || adversaries().length > 0) {
+    <!-- A plain div with an explicit role, not a <ul> -- a native <ul> may only contain <li>
+         children, and its direct children here are component selectors
+         (<app-run-environment-panel>, <app-run-adversary-row>), not <li> elements. role="list" +
+         role="listitem" (set on those two components' own hosts) expresses the same semantics
+         without the invalid content model. -->
+    <div class="run-view__adversaries" role="list" [class.run-view__adversaries--compact]="density() === 'compact'">
+      @if (currentRun.environmentId !== undefined) {
+        <app-run-environment-panel [environmentId]="currentRun.environmentId" [density]="density()" />
+      }
       @for (row of adversaries(); track row.id) {
         <app-run-adversary-row
           [adversary]="row"
@@ -44,5 +57,7 @@
         />
       }
     </div>
+  } @else {
+    <p class="run-view__empty">No adversaries in this encounter.</p>
   }
 }

@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, ElementRef, signal, computed, injec
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ENCOUNTER_NEW_PATH } from '../../features/encounters/encounter-routes';
 
 @Component({
   selector: 'app-navbar',
@@ -33,6 +34,18 @@ export class Navbar {
   private readonly createBtnRef = viewChild<ElementRef<HTMLButtonElement>>('createBtn');
   private readonly userBtnRef = viewChild<ElementRef<HTMLButtonElement>>('userBtn');
   private readonly burgerBtnRef = viewChild<ElementRef<HTMLButtonElement>>('burgerBtn');
+
+  /**
+   * Desktop and mobile each render the same three homogeneous "+ X" buttons in the same order --
+   * unlike the rest of the nav (which mixes links, a conditional admin item, and dropdown
+   * triggers between the two layouts), this sub-list has nothing layout-specific about it, so
+   * it's data, not markup duplicated twice.
+   */
+  readonly createActions: { label: string; onSelect: () => void }[] = [
+    { label: '+ Character', onSelect: () => this.onCreateCharacter() },
+    { label: '+ Campaign', onSelect: () => this.onCreateCampaign() },
+    { label: '+ Encounter', onSelect: () => this.onCreateEncounter() },
+  ];
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -110,6 +123,12 @@ export class Navbar {
     this.closeDropdown();
     this.closeMobileMenu();
     this.router.navigate(['/campaigns/create']);
+  }
+
+  onCreateEncounter(): void {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate([ENCOUNTER_NEW_PATH]);
   }
 
   onLogout(): void {

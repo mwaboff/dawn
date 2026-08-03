@@ -52,6 +52,46 @@
   margin-bottom: 1rem;
 }
 
+/* Reserves 2 lines' worth of height for the card name so every collapsed row in the grid is the
+   same height regardless of how long an adversary's name is -- the previous ragged-height layout
+   came entirely from this one line wrapping differently per card. A name longer than 2 lines
+   clamps visually, but stays intact in the DOM (and in the card's own aria-label), so nothing is
+   lost for assistive tech. Reaches past AdversaryCard's view encapsulation with ::ng-deep, scoped
+   under .browser__grid so it can never affect any other consumer of the shared card (the roster
+   grid below has its own, differently-sized copy of this rule since it renders the card compact). */
+.browser__grid ::ng-deep .adversary-card__toggle .adversary-card__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 3.36rem; /* 1.4rem name font-size * 1.2 line-height * 2 lines */
+}
+
+/* Pins the Add button to a stable spot regardless of title length. Without this, the header's
+   flex-wrap (needed elsewhere on this shared card for the roster's wider action cluster -- see
+   AdversaryCard's own comment on .adversary-card__header-main) let a 2-line name push the button
+   onto its own line below the title on some cards but not others, since whether the row "fit"
+   depended on how much of the title's width the wrap consumed. Forcing nowrap here and letting the
+   title (already clamped above) be the only flexible-width item keeps the button beside the title
+   on every card. Scoped to .browser__grid, so the roster's wrap-when-narrow behavior is untouched. */
+.browser__grid ::ng-deep .adversary-card__header-main {
+  flex-wrap: nowrap;
+}
+
+.browser__grid ::ng-deep .adversary-card__toggle {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Stretches every card to the row's tallest neighbor (grid's default align-items: stretch already
+   sizes the <app-adversary-card> host this way; .adversary-card itself just wasn't told to fill
+   that host). Combined with the fixed-height name above, every card's header content is now
+   identical height, so this also puts the type badge/Tier line on a common baseline across the
+   row instead of each card ending at its own content. */
+.browser__grid ::ng-deep .adversary-card {
+  height: 100%;
+}
+
 .browser__add-btn {
   flex-shrink: 0;
   width: 2rem;

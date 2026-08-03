@@ -1,6 +1,7 @@
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
 import { SearchableEntityType } from '../../../shared/models/search.model';
+import { titleCase } from '../../../shared/utils/text.utils';
 import { CardRow, ColumnSpec, SortState, ADMIN_CATEGORIES } from './card-table.model';
 
 /** A fetched entity awaiting row construction, kept so rows can be rebuilt when the
@@ -38,15 +39,6 @@ export function categoryForSearchType(type: SearchableEntityType): string | null
 
 export function categoryLabel(categoryId: string): string {
   return ADMIN_CATEGORIES.find(c => c.id === categoryId)?.label ?? categoryId;
-}
-
-function titleCase(value: unknown): string {
-  if (value == null || value === '') return '';
-  return String(value)
-    .toLowerCase()
-    .split('_')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
 }
 
 function str(value: unknown): string {

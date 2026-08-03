@@ -5,6 +5,8 @@ import { EncounterResponse } from '../../../../../../../shared/models/encounter-
 /**
  * One saved encounter in the panel's list: its name, tier, Battle Point spend, and the button
  * that starts (or resumes) a run for it. No fight logic here -- see `EncounterRunView` for that.
+ * `resuming` reflects the campaign's own ACTIVE run list -- server truth, not anything stored
+ * per-browser -- so a second GM sees "Resume" on an encounter another GM already started.
  */
 @Component({
   selector: 'app-panel-encounter-row',

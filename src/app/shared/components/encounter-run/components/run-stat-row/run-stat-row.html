@@ -1,0 +1,27 @@
+<div
+  class="stat-row__item"
+  [class.is-open]="expanded()"
+  [class.stat-row__item--muted]="muted()"
+  [class.stat-row__item--environment]="variant() === 'environment'"
+  [class.stat-row__item--compact]="density() === 'compact'"
+>
+  <button
+    type="button"
+    class="stat-row__toggle"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="detailId()"
+    (click)="toggled.emit()"
+  >
+    <span class="stat-row__identity">
+      <ng-content select="[row-identity]" />
+      <ng-content select="[row-secondary]" />
+    </span>
+    <span class="stat-row__vitals"><ng-content select="[row-vitals]" /></span>
+    <ng-content select="[row-indicator]" />
+    <span class="stat-row__chevron" [class.stat-row__chevron--open]="expanded()" aria-hidden="true">&#9662;</span>
+  </button>
+
+  <div [id]="detailId()" [hidden]="!expanded()">
+    <ng-content select="[row-detail]" />
+  </div>
+</div>

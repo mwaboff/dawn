@@ -117,4 +117,15 @@ describe('BattlePointMeter', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelectorAll('.meter__adjustment')).toHaveLength(6);
   });
+
+  it('uses the shared themed input for party size', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.meter__party-input').classList.contains('form-input')).toBe(true);
+  });
+
+  it('uses the shared themed checkbox for every adjustment toggle', () => {
+    fixture.detectChanges();
+    const checkboxes: HTMLInputElement[] = Array.from(fixture.nativeElement.querySelectorAll('.meter__adjustment input'));
+    expect(checkboxes.every(cb => cb.classList.contains('form-checkbox'))).toBe(true);
+  });
 });

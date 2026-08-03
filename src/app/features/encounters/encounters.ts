@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { catchError, of } from 'rxjs';
 
 import { AuthService } from '../../core/services/auth.service';
 import { EncounterService } from '../../shared/services/encounter.service';
 import { EncounterRunService } from '../../shared/services/encounter-run.service';
-import { EncounterResponse, EncounterAdversaryResponse } from '../../shared/models/encounter-api.model';
+import { EncounterResponse } from '../../shared/models/encounter-api.model';
 import { EncounterRunResponse } from '../../shared/models/encounter-run-api.model';
+import { tierRangeLabel } from '../../shared/utils/encounter-tier.utils';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { InlineDeleteConfirm } from '../../shared/components/inline-delete-confirm/inline-delete-confirm';
 import { ENCOUNTER_NEW_PATH, encounterEditPath, encounterRunPath } from './encounter-routes';
@@ -15,19 +17,6 @@ import { ENCOUNTER_NEW_PATH, encounterEditPath, encounterRunPath } from './encou
 export interface ActiveRunEntry {
   run: EncounterRunResponse;
   encounterName: string;
-}
-
-function effectiveTier(entry: EncounterAdversaryResponse): number | undefined {
-  return entry.tierOverride ?? entry.adversary?.tier;
-}
-
-/** `"Tier 2"`, `"Tier 1–3"` across a mixed-tier roster, or a placeholder for an empty one. */
-export function tierRangeLabel(encounter: EncounterResponse): string {
-  const tiers = encounter.adversaries.map(effectiveTier).filter((t): t is number => t !== undefined);
-  if (tiers.length === 0) return 'No adversaries yet';
-  const min = Math.min(...tiers);
-  const max = Math.max(...tiers);
-  return min === max ? `Tier ${min}` : `Tier ${min}–${max}`;
 }
 
 /**
@@ -93,7 +82,14 @@ export class Encounters implements OnInit {
     this.loadActiveRuns();
   }
 
+  /**
+   * The empty-roster case is a presentational choice specific to this page (it manages the
+   * adversary roster directly, so "you haven't added any yet" is more useful here than a tier
+   * placeholder) -- not part of the shared tier-resolution rule, so it wraps rather than folds
+   * into `tierRangeLabel`.
+   */
   getTierRangeLabel(encounter: EncounterResponse): string {
+    if (encounter.adversaries.length === 0) return 'No adversaries yet';
     return tierRangeLabel(encounter);
   }
 
@@ -109,8 +105,11 @@ export class Encounters implements OnInit {
     this.router.navigate([encounterEditPath(id)]);
   }
 
-  onRun(id: number): void {
-    this.router.navigate([encounterRunPath(id)]);
+  /** The card's own primary action -- bound to a real `routerLink` in the template (see
+   * `.roster-entry-link`), not a `(click)` handler, so the whole row is a valid, keyboard-operable
+   * anchor rather than a `(click)` on a non-interactive element. */
+  runPath(id: number): string {
+    return encounterRunPath(id);
   }
 
   onResume(run: EncounterRunResponse): void {
@@ -222,18 +221,21 @@ export class Encounters implements OnInit {
 
   private load(): void {
     const userId = this.authService.user()?.id;
+    if (userId === undefined) {
+      this.loading.set(false);
+      return;
+    }
     this.encounterService
-      .getEncounters({ size: 50, expand: 'adversaryDetails' })
+      .getOwnEncounters(userId)
       .pipe(
         catchError(() => {
           this.error.set(true);
-          return of(null);
+          return of([] as EncounterResponse[]);
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(response => {
-        if (response) {
-          this.encounters.set(response.content.filter(e => e.creatorId === userId));
-        }
+      .subscribe(list => {
+        this.encounters.set(list);
         this.loading.set(false);
       });
   }

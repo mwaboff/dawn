@@ -9,10 +9,65 @@
   border-radius: 8px;
 }
 
+.roster-panel__environment-group {
+  margin-bottom: 1.25rem;
+}
+
+.roster-panel__environment-label {
+  display: block;
+  margin-bottom: .4rem;
+  font-family: var(--font-display);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--color-card-environment);
+  opacity: .85;
+}
+
+.roster-panel__environment {
+  max-width: 280px;
+}
+
+/* Condensed to the same footprint as an adversary card (name/type/tier only) -- see
+   environment-picker.css for the identical treatment on the picker's own grid. The card itself
+   uses `[readOnly]`, not `[disabled]` -- `disabled` is for a fadeable, unavailable *choice* and
+   would render this at 50% opacity/grayscale and mark it `aria-disabled`, which is wrong for a
+   plain reference display. `card--static` (DaggerheartCard's own readOnly styling) already
+   handles max-height, cursor, hover, and the bottom fade, so only the genuine size/content deltas
+   are overridden here. */
+.roster-panel__environment ::ng-deep .card__content {
+  padding: .85rem 1rem .75rem;
+}
+
+.roster-panel__environment ::ng-deep .card__name {
+  font-size: 1.05rem;
+}
+
+.roster-panel__environment ::ng-deep .card__subtitle:last-of-type {
+  margin-bottom: 0;
+}
+
+.roster-panel__environment ::ng-deep .card__body,
+.roster-panel__environment ::ng-deep .card__decoration,
+.roster-panel__environment ::ng-deep .card__type-badge {
+  display: none;
+}
+
 .roster-panel__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
+}
+
+/* Same fixed-height name treatment as the Add Adversaries grid (adversary-browser.css), sized for
+   this grid's compact card variant instead of the default one. */
+.roster-panel__grid ::ng-deep .adversary-card__toggle .adversary-card__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 2.52rem; /* compact 1.05rem name font-size * 1.2 line-height * 2 lines */
 }
 
 .roster-panel__actions {
@@ -23,14 +78,12 @@
   flex-shrink: 0;
 }
 
+/* Color/border/chrome come from the shared .form-input class -- this just sets local sizing for
+   the narrower context of a roster action row. */
 .roster-panel__label-input {
   width: 6.5rem;
+  min-height: 0;
   padding: .3rem .5rem;
-  background: rgba(26, 20, 18, .8);
-  border: 1px solid rgba(212, 160, 86, .25);
-  border-radius: 3px;
-  color: var(--color-parchment);
-  font-family: var(--font-body);
   font-size: .75rem;
 }
 

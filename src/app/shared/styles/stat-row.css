@@ -1,0 +1,136 @@
+/* One party-list-style disclosure row: a two-line identity block (name, then a secondary line of
+ * scannable metadata), read-only vitals, and a toggle. Global (unscoped, imported via
+ * `src/styles.css`) rather than declared per component, because it has two real consumers with no
+ * parent/child relationship that could carry a partial file between them -- the campaign GM
+ * screen's `sheet-viewer-panel.html` (one plain `<button class="stat-row__toggle">` per template)
+ * and the run screen's `RunStatRow`/`RunAdversaryRow`/`RunEnvironmentPanel` (split across a shell
+ * + projected content, since it's a reusable component with its own `<ng-content>` slots).
+ *
+ * A single global stylesheet is the only place both can reach: Angular's per-component emulated
+ * encapsulation means a rule declared in either consumer's own `styleUrl` can never reach the
+ * other. These classes used to be copy-renamed into each side's own stylesheet with identical
+ * values (`.party__row` / `.run-row__toggle`, etc.) -- exactly the fork this project's CLAUDE.md
+ * bans ("never copy an existing stylesheet and rename it to create a variant"). Only genuinely
+ * shared rules live here; context-specific bits (the environment row's quieter accent border, the
+ * adversary row's catalog-name/skull, the party row's own loading-text/detail-note treatment,
+ * which has no run-screen counterpart) stay declared next to whichever single consumer uses them.
+ */
+
+.stat-row__item {
+  border: 1px solid rgba(212, 160, 86, .18);
+  border-radius: .35rem;
+  background: rgba(0, 0, 0, .18);
+  overflow: hidden;
+}
+
+.stat-row__item.is-open { border-color: rgba(212, 160, 86, .38); }
+
+/* Opacity is supplementary -- whatever carries the muted/inactive state on its own (a skull glyph,
+   a text badge) is the real signal; this dims read-only content only, never a control. */
+.stat-row__item--muted .stat-row__identity,
+.stat-row__item--muted .stat-row__vitals { opacity: .6; }
+
+.stat-row__toggle {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  min-height: 48px;
+  padding: .4rem .6rem;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stat-row__toggle:hover { background: rgba(212, 160, 86, .07); }
+.stat-row__toggle:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+
+.stat-row__item--compact .stat-row__toggle { min-height: 42px; padding: .3rem .5rem; }
+
+/* Two real children stack here: the name line, then the secondary line beneath it. Both are always
+   present as *direct* children of this element -- on the party row because `sheet-viewer-panel.html`
+   writes `.stat-row__name`/`.stat-row__secondary` directly with no indirection, and on the run
+   screen's rows because `RunStatRow` projects `[row-identity]`/`[row-secondary]` as two separate
+   `<ng-content>` slots landing side by side here (see that component's doc for why that split
+   matters). Because both are genuine flex items of this column, they stack because flexbox always
+   blockifies a flex item's outer display regardless of what the item's own `display` says -- not
+   because either child happens to be `display: flex`/block on its own. A version of this column
+   with only one child (everything nested inside it) briefly shipped and was fragile: nothing here
+   forced the second line onto its own line, it only happened to work when *something inside* that
+   one child was block-level. */
+.stat-row__identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 7rem;
+  flex: 1 1 auto;
+}
+
+/* Holds whatever sits beside the name on the name line (a defeated glyph, a catalog-name aside) --
+   the party row never needs more than one item here, so it skips this wrapper entirely and puts
+   `.stat-row__name` straight in `.stat-row__identity`; harmless either way since a lone child of a
+   `flex-flow: row wrap` container lays out the same as no wrapper at all. */
+.stat-row__name-line {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: baseline;
+  gap: .1rem .5rem;
+}
+
+.stat-row__name {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--color-parchment);
+}
+
+/* The second identity line -- "Level 3" on a party row, "Solo · Tier 3" on an adversary row,
+   "Event" on an environment row. Always a direct child of `.stat-row__identity` (see that rule's
+   comment) -- its own `display` doesn't need to say `block` for it to start a new line; being a
+   flex item of a column guarantees that already. */
+.stat-row__secondary {
+  font-size: var(--text-sm);
+  color: rgba(245, 230, 211, .68);
+}
+
+/* The Battle Guide's Bruiser/Horde/Leader/Solo grouping -- adversary-only; harmless declared here
+   unused by the other two consumers, matching how `run-detail-shell.css` already keeps its
+   equivalent `.run-detail__type--elite` modifier in a file its other consumer never triggers. */
+.stat-row__secondary-type--elite { color: var(--color-accent-bright); font-weight: 700; }
+
+/* The row is a scan target: numbers first at a size readable across a roster, labels beneath. */
+.stat-row__vitals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem .9rem;
+}
+
+.stat-row__vital { display: flex; flex-direction: column; align-items: center; min-width: 3.1rem; }
+
+.stat-row__vital b {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-accent-bright);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-row__vital small {
+  font-size: .62rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(245, 230, 211, .68);
+  white-space: nowrap;
+}
+
+.stat-row__chevron {
+  flex: 0 0 auto;
+  color: rgba(212, 160, 86, .75);
+  transition: transform .18s ease;
+}
+.stat-row__chevron--open { transform: rotate(180deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-row__chevron { transition: none; }
+}

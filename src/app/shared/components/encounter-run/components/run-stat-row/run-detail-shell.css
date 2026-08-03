@@ -1,0 +1,32 @@
+/* Shared between `RunAdversaryDetail` and `RunEnvironmentDetail` -- both are the expanded content
+   under a `RunStatRow`, and both open with the same section-heading treatment. Listed as an
+   additional `styleUrls` entry in each component (the same multi-file pattern `daggerheart-card.ts`
+   already uses for its own variant partials) rather than duplicated, since Angular's per-component
+   encapsulation means two components can't share rules from one component's own styleUrl -- only a
+   file both explicitly list.
+   (The type/tier "meta" line this file used to open with is gone -- that content moved to the
+   row's own secondary line, `.stat-row__secondary` in `shared/styles/stat-row.css`, so it's no
+   longer duplicated between the collapsed row and the expanded detail.) */
+
+.run-detail {
+  display: flex;
+  flex-flow: column;
+  gap: .6rem;
+  padding: .75rem .9rem .9rem;
+  border-top: 1px solid rgba(212, 160, 86, .18);
+  background: rgba(0, 0, 0, .18);
+}
+
+.run-detail__section { border-top: 1px solid rgba(212, 160, 86, .15); padding-top: .55rem; }
+
+.run-detail__section-label {
+  display: block;
+  margin-bottom: .3rem;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--color-accent);
+  opacity: .85;
+}

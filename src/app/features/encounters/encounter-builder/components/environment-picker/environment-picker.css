@@ -30,3 +30,42 @@
 }
 
 .env-picker__clear-btn:hover { background: rgba(212, 160, 86, .08); border-color: var(--color-accent); }
+
+/* Condenses the shared DaggerheartCard grid to roughly the Add Adversaries card's footprint --
+   the user asked for these to show only name, type, and tier, matching the adversary browser's
+   density instead of the full wide description/tags/features card used elsewhere (create
+   character, reference). Reaches past the card's view encapsulation with ::ng-deep, the same way
+   equipment-selector.css's "vault" treatment already reskins this same shared card, and is scoped
+   under .env-picker__grid so it can't leak into any other consumer. */
+.env-picker__grid ::ng-deep .card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .75rem;
+}
+
+.env-picker__grid ::ng-deep .card,
+.env-picker__grid ::ng-deep .card.card--selected {
+  max-height: none;
+}
+
+.env-picker__grid ::ng-deep .card:hover {
+  transform: none;
+}
+
+.env-picker__grid ::ng-deep .card__content {
+  padding: .85rem 1rem .75rem;
+}
+
+.env-picker__grid ::ng-deep .card__name {
+  font-size: 1.05rem;
+}
+
+.env-picker__grid ::ng-deep .card__subtitle:last-of-type {
+  margin-bottom: 0;
+}
+
+.env-picker__grid ::ng-deep .card__body,
+.env-picker__grid ::ng-deep .card__decoration,
+.env-picker__grid ::ng-deep .card__type-badge,
+.env-picker__grid ::ng-deep .card::before {
+  display: none;
+}

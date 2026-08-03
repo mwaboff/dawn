@@ -1,6 +1,6 @@
 @if (activeRun(); as active) {
   <div class="eb__run-head">
-    <p class="eb__run-title">
+    <p class="eb__run-title" #runHeading tabindex="-1">
       <span class="eb__run-label">Running</span>
       <span class="eb__run-name">{{ active.encounterName }}</span>
     </p>
@@ -13,9 +13,12 @@
 
   <app-encounter-run-view
     [runId]="active.runId"
+    [title]="active.encounterName"
+    [editHref]="encounterEditPath(active.encounterId)"
     density="compact"
     [showHeader]="false"
     (completed)="onRunEnded()"
+    (encounterDeleted)="onRunEnded()"
   />
 } @else {
   @if (loading()) {
@@ -24,7 +27,38 @@
     <app-card-error />
     <button type="button" class="btn btn--secondary btn--sm" (click)="retryLoad()">Try again</button>
   } @else {
-    @for (encounter of encounters(); track encounter.id) {
+    <div class="eb__list-head">
+      <label class="eb__search-label" for="eb-search" #listHeading tabindex="-1">
+        Search your encounters
+      </label>
+      <a
+        class="btn btn--secondary btn--sm"
+        [routerLink]="newEncounterPath"
+        target="_blank"
+        rel="noopener"
+        aria-label="New encounter (opens in a new tab)"
+      >
+        + New Encounter
+        <span class="eb__new-tab-icon" aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <input
+      id="eb-search"
+      type="search"
+      class="form-input--sm"
+      placeholder="Search by name…"
+      [value]="query()"
+      (input)="onQueryInput($event)"
+    />
+
+    @if (atFetchCap()) {
+      <p class="eb__cap-note">
+        Showing your first {{ encounters().length }} encounters (official, public, and your own).
+        Search narrows what's loaded here -- older ones beyond that may not appear yet.
+      </p>
+    }
+
+    @for (encounter of filtered(); track encounter.id) {
       <app-panel-encounter-row
         class="eb__row"
         [encounter]="encounter"
@@ -34,7 +68,11 @@
       />
     } @empty {
       <p class="gm-panel__note">
-        No encounters saved for this campaign yet. Build one from the Encounters page.
+        @if (encounters().length === 0) {
+          You don't have any official, public, or your own encounters yet. Build one to run it here.
+        } @else {
+          No encounters match "{{ query() }}".
+        }
       </p>
     }
 

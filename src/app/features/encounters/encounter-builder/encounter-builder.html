@@ -10,14 +10,14 @@
       <div class="builder__identity">
         <input
           type="text"
-          class="builder__name-input"
+          class="form-input builder__name-input"
           placeholder="Encounter name"
           aria-label="Encounter name"
           [value]="name()"
           (change)="onNameInput($event)"
         />
         <textarea
-          class="builder__description-input"
+          class="form-input builder__description-input"
           placeholder="Optional description or scene-setting notes"
           aria-label="Encounter description"
           [value]="description()"
@@ -58,6 +58,7 @@
       <app-encounter-roster
         [instances]="roster()"
         [justAddedId]="justAddedInstanceId()"
+        [selectedEnvironment]="selectedEnvironment()"
         (removeInstance)="onRemoveInstance($event)"
         (retierInstance)="onRetierInstance($event)"
         (labelChange)="onLabelChange($event)"
@@ -70,6 +71,7 @@
       [collapsed]="sections.isCollapsed('environment')"
       (toggled)="sections.toggle('environment')"
     >
+      <span section-badge class="expandable-card__meta-badge">{{ selectedEnvironment()?.name ?? 'None selected' }}</span>
       <app-environment-picker [selectedEnvironmentId]="environmentId()" (environmentSelected)="onEnvironmentSelected($event)" />
     </app-collapsible-section>
 

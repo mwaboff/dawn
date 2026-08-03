@@ -59,7 +59,10 @@
   font-size: var(--text-sm);
 }
 
-.encounters-run-btn {
+/* The card's own primary action is now "click anywhere on the row to run it" (see .roster-entry
+   and .roster-entry-link below), so this small button is the secondary "Edit" action -- same
+   look it always had, just relabeled and repointed at the builder instead of the run view. */
+.encounters-edit-btn {
   flex-shrink: 0;
   padding: 0.3rem 0.7rem;
   border-radius: 3px;
@@ -73,7 +76,46 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.encounters-run-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(212, 160, 86, 0.35); }
+.encounters-edit-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(212, 160, 86, 0.35); }
+
+/* Makes the whole row navigate to the run view on click, without nesting the Edit/Copy/Delete
+   buttons inside an <a> (invalid HTML) or binding a bare (click) to a non-interactive element. The
+   real, keyboard-operable <a class="roster-entry-link"> only visually wraps the encounter's name;
+   its ::after is what stretches the click target over the entire row ("stretched link" pattern).
+   The row-level hover/focus tint AND outline in shared/styles/roster.css key off the <li> having
+   focus, which no longer happens now that the <a> is the focusable element -- :has() re-triggers
+   both when the link itself is focused, so a tab-focused row still gets the full "2px accent
+   outline around the whole row" it always had, not just the browser's default ring around the
+   name text. Edit/Copy/Delete/the trash icon are raised above the overlay via position + z-index
+   so they receive their own clicks instead of the link swallowing them; the inline-delete-confirm
+   buttons are reached with ::ng-deep since that component renders `display: contents` and so has
+   no host box of its own to position. */
+.roster-entry { position: relative; }
+
+.roster-entry-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.roster-entry-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.roster-entry:has(.roster-entry-link:focus-visible) {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.encounters-edit-btn,
+.encounters-copy-btn,
+.roster-entry ::ng-deep .roster-delete-btn,
+.roster-entry ::ng-deep .roster-inline-confirm {
+  position: relative;
+  z-index: 1;
+}
 
 .encounters-copy-btn {
   flex-shrink: 0;

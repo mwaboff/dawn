@@ -44,9 +44,9 @@
                 type="button"
                 class="btn btn--danger-ghost btn--sm"
                 [disabled]="discardingId() === entry.run.id"
-                [attr.aria-label]="'Discard ' + entry.encounterName"
+                [attr.aria-label]="'Discard the in-progress run of ' + entry.encounterName"
                 (click)="onDiscardRequest(entry.run.id)"
-              >{{ discardingId() === entry.run.id ? 'Discarding…' : 'Discard' }}</button>
+              >{{ discardingId() === entry.run.id ? 'Discarding…' : 'Discard Run' }}</button>
             </div>
           </li>
         }
@@ -73,10 +73,14 @@
     } @else {
       <ol class="roster-list">
         @for (encounter of encounters(); track encounter.id) {
-          <li class="roster-entry" tabindex="0" role="button" (click)="onEdit(encounter.id)" (keydown.enter)="onEdit(encounter.id)">
+          <li class="roster-entry">
             <div class="roster-info">
               <div class="roster-name-row">
-                <span class="roster-character-name">{{ encounter.name }}</span>
+                <a
+                  [routerLink]="runPath(encounter.id)"
+                  class="roster-character-name roster-entry-link"
+                  [attr.aria-label]="'Run ' + encounter.name"
+                >{{ encounter.name }}</a>
               </div>
               <p class="roster-class">
                 {{ getTierRangeLabel(encounter) }}
@@ -88,16 +92,16 @@
             </div>
             <button
               type="button"
-              class="encounters-run-btn"
-              [attr.aria-label]="'Run ' + encounter.name"
-              (click)="onRun(encounter.id); $event.stopPropagation()"
-            >Run</button>
+              class="encounters-edit-btn"
+              [attr.aria-label]="'Edit ' + encounter.name"
+              (click)="onEdit(encounter.id)"
+            >Edit</button>
             <button
               type="button"
               class="encounters-copy-btn"
               [disabled]="copyingId() === encounter.id"
               [attr.aria-label]="'Copy ' + encounter.name"
-              (click)="onCopy(encounter.id); $event.stopPropagation()"
+              (click)="onCopy(encounter.id)"
             >{{ copyingId() === encounter.id ? 'Copying…' : 'Copy' }}</button>
             <app-inline-delete-confirm
               [itemLabel]="encounter.name"
@@ -118,7 +122,7 @@
   @if (confirmingDeleteId() !== null) {
     <app-confirm-dialog
       title="Delete Encounter"
-      message="This will permanently delete this encounter. This action cannot be undone."
+      message="Removes this encounter from your list. If a fight is in progress, its live HP, Stress, tokens, and notes are deleted with it — that data cannot be recovered."
       confirmLabel="Delete"
       cancelLabel="Cancel"
       [processing]="deletingId() !== null"
@@ -130,8 +134,8 @@
   @if (pendingDiscardId() !== null) {
     <app-confirm-dialog
       title="Discard Run"
-      message="This will permanently end this fight and delete its progress. This action cannot be undone."
-      confirmLabel="Discard"
+      message="This will permanently end this fight and delete its progress. The saved encounter itself is not affected. This action cannot be undone."
+      confirmLabel="Discard Run"
       cancelLabel="Cancel"
       [processing]="discardingId() !== null"
       (confirmed)="onDiscardConfirm()"

@@ -5,7 +5,10 @@
 
   <div class="dashboard__columns">
     <section class="panel">
-      <h2 class="panel__title">Characters ({{ characters().length }})</h2>
+      <div class="dashboard-panel-header">
+        <h2 class="panel__title">Characters ({{ characters().length }})</h2>
+        <a class="dashboard-viewall-link" [routerLink]="charactersListPath">View All</a>
+      </div>
       @if (charactersLoading()) {
         <div class="roster-loading">
           @for (i of skeletonIndexes; track i) {
@@ -20,7 +23,7 @@
             <p class="dashboard-empty__text">No heroes inscribed. Forge your first.</p>
           </div>
         } @else {
-          <ol class="roster-list dashboard__list">
+          <ol class="roster-list dashboard__list dashboard-scroll-list" aria-label="Characters">
             @for (c of characters(); track c.id) {
               <li>
                 <a class="roster-entry dashboard-row" [style.border-left]="'3px solid ' + borderColorFor(c)" [routerLink]="['/character', c.id]">
@@ -49,7 +52,10 @@
     </section>
 
     <section class="panel">
-      <h2 class="panel__title">Campaigns ({{ campaigns().length }})</h2>
+      <div class="dashboard-panel-header">
+        <h2 class="panel__title">Campaigns ({{ campaigns().length }})</h2>
+        <a class="dashboard-viewall-link" [routerLink]="campaignsListPath">View All</a>
+      </div>
       @if (campaignsLoading()) {
         <div class="roster-loading">
           @for (i of skeletonIndexes; track i) {
@@ -64,7 +70,7 @@
             <p class="dashboard-empty__text">No sagas underway. Start your first.</p>
           </div>
         } @else {
-          <ol class="roster-list dashboard__list">
+          <ol class="roster-list dashboard__list dashboard-scroll-list" aria-label="Campaigns">
             @for (campaign of campaigns(); track campaign.id) {
               <li class="dashboard-saga-row">
                 <a class="roster-entry dashboard-row dashboard-row--saga" [routerLink]="['/campaign', campaign.id]">
@@ -87,4 +93,51 @@
       }
     </section>
   </div>
+
+  <!-- Full-width, not a 3rd grid column: campaigns already reserves fixed horizontal space for its
+       absolutely-positioned GM Screen pill, so a 3-up grid would have squeezed campaign names into
+       a much narrower column at the exact widths this dashboard targets. Encounters gets more room
+       this way than a 3rd column ever offered, and characters/campaigns keep their original,
+       untouched layout. -->
+  <section class="panel dashboard__wide">
+    <div class="dashboard-panel-header">
+      <h2 class="panel__title">Encounters ({{ encounters().length }})</h2>
+      <a class="dashboard-viewall-link" [routerLink]="encountersListPath">View All</a>
+    </div>
+    @if (encountersLoading()) {
+      <div class="roster-loading">
+        @for (i of skeletonIndexes; track i) {
+          <div class="roster-skeleton"></div>
+        }
+      </div>
+    } @else if (encountersError()) {
+      <div class="roster-message"><p>Couldn't load encounters.</p></div>
+    } @else {
+      @if (encounters().length === 0) {
+        <div class="dashboard-empty">
+          <p class="dashboard-empty__text">No encounters drafted. Ready your first fight.</p>
+        </div>
+      } @else {
+        <ol class="roster-list dashboard__list dashboard-scroll-list" aria-label="Encounters">
+          @for (encounter of encounters(); track encounter.id) {
+            <li>
+              <a class="roster-entry dashboard-row" [routerLink]="encounterEditLink(encounter)">
+                <div class="roster-info">
+                  <span class="roster-character-name">{{ encounter.name }}</span>
+                  <p class="roster-class">
+                    <span class="roster-class-name">{{ tierRangeLabel(encounter) }}</span>
+                    <span class="roster-class-sep" aria-hidden="true"> · </span>
+                    <span class="roster-class-subclass">{{ encounter.spentBattlePoints }}/{{ encounter.suggestedBattlePoints }} pts</span>
+                  </p>
+                </div>
+              </a>
+            </li>
+          }
+        </ol>
+      }
+      <a class="roster-entry roster-entry--add" [routerLink]="newEncounterPath">
+        <span class="roster-entry-add-link">+ Draft an encounter</span>
+      </a>
+    }
+  </section>
 </div>

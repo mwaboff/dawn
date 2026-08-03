@@ -4,7 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 
 import { EncounterRunPage } from './encounter-run-page';
 import { EncounterRunView } from '../../../shared/components/encounter-run/encounter-run-view';
@@ -12,6 +12,7 @@ import { EncounterRunService } from '../../../shared/services/encounter-run.serv
 import { EncounterService } from '../../../shared/services/encounter.service';
 import { EncounterRunResponse } from '../../../shared/models/encounter-run-api.model';
 import { EncounterResponse } from '../../../shared/models/encounter-api.model';
+import { encounterEditPath } from '../encounter-routes';
 
 function buildRun(overrides: Partial<EncounterRunResponse> = {}): EncounterRunResponse {
   return {
@@ -200,6 +201,18 @@ describe('EncounterRunPage', () => {
     expect(fixture.nativeElement.querySelector('.run-view__title').textContent.trim()).toBe('Ambush at the Ford');
   });
 
+  it('derives editHref from encounterEditPath(), never a retyped literal, and passes it to EncounterRunView', () => {
+    const { fixture, runService } = setup('1');
+    const existingRun = buildRun({ id: 42, encounterId: 1 });
+    vi.spyOn(runService, 'getRuns').mockReturnValue(of([existingRun]));
+    vi.spyOn(runService, 'getRun').mockReturnValue(of(existingRun));
+
+    fixture.detectChanges();
+
+    const runView = fixture.debugElement.query(By.directive(EncounterRunView));
+    expect(runView.componentInstance.editHref()).toBe(encounterEditPath(1));
+  });
+
   it('navigates to the encounters list when the run completes', () => {
     const { fixture, component, runService, router } = setup('1');
     const existingRun = buildRun({ id: 42, encounterId: 1 });
@@ -211,5 +224,46 @@ describe('EncounterRunPage', () => {
     component.onCompleted();
 
     expect(navigateSpy).toHaveBeenCalledWith(['/encounters']);
+  });
+
+  it('navigates to the encounters list when the encounter itself is deleted', () => {
+    const { fixture, runService, router } = setup('1');
+    const existingRun = buildRun({ id: 42, encounterId: 1 });
+    vi.spyOn(runService, 'getRuns').mockReturnValue(of([existingRun]));
+    vi.spyOn(runService, 'getRun').mockReturnValue(of(existingRun));
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    fixture.detectChanges();
+
+    const runView = fixture.debugElement.query(By.directive(EncounterRunView));
+    runView.componentInstance.encounterDeleted.emit();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/encounters']);
+  });
+
+  describe('back link', () => {
+    it('renders a link back to the encounters list once the run resolves', () => {
+      const { fixture, runService } = setup('1');
+      const existingRun = buildRun({ id: 42, encounterId: 1 });
+      vi.spyOn(runService, 'getRuns').mockReturnValue(of([existingRun]));
+      vi.spyOn(runService, 'getRun').mockReturnValue(of(existingRun));
+
+      fixture.detectChanges();
+
+      const back: HTMLAnchorElement | null = fixture.nativeElement.querySelector('.run-page-back');
+      expect(back).toBeTruthy();
+      expect(back!.textContent?.trim()).toBe('← Back to Encounters');
+      expect(back!.getAttribute('href')).toBe('/encounters');
+    });
+
+    it('does not render before the run resolves', () => {
+      const { fixture, runService } = setup('1');
+      vi.spyOn(runService, 'getRuns').mockReturnValue(of([]));
+      // Never emits/completes -- the page stays in its loading state.
+      vi.spyOn(runService, 'startRun').mockReturnValue(NEVER);
+
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.run-page-back')).toBeFalsy();
+    });
   });
 });

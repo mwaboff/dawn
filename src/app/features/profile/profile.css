@@ -108,6 +108,11 @@
   opacity: 0.75;
 }
 
+/* `.roster-empty-text` (shared/styles/roster.css) already supplies the quiet italic tone; this
+   just adds the padding its usual `.roster-empty` wrapper would have given it, since this note
+   stands alone under the divider rather than inside a roster panel. */
+.profile-encounters-note { padding: 1.5rem 0; text-align: center; }
+
 .profile-skeleton-eyebrow {
   width: 80px;
   height: 12px;

@@ -1,0 +1,28 @@
+<div class="run-detail">
+  @if (card().description) {
+    <p class="run-detail__description">{{ card().description }}</p>
+  }
+
+  @if (impulses(); as text) {
+    <div class="run-detail__section">
+      <span class="run-detail__section-label">Impulses</span>
+      <p class="run-detail__impulses-text">{{ text }}</p>
+    </div>
+  }
+
+  @if (potentialAdversaries(); as text) {
+    <div class="run-detail__section">
+      <span class="run-detail__section-label">Potential Adversaries</span>
+      <p class="run-detail__impulses-text">{{ text }}</p>
+    </div>
+  }
+
+  @if (card().features?.length) {
+    <div class="run-detail__section">
+      <span class="run-detail__section-label">Features</span>
+      @for (feature of card().features; track feature.name) {
+        <app-card-feature-item [feature]="feature" />
+      }
+    </div>
+  }
+</div>

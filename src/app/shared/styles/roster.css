@@ -1,6 +1,6 @@
 /* Shared roster list/entry styles. Populated by Slice 2. */
 
-.campaign-roster, .roster {
+.roster {
   position: relative;
   z-index: 1;
   opacity: 0;

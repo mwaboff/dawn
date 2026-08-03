@@ -1,32 +1,48 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, input, output, signal, untracked } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, debounceTime, tap } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 
-import { AdversaryCard } from '../../../adversary-card/adversary-card';
-import { ResourceTracker } from '../../../resource-tracker/resource-tracker';
 import { EncounterRunAdversaryResponse } from '../../../../models/encounter-run-api.model';
 import { mapAdversaryToAdversaryData } from '../../../../mappers/adversary.mapper';
-
-const NOTE_MAX_LENGTH = 2000;
-const NOTE_DEBOUNCE_MS = 500;
+import { improvisedTierStats } from '../../../../utils/improvised-tier-stats.utils';
+import { titleCase } from '../../../../utils/text.utils';
+import { ELITE_ADVERSARY_TYPES } from '../../../adversary-card/adversary-card';
+import { RunStatRow } from '../run-stat-row/run-stat-row';
+import { RunAdversaryDetail } from './components/run-adversary-detail/run-adversary-detail';
 
 /**
- * One instance's stat block + live combat counters: the unit a GM reads and clicks on during a
- * fight. Wraps `AdversaryCard` rather than forking it -- HP/Stress/Tokens are the row's own
- * concern, everything else (Difficulty, Thresholds, Features, Experiences) is the card's.
+ * One instance's scannable row + expandable stat block: the unit a GM reads and clicks on during
+ * a fight. Rebuilt on the campaign GM screen's party-list pattern (`sheet-viewer-panel.html`, via
+ * the shared `RunStatRow` shell) rather than wrapping `AdversaryCard` -- a colourful, card-shaped
+ * stat block reads well for one adversary at a time, but not for scanning a whole roster the way
+ * this pattern's brown/yellow, numbers-first rows do. `AdversaryCard` is untouched and still used
+ * by the encounter builder's roster/browse list -- this is a parallel, purpose-built presentation,
+ * not a replacement.
  *
- * Purely a view over the `EncounterRunAdversaryResponse` the parent already holds -- every
- * mutation is emitted upward as the new absolute value. The parent owns the optimistic
- * update/PATCH/rollback; this component never talks to the network.
+ * Adversaries don't use Evasion (Core ch. 4: "Adversaries don't use Evasion like PCs -- instead,
+ * all rolls against them use their Difficulty") -- the row's read-only-numbers slot uses
+ * Difficulty, matching every printed stat block, where the party row it's modelled on uses PC
+ * Evasion because that row is showing PCs.
+ *
+ * Every interactive control (HP/Stress marking, tokens +/-, Mark Defeated/Revive) now lives in the
+ * expanded `RunAdversaryDetail`, not the row -- several rounds of trimming moved them there to
+ * keep the row scannable. That leaves the row itself purely read-only content plus one disclosure
+ * control, so unlike the first draft of this component, it genuinely can be one `<button>` the
+ * way `.party__row` is -- no nested-interactive-control workaround needed any more.
+ *
+ * `role: 'listitem'` on the host, not on anything inside `RunAdversaryRow`'s own template: this
+ * component's selector (`<app-run-adversary-row>`) is the actual DOM child of the run view's
+ * `role="list"` container (`EncounterRunView`'s `.run-view__adversaries`), so this is the element
+ * that has to carry the role for the list/listitem relationship to hold. `RunStatRow`, one level
+ * further in, stays a plain `<div>`.
  */
 @Component({
   selector: 'app-run-adversary-row',
   templateUrl: './run-adversary-row.html',
-  styleUrl: './run-adversary-row.css',
-  imports: [AdversaryCard, ResourceTracker],
+  styleUrls: ['../run-stat-row/run-row-content.css', './run-adversary-row.css'],
+  imports: [RunStatRow, RunAdversaryDetail],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { role: 'listitem' },
 })
-export class RunAdversaryRow implements OnDestroy {
+export class RunAdversaryRow {
   readonly adversary = input.required<EncounterRunAdversaryResponse>();
   readonly density = input<'comfortable' | 'compact'>('comfortable');
 
@@ -36,12 +52,14 @@ export class RunAdversaryRow implements OnDestroy {
   readonly defeatedToggle = output<void>();
   readonly noteChange = output<string>();
 
-  readonly noteMaxLength = NOTE_MAX_LENGTH;
+  private readonly expanded = signal(false);
+  readonly isExpanded = this.expanded.asReadonly();
 
   /** Keyed on the run instance's own id, never the catalog adversaryId -- a run can hold three
    * Giant Mosquitoes sharing one catalog id, and they must not collide on ResourceTracker's
-   * generated box ids. */
+   * generated box ids or this row's own aria-controls target. */
   readonly idPrefix = computed(() => `run-adversary-${this.adversary().id}`);
+  readonly detailId = computed(() => `${this.idPrefix()}-detail`);
 
   readonly rowLabel = computed(() => this.adversary().label ?? this.adversary().adversary?.name ?? 'Adversary');
 
@@ -50,55 +68,62 @@ export class RunAdversaryRow implements OnDestroy {
     return statBlock ? mapAdversaryToAdversaryData(statBlock) : undefined;
   });
 
-  private readonly noteDirty = signal(false);
-  readonly noteDraft = signal('');
-  private readonly noteInput$ = new Subject<string>();
+  /** A GM-given nickname (`label`) is the primary name once set; the catalog name then becomes a
+   * secondary line so the printed stat block is still identifiable at a glance. */
+  readonly catalogName = computed(() => {
+    const label = this.adversary().label;
+    const name = this.adversaryData()?.name;
+    return label && name && label !== name ? name : undefined;
+  });
 
-  constructor() {
-    // Skips re-syncing while the GM is actively typing (or waiting on the debounced save) so an
-    // unrelated field update on this same row -- marking HP mid-note -- can't clobber the draft.
-    effect(() => {
-      const note = this.adversary().note ?? '';
-      untracked(() => {
-        if (!this.noteDirty()) this.noteDraft.set(note);
-      });
-    });
+  readonly effectiveTier = computed(() => this.adversary().tierOverride);
 
-    this.noteInput$
-      .pipe(
-        debounceTime(NOTE_DEBOUNCE_MS),
-        tap(value => {
-          this.noteDirty.set(false);
-          this.noteChange.emit(value);
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe();
+  readonly isRetiered = computed(() => {
+    const tier = this.effectiveTier();
+    return tier !== undefined && tier !== this.adversaryData()?.tier;
+  });
+
+  private readonly retieredStats = computed(() => {
+    const tier = this.effectiveTier();
+    return tier === undefined ? undefined : improvisedTierStats(tier);
+  });
+
+  readonly tierLabel = computed(() => `Tier ${this.effectiveTier() ?? this.adversaryData()?.tier}`);
+
+  /** `Solo` -- the book-printed term, not the raw `SOLO` enum value (`shared/utils/text.utils.ts`).
+   * Feeds the row's "Solo · Tier 3" secondary line, which replaced the type/tier pair that used to
+   * sit in the expanded detail's meta block (now removed -- this line is the one place it shows). */
+  readonly typeLabel = computed(() => titleCase(this.adversaryData()?.adversaryType));
+
+  /** The rulebook's own grouping (the "no Bruisers, Hordes, Leaders, or Solos" Battle Point
+   * adjustment) -- carried onto the secondary line's type segment so it's still visible at a
+   * glance now that it moved out of the expanded detail. */
+  readonly isEliteType = computed(() => {
+    const type = this.adversaryData()?.adversaryType;
+    return type !== undefined && ELITE_ADVERSARY_TYPES.has(type);
+  });
+
+  readonly effectiveDifficulty = computed(() => this.retieredStats()?.difficulty ?? this.adversaryData()?.difficulty);
+  readonly effectiveMajorThreshold = computed(
+    () => this.retieredStats()?.majorThreshold ?? this.adversaryData()?.majorThreshold,
+  );
+  readonly effectiveSevereThreshold = computed(
+    () => this.retieredStats()?.severeThreshold ?? this.adversaryData()?.severeThreshold,
+  );
+
+  /** Bare `+2`/`-1` -- the number a GM actually rolls against. The weapon name/range/damage that
+   * used to sit alongside it on the row moved to the expanded detail; it was consistently the
+   * widest item on the line across several rounds of trimming. */
+  readonly attackModifierLabel = computed(() => {
+    const mod = this.retieredStats()?.attackModifier ?? this.adversaryData()?.attackModifier;
+    return mod === undefined ? undefined : this.formatModifier(mod);
+  });
+
+  toggleExpanded(): void {
+    this.expanded.update(v => !v);
   }
 
-  onNoteInput(event: Event): void {
-    const value = (event.target as HTMLTextAreaElement).value;
-    this.noteDraft.set(value);
-    this.noteDirty.set(true);
-    this.noteInput$.next(value);
-  }
-
-  /**
-   * A GM who types a note and immediately navigates away shouldn't lose up to
-   * NOTE_DEBOUNCE_MS of typing to the debounce timer never getting to fire. `ngOnDestroy` runs
-   * before Angular tears down this component's outputs (that happens during the DestroyRef
-   * cleanup phase, right after), so emitting here -- rather than from a `DestroyRef.onDestroy`
-   * callback racing that same teardown -- is guaranteed to still reach the parent's listener.
-   */
-  ngOnDestroy(): void {
-    if (this.noteDirty()) this.noteChange.emit(this.noteDraft());
-  }
-
-  onTokensIncrement(): void {
-    this.tokensChange.emit(this.adversary().tokens + 1);
-  }
-
-  onTokensDecrement(): void {
-    this.tokensChange.emit(Math.max(0, this.adversary().tokens - 1));
+  private formatModifier(mod: number): string {
+    return mod >= 0 ? `+${mod}` : `${mod}`;
   }
 }

@@ -1,0 +1,10 @@
+/* `.run-detail`, `.run-detail__section`, and `.run-detail__section-label` are declared once in
+   `shared/components/encounter-run/components/run-stat-row/run-detail-shell.css` (listed
+   alongside this file in this component's `styleUrls`) and shared with `RunAdversaryDetail` --
+   see that file's header comment for why. Everything below is specific to the environment's
+   detail panel. */
+:host { display: block; }
+
+.run-detail__description { margin: 0; font-size: .9rem; line-height: 1.6; font-style: italic; color: rgba(245, 230, 211, .82); }
+
+.run-detail__impulses-text { margin: 0; font-size: .9rem; line-height: 1.6; color: rgba(245, 230, 211, .82); }

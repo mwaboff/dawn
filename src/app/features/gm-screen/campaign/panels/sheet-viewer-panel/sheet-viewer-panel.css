@@ -1,3 +1,11 @@
+/* The row/toggle/identity/vitals/chevron rules (`.stat-row__*`, used by `.party__row` below) now
+   live in the global `shared/styles/stat-row.css`, shared with the run screen's `RunStatRow` --
+   the two used to be a copy-renamed fork with identical values, which this project's CLAUDE.md
+   bans. Everything left here is specific to this panel: the list container itself (a native
+   `<ul>`/`<li>` -- unlike the run screen's rows, nothing here is a custom-element child, so the
+   native list content model is valid as-is and doesn't need `role="list"`/`role="listitem"`), the
+   refresh bar, and the per-row loading/failed/detail-note text, none of which the run screen's
+   rows have an equivalent of. */
 :host {
   display: flex;
   flex-direction: column;
@@ -24,95 +32,11 @@
   list-style: none;
 }
 
-.party__item {
-  border: 1px solid rgba(212, 160, 86, .18);
-  border-radius: .35rem;
-  background: rgba(0, 0, 0, .18);
-  overflow: hidden;
-}
-
-.party__item.is-open { border-color: rgba(212, 160, 86, .38); }
-
-.party__row {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  width: 100%;
-  min-height: 48px;
-  padding: .4rem .6rem;
-  background: none;
-  border: none;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.party__row:hover { background: rgba(212, 160, 86, .07); }
-.party__row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-
-.party__identity {
-  display: flex;
-  flex-direction: column;
-  min-width: 7rem;
-  flex: 1 1 auto;
-}
-
-.party__name {
-  font-family: var(--font-display);
-  font-size: .95rem;
-  font-weight: 600;
-  color: var(--color-parchment);
-}
-
-.party__level {
-  font-size: var(--text-sm);
-  color: rgba(245, 230, 211, .68);
-}
-
-/* The row is a scan target: numbers first at a size readable across a table, labels beneath. */
-.party__vitals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .1rem .9rem;
-}
-
-.party__vital {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 3.1rem;
-}
-
-.party__vital b {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--color-accent-bright);
-  font-variant-numeric: tabular-nums;
-}
-
-.party__vital small {
-  font-size: .62rem;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: rgba(245, 230, 211, .68);
-  white-space: nowrap;
-}
-
 .party__status {
   font-size: .8rem;
   font-style: italic;
   color: rgba(245, 230, 211, .68);
 }
-
-.party__chevron {
-  flex: 0 0 auto;
-  color: rgba(212, 160, 86, .75);
-  transition: transform .18s ease;
-}
-
-.party__chevron.is-open { transform: rotate(180deg); }
 
 .party__detail-note {
   margin: 0;
@@ -122,10 +46,6 @@
 }
 
 @media (max-width: 700px) {
-  .party__row { flex-wrap: wrap; }
-  .party__vitals { flex: 1 1 100%; justify-content: space-between; gap: .1rem .4rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .party__chevron { transition: none; }
+  .stat-row__toggle { flex-wrap: wrap; }
+  .stat-row__vitals { flex: 1 1 100%; justify-content: space-between; gap: .1rem .4rem; }
 }

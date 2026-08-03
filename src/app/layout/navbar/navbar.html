@@ -7,7 +7,6 @@
       @if (authService.isLoggedIn()) {
         <a routerLink="/reference" class="nav-link">Reference</a>
         <a routerLink="/gm-screen" class="nav-link">GM Screen</a>
-        <a routerLink="/encounters" class="nav-link">Encounters</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-link">Admin</a>
         }
@@ -32,12 +31,11 @@
           </button>
           @if (isDropdownOpen()) {
             <div id="nav-create-dropdown" class="nav-dropdown">
-              <button type="button" class="nav-dropdown-item" (click)="onCreateCharacter()">
-                + Character
-              </button>
-              <button type="button" class="nav-dropdown-item" (click)="onCreateCampaign()">
-                + Campaign
-              </button>
+              @for (action of createActions; track action.label) {
+                <button type="button" class="nav-dropdown-item" (click)="action.onSelect()">
+                  {{ action.label }}
+                </button>
+              }
             </div>
           }
         </div>
@@ -94,12 +92,12 @@
       @if (authService.isLoggedIn()) {
         <a routerLink="/reference" class="nav-mobile-item" (click)="closeMobileMenu()">Reference</a>
         <a routerLink="/gm-screen" class="nav-mobile-item" (click)="closeMobileMenu()">GM Screen</a>
-        <a routerLink="/encounters" class="nav-mobile-item" (click)="closeMobileMenu()">Encounters</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-mobile-item" (click)="closeMobileMenu()">Admin</a>
         }
-        <button type="button" class="nav-mobile-item" (click)="onCreateCharacter()">+ Character</button>
-        <button type="button" class="nav-mobile-item" (click)="onCreateCampaign()">+ Campaign</button>
+        @for (action of createActions; track action.label) {
+          <button type="button" class="nav-mobile-item" (click)="action.onSelect()">{{ action.label }}</button>
+        }
         <div class="nav-mobile-divider"></div>
         <a routerLink="/profile" class="nav-mobile-item" (click)="closeMobileMenu()">Profile</a>
         <a routerLink="/preferences" class="nav-mobile-item" (click)="closeMobileMenu()">Preferences</a>
