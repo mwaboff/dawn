@@ -40,7 +40,8 @@ export interface AdversaryApiResponse {
 }
 
 export interface AdversaryFilters {
-  tier?: number;
+  /** A single tier, or several to browse at once (e.g. Tier 1 + Tier 2 together). */
+  tier?: number | number[];
   adversaryType?: string;
   isOfficial?: boolean;
   expansionId?: number;

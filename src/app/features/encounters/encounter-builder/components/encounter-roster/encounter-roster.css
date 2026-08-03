@@ -1,0 +1,69 @@
+:host { display: block; }
+
+.roster-panel__empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-style: italic;
+  color: rgba(245, 230, 211, .45);
+  border: 1px dashed rgba(212, 160, 86, .25);
+  border-radius: 8px;
+}
+
+.roster-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.roster-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem;
+  flex-shrink: 0;
+}
+
+.roster-panel__label-input {
+  width: 6.5rem;
+  padding: .3rem .5rem;
+  background: rgba(26, 20, 18, .8);
+  border: 1px solid rgba(212, 160, 86, .25);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: .75rem;
+}
+
+.roster-panel__retier-select {
+  padding: .3rem .4rem;
+  background: rgba(26, 20, 18, .8);
+  border: 1px solid rgba(212, 160, 86, .25);
+  border-radius: 3px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: .72rem;
+}
+
+.roster-panel__remove-btn {
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(196, 68, 68, .35);
+  background: transparent;
+  color: #c47a7a;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.roster-panel__remove-btn:hover {
+  background: rgba(196, 68, 68, .12);
+  border-color: #c44;
+  color: #d49090;
+}
+
+@media (max-width: 640px) {
+  .roster-panel__grid { grid-template-columns: 1fr; }
+}

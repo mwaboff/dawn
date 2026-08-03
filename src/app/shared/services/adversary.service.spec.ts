@@ -69,6 +69,14 @@ describe('AdversaryService', () => {
     req.flush(buildPaginatedResponse([]));
   });
 
+  it('should repeat the tier param for each tier when an array is provided', () => {
+    service.getAdversaries({ tier: [1, 2] }).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl);
+    expect(req.request.params.getAll('tier')).toEqual(['1', '2']);
+    req.flush(buildPaginatedResponse([]));
+  });
+
   it('should include adversaryType filter when provided', () => {
     service.getAdversaries({ adversaryType: 'SOLO' }).subscribe();
 

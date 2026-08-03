@@ -13,6 +13,21 @@ export const routes: Routes = [
         loadComponent: () => import('./features/gm-screen/gm-screen').then(m => m.GmScreen)
       },
       {
+        path: 'encounters',
+        loadComponent: () => import('./features/encounters/encounters').then(m => m.Encounters)
+      },
+      {
+        // Must precede 'encounters/:id/edit' for the same reason as 'campaign/:id/gm-screen'
+        // above -- a leaf route with no children only matches when it consumes every segment,
+        // so 'encounters/:id/edit' declared first would swallow '/encounters/new' as id="new".
+        path: 'encounters/new',
+        loadComponent: () => import('./features/encounters/encounter-builder/encounter-builder').then(m => m.EncounterBuilder)
+      },
+      {
+        path: 'encounters/:id/edit',
+        loadComponent: () => import('./features/encounters/encounter-builder/encounter-builder').then(m => m.EncounterBuilder)
+      },
+      {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)
       },

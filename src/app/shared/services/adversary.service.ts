@@ -25,7 +25,10 @@ export class AdversaryService {
       .set('size', filters.size ?? 20);
 
     if (filters.tier !== undefined) {
-      params = params.set('tier', filters.tier);
+      const tiers = Array.isArray(filters.tier) ? filters.tier : [filters.tier];
+      for (const tier of tiers) {
+        params = params.append('tier', tier);
+      }
     }
     if (filters.adversaryType !== undefined) {
       params = params.set('adversaryType', filters.adversaryType);

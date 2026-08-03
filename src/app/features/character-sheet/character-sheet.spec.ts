@@ -14,6 +14,7 @@ import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { MartialStanceResponse } from '../../shared/models/martial-stance-api.model';
 import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
 import { TransformationCardService } from '../../shared/services/transformation-card.service';
+import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
 
 const mockResponse: CharacterSheetResponse = {
   id: 1,
@@ -271,22 +272,6 @@ describe('CharacterSheet', () => {
     });
   });
 
-  describe('getRange', () => {
-    it('returns [1,2,3] for n=3', () => {
-      createComponent('1');
-      fixture.detectChanges();
-
-      expect(component.getRange(3)).toEqual([1, 2, 3]);
-    });
-
-    it('returns [] for n=0', () => {
-      createComponent('1');
-      fixture.detectChanges();
-
-      expect(component.getRange(0)).toEqual([]);
-    });
-  });
-
   describe('resource tracking', () => {
     it('markedHp defaults to sheet hitPointMarked', () => {
       createComponent('1');
@@ -295,51 +280,83 @@ describe('CharacterSheet', () => {
       expect(component.markedHp()).toBe(0);
     });
 
-    it('toggleResourceBox marks hp up to index', () => {
+    it('setResourceMarked sets hp to the given value', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
+      component.setResourceMarked('hp', 3);
 
       expect(component.markedHp()).toBe(3);
     });
 
-    it('toggleResourceBox on the last marked hp box unmarks it', () => {
+    it('setResourceMarked sets stress independently of hp', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
-      component.toggleResourceBox('hp', 3);
-
-      expect(component.markedHp()).toBe(2);
-    });
-
-    it('toggleResourceBox marks stress independently', () => {
-      createComponent('1');
-      fixture.detectChanges();
-
-      component.toggleResourceBox('stress', 2);
+      component.setResourceMarked('stress', 2);
 
       expect(component.markedStress()).toBe(2);
       expect(component.markedHp()).toBe(0);
     });
 
-    it('toggleResourceBox marks hope independently', () => {
+    it('setResourceMarked sets hope independently', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.toggleResourceBox('hope', 1);
+      component.setResourceMarked('hope', 1);
 
       expect(component.markedHope()).toBe(1);
     });
 
-    it('toggleResourceBox marks armor independently', () => {
+    it('setResourceMarked sets armor independently', () => {
       createComponent('1');
       fixture.detectChanges();
 
-      component.toggleResourceBox('armor', 4);
+      component.setResourceMarked('armor', 4);
 
       expect(component.markedArmor()).toBe(4);
+    });
+  });
+
+  describe('resource tracker wiring', () => {
+    it('renders a resource tracker for HP with the sheet max and current marked value', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const child = fixture.debugElement.query(By.directive(ResourceTracker));
+      expect(child.componentInstance.max()).toBe(10);
+      expect(child.componentInstance.marked()).toBe(0);
+    });
+
+    it('renders resource trackers for HP, Armor, Hope, and Stress', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const trackers = fixture.debugElement.queryAll(By.directive(ResourceTracker));
+      expect(trackers.length).toBe(4);
+    });
+
+    it('renders an additional Focus resource tracker when martial stances are shown', () => {
+      const martialArtistSubclass: SubclassCardResponse = {
+        id: 10,
+        name: 'Martial Artist',
+        features: [{ id: 1, name: 'Stance Fighter', description: 'Choose a stance.' }],
+      };
+      createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass], focusMax: 6, focusMarked: 0 }));
+      fixture.detectChanges();
+
+      const trackers = fixture.debugElement.queryAll(By.directive(ResourceTracker));
+      expect(trackers.length).toBe(5);
+    });
+
+    it('updates markedHp when the HP tracker emits markedChange', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      const child = fixture.debugElement.query(By.directive(ResourceTracker));
+      child.componentInstance.markedChange.emit(6);
+
+      expect(component.markedHp()).toBe(6);
     });
   });
 
@@ -1009,13 +1026,13 @@ describe('CharacterSheet', () => {
       vi.useRealTimers();
     });
 
-    it('toggleResourceBox triggers updateCharacterSheet after debounce for HP', () => {
+    it('setResourceMarked triggers updateCharacterSheet after debounce for HP', () => {
       const saveResponse$ = new Subject<CharacterSheetResponse>();
       createComponent('1');
       mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
+      component.setResourceMarked('hp', 3);
       expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
 
       vi.advanceTimersByTime(800);
@@ -1031,9 +1048,9 @@ describe('CharacterSheet', () => {
       mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
-      component.toggleResourceBox('hp', 5);
-      component.toggleResourceBox('hp', 7);
+      component.setResourceMarked('hp', 3);
+      component.setResourceMarked('hp', 5);
+      component.setResourceMarked('hp', 7);
 
       vi.advanceTimersByTime(800);
       expect(mockService.updateCharacterSheet).toHaveBeenCalledTimes(1);
@@ -1049,7 +1066,7 @@ describe('CharacterSheet', () => {
       mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
+      component.setResourceMarked('hp', 3);
       vi.advanceTimersByTime(800);
 
       expect(component.isSavingHealth()).toBe(true);
@@ -1079,19 +1096,19 @@ describe('CharacterSheet', () => {
       mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
       fixture.detectChanges();
 
-      component.toggleResourceBox('hp', 3);
+      component.setResourceMarked('hp', 3);
       vi.advanceTimersByTime(800);
 
       expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
     });
 
-    it('toggleResourceBox for hope triggers hopeStress save pipeline', () => {
+    it('setResourceMarked for hope triggers hopeStress save pipeline', () => {
       const saveResponse$ = new Subject<CharacterSheetResponse>();
       createComponent('1');
       mockService.updateCharacterSheet.mockReturnValue(saveResponse$.asObservable());
       fixture.detectChanges();
 
-      component.toggleResourceBox('hope', 2);
+      component.setResourceMarked('hope', 2);
       vi.advanceTimersByTime(800);
 
       expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
@@ -1991,11 +2008,11 @@ describe('CharacterSheet', () => {
         vi.useRealTimers();
       });
 
-      it('toggleResourceBox for focus triggers a save with focusMarked', () => {
+      it('setResourceMarked for focus triggers a save with focusMarked', () => {
         createComponent('1', of({ ...mockResponse, subclassCards: [martialArtistSubclass()], focusMax: 6, focusMarked: 0 }));
         fixture.detectChanges();
 
-        component.toggleResourceBox('focus', 3);
+        component.setResourceMarked('focus', 3);
         vi.advanceTimersByTime(800);
 
         expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, { focusMarked: 3 });

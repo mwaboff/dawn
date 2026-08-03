@@ -9,6 +9,22 @@
 
 .adversary-card__subtitle { margin: 0.25rem 0 0; font-family: var(--font-body); font-size: 1rem; color: var(--color-accent); text-transform: uppercase; letter-spacing: .12em; }
 .adversary-card__subtitle--secondary { font-size: .85rem; opacity: .75; letter-spacing: .14em; }
+.adversary-card__subtitle--retiered { font-size: .78rem; font-style: italic; text-transform: none; color: var(--color-accent-bright); }
+
+/* Pointed rank-tag shape, not a rounded pill, so the type reads as a battlefield marker. */
+.adversary-card__type-badge {
+  display: inline-block;
+  padding: .2rem .9rem;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  background: color-mix(in srgb, var(--tc, var(--color-accent)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tc, var(--color-accent)) 45%, transparent);
+  font: 700 .68rem var(--font-display);
+  color: var(--color-text-light);
+}
+.adversary-card__type-badge::before { content: attr(data-glyph); margin-right: .45em; }
+.adversary-card__type-badge--minion { border-style: dashed; background: transparent; opacity: .82; }
+.adversary-card__type-badge--elite { --tc: var(--color-accent-bright); border-width: 2px; font-weight: 900; }
+.adversary-card__type-badge--solo { border-width: 3px; letter-spacing: .22em; }
 
 .adversary-card__body { padding: 1rem 1.5rem 1.25rem; display: flex; flex-flow: column; gap: .75rem; }
 .adversary-card__stats { display: flex; flex-wrap: wrap; gap: .5rem; }

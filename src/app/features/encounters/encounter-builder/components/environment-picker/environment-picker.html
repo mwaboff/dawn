@@ -1,0 +1,15 @@
+<div class="env-picker">
+  <div class="env-picker__head">
+    <p class="env-picker__note">Environments don't affect Battle Points — this is a scene, not an adversary.</p>
+    @if (selectedEnvironmentId() !== undefined) {
+      <button type="button" class="env-picker__clear-btn" (click)="onClear()">Clear environment</button>
+    }
+  </div>
+  <app-card-selection-grid
+    [cards]="environments()"
+    [loading]="loading()"
+    [error]="error()"
+    [selectedCard]="selectedCard()"
+    (cardSelected)="onCardSelected($event)"
+  />
+</div>

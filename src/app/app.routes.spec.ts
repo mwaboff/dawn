@@ -54,6 +54,16 @@ describe('App Routes', () => {
     expect(gmScreenRoute).toBeDefined();
   });
 
+  it('should have encounters/new route declared before encounters/:id/edit', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const children = guardedRoute?.children ?? [];
+    const newIdx = children.findIndex(r => r.path === 'encounters/new');
+    const editIdx = children.findIndex(r => r.path === 'encounters/:id/edit');
+    expect(newIdx).toBeGreaterThanOrEqual(0);
+    expect(editIdx).toBeGreaterThanOrEqual(0);
+    expect(newIdx).toBeLessThan(editIdx);
+  });
+
   it('should have campaign/:id/gm-screen route declared before campaign/:id', () => {
     const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
     const children = guardedRoute?.children ?? [];
@@ -88,5 +98,19 @@ describe('App Routes', () => {
     await navigateAndFlushSession(router, '/campaign/5');
     const activated = router.routerState.snapshot.root.firstChild?.firstChild;
     expect(activated?.routeConfig?.path).toBe('campaign/:id');
+  });
+
+  it('should resolve /encounters/new to the new route, not encounters/:id/edit', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/encounters/new');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('encounters/new');
+  });
+
+  it('should still resolve /encounters/5/edit to the edit route', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/encounters/5/edit');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('encounters/:id/edit');
   });
 });

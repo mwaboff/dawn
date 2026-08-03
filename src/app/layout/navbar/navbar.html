@@ -7,6 +7,7 @@
       @if (authService.isLoggedIn()) {
         <a routerLink="/reference" class="nav-link">Reference</a>
         <a routerLink="/gm-screen" class="nav-link">GM Screen</a>
+        <a routerLink="/encounters" class="nav-link">Encounters</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-link">Admin</a>
         }
@@ -83,6 +84,7 @@
       @if (authService.isLoggedIn()) {
         <a routerLink="/reference" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Reference</a>
         <a routerLink="/gm-screen" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">GM Screen</a>
+        <a routerLink="/encounters" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Encounters</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-mobile-item" role="menuitem" (click)="closeMobileMenu()">Admin</a>
         }

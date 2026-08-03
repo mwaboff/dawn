@@ -40,13 +40,24 @@ const MINIMAL_ADVERSARY: AdversaryData = {
       [adversary]="adversary()"
       [layout]="layout()"
       [collapsibleFeatures]="collapsibleFeatures()"
-    />
+      [effectiveTier]="effectiveTier()"
+    >
+      @if (showActions()) {
+        <button card-actions type="button">Remove</button>
+      }
+      @if (showCounters()) {
+        <span card-counters>HP tracker</span>
+      }
+    </app-adversary-card>
   `,
 })
 class TestHost {
   adversary = signal<AdversaryData>(MOCK_ADVERSARY);
   layout = signal<'default' | 'wide'>('default');
   collapsibleFeatures = signal(false);
+  effectiveTier = signal<number | undefined>(undefined);
+  showActions = signal(false);
+  showCounters = signal(false);
 }
 
 describe('AdversaryCard', () => {
@@ -76,6 +87,67 @@ describe('AdversaryCard', () => {
   it('should render the adversary type as the primary subtitle', () => {
     const subtitle = fixture.nativeElement.querySelector('.adversary-card__subtitle:not(.adversary-card__subtitle--secondary)');
     expect(subtitle.textContent.trim()).toBe('MINION');
+  });
+
+  it('should render the adversary type as a visible badge', () => {
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.textContent.trim()).toBe('MINION');
+  });
+
+  it('should set a per-type glyph on the badge for CSS-generated content', () => {
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.getAttribute('data-glyph')).toBe('✱');
+  });
+
+  it('should not mark a non-elite type (MINION) with the elite badge modifier', () => {
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--elite')).toBe(false);
+  });
+
+  it.each(['BRUISER', 'HORDE', 'LEADER', 'SOLO'])('should mark %s as an elite type', (adversaryType) => {
+    host.adversary.set({ ...MOCK_ADVERSARY, adversaryType });
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--elite')).toBe(true);
+  });
+
+  it.each(['MINION', 'SOCIAL', 'SUPPORT', 'RANGED', 'SKULK', 'STANDARD'])('should not mark %s as an elite type', (adversaryType) => {
+    host.adversary.set({ ...MOCK_ADVERSARY, adversaryType });
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--elite')).toBe(false);
+  });
+
+  it('should mark MINION with the minion badge modifier', () => {
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--minion')).toBe(true);
+  });
+
+  it('should not mark a non-minion type (BRUISER) with the minion badge modifier', () => {
+    host.adversary.set({ ...MOCK_ADVERSARY, adversaryType: 'BRUISER' });
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--minion')).toBe(false);
+  });
+
+  it('should mark SOLO with both the elite and solo badge modifiers', () => {
+    host.adversary.set({ ...MOCK_ADVERSARY, adversaryType: 'SOLO' });
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--elite')).toBe(true);
+    expect(badge.classList.contains('adversary-card__type-badge--solo')).toBe(true);
+  });
+
+  it('should not mark a non-solo elite type (BRUISER) with the solo badge modifier', () => {
+    host.adversary.set({ ...MOCK_ADVERSARY, adversaryType: 'BRUISER' });
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
+    expect(badge.classList.contains('adversary-card__type-badge--solo')).toBe(false);
   });
 
   it('should render the tier as the secondary subtitle (Tier 1)', () => {
@@ -346,6 +418,104 @@ describe('AdversaryCard', () => {
 
       const card = fixture.nativeElement.querySelector('.adversary-card');
       expect(card.classList.contains('adversary-card--wide')).toBe(false);
+    });
+  });
+
+  describe('Projected content', () => {
+    it('should not render card-actions content by default', () => {
+      const actions = fixture.nativeElement.querySelector('[card-actions]');
+      expect(actions).toBeFalsy();
+    });
+
+    it('should render projected card-actions content', () => {
+      host.showActions.set(true);
+      fixture.detectChanges();
+
+      const actions = fixture.nativeElement.querySelector('[card-actions]');
+      expect(actions.textContent.trim()).toBe('Remove');
+    });
+
+    it('should not render card-counters content by default', () => {
+      const counters = fixture.nativeElement.querySelector('[card-counters]');
+      expect(counters).toBeFalsy();
+    });
+
+    it('should render projected card-counters content', () => {
+      host.showCounters.set(true);
+      fixture.detectChanges();
+
+      const counters = fixture.nativeElement.querySelector('[card-counters]');
+      expect(counters.textContent.trim()).toBe('HP tracker');
+    });
+  });
+
+  describe('Retiering', () => {
+    it('should not show a retiered marker when effectiveTier is unset', () => {
+      const marker = fixture.nativeElement.querySelector('.adversary-card__subtitle--retiered');
+      expect(marker).toBeFalsy();
+    });
+
+    it('should not show a retiered marker when effectiveTier equals the printed tier', () => {
+      host.effectiveTier.set(MOCK_ADVERSARY.tier);
+      fixture.detectChanges();
+
+      const marker = fixture.nativeElement.querySelector('.adversary-card__subtitle--retiered');
+      expect(marker).toBeFalsy();
+    });
+
+    it('should show a retiered marker naming the original tier when retiered', () => {
+      host.effectiveTier.set(3);
+      fixture.detectChanges();
+
+      const marker = fixture.nativeElement.querySelector('.adversary-card__subtitle--retiered');
+      expect(marker.textContent.replace(/\s+/g, ' ').trim()).toBe('⟳ Retiered from Tier 1');
+    });
+
+    it('should show the effective tier in the tier subtitle when retiered', () => {
+      host.effectiveTier.set(3);
+      fixture.detectChanges();
+
+      const tier = fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary');
+      expect(tier.textContent.trim()).toBe('Tier 3');
+    });
+
+    it('should swap the difficulty to the Tier 3 improvised value when retiered to Tier 3', () => {
+      host.effectiveTier.set(3);
+      fixture.detectChanges();
+
+      const stats = Array.from<Element>(fixture.nativeElement.querySelectorAll('.adversary-card__stat'));
+      const difficultyStat = stats.find(s =>
+        (s as HTMLElement).querySelector('.adversary-card__stat-label')?.textContent?.trim() === 'Difficulty'
+      ) as HTMLElement;
+      expect(difficultyStat.querySelector('.adversary-card__stat-value')?.textContent?.trim()).toBe('17');
+    });
+
+    it('should swap the thresholds to the Tier 3 improvised values when retiered', () => {
+      host.effectiveTier.set(3);
+      fixture.detectChanges();
+
+      const thresholds = Array.from<Element>(fixture.nativeElement.querySelectorAll('.adversary-card__threshold'));
+      const values = thresholds.map(t => (t as HTMLElement).querySelector('.adversary-card__threshold-value')?.textContent?.trim());
+      expect(values).toEqual(['20', '32']);
+    });
+
+    it('should swap the attack modifier to the Tier 3 improvised value when retiered', () => {
+      host.effectiveTier.set(3);
+      fixture.detectChanges();
+
+      const modifier = fixture.nativeElement.querySelector('.adversary-card__attack-modifier');
+      expect(modifier.textContent.trim()).toBe('+3');
+    });
+
+    it('should fall back to the printed stats when effectiveTier is out of range', () => {
+      host.effectiveTier.set(9);
+      fixture.detectChanges();
+
+      const stats = Array.from<Element>(fixture.nativeElement.querySelectorAll('.adversary-card__stat'));
+      const difficultyStat = stats.find(s =>
+        (s as HTMLElement).querySelector('.adversary-card__stat-label')?.textContent?.trim() === 'Difficulty'
+      ) as HTMLElement;
+      expect(difficultyStat.querySelector('.adversary-card__stat-value')?.textContent?.trim()).toBe('10');
     });
   });
 });

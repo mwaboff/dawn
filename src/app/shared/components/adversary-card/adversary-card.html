@@ -6,9 +6,21 @@
   <div class="adversary-card__header">
     <div class="adversary-card__header-main">
       <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+      <ng-content select="[card-actions]" />
     </div>
-    <p class="adversary-card__subtitle">{{ adversary().adversaryType }}</p>
+    <p
+      class="adversary-card__subtitle adversary-card__type-badge"
+      [class.adversary-card__type-badge--elite]="isEliteType"
+      [class.adversary-card__type-badge--minion]="isMinionType"
+      [class.adversary-card__type-badge--solo]="isSoloType"
+      [attr.data-glyph]="typeGlyph"
+    >{{ adversary().adversaryType }}</p>
     <p class="adversary-card__subtitle adversary-card__subtitle--secondary">{{ tierLabel }}</p>
+    @if (isRetiered()) {
+      <p class="adversary-card__subtitle adversary-card__subtitle--retiered">
+        <span aria-hidden="true">&#10227;</span> {{ retieredFromLabel }}
+      </p>
+    }
   </div>
 
   <div class="adversary-card__body">
@@ -34,20 +46,22 @@
         }
         <div class="adversary-card__stat">
           <span class="adversary-card__stat-label">Difficulty</span>
-          <span class="adversary-card__stat-value">{{ adversary().difficulty ?? '—' }}</span>
+          <span class="adversary-card__stat-value">{{ effectiveDifficulty ?? '—' }}</span>
         </div>
       </div>
     }
+
+    <ng-content select="[card-counters]" />
 
     @if (adversary().majorThreshold !== undefined || adversary().severeThreshold !== undefined) {
       <div class="adversary-card__thresholds">
         <div class="adversary-card__threshold">
           <span class="adversary-card__threshold-label">Major</span>
-          <span class="adversary-card__threshold-value">{{ adversary().majorThreshold ?? '—' }}</span>
+          <span class="adversary-card__threshold-value">{{ effectiveMajorThreshold ?? '—' }}</span>
         </div>
         <div class="adversary-card__threshold">
           <span class="adversary-card__threshold-label">Severe</span>
-          <span class="adversary-card__threshold-value">{{ adversary().severeThreshold ?? '—' }}</span>
+          <span class="adversary-card__threshold-value">{{ effectiveSevereThreshold ?? '—' }}</span>
         </div>
       </div>
     }

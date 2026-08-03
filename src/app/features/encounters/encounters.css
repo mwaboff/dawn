@@ -1,0 +1,69 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
+    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
+}
+
+.encounters-page { position: relative; max-width: 720px; margin: 0 auto; padding: 8rem 2rem 6rem; }
+.encounters-grain { position: fixed; opacity: 0.15; }
+
+.encounters-header {
+  position: relative; z-index: 1;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem;
+  margin-bottom: 3.5rem;
+}
+
+.encounters-identity { flex: 1; min-width: 0; }
+
+.encounters-eyebrow {
+  display: inline-block; font-family: var(--font-display);
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.3em;
+  text-transform: uppercase; color: var(--color-accent); margin-bottom: 0.75rem; opacity: 0.8;
+}
+
+.encounters-title { font-size: clamp(2.25rem, 6vw, 3.5rem); line-height: 1.1; color: var(--color-parchment); margin-bottom: 0; }
+
+.encounters-create-btn {
+  flex-shrink: 0; font-family: var(--font-display); font-size: 0.8125rem; font-weight: 600;
+  letter-spacing: 0.1em; color: var(--color-accent); background: none; text-decoration: none;
+  border: 1px solid rgba(212, 160, 86, 0.3); padding: 0.625rem 1.25rem;
+  border-radius: 2px; cursor: pointer; transition: all 0.2s ease; margin-top: 0.5rem;
+  display: inline-block;
+}
+.encounters-create-btn:hover { background: rgba(212, 160, 86, 0.08); border-color: var(--color-accent); }
+.encounters-create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
+
+.encounters-divider {
+  position: relative; z-index: 1; display: flex; align-items: center; gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+.encounters-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 160, 86, 0.25), transparent); }
+.encounters-divider-label {
+  font-family: var(--font-display); font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent); opacity: 0.7;
+}
+
+.encounters-points--over { color: #e08a8a; }
+
+.encounters-copy-btn {
+  flex-shrink: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 3px;
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  background: transparent;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.encounters-copy-btn:hover:not(:disabled) { background: rgba(212, 160, 86, 0.08); border-color: var(--color-accent); }
+.encounters-copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .encounters-page { padding: 6rem 1rem 4rem; }
+}
