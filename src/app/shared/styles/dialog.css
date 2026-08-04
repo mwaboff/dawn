@@ -16,7 +16,9 @@
 .dialog-panel {
   background: linear-gradient(170deg, #faf7f2, #f5ede0);
   border: 1px solid #c9a87c;
-  border-top: 3px solid #b33;
+  /* Consumers set --dialog-accent for their own intent (e.g. destructive red); defaults to the
+     brand accent token when a consumer doesn't need a different one. */
+  border-top: 3px solid var(--dialog-accent, var(--color-accent));
   border-radius: 6px;
   padding: var(--space-11);
   max-width: 420px;
@@ -29,7 +31,8 @@
   font-size: var(--text-lg);
   font-weight: 700;
   color: #3e2723;
-  margin: 0 0 var(--space-5);
+  /* Consumers set --dialog-title-gap when their original spacing differed pre-extraction. */
+  margin: 0 0 var(--dialog-title-gap, var(--space-5));
 }
 
 .dialog-actions {
