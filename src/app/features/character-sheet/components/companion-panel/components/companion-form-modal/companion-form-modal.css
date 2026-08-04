@@ -26,33 +26,3 @@
     grid-template-columns: 1fr;
   }
 }
-
-.dialog-btn {
-  padding: var(--space-3) var(--space-9);
-  border-radius: 4px;
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-
-.dialog-btn:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.dialog-btn--cancel {
-  background: transparent;
-  border: 1px solid #c9a87c;
-  color: #5a4230;
-}
-.dialog-btn--cancel:hover:not(:disabled) { background: rgba(139,94,52,.08); }
-
-.dialog-btn--submit {
-  background: var(--color-card-companion);
-  border: 1px solid color-mix(in srgb, var(--color-card-companion) 70%, black);
-  color: #fff;
-}
-.dialog-btn--submit:hover:not(:disabled) { filter: brightness(.9); }
-.dialog-btn--submit:focus-visible { outline: 2px solid var(--color-card-companion); outline-offset: 2px; }

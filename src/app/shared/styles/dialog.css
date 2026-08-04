@@ -1,6 +1,7 @@
-/* Shared shell for modal dialogs (ConfirmDialog, AddExpansionDialog, ModalShell). Button styles
-   (`.dialog-btn` and its `--cancel`/`--confirm`/`--submit` modifiers) stay component-local since
-   their colors differ per dialog. */
+/* Shared shell for modal dialogs (ConfirmDialog, AddExpansionDialog, ModalShell).
+   Consumers set --dialog-accent to express their own intent; everything structural lives here.
+   Only a genuinely different treatment (e.g. ConfirmDialog's destructive button, which uses a
+   distinct hover shade rather than a brightness filter) belongs in a component stylesheet. */
 
 .dialog-backdrop {
   position: fixed;
@@ -39,4 +40,38 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-5);
+}
+
+.dialog-btn {
+  padding: var(--space-3) var(--space-9);
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.dialog-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.dialog-btn--cancel {
+  background: transparent;
+  border: 1px solid #c9a87c;
+  color: #5a4230;
+}
+.dialog-btn--cancel:hover:not(:disabled) { background: rgba(139,94,52,.08); }
+
+/* Affirmative action, tinted by the consumer's --dialog-accent. */
+.dialog-btn--submit {
+  background: var(--dialog-accent, var(--color-accent));
+  border: 1px solid color-mix(in srgb, var(--dialog-accent, var(--color-accent)) 70%, black);
+  color: #fff;
+}
+.dialog-btn--submit:hover:not(:disabled) { filter: brightness(.9); }
+.dialog-btn--submit:focus-visible {
+  outline: 2px solid var(--dialog-accent, var(--color-accent));
+  outline-offset: 2px;
 }
