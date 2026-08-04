@@ -8,9 +8,9 @@
     <h4 class="expandable-card__name">{{ companion().name }}</h4>
     <div class="expandable-card__meta">
       @if (companion().outOfScene) {
-        <span class="expandable-card__meta-badge expandable-card__meta-badge--depleted" aria-hidden="true">Out of scene</span>
+        <span class="expandable-card__meta-badge expandable-card__meta-badge--depleted">Out of scene</span>
       }
-      <span class="expandable-card__meta-badge expandable-card__meta-badge--companion" aria-hidden="true">
+      <span class="expandable-card__meta-badge expandable-card__meta-badge--companion">
         Stress {{ companion().stressMarked }}/{{ companion().stressMax }}
       </span>
     </div>
@@ -33,6 +33,7 @@
         variant="stress"
         label="Stress"
         [idPrefix]="'companion-' + companion().id + '-stress'"
+        [readonly]="!canManage()"
         (markedChange)="onStressMarkedChange($event)"
       />
 

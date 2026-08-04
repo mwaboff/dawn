@@ -133,37 +133,39 @@
       }
     </section>
 
-    <section class="review-card">
-      <h3 class="review-card-title">Companion</h3>
-      @if (readyCompanion(); as companion) {
-        <div class="review-row">
-          <span class="review-label">Name</span>
-          <span class="review-value">{{ companion.payload.name }}</span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">Evasion</span>
-          <span class="review-value">{{ companion.payload.evasion }}</span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">Attack</span>
-          <span class="review-value">
-            {{ companion.payload.attackName }} ({{ formatCompanionDice(companion.payload.damageDice) }}, {{ formatCompanionRange(companion.payload.attackRange) }})
-          </span>
-        </div>
-        <div class="review-row">
-          <span class="review-label">Stress</span>
-          <span class="review-value">0 / {{ companion.payload.stressMax }}</span>
-        </div>
-        @for (exp of companionExperiences(); track $index) {
-          <div class="review-row review-row--indented">
-            <span class="review-label">{{ exp.name }}</span>
-            <span class="review-value review-trait-value">{{ formatModifier(exp.modifier) }}</span>
+@if (showCompanion()) {
+      <section class="review-card">
+        <h3 class="review-card-title">Companion</h3>
+        @if (readyCompanion(); as companion) {
+          <div class="review-row">
+            <span class="review-label">Name</span>
+            <span class="review-value">{{ companion.payload.name }}</span>
           </div>
+          <div class="review-row">
+            <span class="review-label">Evasion</span>
+            <span class="review-value">{{ companion.payload.evasion }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Attack</span>
+            <span class="review-value">
+              {{ companion.payload.attackName }} ({{ formatCompanionDice(companion.payload.damageDice) }}, {{ formatCompanionRange(companion.payload.attackRange) }})
+            </span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Stress</span>
+            <span class="review-value">0 / {{ companion.payload.stressMax }}</span>
+          </div>
+          @for (exp of companionExperiences(); track $index) {
+            <div class="review-row review-row--indented">
+              <span class="review-label">{{ exp.name }}</span>
+              <span class="review-value review-trait-value">{{ formatModifier(exp.modifier) }}</span>
+            </div>
+          }
+        } @else {
+          <p class="review-empty">No companion &mdash; can be added later from the character sheet</p>
         }
-      } @else {
-        <p class="review-empty">No companion &mdash; can be added later from the character sheet</p>
-      }
-    </section>
+      </section>
+    }
 
     <section class="review-card review-card--full">
       <h3 class="review-card-title">Domain Cards</h3>

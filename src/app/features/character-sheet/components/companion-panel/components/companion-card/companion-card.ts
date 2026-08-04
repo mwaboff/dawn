@@ -106,6 +106,7 @@ export class CompanionCard {
   }
 
   onStressMarkedChange(newValue: number): void {
+    if (!this.canManage()) return;
     const markingUp = newValue > this.companion().stressMarked;
     if (markingUp && this.offersArmorInstead()) {
       this.pendingStressValue.set(newValue);

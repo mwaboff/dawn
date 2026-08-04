@@ -15,6 +15,7 @@
         (click)="toggle(i)"
         [attr.aria-label]="ariaLabelFor(i)"
         [attr.aria-pressed]="i <= marked()"
+        [disabled]="readonly()"
       ></button>
     }
   </div>

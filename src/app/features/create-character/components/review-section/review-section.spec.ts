@@ -51,6 +51,7 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
       [experiences]="experiences"
       [domainCards]="domainCards"
       [companionDraft]="companionDraft"
+      [showCompanion]="showCompanion"
       [submitting]="submitting"
       [submitError]="submitError"
       (submitClicked)="onSubmitClicked()"
@@ -71,6 +72,7 @@ class TestHost {
     makeCard({ id: 11, cardType: 'domain', name: 'Bone Cage', subtitle: 'Bone' }),
   ];
   companionDraft: CompanionDraft | null = null;
+  showCompanion = false;
   submitting = false;
   submitError: SubmitError | null = null;
   submitClickCount = 0;
@@ -323,11 +325,13 @@ describe('ReviewSection', () => {
     }
 
     it('shows "no companion" when nothing was drafted', () => {
+      host.showCompanion = true;
       fixture.detectChanges();
       expect((fixture.nativeElement.textContent as string)).toContain('No companion');
     });
 
     it('shows the drafted companion once it has its required fields', () => {
+      host.showCompanion = true;
       host.companionDraft = buildDraft();
       fixture.detectChanges();
       const text = fixture.nativeElement.textContent as string;
@@ -339,6 +343,7 @@ describe('ReviewSection', () => {
     });
 
     it('shows both starting companion experiences, each at +2', () => {
+      host.showCompanion = true;
       host.companionDraft = buildDraft();
       fixture.detectChanges();
       const text = fixture.nativeElement.textContent as string;
@@ -347,12 +352,14 @@ describe('ReviewSection', () => {
     });
 
     it('treats an incomplete draft (missing attack name) as no companion', () => {
+      host.showCompanion = true;
       host.companionDraft = buildDraft({ attackName: '' });
       fixture.detectChanges();
       expect((fixture.nativeElement.textContent as string)).toContain('No companion');
     });
 
     it('treats a draft with only one named starting experience as no companion', () => {
+      host.showCompanion = true;
       host.companionDraft = {
         payload: {
           name: 'Rufus',
@@ -368,5 +375,14 @@ describe('ReviewSection', () => {
       fixture.detectChanges();
       expect((fixture.nativeElement.textContent as string)).toContain('No companion');
     });
+
+    it('omits the Companion section entirely for a class that cannot have one', () => {
+      host.showCompanion = false;
+      host.companionDraft = null;
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent as string).not.toContain('Companion');
+    });
+
   });
 });

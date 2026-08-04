@@ -34,6 +34,9 @@ export class ResourceTracker {
   /** Spoken qualifier distinguishing a bonus box from a normal one. Bonus boxes are otherwise
    * only distinguished by colour, which a screen reader cannot convey. */
   readonly bonusLabel = input<string>('bonus');
+  /** Renders the boxes as non-interactive. Use when the viewer may see the resource but not
+   * change it, so the control doesn't look live and silently do nothing. */
+  readonly readonly = input(false);
 
   readonly markedChange = output<number>();
 
@@ -47,6 +50,7 @@ export class ResourceTracker {
   }
 
   toggle(index: number): void {
+    if (this.readonly()) return;
     const current = this.marked();
     const next = current === index ? index - 1 : index;
     this.markedChange.emit(Math.max(0, Math.min(next, this.totalBoxes())));

@@ -29,6 +29,9 @@ export class ReviewSection {
   readonly experiences = input.required<Experience[]>();
   readonly domainCards = input.required<CardData[]>();
   readonly companionDraft = input<CompanionDraft | null>(null);
+  /** Whether this character can have a companion at all. Driven by the parent's existing
+   * feature check rather than re-derived, so the review can't disagree with the step. */
+  readonly showCompanion = input(false);
 
   readonly submitClicked = output<void>();
   readonly submitting = input<boolean>(false);
