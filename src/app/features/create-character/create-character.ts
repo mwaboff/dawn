@@ -23,11 +23,11 @@ import { hasMartialStances } from '../character-sheet/utils/martial-stance-acces
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
-import { ExperienceSelector } from './components/experience-selector/experience-selector';
+import { ExperienceSelector } from '../../shared/components/experience-selector/experience-selector';
 import { ExperienceBonusAllocator } from './components/experience-bonus-allocator/experience-bonus-allocator';
 import { ReviewSection } from './components/review-section/review-section';
 import { TraitAssignments, TraitKey } from './models/trait.model';
-import { Experience, isExperienceComplete } from './models/experience.model';
+import { Experience, isExperienceComplete } from '../../shared/models/experience.model';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { CharacterSheetResponse, ModifierResponse } from './models/character-sheet-api.model';
 import { CharacterSheetData } from './models/character-sheet.model';

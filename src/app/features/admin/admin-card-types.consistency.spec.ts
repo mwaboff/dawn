@@ -63,9 +63,7 @@ describe('admin card type registration consistency', () => {
 
   // 'expansion' is deliberately absent from CARD_TYPE_OPTIONS: ExpansionController has
   // no '/bulk' endpoint, so bulk-uploading expansions would 404 on every attempt.
-  // 'companion' is deliberately absent: Companion is character-owned content, not
-  // catalog content, and has no bulk endpoint either.
-  const CARD_TYPE_OPTIONS_ALLOWED_OMISSIONS = new Set(['expansion', 'companion']);
+  const CARD_TYPE_OPTIONS_ALLOWED_OMISSIONS = new Set(['expansion']);
 
   it('every CARD_EDIT_SCHEMAS key is either in CARD_TYPE_OPTIONS or an explicit allowlisted omission', () => {
     const bulkUploadValues = new Set(CARD_TYPE_OPTIONS.map(o => o.value));

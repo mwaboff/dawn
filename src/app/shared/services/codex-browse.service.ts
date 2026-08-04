@@ -13,7 +13,6 @@ import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
 import { DomainService } from './domain.service';
 import { SubclassService } from './subclass.service';
-import { CompanionService } from './companion.service';
 import { FeatureLookupService } from './feature-lookup.service';
 import { BrowseResult, SearchableEntityType } from '../models/search.model';
 
@@ -31,7 +30,7 @@ import { BrowseResult, SearchableEntityType } from '../models/search.model';
  */
 export const SUPPORTED_BROWSE_TYPES = [
   'WEAPON', 'ARMOR', 'LOOT', 'ADVERSARY', 'ENVIRONMENT', 'CLASS', 'ANCESTRY_CARD',
-  'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'COMPANION', 'FEATURE', 'BEASTFORM',
+  'COMMUNITY_CARD', 'DOMAIN_CARD', 'DOMAIN', 'SUBCLASS_CARD', 'FEATURE', 'BEASTFORM',
   'TRANSFORMATION_CARD', 'MARTIAL_STANCE',
 ] as const satisfies readonly SearchableEntityType[];
 
@@ -65,7 +64,6 @@ export class CodexBrowseService {
   private readonly communityService = inject(CommunityService);
   private readonly domainService = inject(DomainService);
   private readonly subclassService = inject(SubclassService);
-  private readonly companionService = inject(CompanionService);
   private readonly featureLookupService = inject(FeatureLookupService);
 
   /**
@@ -207,11 +205,6 @@ export class CodexBrowseService {
           expansionId: filters['expansionId'] as number | undefined,
           isOfficial: filters['isOfficial'] as boolean | undefined,
         }).pipe(map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)));
-
-      case 'COMPANION':
-        return this.companionService.getCompanionsPaginated({ page, size }).pipe(
-          map(r => toCardResult(r.cards, r.currentPage, r.totalPages, r.totalElements)),
-        );
 
       case 'FEATURE':
         return this.featureLookupService.getFeaturesPaginated({

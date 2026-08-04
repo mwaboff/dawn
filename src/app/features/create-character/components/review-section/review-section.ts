@@ -3,7 +3,7 @@ import { KeyValuePipe } from '@angular/common';
 
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments, TRAITS } from '../../models/trait.model';
-import { Experience } from '../../models/experience.model';
+import { Experience } from '../../../../shared/models/experience.model';
 import { DEFAULT_MAJOR_THRESHOLD, DEFAULT_SEVERE_THRESHOLD } from '../../models/character-sheet.model';
 import { calculateDisplayEvasion } from '../../utils/stat-calculator.utils';
 import { SubmitError } from '../../models/submit-error.model';

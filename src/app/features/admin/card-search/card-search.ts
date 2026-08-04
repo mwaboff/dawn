@@ -9,7 +9,7 @@ import { CardTable } from './card-table/card-table';
 import { SearchService } from '../../../shared/services/search.service';
 import { CodexBrowseService } from '../../../shared/services/codex-browse.service';
 import { ExpansionService } from '../../../shared/services/expansion.service';
-import { BrowseResult, isSearchableType, SearchableEntityType } from '../../../shared/models/search.model';
+import { BrowseResult, SearchableEntityType } from '../../../shared/models/search.model';
 import { mapSearchResult } from '../../../shared/mappers/search-result.mapper';
 import {
   ADMIN_CATEGORIES, ALL_TYPES_COLUMNS, ALL_TYPES_ID, PAGE_SIZES, SortState,
@@ -182,7 +182,7 @@ export class CardSearch {
       const type = ADMIN_CATEGORIES.find(c => c.id === category)?.type;
       return type ? [type] : [];
     }
-    return ADMIN_CATEGORIES.map(c => c.type).filter(isSearchableType);
+    return ADMIN_CATEGORIES.map(c => c.type);
   }
 
   private executeSearch(category: string, q: string, page: number, size: number): void {

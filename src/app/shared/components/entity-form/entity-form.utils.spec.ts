@@ -5,14 +5,12 @@ import {
   applyBackendErrors,
   buildFormFromSchema,
   buildPayloadFromSchema,
-  buildPreviewCard,
   positiveValidator,
-} from './card-edit-form.utils';
-import { CardSchema } from '../schema/card-edit-schema.types';
-import { RawCardResponse } from '../../models/admin-api.model';
+} from './entity-form.utils';
+import { EntityFormSchema } from './entity-form.types';
 import { FormControl } from '@angular/forms';
 
-const domainCardSchema: CardSchema = {
+const domainCardSchema: EntityFormSchema = {
   cardType: 'domainCard',
   sections: [
     {
@@ -45,7 +43,7 @@ const domainCardSchema: CardSchema = {
   previewSubtitle: (v) => v['type'] ? `${v['type']} card` : undefined,
 };
 
-const rawCard: RawCardResponse = {
+const rawCard: Record<string, unknown> = {
   id: 42,
   name: 'Test Spell',
   description: 'A powerful spell',
@@ -173,7 +171,7 @@ describe('buildPayloadFromSchema', () => {
   });
 });
 
-const weaponSchema: CardSchema = {
+const weaponSchema: EntityFormSchema = {
   cardType: 'weapon',
   sections: [
     {
@@ -202,7 +200,7 @@ const weaponSchema: CardSchema = {
   previewTags: () => [],
 };
 
-const rawWeapon: RawCardResponse = {
+const rawWeapon: Record<string, unknown> = {
   id: 7,
   name: 'Longsword',
   expansionId: 1,
@@ -233,7 +231,7 @@ describe('nested path support', () => {
   });
 
   it('defaults nested values to empty string when raw.damage is missing', () => {
-    const bareWeapon: RawCardResponse = { id: 1, name: 'Bare', expansionId: 1, cardType: 'weapon' };
+    const bareWeapon: Record<string, unknown> = { id: 1, name: 'Bare', expansionId: 1, cardType: 'weapon' };
     const form = buildFormFromSchema(weaponSchema, bareWeapon, fb);
     expect(form.get('damageDiceCount')?.value).toBe('');
     expect(form.get('damageDiceType')?.value).toBe('');
@@ -300,7 +298,7 @@ describe('nested path support', () => {
 // Mirrors the shape of a real schema field whose backend path differs from its control name
 // (e.g. weapon.damageNotation -> backend path "damage.notation"), so path-to-control-name
 // resolution is exercised the same way it would be for a real nested/embedded field.
-const pathDifferingSchema: CardSchema = {
+const pathDifferingSchema: EntityFormSchema = {
   cardType: 'weapon',
   sections: [
     {
@@ -345,7 +343,7 @@ describe('applyBackendErrors', () => {
   });
 
   it('resolves a dot-joined backend path to the control whose schema field declares that path', () => {
-    const rawWeapon: RawCardResponse = {
+    const rawWeapon: Record<string, unknown> = {
       id: 1, name: 'Shortsword', expansionId: 1, cardType: 'weapon',
       damage: { notation: '2d6', damageType: 'PHYSICAL' },
     };
@@ -394,49 +392,6 @@ describe('applyBackendErrors', () => {
     // and returns null -- it must NOT set a backend error from the legacy shape.
     expect(result).toBeNull();
     expect(form.get('name')?.hasError('backend')).toBe(false);
-  });
-});
-
-describe('buildPreviewCard', () => {
-  it('produces expected CardData shape for domainCard', () => {
-    const formValue: Record<string, unknown> = {
-      name: 'Fireball',
-      description: 'Deals fire damage',
-      level: 3,
-      recallCost: 2,
-      type: 'SPELL',
-    };
-    const features = [
-      { id: 1, name: 'Burn', description: 'Applies burning', subtitle: 'PASSIVE', tags: ['FIRE'] },
-    ];
-    const result = buildPreviewCard(domainCardSchema, formValue, rawCard, features);
-    expect(result.id).toBe(42);
-    expect(result.name).toBe('Fireball');
-    expect(result.description).toBe('Deals fire damage');
-    expect(result.cardType).toBe('domain');
-    expect(result.tags).toContain('Level 3');
-    expect(result.tags).toContain('SPELL');
-    expect(result.tags).toContain('Recall: 2');
-    expect(result.features).toHaveLength(1);
-    expect(result.features![0].name).toBe('Burn');
-  });
-
-  it('uses schema.previewSubtitle when defined', () => {
-    const formValue: Record<string, unknown> = { name: 'Fireball', type: 'GRIMOIRE' };
-    const result = buildPreviewCard(domainCardSchema, formValue, rawCard, []);
-    expect(result.subtitle).toBe('GRIMOIRE card');
-  });
-
-  it('returns undefined features when feature list is empty', () => {
-    const formValue: Record<string, unknown> = { name: 'Test', type: 'SPELL', level: 1, recallCost: 0 };
-    const result = buildPreviewCard(domainCardSchema, formValue, rawCard, []);
-    expect(result.features).toBeUndefined();
-  });
-
-  it('uses raw.id for the card id', () => {
-    const formValue: Record<string, unknown> = { name: 'Test' };
-    const result = buildPreviewCard(domainCardSchema, formValue, rawCard, []);
-    expect(result.id).toBe(rawCard.id);
   });
 });
 

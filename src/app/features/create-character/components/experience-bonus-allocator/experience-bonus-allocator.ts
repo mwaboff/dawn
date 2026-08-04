@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, computed, effect, input, output, signal } from '@angular/core';
 
-import { Experience } from '../../models/experience.model';
+import { Experience } from '../../../../shared/models/experience.model';
 
 @Component({
   selector: 'app-experience-bonus-allocator',

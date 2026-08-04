@@ -302,9 +302,11 @@ describe('AddExpansionDialog', () => {
       expect(dialog?.getAttribute('aria-modal')).toBe('true');
     });
 
-    it('should have aria-label="Create Expansion"', () => {
+    it('should expose the title via aria-labelledby', () => {
       const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
-      expect(dialog?.getAttribute('aria-label')).toBe('Create Expansion');
+      const titleEl = fixture.nativeElement.querySelector('.dialog-title') as HTMLElement;
+      expect(dialog?.getAttribute('aria-labelledby')).toBe(titleEl.id);
+      expect(titleEl.textContent?.trim()).toBe('Create Expansion');
     });
 
     it('should not set aria-invalid on the name input before it is touched', () => {

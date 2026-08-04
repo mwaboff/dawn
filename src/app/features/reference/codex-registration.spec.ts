@@ -15,9 +15,8 @@ import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
 import { DomainService } from '../../shared/services/domain.service';
 import { SubclassService } from '../../shared/services/subclass.service';
-import { CompanionService } from '../../shared/services/companion.service';
 import { FeatureLookupService } from '../../shared/services/feature-lookup.service';
-import { BROWSABLE_TYPES, SearchableEntityType, isSearchableType, typeLabels } from '../../shared/models/search.model';
+import { BROWSABLE_TYPES, SearchableEntityType, typeLabels } from '../../shared/models/search.model';
 import { TYPE_FILTERS } from './components/filter-rail/filter-rail';
 
 /**
@@ -25,8 +24,7 @@ import { TYPE_FILTERS } from './components/filter-rail/filter-rail';
  * full-text search types, in full (all 21 members, not just the ones the frontend already
  * knows about). Keep this list in sync with that enum. It is the source of truth for both
  * directions checked below:
- *  - a frontend type reaching `SearchService` without a matching entry here would 400
- *    (see `COMPANION`'s "phantom Companion full-text search registration" bug);
+ *  - a frontend type reaching `SearchService` without a matching entry here would 400;
  *  - a backend type with no frontend representation at all is an invisible gap -- the class
  *    of drift that let `TRANSFORMATION_CARD`/`MARTIAL_STANCE`/`CONDITION` go unnoticed because
  *    the old version of this list only asserted the frontend was a subset of it, never the
@@ -59,15 +57,13 @@ describe('codex type registration completeness', () => {
   // for the frontend union type), so its keys are the full frontend type universe.
   const allFrontendTypes = Object.keys(typeLabels) as SearchableEntityType[];
 
-  it('every type reachable via full-text search is registered on the backend', () => {
-    const searchReachableTypes = allFrontendTypes.filter(isSearchableType);
-    for (const type of searchReachableTypes) {
+  it('every frontend type is registered on the backend', () => {
+    for (const type of allFrontendTypes) {
       expect(
         BACKEND_SEARCHABLE_TYPES as readonly SearchableEntityType[],
-        `${type} can reach SearchService (isSearchableType() is true) but has no backend ` +
-          `SearchableEntityType registration -- add it to SEARCH_UNSUPPORTED_TYPES in ` +
-          `search.model.ts if it isn't actually indexed, or to BACKEND_SEARCHABLE_TYPES ` +
-          `above once backend indexing is confirmed`,
+        `${type} can reach SearchService but has no backend SearchableEntityType ` +
+          `registration -- add it to BACKEND_SEARCHABLE_TYPES above once backend indexing ` +
+          `is confirmed`,
       ).toContain(type);
     }
   });
@@ -133,7 +129,6 @@ describe('codex type registration completeness', () => {
             useValue: { getDomainCardsBrowse: vi.fn(cardResult), getDomainsPaginated: vi.fn(cardResult) },
           },
           { provide: SubclassService, useValue: { getSubclassesPaginated: vi.fn(cardResult) } },
-          { provide: CompanionService, useValue: { getCompanionsPaginated: vi.fn(cardResult) } },
           { provide: FeatureLookupService, useValue: { getFeaturesPaginated: vi.fn(cardResult) } },
         ],
       });

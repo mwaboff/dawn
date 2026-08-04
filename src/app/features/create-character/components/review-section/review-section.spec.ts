@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ReviewSection } from './review-section';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments } from '../../models/trait.model';
-import { Experience } from '../../models/experience.model';
+import { Experience } from '../../../../shared/models/experience.model';
 import { SubmitError } from '../../models/submit-error.model';
 
 function makeCard(overrides: Partial<CardData> = {}): CardData {

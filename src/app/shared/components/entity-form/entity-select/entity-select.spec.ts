@@ -4,8 +4,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { EntitySelect } from './entity-select';
-import { AdminLookupService } from '../../services/admin-lookup.service';
-import { LookupOption } from '../../schema/card-edit-schema.types';
+import { ENTITY_FORM_LOOKUP } from '../entity-form-lookup.token';
+import { LookupOption } from '../entity-form.types';
 
 const MOCK_OPTIONS: LookupOption[] = [
   { id: 1, label: 'Option A' },
@@ -47,11 +47,11 @@ describe('EntitySelect', () => {
 
   async function setup(options: LookupOption[] = MOCK_OPTIONS): Promise<void> {
     mockListFn = vi.fn().mockReturnValue(of(options));
-    const mockService = { list: mockListFn, refresh: vi.fn(), invalidate: vi.fn() };
+    const mockLookup = { list: mockListFn };
 
     await TestBed.configureTestingModule({
       imports: [HostComponent],
-      providers: [{ provide: AdminLookupService, useValue: mockService }],
+      providers: [{ provide: ENTITY_FORM_LOOKUP, useValue: mockLookup }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HostComponent);
@@ -62,11 +62,11 @@ describe('EntitySelect', () => {
   describe('loading state', () => {
     it('shows Loading... option while loading is pending', async () => {
       const subject = new Subject<LookupOption[]>();
-      const pendingService = { list: vi.fn().mockReturnValue(subject.asObservable()), refresh: vi.fn(), invalidate: vi.fn() };
+      const pendingLookup = { list: vi.fn().mockReturnValue(subject.asObservable()) };
 
       await TestBed.configureTestingModule({
         imports: [HostComponent],
-        providers: [{ provide: AdminLookupService, useValue: pendingService }],
+        providers: [{ provide: ENTITY_FORM_LOOKUP, useValue: pendingLookup }],
       }).compileComponents();
 
       fixture = TestBed.createComponent(HostComponent);
@@ -85,7 +85,7 @@ describe('EntitySelect', () => {
       fixture.detectChanges();
     });
 
-    it('calls AdminLookupService.list on init', () => {
+    it('calls the lookup provider on init', () => {
       expect(mockListFn).toHaveBeenCalledWith('expansions', undefined);
     });
 
@@ -208,6 +208,23 @@ describe('EntitySelect', () => {
       fixture.detectChanges();
 
       expect(host.control.value).toBe(1);
+    });
+  });
+
+  describe('no lookup provider', () => {
+    it('renders without throwing, with loading false and no options', async () => {
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(HostComponent);
+      el = fixture.nativeElement as HTMLElement;
+      expect(() => fixture.detectChanges()).not.toThrow();
+
+      const entitySelectDebugEl = fixture.debugElement.children[0];
+      const instance = entitySelectDebugEl.componentInstance as EntitySelect;
+      expect(instance.loading()).toBe(false);
+      expect(instance.options()).toEqual([]);
     });
   });
 });

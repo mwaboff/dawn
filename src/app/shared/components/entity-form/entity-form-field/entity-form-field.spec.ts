@@ -3,23 +3,23 @@ import { Component } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { of } from 'rxjs';
 import { vi, describe, it, expect } from 'vitest';
-import { CardEditField } from './card-edit-field';
-import { AdminLookupService } from '../../services/admin-lookup.service';
-import { FieldDef } from '../../schema/card-edit-schema.types';
+import { EntityFormField } from './entity-form-field';
+import { ENTITY_FORM_LOOKUP, EntityFormLookup } from '../entity-form-lookup.token';
+import { FieldDef } from '../entity-form.types';
 
-function makeService() {
-  return { list: vi.fn().mockReturnValue(of([])), refresh: vi.fn(), invalidate: vi.fn() };
+function makeLookup(): EntityFormLookup {
+  return { list: vi.fn().mockReturnValue(of([])) };
 }
 
 @Component({
-  template: `<app-card-edit-field
+  template: `<app-entity-form-field
     [field]="field"
     [control]="control"
     [submitted]="submitted"
     [dependsOnControl]="dependsOnControl"
     (createRequested)="onCreateRequested()"
   />`,
-  imports: [CardEditField, ReactiveFormsModule],
+  imports: [EntityFormField, ReactiveFormsModule],
 })
 class HostComponent {
   field!: FieldDef;
@@ -39,7 +39,7 @@ async function setup(
 ): Promise<{ fixture: ComponentFixture<HostComponent>; host: HostComponent; el: HTMLElement }> {
   await TestBed.configureTestingModule({
     imports: [HostComponent],
-    providers: [{ provide: AdminLookupService, useValue: makeService() }],
+    providers: [{ provide: ENTITY_FORM_LOOKUP, useValue: makeLookup() }],
   }).compileComponents();
 
   const fixture = TestBed.createComponent(HostComponent);
@@ -52,7 +52,7 @@ async function setup(
   return { fixture, host, el };
 }
 
-describe('CardEditField', () => {
+describe('EntityFormField', () => {
   describe('text field', () => {
     it('renders a text input', async () => {
       const { el } = await setup(

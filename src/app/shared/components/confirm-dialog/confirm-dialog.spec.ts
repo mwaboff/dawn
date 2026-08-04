@@ -176,12 +176,14 @@ describe('ConfirmDialog', () => {
       expect(backdrop?.getAttribute('aria-modal')).toBe('true');
     });
 
-    it('exposes the title via aria-label', () => {
+    it('exposes the title via aria-labelledby', () => {
       host.open.set(true);
       fixture.detectChanges();
 
       const backdrop = el.querySelector('.dialog-backdrop');
-      expect(backdrop?.getAttribute('aria-label')).toBe('Delete item');
+      const titleEl = el.querySelector('.dialog-title')!;
+      expect(backdrop?.getAttribute('aria-labelledby')).toBe(titleEl.id);
+      expect(titleEl.textContent?.trim()).toBe('Delete item');
     });
   });
 });

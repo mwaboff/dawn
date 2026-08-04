@@ -41,9 +41,9 @@ describe('TypeFacetTabs', () => {
     expect(tablist).toBeTruthy();
   });
 
-  it('renders 16 tabs (All + 15 types)', () => {
+  it('renders 15 tabs (All + 14 types)', () => {
     const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(16);
+    expect(tabs.length).toBe(15);
   });
 
   it('marks All tab as active when activeType is null', () => {
@@ -135,12 +135,6 @@ describe('TypeFacetTabs', () => {
     const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLElement>;
     const featureTab = Array.from(tabs).find(t => t.textContent?.includes('Features'));
     expect(featureTab).toBeUndefined();
-  });
-
-  it('renders a Companions tab', () => {
-    const tabs = fixture.nativeElement.querySelectorAll('[role="tab"]') as NodeListOf<HTMLElement>;
-    const companionTab = Array.from(tabs).find(t => t.textContent?.includes('Companions'));
-    expect(companionTab).toBeTruthy();
   });
 
   it('renders Domains as the first type tab (index 1, after All)', () => {

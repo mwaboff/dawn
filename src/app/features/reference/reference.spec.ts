@@ -274,33 +274,6 @@ describe('Reference', () => {
     );
   });
 
-  describe('unsearchable types (COMPANION)', () => {
-    // COMPANION has a working CodexBrowseService arm but zero backend search-index
-    // registration (Companion is user-owned per-character data, not catalogue content).
-    // Previously, typing a query while the Companions facet was active promoted viewMode
-    // to focusedSearch, which called SearchService with types=['COMPANION'] -- a value the
-    // backend's SearchableEntityType enum doesn't recognize, surfacing as an HTTP 400.
-    it('stays in focusedBrowse when a query is typed while COMPANION is active', () => {
-      component.activeType.set('COMPANION');
-      component.query.set('wolf');
-      expect(component.viewMode()).toBe('focusedBrowse');
-    });
-
-    it('never calls SearchService for COMPANION, even with a query set', () => {
-      component.activeType.set('COMPANION');
-      component.query.set('wolf');
-      fixture.detectChanges();
-      expect(searchSpy.search).not.toHaveBeenCalled();
-    });
-
-    it('still calls CodexBrowseService.browse for COMPANION when a query is set', () => {
-      component.activeType.set('COMPANION');
-      component.query.set('wolf');
-      fixture.detectChanges();
-      expect(browseSpy.browse).toHaveBeenCalledWith('COMPANION', expect.anything(), 0);
-    });
-  });
-
   describe('isSectionBrowsable', () => {
     it('returns true for a type with a real browse endpoint', () => {
       expect(component.isSectionBrowsable('WEAPON')).toBe(true);

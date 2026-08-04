@@ -1,68 +1,53 @@
-<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -- appModalFocus provides the keyboard equivalent (Escape via its `escape` output, Tab trapped to the dialog form); clicking the backdrop is a pointer-only convenience on top of that. -->
-<div
-  class="dialog-backdrop"
-  (click)="onBackdropClick($event)"
-  role="dialog"
-  aria-modal="true"
-  aria-label="Create Expansion"
-  appModalFocus
-  (escape)="onCancel()"
->
-  <div class="dialog-panel">
-    <h2 class="dialog-title">Create Expansion</h2>
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <div class="form-field">
-        <label class="form-label" for="expansion-name">Name</label>
-        <input
-          id="expansion-name"
-          type="text"
-          class="form-input"
-          formControlName="name"
-          [class.form-input--invalid]="nameInvalid"
-          [attr.aria-invalid]="nameInvalid"
-          [attr.aria-describedby]="nameInvalid ? 'expansion-name-error' : null"
-          autocomplete="off"
-        />
-        @if (nameControl.dirty && nameControl.hasError('required')) {
-          <span id="expansion-name-error" class="field-error" role="alert">Name is required.</span>
-        } @else if (nameControl.dirty && nameControl.hasError('maxlength')) {
-          <span id="expansion-name-error" class="field-error" role="alert">Name must be 255 characters or fewer.</span>
-        }
-      </div>
-
-      <div class="form-field form-field--checkbox">
-        <label class="form-label form-label--checkbox">
-          <input type="checkbox" formControlName="isPublished" />
-          Published
-        </label>
-      </div>
-
-      @if (errorMessage()) {
-        <p class="backend-error" role="alert">{{ errorMessage() }}</p>
+<app-modal-shell title="Create Expansion" [processing]="isProcessing()" (dismissed)="onCancel()">
+  <!-- The submit button lives in the actions slot, outside this element, and is wired back via
+       its `form="add-expansion-form"` attribute so native submit (click and Enter-in-field) still works. -->
+  <form modal-body id="add-expansion-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="form-field">
+      <label class="form-label" for="expansion-name">Name</label>
+      <input
+        id="expansion-name"
+        type="text"
+        class="form-input"
+        formControlName="name"
+        [class.form-input--invalid]="nameInvalid"
+        [attr.aria-invalid]="nameInvalid"
+        [attr.aria-describedby]="nameInvalid ? 'expansion-name-error' : null"
+        autocomplete="off"
+      />
+      @if (nameControl.dirty && nameControl.hasError('required')) {
+        <span id="expansion-name-error" class="field-error" role="alert">Name is required.</span>
+      } @else if (nameControl.dirty && nameControl.hasError('maxlength')) {
+        <span id="expansion-name-error" class="field-error" role="alert">Name must be 255 characters or fewer.</span>
       }
+    </div>
 
-      <div class="dialog-actions">
-        <button
-          type="button"
-          class="dialog-btn dialog-btn--cancel"
-          [disabled]="isProcessing()"
-          (click)="onCancel()"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="dialog-btn dialog-btn--submit"
-          [disabled]="form.invalid || isProcessing()"
-        >
-          @if (isProcessing()) {
-            Creating...
-          } @else {
-            Create
-          }
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+    <div class="form-field form-field--checkbox">
+      <label class="form-label form-label--checkbox">
+        <input type="checkbox" formControlName="isPublished" />
+        Published
+      </label>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="backend-error" role="alert">{{ errorMessage() }}</p>
+    }
+  </form>
+
+  <ng-container modal-actions>
+    <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="isProcessing()" (click)="onCancel()">
+      Cancel
+    </button>
+    <button
+      type="submit"
+      form="add-expansion-form"
+      class="dialog-btn dialog-btn--submit"
+      [disabled]="form.invalid || isProcessing()"
+    >
+      @if (isProcessing()) {
+        Creating...
+      } @else {
+        Create
+      }
+    </button>
+  </ng-container>
+</app-modal-shell>

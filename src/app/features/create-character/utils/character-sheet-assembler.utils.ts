@@ -1,6 +1,6 @@
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments } from '../models/trait.model';
-import { Experience } from '../models/experience.model';
+import { Experience } from '../../../shared/models/experience.model';
 import { CharacterSheetData, DEFAULT_MAJOR_THRESHOLD, DEFAULT_SEVERE_THRESHOLD } from '../models/character-sheet.model';
 
 export const MAX_EQUIPPED_DOMAIN_CARDS = 5;

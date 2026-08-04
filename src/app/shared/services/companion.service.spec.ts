@@ -4,7 +4,6 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { CompanionService } from './companion.service';
 import { CompanionApiResponse } from '../models/companion-api.model';
-import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
 
 const baseUrl = 'http://localhost:8080/api/dh/companions';
 
@@ -67,13 +66,13 @@ describe('CompanionService', () => {
     req.flush(buildPaginatedResponse([]));
   });
 
-  it('should return mapped CardData array', () => {
+  it('should return the raw companion response array', () => {
     const mockData: CompanionApiResponse[] = [
       buildCompanionResponse({ id: 1, name: 'Forest Wolf' }),
       buildCompanionResponse({ id: 2, name: 'Shadow Cat', attackName: 'Claw' }),
     ];
 
-    let result: CardData[] | undefined;
+    let result: CompanionApiResponse[] | undefined;
     service.getCompanions().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);
@@ -86,7 +85,7 @@ describe('CompanionService', () => {
   });
 
   it('should return empty array when no companions', () => {
-    let result: CardData[] | undefined;
+    let result: CompanionApiResponse[] | undefined;
     service.getCompanions().subscribe(data => (result = data));
 
     const req = httpTesting.expectOne(r => r.url === baseUrl);

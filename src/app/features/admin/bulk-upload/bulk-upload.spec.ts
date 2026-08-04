@@ -35,11 +35,6 @@ describe('BulkUpload', () => {
       expect(values).toContain('question');
       expect(values).toContain('feature');
     });
-
-    it('should not offer companion (no bulk endpoint exists)', () => {
-      const values = component.cardTypeOptions.map(o => o.value);
-      expect(values).not.toContain('companion');
-    });
   });
 
   describe('validation', () => {

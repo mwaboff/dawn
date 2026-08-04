@@ -10,8 +10,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl } from '@angular/forms';
-import { AdminLookupService } from '../../services/admin-lookup.service';
-import { LookupKey, LookupOption } from '../../schema/card-edit-schema.types';
+import { ENTITY_FORM_LOOKUP } from '../entity-form-lookup.token';
+import { LookupKey, LookupOption } from '../entity-form.types';
 
 @Component({
   selector: 'app-entity-multi-select',
@@ -20,7 +20,7 @@ import { LookupKey, LookupOption } from '../../schema/card-edit-schema.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityMultiSelect implements OnInit {
-  private readonly adminLookupService = inject(AdminLookupService);
+  private readonly lookupService = inject(ENTITY_FORM_LOOKUP, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
   readonly lookup = input.required<LookupKey>();
@@ -64,8 +64,15 @@ export class EntityMultiSelect implements OnInit {
   }
 
   private loadOptions(): void {
+    if (!this.lookupService) {
+      // No lookup provider (e.g. schemas with no entity/entityMulti fields) -- not an
+      // error, just nothing to load.
+      this.loading.set(false);
+      return;
+    }
+
     this.loading.set(true);
-    this.adminLookupService
+    this.lookupService
       .list(this.lookup(), this.params())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(opts => {

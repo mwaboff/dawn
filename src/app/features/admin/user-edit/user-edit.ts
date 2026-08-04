@@ -19,7 +19,7 @@ import {
   UserRole,
   isBanned,
 } from '../models/admin-user.model';
-import { applyBackendErrors } from '../card-edit/utils/card-edit-form.utils';
+import { applyBackendErrors } from '../../../shared/components/entity-form/entity-form.utils';
 import { UserEditToolbar } from './components/user-edit-toolbar/user-edit-toolbar';
 import { UserEditIdentityPanel } from './components/user-edit-identity-panel/user-edit-identity-panel';
 import { UserEditHistoryList, HistoryColumn } from './components/user-edit-history-list/user-edit-history-list';

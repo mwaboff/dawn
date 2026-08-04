@@ -1,7 +1,5 @@
 import { FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
-import { RawCardResponse } from '../../models/admin-api.model';
-import { CardSchema, FieldDef } from '../schema/card-edit-schema.types';
+import { EntityFormSchema, FieldDef } from './entity-form.types';
 
 export const URL_REGEX = /^(https?:\/\/.+)$/;
 
@@ -39,7 +37,7 @@ function buildValidators(field: FieldDef): ValidatorFn[] {
   return validators;
 }
 
-function getAllFields(schema: CardSchema): FieldDef[] {
+function getAllFields(schema: EntityFormSchema): FieldDef[] {
   return schema.sections.flatMap(section => section.fields);
 }
 
@@ -76,8 +74,8 @@ function coerceNumberValue(value: unknown): number | null {
 }
 
 export function buildFormFromSchema(
-  schema: CardSchema,
-  raw: RawCardResponse,
+  schema: EntityFormSchema,
+  raw: Record<string, unknown>,
   fb: FormBuilder,
 ): FormGroup {
   const controls: Record<string, FormControl> = {};
@@ -104,7 +102,7 @@ export function buildFormFromSchema(
 }
 
 export function buildPayloadFromSchema(
-  schema: CardSchema,
+  schema: EntityFormSchema,
   form: FormGroup,
   extras?: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -182,7 +180,7 @@ export function buildPayloadFromSchema(
 export function applyBackendErrors(
   form: FormGroup,
   errorResponse: unknown,
-  schema?: CardSchema,
+  schema?: EntityFormSchema,
 ): string | null {
   if (!errorResponse || typeof errorResponse !== 'object') {
     return null;
@@ -222,30 +220,4 @@ export function applyBackendErrors(
   }
 
   return null;
-}
-
-export function buildPreviewCard(
-  schema: CardSchema,
-  formValue: Record<string, unknown>,
-  raw: RawCardResponse,
-  features: unknown[],
-): CardData {
-  const cardFeatures = (features as Record<string, unknown>[]).map(f => ({
-    id: f['id'] as number | undefined,
-    name: (f['name'] as string) ?? '',
-    description: (f['description'] as string) ?? '',
-    subtitle: (f['subtitle'] as string | undefined),
-    tags: (f['tags'] as string[] | undefined),
-  }));
-
-  return {
-    id: raw.id,
-    name: (formValue['name'] as string) ?? '',
-    description: (formValue['description'] as string) ?? '',
-    cardType: raw['cardType'] as CardData['cardType'] ?? 'domain',
-    subtitle: schema.previewSubtitle?.(formValue),
-    tags: schema.previewTags(formValue),
-    features: cardFeatures.length > 0 ? cardFeatures : undefined,
-    metadata: {},
-  };
 }

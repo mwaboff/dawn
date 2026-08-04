@@ -8,7 +8,7 @@ import { ClassService } from '../../../../shared/services/class.service';
 import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
 import { FeatureLookupService } from '../../../../shared/services/feature-lookup.service';
 import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
-import { LookupOption } from '../schema/card-edit-schema.types';
+import { LookupOption } from '../../../../shared/components/entity-form/entity-form.types';
 
 const makeOptions = (...labels: string[]): LookupOption[] =>
   labels.map((label, i) => ({ id: i + 1, label }));

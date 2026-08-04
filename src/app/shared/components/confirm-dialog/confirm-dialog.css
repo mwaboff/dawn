@@ -1,45 +1,9 @@
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 8, 6, .7);
-  backdrop-filter: blur(2px);
-}
-
-.dialog-panel {
-  background: linear-gradient(170deg, #faf7f2, #f5ede0);
-  border: 1px solid #c9a87c;
-  border-top: 3px solid #b33;
-  border-radius: 6px;
-  padding: var(--space-11);
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 12px 40px rgba(0,0,0,.3);
-}
-
-.dialog-title {
-  font-family: 'Cinzel', serif;
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: #3e2723;
-  margin: 0 0 var(--space-5);
-}
-
 .dialog-message {
   font-family: 'Lora', serif;
   font-size: var(--text-base);
   color: #5a4230;
   line-height: 1.5;
   margin: 0 0 var(--space-10);
-}
-
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-5);
 }
 
 .dialog-btn {

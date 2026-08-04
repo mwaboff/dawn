@@ -3,8 +3,8 @@ import { Component, signal } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { of, Subject } from 'rxjs';
 import { EntityMultiSelect } from './entity-multi-select';
-import { AdminLookupService } from '../../services/admin-lookup.service';
-import { LookupOption } from '../../schema/card-edit-schema.types';
+import { ENTITY_FORM_LOOKUP, EntityFormLookup } from '../entity-form-lookup.token';
+import { LookupOption } from '../entity-form.types';
 
 const THREE_OPTIONS: LookupOption[] = [
   { id: 1, label: 'Alpha' },
@@ -35,7 +35,7 @@ class HostComponent {
   dependsOnControl = signal<FormControl<number | null> | undefined>(undefined);
 }
 
-function createMockLookupService(opts: LookupOption[] = THREE_OPTIONS) {
+function createMockLookup(opts: LookupOption[] = THREE_OPTIONS) {
   return {
     list: vi.fn().mockReturnValue(of(opts)),
   };
@@ -44,15 +44,15 @@ function createMockLookupService(opts: LookupOption[] = THREE_OPTIONS) {
 describe('EntityMultiSelect', () => {
   let fixture: ComponentFixture<HostComponent>;
   let host: HostComponent;
-  let mockLookupService: ReturnType<typeof createMockLookupService>;
+  let mockLookup: ReturnType<typeof createMockLookup>;
 
   function setup(opts: LookupOption[] = THREE_OPTIONS) {
-    mockLookupService = createMockLookupService(opts);
+    mockLookup = createMockLookup(opts);
 
     TestBed.configureTestingModule({
       imports: [HostComponent],
       providers: [
-        { provide: AdminLookupService, useValue: mockLookupService },
+        { provide: ENTITY_FORM_LOOKUP, useValue: mockLookup },
       ],
     });
 
@@ -61,9 +61,9 @@ describe('EntityMultiSelect', () => {
     fixture.detectChanges();
   }
 
-  it('loads options from AdminLookupService on init', () => {
+  it('loads options from the lookup provider on init', () => {
     setup();
-    expect(mockLookupService.list).toHaveBeenCalledWith('expansions', undefined);
+    expect(mockLookup.list).toHaveBeenCalledWith('expansions', undefined);
     const checkboxes = fixture.nativeElement.querySelectorAll('input[type="checkbox"]');
     expect(checkboxes).toHaveLength(3);
   });
@@ -156,11 +156,11 @@ describe('EntityMultiSelect', () => {
     host.dependsOnControl.set(depControl);
     fixture.detectChanges();
 
-    mockLookupService.list.mockReturnValue(of([{ id: 99, label: 'New Option' }]));
+    mockLookup.list.mockReturnValue(of([{ id: 99, label: 'New Option' }]));
     depControl.setValue(5);
     fixture.detectChanges();
 
-    expect(mockLookupService.list).toHaveBeenCalledTimes(2);
+    expect(mockLookup.list).toHaveBeenCalledTimes(2);
     const checkboxes = fixture.nativeElement.querySelectorAll('input[type="checkbox"]');
     expect(checkboxes).toHaveLength(1);
   });
@@ -173,7 +173,7 @@ describe('EntityMultiSelect', () => {
     host.control.set(ctrl);
     fixture.detectChanges();
 
-    mockLookupService.list.mockReturnValue(of([{ id: 1, label: 'Alpha' }]));
+    mockLookup.list.mockReturnValue(of([{ id: 1, label: 'Alpha' }]));
     depControl.setValue(5);
     fixture.detectChanges();
 
@@ -182,11 +182,11 @@ describe('EntityMultiSelect', () => {
 
   it('shows loading state before options arrive', () => {
     const subject = new Subject<LookupOption[]>();
-    const service = { list: vi.fn().mockReturnValue(subject.asObservable()) };
+    const lookup: EntityFormLookup = { list: vi.fn().mockReturnValue(subject.asObservable()) };
 
     TestBed.configureTestingModule({
       imports: [HostComponent],
-      providers: [{ provide: AdminLookupService, useValue: service }],
+      providers: [{ provide: ENTITY_FORM_LOOKUP, useValue: lookup }],
     });
 
     fixture = TestBed.createComponent(HostComponent);
@@ -195,5 +195,21 @@ describe('EntityMultiSelect', () => {
     const loadingText = fixture.nativeElement.querySelector('.loading-text');
     expect(loadingText).not.toBeNull();
     expect(loadingText.textContent.trim()).toBe('Loading...');
+  });
+
+  describe('no lookup provider', () => {
+    it('renders without throwing, with loading false and no options', () => {
+      TestBed.configureTestingModule({
+        imports: [HostComponent],
+      });
+
+      fixture = TestBed.createComponent(HostComponent);
+      expect(() => fixture.detectChanges()).not.toThrow();
+
+      const multiSelectDebugEl = fixture.debugElement.children[0];
+      const instance = multiSelectDebugEl.componentInstance as EntityMultiSelect;
+      expect(instance.loading()).toBe(false);
+      expect(instance.options()).toEqual([]);
+    });
   });
 });

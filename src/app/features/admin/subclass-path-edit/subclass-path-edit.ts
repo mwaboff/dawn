@@ -21,10 +21,12 @@ import { CardData } from '../../../shared/components/daggerheart-card/daggerhear
 import { SubclassLevel } from '../../../shared/models/subclass-api.model';
 import { PaginatedResponse } from '../../../shared/models/api.model';
 import { CARD_EDIT_SCHEMAS } from '../card-edit/schema/card-edit-schema';
-import { CardSchema, EntityField, FieldDef, LookupOption } from '../card-edit/schema/card-edit-schema.types';
-import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors, buildPreviewCard } from '../card-edit/utils/card-edit-form.utils';
+import { EntityFormSchema, EntityField, FieldDef, LookupOption } from '../../../shared/components/entity-form/entity-form.types';
+import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors } from '../../../shared/components/entity-form/entity-form.utils';
+import { ENTITY_FORM_LOOKUP } from '../../../shared/components/entity-form/entity-form-lookup.token';
+import { buildPreviewCard } from '../card-edit/utils/card-preview.utils';
 import { AdminLookupService } from '../card-edit/services/admin-lookup.service';
-import { CardEditField } from '../card-edit/components/card-edit-field/card-edit-field';
+import { EntityFormField } from '../../../shared/components/entity-form/entity-form-field/entity-form-field';
 import { CardEditFeatures } from '../card-edit/components/card-edit-features/card-edit-features';
 import { CardEditPreview } from '../card-edit/components/card-edit-preview/card-edit-preview';
 import { AddExpansionDialog } from '../card-edit/components/add-expansion-dialog/add-expansion-dialog';
@@ -54,7 +56,8 @@ interface LevelEntry {
   templateUrl: './subclass-path-edit.html',
   styleUrl: './subclass-path-edit.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CardEditField, CardEditFeatures, CardEditPreview, AddExpansionDialog],
+  imports: [ReactiveFormsModule, EntityFormField, CardEditFeatures, CardEditPreview, AddExpansionDialog],
+  providers: [{ provide: ENTITY_FORM_LOOKUP, useExisting: AdminLookupService }],
 })
 export class SubclassPathEdit implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -94,7 +97,7 @@ export class SubclassPathEdit implements OnInit {
     return !original.every((id, i) => current[i] === id);
   });
 
-  readonly schema = computed<CardSchema>(() => CARD_EDIT_SCHEMAS['subclass']);
+  readonly schema = computed<EntityFormSchema>(() => CARD_EDIT_SCHEMAS['subclass']);
 
   readonly activeTab = signal<SubclassLevel>('FOUNDATION');
 

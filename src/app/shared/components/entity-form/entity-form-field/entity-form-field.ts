@@ -6,7 +6,7 @@ import {
   computed,
 } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { FieldDef, EnumField, EntityField } from '../../schema/card-edit-schema.types';
+import { FieldDef, EnumField, EntityField } from '../entity-form.types';
 import { EntitySelect } from '../entity-select/entity-select';
 import { EntityMultiSelect } from '../entity-multi-select/entity-multi-select';
 
@@ -22,13 +22,13 @@ const FIELD_ERROR_MESSAGES: Record<string, (field: FieldDef, err: unknown) => st
 const ERROR_PRIORITY = ['required', 'maxlength', 'min', 'pattern', 'positive', 'backend'];
 
 @Component({
-  selector: 'app-card-edit-field',
+  selector: 'app-entity-form-field',
   imports: [ReactiveFormsModule, EntitySelect, EntityMultiSelect],
-  templateUrl: './card-edit-field.html',
-  styleUrl: './card-edit-field.css',
+  templateUrl: './entity-form-field.html',
+  styleUrl: './entity-form-field.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CardEditField {
+export class EntityFormField {
   readonly field = input.required<FieldDef>();
   readonly control = input.required<AbstractControl>();
   readonly submitted = input<boolean>(false);

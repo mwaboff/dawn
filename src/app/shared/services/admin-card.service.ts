@@ -17,7 +17,6 @@ export class AdminCardService {
     'weapon': '/dh/weapons',
     'armor': '/dh/armors',
     'loot': '/dh/loot',
-    'companion': '/dh/companions',
     'subclassPath': '/dh/subclass-paths',
     'adversary': '/dh/adversaries',
     'feature': '/dh/features',

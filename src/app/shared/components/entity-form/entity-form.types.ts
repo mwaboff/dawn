@@ -55,9 +55,9 @@ export interface EntityField extends BaseField {
 
 export type FieldDef = BaseField | EnumField | EntityField;
 
-export interface CardSchema {
+export interface EntityFormSchema {
   cardType: string;
   sections: { title: string; fields: FieldDef[] }[];
-  previewTags: (value: Record<string, unknown>) => string[];
+  previewTags?: (value: Record<string, unknown>) => string[];
   previewSubtitle?: (value: Record<string, unknown>) => string | undefined;
 }

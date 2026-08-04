@@ -13,6 +13,7 @@
 @import "./app/shared/styles/expandable-card.css";
 @import "./app/shared/styles/density.css";
 @import "./app/shared/styles/stat-row.css";
+@import "./app/shared/styles/dialog.css";
 
 :root {
   /* Warm Tavern Color Palette */
