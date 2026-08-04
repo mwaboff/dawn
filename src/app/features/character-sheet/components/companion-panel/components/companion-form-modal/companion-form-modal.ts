@@ -7,6 +7,7 @@ import { ExperienceSelector } from '../../../../../../shared/components/experien
 import { Experience } from '../../../../../../shared/models/experience.model';
 import {
   CompanionApiResponse,
+  CompanionDamageType,
   CompanionDiceType,
   CompanionRange,
   CreateCompanionRequest,
@@ -39,9 +40,9 @@ export interface CompanionUpdateSubmission {
  * `buildPayloadFromSchema`'s dirty-fields-only diffing (correct partial-PUT semantics), but
  * create sends every current form value regardless of dirty state -- an enum `<select>` a user
  * never touches stays at its pre-selected default and is never marked dirty, and `attackRange`/
- * `damageDice` are `@NotNull`-required with no server-side fallback (unlike `evasion`/
- * `stressMax`, which the service null-coalesces), so dirty-only submission would silently drop a
- * required field the form visibly filled in.
+ * `damageDice`/`damageType` are `@NotNull`-required with no server-side fallback (unlike
+ * `evasion`/`stressMax`, which the service null-coalesces), so dirty-only submission would
+ * silently drop a required field the form visibly filled in.
  */
 @Component({
   selector: 'app-companion-form-modal',
@@ -105,6 +106,7 @@ export class CompanionFormModal implements OnInit {
           attackName: raw['attackName'],
           attackRange: raw['attackRange'] as CompanionRange,
           damageDice: raw['damageDice'] as CompanionDiceType,
+          damageType: raw['damageType'] as CompanionDamageType,
           stressMax: raw['stressMax'],
         },
         experiences: this.experiences(),
@@ -127,6 +129,10 @@ export class CompanionFormModal implements OnInit {
       attackName: c.attackName,
       attackRange: c.baseAttackRange,
       damageDice: c.baseDamageDice,
+      // No base/effective split for damageType -- unlike attackRange/damageDice, Training never
+      // changes it (Vicious only advances the damage-die and range ladders), so the current value
+      // IS the base value.
+      damageType: c.damageType,
       stressMax: c.baseStressMax,
     };
   }

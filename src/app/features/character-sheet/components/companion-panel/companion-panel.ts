@@ -7,6 +7,7 @@ import {
   CompanionUpdateSubmission,
 } from './components/companion-form-modal/companion-form-modal';
 import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../shared/models/companion-api.model';
+import { CompanionClassFeatureReminder } from '../../utils/companion-access.utils';
 
 export interface CompanionStressChangedEvent {
   companionId: number;
@@ -45,6 +46,9 @@ export class CompanionPanel {
   readonly saving = input(false);
   readonly armorAvailable = input(false);
   readonly errorMessage = input<string | null>(null);
+  /** Forwarded to every `CompanionCard` -- see that component's doc for why this is computed once
+   * at the character-sheet level rather than per-companion. */
+  readonly classFeatureReminders = input<CompanionClassFeatureReminder[]>([]);
 
   readonly companionCreated = output<CompanionCreateSubmission>();
   readonly companionUpdated = output<CompanionUpdateSubmission>();

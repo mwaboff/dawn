@@ -2342,6 +2342,51 @@ describe('CharacterSheet', () => {
       });
     });
 
+    describe('class feature reminders', () => {
+      it('is empty without the Specialization/Mastery features', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass()] }));
+        fixture.detectChanges();
+
+        expect(component.companionFeatureReminders()).toEqual([]);
+      });
+
+      it('includes Battle-Bonded once the Specialization feature is present', () => {
+        const specialization: SubclassCardResponse = {
+          id: 31,
+          name: 'Beastbound Specialization',
+          features: [
+            { id: 4, name: 'Expert Training', description: '', featureType: 'SUBCLASS' },
+            { id: 5, name: 'Battle-Bonded', description: '', featureType: 'SUBCLASS' },
+          ],
+        };
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass(), specialization] }));
+        fixture.detectChanges();
+
+        expect(component.companionFeatureReminders().map(r => r.label)).toEqual(['Battle-Bonded']);
+      });
+
+      it('passes classFeatureReminders through to the companion panel', () => {
+        const specialization: SubclassCardResponse = {
+          id: 31,
+          name: 'Beastbound Specialization',
+          features: [{ id: 5, name: 'Battle-Bonded', description: '', featureType: 'SUBCLASS' }],
+        };
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass(), specialization] }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        const el: HTMLElement = fixture.nativeElement;
+        // Scoped to app-companion-panel: `.expandable-card__header` is shared by every card type
+        // on the sheet (weapons, armor, items...), so an unscoped query can pick up the wrong one.
+        const header = el.querySelector<HTMLButtonElement>('app-companion-panel .expandable-card__header');
+        expect(header).toBeTruthy();
+        header!.click();
+        fixture.detectChanges();
+
+        expect(el.querySelector('app-companion-panel .companion-reminder')?.textContent).toContain('Battle-Bonded');
+      });
+    });
+
     describe('Hope slot bonus', () => {
       it('passes companionGrantedHopeSlots through as the Hope tracker bonusCount', () => {
         createComponent('1', of({ ...mockResponse, companionGrantedHopeSlots: 1, hopeMax: 3, hopeMarked: 0 }));

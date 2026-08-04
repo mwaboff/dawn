@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hasCompanionFeature, showCompanionPanel, canCreateCompanion } from './companion-access.utils';
+import { hasCompanionFeature, showCompanionPanel, canCreateCompanion, companionClassFeatureReminders } from './companion-access.utils';
 import { SubclassCardResponse } from '../../create-character/models/character-sheet-api.model';
 
 function buildSubclass(
@@ -128,5 +128,63 @@ describe('canCreateCompanion', () => {
     // canCreateCompanion deliberately ignores active companion count, unlike showCompanionPanel --
     // having one companion already does not by itself unlock creating another.
     expect(canCreateCompanion(false, false)).toBe(false);
+  });
+});
+
+describe('companionClassFeatureReminders', () => {
+  it('should return [] when subclassCards is undefined', () => {
+    expect(companionClassFeatureReminders(undefined)).toEqual([]);
+  });
+
+  it('should return [] when neither feature is present', () => {
+    const subclassCards = [buildSubclass('Beastbound', [{ name: 'Companion', featureType: 'SUBCLASS' }])];
+    expect(companionClassFeatureReminders(subclassCards)).toEqual([]);
+  });
+
+  it('should include Battle-Bonded when the character has that Specialization feature', () => {
+    const subclassCards = [buildSubclass('Beastbound Specialization', [
+      { name: 'Expert Training', featureType: 'SUBCLASS' },
+      { name: 'Battle-Bonded', featureType: 'SUBCLASS' },
+    ])];
+
+    const result = companionClassFeatureReminders(subclassCards);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe('Battle-Bonded');
+    expect(result[0].text).toContain('+2 bonus to your Evasion');
+  });
+
+  it('should include Loyal Friend when the character has that Mastery feature', () => {
+    const subclassCards = [buildSubclass('Beastbound Mastery', [
+      { name: 'Advanced Training', featureType: 'SUBCLASS' },
+      { name: 'Loyal Friend', featureType: 'SUBCLASS' },
+    ])];
+
+    const result = companionClassFeatureReminders(subclassCards);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].label).toBe('Loyal Friend');
+    expect(result[0].text).toContain('Once per long rest');
+  });
+
+  it('should include both when the character has both Specialization and Mastery', () => {
+    const subclassCards = [
+      buildSubclass('Beastbound Specialization', [{ name: 'Battle-Bonded', featureType: 'SUBCLASS' }]),
+      buildSubclass('Beastbound Mastery', [{ name: 'Loyal Friend', featureType: 'SUBCLASS' }]),
+    ];
+
+    const result = companionClassFeatureReminders(subclassCards);
+
+    expect(result.map(r => r.label)).toEqual(['Battle-Bonded', 'Loyal Friend']);
+  });
+
+  it('should not match a same-named feature of a different featureType', () => {
+    const subclassCards = [buildSubclass('Homebrew', [{ name: 'Battle-Bonded', featureType: 'PASSIVE' }])];
+    expect(companionClassFeatureReminders(subclassCards)).toEqual([]);
+  });
+
+  it('should match case/whitespace-insensitively', () => {
+    const subclassCards = [buildSubclass('Beastbound Specialization', [{ name: '  battle-bonded  ', featureType: 'SUBCLASS' }])];
+    expect(companionClassFeatureReminders(subclassCards)).toHaveLength(1);
   });
 });

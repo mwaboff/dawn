@@ -29,7 +29,6 @@
         <li class="training-option" [class.training-option--exhausted]="remainingFor(opt.option) === 0">
           <div class="training-option__row">
             <span class="training-option__label">{{ opt.label }}</span>
-            <span class="training-option__effect">{{ opt.effect }}</span>
             <span class="training-option__remaining">{{ remainingFor(opt.option) }} left</span>
             <button
               type="button"
@@ -38,6 +37,7 @@
               (click)="onTakeClicked(opt.option)"
             >+ Take</button>
           </div>
+          <p class="training-option__effect">{{ opt.effect }}</p>
 
           @if (pendingOption() === opt.option && opt.option === 'VICIOUS') {
             <div class="training-pending">

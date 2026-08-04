@@ -45,3 +45,47 @@ export function showCompanionPanel(
 export function canCreateCompanion(hasFeature: boolean, companionsEnabled: boolean): boolean {
   return hasFeature || companionsEnabled;
 }
+
+export interface CompanionClassFeatureReminder {
+  label: string;
+  text: string;
+}
+
+/**
+ * Beastbound Specialization/Mastery features that affect the companion but are neither Training
+ * options nor the Foundation grant, so have nowhere else in this UI to be shown. VERBATIM text --
+ * `resources/rules/chapters/core-01-preparing-for-adventure.md:1255,1261`. Matched the same way
+ * as `hasCompanionFeature`: case/whitespace-insensitive name match AND `featureType === 'SUBCLASS'`.
+ */
+const COMPANION_CLASS_FEATURE_REMINDERS: readonly (CompanionClassFeatureReminder & { featureName: string })[] = [
+  {
+    featureName: 'battle-bonded',
+    label: 'Battle-Bonded',
+    text: "When an adversary attacks you while they're within your companion's Melee range, you gain a +2 bonus to your Evasion against the attack.",
+  },
+  {
+    featureName: 'loyal friend',
+    label: 'Loyal Friend',
+    text: "Once per long rest, when the damage from an attack would mark your companion's last Stress or your last Hit Point and you're within Close range of each other, you or your companion can rush to the other's side and take that damage instead.",
+  },
+];
+
+/**
+ * Reminders for whichever of `COMPANION_CLASS_FEATURE_REMINDERS` the character actually has,
+ * gated on `subclassCards` so a character without the Specialization/Mastery card sees neither.
+ * Returns `[]` (never throws) for an absent `subclassCards` array.
+ */
+export function companionClassFeatureReminders(
+  subclassCards: SubclassCardResponse[] | undefined,
+): CompanionClassFeatureReminder[] {
+  const cards = subclassCards ?? [];
+  return COMPANION_CLASS_FEATURE_REMINDERS
+    .filter(({ featureName }) =>
+      cards.some(card =>
+        (card.features ?? []).some(
+          feature => feature.name?.trim().toLowerCase() === featureName && feature.featureType === 'SUBCLASS',
+        ),
+      ),
+    )
+    .map(({ label, text }) => ({ label, text }));
+}

@@ -318,7 +318,7 @@ describe('ReviewSection', () => {
           stressMax: 3,
           ...overrides,
         },
-        experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+        experiences: [{ name: 'Tracker', modifier: 2 }, { name: 'Loyal Guardian', modifier: 2 }],
       };
     }
 
@@ -338,15 +338,33 @@ describe('ReviewSection', () => {
       expect(text).toContain('10');
     });
 
-    it('shows only the completed companion experience', () => {
+    it('shows both starting companion experiences, each at +2', () => {
       host.companionDraft = buildDraft();
       fixture.detectChanges();
       const text = fixture.nativeElement.textContent as string;
       expect(text).toContain('Tracker');
+      expect(text).toContain('Loyal Guardian');
     });
 
     it('treats an incomplete draft (missing attack name) as no companion', () => {
       host.companionDraft = buildDraft({ attackName: '' });
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
+    });
+
+    it('treats a draft with only one named starting experience as no companion', () => {
+      host.companionDraft = {
+        payload: {
+          name: 'Rufus',
+          description: undefined,
+          evasion: 10,
+          attackName: 'Bite',
+          attackRange: 'MELEE',
+          damageDice: 'D6',
+          stressMax: 3,
+        },
+        experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: 2 }],
+      };
       fixture.detectChanges();
       expect((fixture.nativeElement.textContent as string)).toContain('No companion');
     });

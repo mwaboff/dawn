@@ -66,10 +66,13 @@
         (trainingRemoved)="onTrainingRemoved($event)"
       />
 
-      @if (reminders().length > 0) {
+      @if (reminders().length > 0 || classFeatureReminders().length > 0) {
         <div class="companion-reminders">
           @for (reminder of reminders(); track reminder) {
             <p class="companion-reminder">{{ reminder }}</p>
+          }
+          @for (feature of classFeatureReminders(); track feature.label) {
+            <p class="companion-reminder"><strong>{{ feature.label }}:</strong> {{ feature.text }}</p>
           }
         </div>
       }

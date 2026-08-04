@@ -124,10 +124,19 @@ describe('CompanionFormModal', () => {
   it('defaults the create form to the printed starting values', () => {
     const rangeSelect = el.querySelector<HTMLSelectElement>('#attackRange')!;
     const diceSelect = el.querySelector<HTMLSelectElement>('#damageDice')!;
+    const damageTypeSelect = el.querySelector<HTMLSelectElement>('#damageType')!;
     const evasionInput = el.querySelector<HTMLInputElement>('#evasion')!;
     expect(rangeSelect.value).toBe('MELEE');
     expect(diceSelect.value).toBe('D6');
+    expect(damageTypeSelect.value).toBe('PHYSICAL');
     expect(evasionInput.value).toBe('10');
+  });
+
+  it('prefills damageType from the companion in edit mode', () => {
+    create('edit', buildCompanion({ damageType: 'MAGIC' }));
+
+    const damageTypeSelect = el.querySelector<HTMLSelectElement>('#damageType')!;
+    expect(damageTypeSelect.value).toBe('MAGIC');
   });
 
   it('shows the Experiences section only in create mode', () => {
@@ -157,6 +166,7 @@ describe('CompanionFormModal', () => {
       attackName: 'Bite',
       attackRange: 'MELEE',
       damageDice: 'D6',
+      damageType: 'PHYSICAL',
       stressMax: 3,
     });
   });

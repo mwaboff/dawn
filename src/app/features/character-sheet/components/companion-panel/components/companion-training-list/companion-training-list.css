@@ -7,12 +7,15 @@
 .training-taken__remove:disabled { opacity: .4; cursor: not-allowed; }
 
 .training-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
-.training-option { padding: .4rem .6rem; border-radius: 4px; border: 1px solid rgba(212,160,86,.15); }
+.training-option { padding: .5rem .65rem; border-radius: 4px; border: 1px solid rgba(212,160,86,.15); }
 .training-option--exhausted { opacity: .55; }
 .training-option__row { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
-.training-option__label { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--color-card-companion); min-width: 8rem; }
-.training-option__effect { flex: 1 1 14rem; font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.75); }
-.training-option__remaining { font-family: var(--font-body); font-size: var(--text-xs); color: rgba(245,230,211,.55); }
+.training-option__label { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--color-card-companion); }
+/* Verbatim rule text (up to a full paragraph for Bonded) gets its own row below the scan line
+   (label / remaining / Take), not squeezed into that flex row -- a quoted-text left rule marks it
+   as rules text you read, not UI copy, same idea as `.training-pending`'s own row below. */
+.training-option__effect { display: block; margin: .4rem 0 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, var(--color-card-companion) 40%, transparent); font-family: var(--font-body); font-size: var(--text-sm); line-height: 1.5; color: rgba(245,230,211,.75); }
+.training-option__remaining { margin-left: auto; font-family: var(--font-body); font-size: var(--text-xs); color: rgba(245,230,211,.55); }
 .training-option__take { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .2rem .55rem; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-card-companion) 45%, transparent); background: transparent; color: var(--color-card-companion); cursor: pointer; }
 .training-option__take:hover:not(:disabled) { background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); }
 .training-option__take:disabled { opacity: .4; cursor: not-allowed; }

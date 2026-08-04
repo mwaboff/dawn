@@ -15,7 +15,7 @@ import { hasBeastformFeature } from './utils/beastform-access.utils';
 import { hasMartialStances } from './utils/martial-stance-access.utils';
 import { hasWarlockResources, hasBrawlerResources } from './utils/hf-class-resource-access.utils';
 import { patronDieForLevel } from './utils/patron-die.utils';
-import { hasCompanionFeature, showCompanionPanel, canCreateCompanion } from './utils/companion-access.utils';
+import { hasCompanionFeature, showCompanionPanel, canCreateCompanion, companionClassFeatureReminders } from './utils/companion-access.utils';
 import { BeastformSection } from './components/beastform-section/beastform-section';
 import { MartialStancePanel } from './components/martial-stance-panel/martial-stance-panel';
 import { TransformationPanel } from './components/transformation-panel/transformation-panel';
@@ -198,6 +198,11 @@ export class CharacterSheet implements OnInit {
   readonly canAddCompanion = computed(() => canCreateCompanion(this.companionFeatureGranted(), this.companionsEnabled()));
   readonly canManageCompanions = computed(() => this.isOwner() || this.authService.isAdmin());
   readonly companionGrantedHopeSlots = computed(() => this.rawSheet()?.companionGrantedHopeSlots ?? 0);
+  /** "Battle-Bonded"/"Loyal Friend" verbatim reminders -- see `companionClassFeatureReminders`'s
+   * doc. Computed once here (not per-companion) from the character's own subclass cards. Named
+   * `companionFeatureReminders`, not the same as the imported util, so the arrow function below
+   * unambiguously calls the util rather than shadowing itself. */
+  readonly companionFeatureReminders = computed(() => companionClassFeatureReminders(this.rawSheet()?.subclassCards));
   readonly companionArmorAvailable = computed(() => this.markedArmor() < (this.characterSheet()?.armorScore.modified ?? 0));
 
   private readonly localNotes = signal<string | null>(null);

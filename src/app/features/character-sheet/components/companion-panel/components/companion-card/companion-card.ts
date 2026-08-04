@@ -5,14 +5,20 @@ import { InlineDeleteConfirm } from '../../../../../../shared/components/inline-
 import { CompanionTrainingList } from '../companion-training-list/companion-training-list';
 import { titleCase } from '../../../../../../shared/utils/text.utils';
 import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../../../shared/models/companion-api.model';
+import { CompanionClassFeatureReminder } from '../../../../utils/companion-access.utils';
 
 const DAMAGE_TYPE_CODES: Record<string, string> = { PHYSICAL: 'phy', MAGIC: 'mag' };
 
-/** `Bonded`/`Creature Comfort` are table-adjudicated Training effects -- shown as verbatim
- * reminder text, never automated. See companions plan §6.3. */
+/**
+ * `Bonded`/`Creature Comfort` are table-adjudicated Training effects -- shown as VERBATIM
+ * reminder text, never automated, never paraphrased. See companions plan §6.3 and
+ * `resources/rules/chapters/core-01-preparing-for-adventure.md:1351-1365`. `BONDED`'s full
+ * procedure (how many dice, what to mark, what counts as success) is information a player needs
+ * to resolve the moment, not flavor text to shorten.
+ */
 const TRAINING_REMINDERS: Partial<Record<string, string>> = {
-  BONDED: "When you mark your last Hit Point, this companion rushes to your side to comfort you. Clear your last Hit Point and return to the scene.",
-  CREATURE_COMFORT: 'Once per rest, you can gain a Hope, or you can both clear a Stress.',
+  BONDED: 'When you mark your last Hit Point, your companion rushes to your side to comfort you. Roll a number of d6s equal to the unmarked Stress slots they have and mark them. If any roll a 6, your companion helps you up. Clear your last Hit Point and return to the scene.',
+  CREATURE_COMFORT: 'Once per rest, when you take time during a quiet moment to give your companion love and attention, you can gain a Hope or you can both clear a Stress.',
 };
 
 /**
@@ -38,6 +44,11 @@ export class CompanionCard {
   /** Whether the character has an unmarked Armor Slot right now, for the `Armored` training's
    * "mark Armor instead of Stress" offer. */
   readonly armorAvailable = input(false);
+  /** Verbatim reminders for Beastbound Specialization/Mastery features that affect the companion
+   * but aren't Training options -- "Battle-Bonded"/"Loyal Friend" -- so have nowhere else on this
+   * card to be shown. Computed once at the character-sheet level from the owning character's
+   * subclass cards (`companionClassFeatureReminders`), not per-companion data. */
+  readonly classFeatureReminders = input<CompanionClassFeatureReminder[]>([]);
 
   readonly editRequested = output<void>();
   readonly deleteConfirmed = output<void>();

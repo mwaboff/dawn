@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { CompanionCard } from './companion-card';
 import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../../../shared/models/companion-api.model';
+import { CompanionClassFeatureReminder } from '../../../../utils/companion-access.utils';
 
 function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
   return {
@@ -42,6 +43,7 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       [canManage]="canManage()"
       [processing]="processing()"
       [armorAvailable]="armorAvailable()"
+      [classFeatureReminders]="classFeatureReminders()"
       (editRequested)="onEditRequested()"
       (deleteConfirmed)="onDeleteConfirmed()"
       (stressChanged)="onStressChanged($event)"
@@ -57,6 +59,7 @@ class TestHost {
   canManage = signal(true);
   processing = signal(false);
   armorAvailable = signal(false);
+  classFeatureReminders = signal<CompanionClassFeatureReminder[]>([]);
   editRequestedCount = 0;
   deleteConfirmedCount = 0;
   lastStressChanged: number | undefined;
@@ -192,12 +195,41 @@ describe('CompanionCard', () => {
     expect(host.lastStressChanged).toBe(1);
   });
 
-  it('renders a verbatim reminder for a Bonded training', () => {
+  it('renders a verbatim reminder for a Bonded training, including the full dice procedure', () => {
     host.companion.set(buildCompanion({ trainings: [{ id: 1, option: 'BONDED', acquiredAtLevel: 2 }] }));
     fixture.detectChanges();
     expandCard();
 
-    expect(el.querySelector('.companion-reminder')?.textContent).toContain('rushes to your side');
+    const text = el.querySelector('.companion-reminder')?.textContent;
+    expect(text).toContain('rushes to your side');
+    expect(text).toContain('Roll a number of d6s equal to the unmarked Stress slots');
+    expect(text).toContain('If any roll a 6, your companion helps you up');
+  });
+
+  it('renders no class-feature reminders when none are passed', () => {
+    expandCard();
+    expect(el.querySelectorAll('.companion-reminder').length).toBe(0);
+  });
+
+  it('renders a Battle-Bonded/Loyal Friend reminder when passed, with its label', () => {
+    host.classFeatureReminders.set([
+      { label: 'Battle-Bonded', text: "When an adversary attacks you while they're within your companion's Melee range, you gain a +2 bonus to your Evasion against the attack." },
+    ]);
+    fixture.detectChanges();
+    expandCard();
+
+    const reminder = el.querySelector('.companion-reminder');
+    expect(reminder?.textContent).toContain('Battle-Bonded');
+    expect(reminder?.textContent).toContain('+2 bonus to your Evasion');
+  });
+
+  it('renders both training reminders and class-feature reminders together', () => {
+    host.companion.set(buildCompanion({ trainings: [{ id: 1, option: 'BONDED', acquiredAtLevel: 2 }] }));
+    host.classFeatureReminders.set([{ label: 'Loyal Friend', text: 'Once per long rest...' }]);
+    fixture.detectChanges();
+    expandCard();
+
+    expect(el.querySelectorAll('.companion-reminder').length).toBe(2);
   });
 
   it('shows edit/delete controls for a manager', () => {

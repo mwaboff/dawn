@@ -55,7 +55,7 @@ describe('CompanionCreator', () => {
     toggleOn();
 
     expect(el.querySelector('.companion-sheet')).toBeTruthy();
-    expect(el.querySelector('app-experience-selector')).toBeTruthy();
+    expect(el.querySelectorAll('.companion-experience-row').length).toBe(2);
   });
 
   it('emits null while the toggle is off', () => {
@@ -113,17 +113,45 @@ describe('CompanionCreator', () => {
     });
   });
 
-  it('starts with two empty experiences and reports them on change', () => {
+  it('starts with two empty, fixed-+2 experience rows and reports them on change', () => {
     toggleOn();
 
-    const expInputs = el.querySelectorAll<HTMLInputElement>('.exp-name');
+    const expInputs = el.querySelectorAll<HTMLInputElement>('.companion-experience-row input');
     expect(expInputs.length).toBe(2);
+    expect(host.lastDraft?.experiences).toEqual([
+      { name: '', modifier: 2 },
+      { name: '', modifier: 2 },
+    ]);
 
     expInputs[0].value = 'Tracker';
     expInputs[0].dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    expect(host.lastDraft?.experiences[0].name).toBe('Tracker');
+    expect(host.lastDraft?.experiences).toEqual([
+      { name: 'Tracker', modifier: 2 },
+      { name: '', modifier: 2 },
+    ]);
+  });
+
+  it('never lets the Experience modifier be anything other than +2, however the name is edited', () => {
+    toggleOn();
+
+    const expInputs = el.querySelectorAll<HTMLInputElement>('.companion-experience-row input');
+    expInputs[0].value = 'Tracker';
+    expInputs[0].dispatchEvent(new Event('input'));
+    expInputs[1].value = 'Loyal Guardian';
+    expInputs[1].dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(host.lastDraft?.experiences.every(exp => exp.modifier === 2)).toBe(true);
+  });
+
+  it('shows the fixed +2 badge next to each experience row, not an editable modifier', () => {
+    toggleOn();
+
+    const badges = el.querySelectorAll('.companion-experience-modifier');
+    expect(badges.length).toBe(2);
+    badges.forEach(badge => expect(badge.textContent?.trim()).toBe('+2'));
   });
 
   it('restores a previously-entered draft, including an incomplete one, via initialDraft', () => {
@@ -139,7 +167,7 @@ describe('CompanionCreator', () => {
         damageDice: 'D6',
         stressMax: 3,
       },
-      experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+      experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: 2 }],
     });
     restoredFixture.detectChanges();
 
@@ -148,5 +176,21 @@ describe('CompanionCreator', () => {
     const attackNameInput = restoredEl.querySelector<HTMLInputElement>('#attackName')!;
     expect(nameInput.value).toBe('Rufus');
     expect(attackNameInput.value).toBe('');
+
+    const expInputs = restoredEl.querySelectorAll<HTMLInputElement>('.companion-experience-row input');
+    expect(expInputs[0].value).toBe('Tracker');
+    expect(expInputs[1].value).toBe('');
+  });
+
+  it('rejects disallowed characters in an experience name, same rule as a character\'s own Experiences', () => {
+    toggleOn();
+
+    const expInputs = el.querySelectorAll<HTMLInputElement>('.companion-experience-row input');
+    expInputs[0].value = 'Tracker!!!';
+    expInputs[0].dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(el.querySelector('.field-error')?.textContent).toContain('Only letters, numbers, spaces, hyphens');
+    expect(host.lastDraft?.experiences[0].name).toBe('Tracker');
   });
 });

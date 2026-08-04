@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 import { CompanionPanel, CompanionStressChangedEvent, CompanionTrainingAddedEvent, CompanionTrainingRemovedEvent } from './companion-panel';
 import { CompanionApiResponse } from '../../../../shared/models/companion-api.model';
 import { CompanionCreateSubmission, CompanionUpdateSubmission } from './components/companion-form-modal/companion-form-modal';
+import { CompanionClassFeatureReminder } from '../../utils/companion-access.utils';
 
 function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
   return {
@@ -45,6 +46,7 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       [saving]="saving()"
       [armorAvailable]="armorAvailable()"
       [errorMessage]="errorMessage()"
+      [classFeatureReminders]="classFeatureReminders()"
       (companionCreated)="onCreated($event)"
       (companionUpdated)="onUpdated($event)"
       (companionDeleted)="onDeleted($event)"
@@ -65,6 +67,7 @@ class TestHost {
   saving = signal(false);
   armorAvailable = signal(false);
   errorMessage = signal<string | null>(null);
+  classFeatureReminders = signal<CompanionClassFeatureReminder[]>([]);
 
   lastCreated: CompanionCreateSubmission | undefined;
   lastUpdated: CompanionUpdateSubmission | undefined;
@@ -184,6 +187,16 @@ describe('CompanionPanel', () => {
     awareRow.querySelector<HTMLButtonElement>('.training-option__take')!.click();
 
     expect(host.lastTrainingAdded).toEqual({ companionId: 42, request: { option: 'AWARE' } });
+  });
+
+  it('forwards classFeatureReminders to every companion card', () => {
+    host.companions.set([buildCompanion({ id: 42 })]);
+    host.classFeatureReminders.set([{ label: 'Battle-Bonded', text: 'A Beastbound Specialization reminder.' }]);
+    fixture.detectChanges();
+    el.querySelector<HTMLButtonElement>('.expandable-card__header')!.click();
+    fixture.detectChanges();
+
+    expect(el.querySelector('.companion-reminder')?.textContent).toContain('A Beastbound Specialization reminder.');
   });
 
   it('shows and dismisses the error banner', () => {

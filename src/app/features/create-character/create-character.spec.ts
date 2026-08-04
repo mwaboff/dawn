@@ -11,6 +11,7 @@ import { AncestryCardResponse } from '../../shared/models/ancestry-api.model';
 import { CommunityCardResponse } from '../../shared/models/community-api.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CharacterSheetResponse } from './models/character-sheet-api.model';
+import { Experience } from '../../shared/models/experience.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -1252,7 +1253,10 @@ describe('CreateCharacter', () => {
       component.onCardClicked(card);
     }
 
-    const companionDraft = (attackName = 'Bite') => ({
+    const companionDraft = (attackName = 'Bite', experiences: Experience[] = [
+      { name: 'Tracker', modifier: 2 },
+      { name: 'Loyal Guardian', modifier: 2 },
+    ]) => ({
       payload: {
         name: 'Rufus',
         description: undefined,
@@ -1262,7 +1266,7 @@ describe('CreateCharacter', () => {
         damageDice: 'D6' as const,
         stressMax: 3,
       },
-      experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+      experiences,
     });
 
     /** Visiting the (skippable) companion tab marks it complete regardless of the draft, so
@@ -1346,10 +1350,29 @@ describe('CreateCharacter', () => {
       });
       companionReq.flush({ id: 9, characterSheetId: 55 } as unknown as CardData & { id: number });
 
-      // Only the one complete experience ("Tracker") is sent -- the second, blank row is dropped.
-      const expReq = httpTesting.expectOne(r => r.url.includes('/dh/experiences') && r.method === 'POST');
-      expect(expReq.request.body).toEqual({ companionId: 9, description: 'Tracker', modifier: 2 });
-      expReq.flush({});
+      // Both starting Experiences are sent, each fixed at +2 (core-01:1319).
+      const expReqs = httpTesting.match(r => r.url.includes('/dh/experiences') && r.method === 'POST');
+      expect(expReqs.length).toBe(2);
+      expect(expReqs.map(r => r.request.body)).toEqual([
+        { companionId: 9, description: 'Tracker', modifier: 2 },
+        { companionId: 9, description: 'Loyal Guardian', modifier: 2 },
+      ]);
+      expReqs.forEach(r => r.flush({}));
+    });
+
+    it('does not create a companion when only one starting experience is named', () => {
+      selectBeastboundSubclass();
+      component.onCompanionDraftChanged(
+        companionDraft('Bite', [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: 2 }]),
+      );
+      completeToReview();
+
+      component.onSubmitCharacter();
+
+      const createReq = httpTesting.expectOne(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
+      createReq.flush({ id: 59, name: '', level: 1 } as unknown as CardData & { id: number });
+
+      httpTesting.expectNone(r => r.url.includes('/dh/companions'));
     });
 
     it('does not create a companion when the draft is missing its required attack name', () => {

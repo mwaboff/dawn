@@ -22,6 +22,7 @@
           [canManage]="canManage()"
           [processing]="saving()"
           [armorAvailable]="armorAvailable()"
+          [classFeatureReminders]="classFeatureReminders()"
           (editRequested)="openEditModal(companion)"
           (deleteConfirmed)="onDelete(companion.id)"
           (stressChanged)="onStressChanged(companion.id, $event)"
