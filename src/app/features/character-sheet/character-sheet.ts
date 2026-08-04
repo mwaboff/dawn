@@ -8,7 +8,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
-import { isAtLeast } from '../../shared/models/role.model';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { mapToCharacterSheetView } from './utils/character-sheet-view.mapper';
 import { hasBeastformFeature } from './utils/beastform-access.utils';
@@ -167,12 +166,15 @@ export class CharacterSheet implements OnInit {
     return sheet !== null && user !== null && sheet.ownerId === user.id;
   });
 
-  readonly canAccessNotes = computed(() => {
-    const sheet = this.characterSheet();
-    const user = this.authService.user();
-    if (!sheet || !user) return false;
-    return sheet.ownerId === user.id || isAtLeast(user.role, 'MODERATOR');
-  });
+  /**
+   * Whether notes render at all -- driven entirely by what the backend sent, not a client-side
+   * re-derivation of "who's allowed." The backend now includes `notes` (as `''` when genuinely
+   * empty) only for an authorized viewer (owner or MODERATOR+) and omits the field entirely
+   * otherwise, so presence alone is authoritative: an owner-or-moderator check here would just be
+   * the same asymmetry bug this fix closes on the read side, re-introduced client-side, and would
+   * silently drift the moment the backend's authorization rule changes.
+   */
+  readonly canAccessNotes = computed(() => this.characterSheet()?.notes !== undefined);
 
   /**
    * Companions: fetched separately via `CompanionService.getCompanions(characterSheetId)` rather

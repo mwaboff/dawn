@@ -47,6 +47,12 @@ const mockResponse: CharacterSheetResponse = {
   hopeMarked: 0,
   gold: 50,
   ownerId: 1,
+  /** Present (even as `''`) means "the backend authorized this viewer to see notes" -- the
+   * default fixture represents an authorized owner with nothing written yet. Tests that need an
+   * unauthorized viewer must explicitly omit this field rather than set it to `undefined`, so
+   * the fixture matches what the backend actually sends (a field that's absent from the JSON,
+   * not present-with-value-undefined). */
+  notes: '',
   proficiency: 1,
   transformationEnabled: true,
   equippedDomainCardIds: [],
@@ -62,6 +68,14 @@ const mockResponse: CharacterSheetResponse = {
   createdAt: '2026-01-01T00:00:00',
   lastModifiedAt: '2026-01-01T00:00:00',
 };
+
+/** A sheet response as an unauthorized viewer would receive it: `notes` genuinely absent from
+ * the JSON (not present-with-value-`undefined`), matching what the backend actually sends. */
+function sheetWithoutNotes(): CharacterSheetResponse {
+  const sheet = { ...mockResponse };
+  delete sheet.notes;
+  return sheet;
+}
 
 describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
@@ -1528,46 +1542,59 @@ describe('CharacterSheet', () => {
 
   describe('notes', () => {
     describe('access gating', () => {
-      it('canAccessNotes() returns true when user is the sheet owner', () => {
-        createComponent('1');
+      // `canAccessNotes()` is driven entirely by whether the backend included `notes` on the
+      // response -- not by role or ownership. The backend now sends `notes` (as `''` when
+      // genuinely empty) only to an authorized viewer and omits the field entirely otherwise, so
+      // presence is authoritative; these tests exercise all three states plus the explicit
+      // "role/ownership doesn't matter" guard against re-introducing the old client-side guess.
+
+      it('canAccessNotes() returns true when the backend sends notes with content', () => {
+        createComponent('1', of({ ...mockResponse, notes: 'Some backstory' }));
         fixture.detectChanges();
 
         expect(component.canAccessNotes()).toBe(true);
       });
 
-      it('canAccessNotes() returns false for a non-owner USER', () => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      it('canAccessNotes() returns true when the backend sends an empty string (authorized, nothing written yet)', () => {
+        createComponent('1', of({ ...mockResponse, notes: '' }));
+        fixture.detectChanges();
+
+        expect(component.canAccessNotes()).toBe(true);
+      });
+
+      it('canAccessNotes() returns false when the backend omits notes entirely', () => {
+        createComponent('1', of(sheetWithoutNotes()));
         fixture.detectChanges();
 
         expect(component.canAccessNotes()).toBe(false);
       });
 
-      it.each([
-        ['MODERATOR'],
-        ['ADMIN'],
-        ['OWNER'],
-      ])('canAccessNotes() returns true for non-owner with role %s', (role) => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role, createdAt: '', lastModifiedAt: '' });
+      it('does not fall back to an owner or role check when notes is omitted', () => {
+        // Guards against re-introducing the removed client-side guess: this user IS the sheet
+        // owner (mockAuthService id 1 === mockResponse ownerId 1) and even a MODERATOR+ role
+        // used to unlock notes under the old rule -- neither matters now. Only presence does.
+        createComponent('1', of(sheetWithoutNotes()));
+        mockAuthService.user.mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'MODERATOR', createdAt: '', lastModifiedAt: '' });
         fixture.detectChanges();
 
-        expect(component.canAccessNotes()).toBe(true);
+        expect(component.canAccessNotes()).toBe(false);
       });
 
-      it('notes-section is absent from DOM when canAccessNotes() is false', () => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      it('notes-section is absent from DOM -- no heading, no placeholder -- when notes is omitted', () => {
+        createComponent('1', of(sheetWithoutNotes()));
         fixture.detectChanges();
 
-        expect(fixture.nativeElement.querySelector('.notes-section')).toBeNull();
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.notes-section')).toBeNull();
+        expect(compiled.textContent).not.toContain('Notes');
       });
 
-      it('notes-section is present in DOM when canAccessNotes() is true', () => {
-        createComponent('1');
+      it('notes-section is present in DOM, with an empty editor, when the backend sends an empty string', () => {
+        createComponent('1', of({ ...mockResponse, notes: '' }));
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('.notes-section')).not.toBeNull();
+        expect(component.currentNotes()).toBe('');
       });
     });
 
@@ -1679,6 +1706,30 @@ describe('CharacterSheet', () => {
         expect(component.isSavingNotes()).toBe(false);
         expect(component.notesSavedAt()).toBeNull();
         expect(component.currentNotes()).toBe('');
+      });
+
+      // Regression guard: a save failure -- including a 403 if authorization changes mid-session
+      // (e.g. a GM's access is revoked between page load and typing) -- is an expected, silent
+      // outcome, not a failure to surface. This must stay silent on purpose; if someone "fixes"
+      // it into a toast or a console.error later without realizing that was deliberate, this test
+      // should catch it.
+      it('a save failure of any kind -- including a 403 -- never surfaces a console error or an error element', () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        createComponent('1');
+        const forbidden = { status: 403, message: 'Forbidden' };
+        mockService.updateCharacterSheetNotes.mockReturnValue(throwError(() => forbidden));
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'attempted text' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+        fixture.detectChanges();
+
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('[class*="error"]')).toBeNull();
+        expect(compiled.querySelector('[role="alert"]')).toBeNull();
+
+        consoleErrorSpy.mockRestore();
       });
     });
 
