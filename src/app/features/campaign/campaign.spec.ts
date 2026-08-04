@@ -284,6 +284,69 @@ describe('Campaign', () => {
     expect(component.savingTransformationId()).toBeNull();
   });
 
+  it('should toggle the open companion drawer independently of the transformation drawer', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleTransformation(10);
+    httpTesting.expectOne(r => r.url.includes('/transformation-cards')).flush({ content: [], currentPage: 0, totalPages: 1, totalElements: 0 });
+
+    component.onToggleCompanion(10);
+
+    expect(component.openTransformationId()).toBe(10);
+    expect(component.openCompanionId()).toBe(10);
+  });
+
+  it('should close the open companion drawer when the same character is toggled again', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onToggleCompanion(10);
+
+    component.onToggleCompanion(10);
+
+    expect(component.openCompanionId()).toBeNull();
+  });
+
+  it('should PUT the companions-enabled change for the character', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    component.onCompanionChange({ sheetId: 10, request: { enabled: true } });
+
+    const req = httpTesting.expectOne(r => r.url.includes('/campaigns/1/character-sheets/10/companions'));
+    expect(req.request.body).toEqual({ enabled: true });
+    req.flush({ id: 10, companionsEnabled: true });
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+  });
+
+  it('should reload the campaign after a successful companions-enabled change', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onCompanionChange({ sheetId: 10, request: { enabled: false } });
+    httpTesting.expectOne(r => r.url.includes('/companions'))
+      .flush({ id: 10, companionsEnabled: false });
+
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign({ name: 'Reloaded' }));
+
+    expect(component.campaign()?.name).toBe('Reloaded');
+  });
+
+  it('should clear the saving flag when the companions-enabled change fails', () => {
+    setup();
+    fixture.detectChanges();
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+    component.onCompanionChange({ sheetId: 10, request: { enabled: true } });
+
+    httpTesting.expectOne(r => r.url.includes('/companions'))
+      .flush('Boom', { status: 500, statusText: 'Server Error' });
+    httpTesting.expectOne(r => r.url.includes('/campaigns/1')).flush(buildCampaign());
+
+    expect(component.savingCompanionId()).toBeNull();
+  });
+
   it('should hide the GM Screen button once the campaign has ended, even for game masters', () => {
     setup();
     const authService = TestBed.inject(AuthService);

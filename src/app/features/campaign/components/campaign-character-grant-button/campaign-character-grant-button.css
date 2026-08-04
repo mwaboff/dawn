@@ -1,0 +1,38 @@
+:host { display: contents; }
+
+.grant-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(245, 230, 211, 0.55);
+  background: none;
+  border: 1px solid rgba(245, 230, 211, 0.1);
+  padding: 0.375rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.grant-btn:hover,
+.grant-btn--on {
+  color: var(--grant-toggle-accent, var(--color-accent));
+  border-color: color-mix(in srgb, var(--grant-toggle-accent, var(--color-accent)) 35%, transparent);
+}
+
+.grant-badge {
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grant-toggle-accent, var(--color-accent));
+  border: 1px solid color-mix(in srgb, var(--grant-toggle-accent, var(--color-accent)) 40%, transparent);
+  border-radius: 2px;
+  padding: 0 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grant-btn { transition: none; }
+}

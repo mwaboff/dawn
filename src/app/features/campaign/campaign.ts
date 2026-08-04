@@ -4,7 +4,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { CampaignService } from '../../shared/services/campaign.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CampaignResponse, UpdateCharacterTransformationRequest } from '../../shared/models/campaign-api.model';
+import {
+  CampaignResponse,
+  UpdateCharacterTransformationRequest,
+  UpdateCharacterCompanionsEnabledRequest,
+} from '../../shared/models/campaign-api.model';
 import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
 import { TransformationCardService } from '../../shared/services/transformation-card.service';
 import { CampaignSummary } from './components/campaign-summary/campaign-summary';
@@ -53,6 +57,8 @@ export class Campaign implements OnInit {
   readonly transformationCatalogLoading = signal(false);
   readonly transformationCatalogError = signal(false);
   private readonly transformationCatalogLoaded = signal(false);
+  readonly openCompanionId = signal<number | null>(null);
+  readonly savingCompanionId = signal<number | null>(null);
 
   readonly isGameMaster = computed(() =>
     isCampaignGameMaster(this.campaign(), this.authService.user()?.id),
@@ -232,6 +238,27 @@ export class Campaign implements OnInit {
       },
       error: () => {
         this.savingTransformationId.set(null);
+        this.reloadCampaign();
+      },
+    });
+  }
+
+  /** Independent of the transformation drawer -- a GM may have both open for the same character. */
+  onToggleCompanion(sheetId: number): void {
+    this.openCompanionId.set(this.openCompanionId() === sheetId ? null : sheetId);
+  }
+
+  onCompanionChange(change: { sheetId: number; request: UpdateCharacterCompanionsEnabledRequest }): void {
+    const c = this.campaign();
+    if (!c) return;
+    this.savingCompanionId.set(change.sheetId);
+    this.campaignService.updateCharacterCompanionsEnabled(c.id, change.sheetId, change.request).subscribe({
+      next: () => {
+        this.savingCompanionId.set(null);
+        this.reloadCampaign();
+      },
+      error: () => {
+        this.savingCompanionId.set(null);
         this.reloadCampaign();
       },
     });

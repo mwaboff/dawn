@@ -28,6 +28,7 @@ function buildSummary(overrides: Partial<CampaignCharacterSummary> = {}): Campai
     classNames: [],
     subclassNames: [],
     transformationEnabled: false,
+    companionsEnabled: false,
     ...overrides,
   };
 }
@@ -57,13 +58,17 @@ function buildCampaign(overrides: Partial<CampaignResponse> = {}): CampaignRespo
       [campaign]="campaign()"
       [canManage]="canManage()"
       [canGrantTransformations]="canGrantTransformations()"
+      [canGrantCompanions]="canGrantCompanions()"
       [confirmingRemoveId]="confirmingRemoveId()"
       [characterSummaries]="characterSummaries()"
       [openTransformationId]="openTransformationId()"
+      [openCompanionId]="openCompanionId()"
       (removeCharacter)="removedId = $event"
       (viewCharacter)="viewedId = $event"
       (cancelRemove)="cancelCalled = true"
       (toggleTransformation)="toggledId = $event"
+      (toggleCompanion)="toggledCompanionId = $event"
+      (companionChange)="companionChangeEvent = $event"
     />
   `,
   imports: [CampaignCharacterList],
@@ -72,13 +77,17 @@ class TestHost {
   campaign = signal(buildCampaign());
   canManage = signal(false);
   canGrantTransformations = signal(false);
+  canGrantCompanions = signal(false);
   confirmingRemoveId = signal<number | null>(null);
   characterSummaries = signal<CampaignCharacterSummary[]>([]);
   openTransformationId = signal<number | null>(null);
+  openCompanionId = signal<number | null>(null);
   removedId: number | null = null;
   viewedId: number | null = null;
   cancelCalled = false;
   toggledId: number | null = null;
+  toggledCompanionId: number | null = null;
+  companionChangeEvent: unknown = null;
 }
 
 describe('CampaignCharacterList', () => {
@@ -175,7 +184,7 @@ describe('CampaignCharacterList', () => {
   });
 
   it('should not show the transformation button when canGrantTransformations is false', () => {
-    expect(el.querySelector('.character-transformation-btn')).toBeFalsy();
+    expect(el.querySelector('.character-transformation-grant .grant-btn')).toBeFalsy();
   });
 
   it('should keep remove available but hide the transformation button on an ended campaign', () => {
@@ -184,7 +193,7 @@ describe('CampaignCharacterList', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.character-remove-btn')).toBeTruthy();
-    expect(el.querySelector('.character-transformation-btn')).toBeFalsy();
+    expect(el.querySelector('.character-transformation-grant .grant-btn')).toBeFalsy();
   });
 
   it('should show the transformation button when canGrantTransformations is true', () => {
@@ -192,16 +201,18 @@ describe('CampaignCharacterList', () => {
     host.canGrantTransformations.set(true);
     fixture.detectChanges();
 
-    expect(el.querySelector('.character-transformation-btn')).toBeTruthy();
+    expect(el.querySelector('.character-transformation-grant .grant-btn')).toBeTruthy();
   });
 
-  it('should place the transformation button before the destructive remove button', () => {
+  it('should place the transformation and companion buttons before the destructive remove button', () => {
     host.canManage.set(true);
     host.canGrantTransformations.set(true);
+    host.canGrantCompanions.set(true);
     fixture.detectChanges();
 
-    const actionClasses = Array.from(el.querySelectorAll('.character-actions button')).map(b => b.className);
-    expect(actionClasses).toEqual(['character-transformation-btn', 'character-remove-btn']);
+    const actionLabels = Array.from(el.querySelectorAll('.character-actions button'))
+      .map(b => b.textContent?.replace(/\s+/g, ' ').trim());
+    expect(actionLabels).toEqual(['Transformation', 'Companions', 'Remove']);
   });
 
   it('should show the On badge when the transformation panel is enabled', () => {
@@ -210,7 +221,7 @@ describe('CampaignCharacterList', () => {
     host.characterSummaries.set([buildSummary({ transformationEnabled: true })]);
     fixture.detectChanges();
 
-    expect(el.querySelector('.character-transformation-badge')?.textContent?.trim()).toBe('On');
+    expect(el.querySelector('.character-transformation-grant .grant-badge')?.textContent?.trim()).toBe('On');
   });
 
   it('should emit toggleTransformation without navigating when the transformation button is clicked', () => {
@@ -218,7 +229,7 @@ describe('CampaignCharacterList', () => {
     host.canGrantTransformations.set(true);
     fixture.detectChanges();
 
-    (el.querySelector('.character-transformation-btn') as HTMLButtonElement).click();
+    (el.querySelector('.character-transformation-grant .grant-btn') as HTMLButtonElement).click();
 
     expect(host.toggledId).toBe(10);
   });
@@ -228,7 +239,7 @@ describe('CampaignCharacterList', () => {
     host.canGrantTransformations.set(true);
     fixture.detectChanges();
 
-    (el.querySelector('.character-transformation-btn') as HTMLButtonElement).click();
+    (el.querySelector('.character-transformation-grant .grant-btn') as HTMLButtonElement).click();
 
     expect(host.viewedId).toBeNull();
   });
@@ -261,7 +272,7 @@ describe('CampaignCharacterList', () => {
     host.openTransformationId.set(10);
     fixture.detectChanges();
 
-    const controls = el.querySelector('.character-transformation-btn')?.getAttribute('aria-controls');
+    const controls = el.querySelector('.character-transformation-grant .grant-btn')?.getAttribute('aria-controls');
     expect(el.querySelector(`#${controls}`)).toBeTruthy();
   });
 
@@ -271,7 +282,7 @@ describe('CampaignCharacterList', () => {
     host.openTransformationId.set(10);
     fixture.detectChanges();
 
-    expect(el.querySelector('.character-transformation-btn')?.getAttribute('aria-expanded')).toBe('true');
+    expect(el.querySelector('.character-transformation-grant .grant-btn')?.getAttribute('aria-expanded')).toBe('true');
   });
 
   it('should show confirmation when confirmingRemoveId matches', () => {
@@ -281,5 +292,76 @@ describe('CampaignCharacterList', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.character-confirm-text')).toBeTruthy();
+  });
+
+  it('should not show the companion button when canGrantCompanions is false', () => {
+    expect(el.querySelector('.character-companion-grant .grant-btn')).toBeFalsy();
+  });
+
+  it('should show the companion button when canGrantCompanions is true', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-companion-grant .grant-btn')).toBeTruthy();
+  });
+
+  it('should show the On badge when companions are enabled', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    host.characterSummaries.set([buildSummary({ companionsEnabled: true })]);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.character-companion-grant .grant-badge')?.textContent?.trim()).toBe('On');
+  });
+
+  it('should emit toggleCompanion without navigating when the companion button is clicked', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    fixture.detectChanges();
+
+    (el.querySelector('.character-companion-grant .grant-btn') as HTMLButtonElement).click();
+
+    expect(host.toggledCompanionId).toBe(10);
+    expect(host.viewedId).toBeNull();
+  });
+
+  it('should not render the companion drawer when no character is open', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('app-campaign-character-grant-toggle')).toBeFalsy();
+  });
+
+  it('should render the companion drawer for the open character with the enabled state from its summary', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    host.characterSummaries.set([buildSummary({ companionsEnabled: true })]);
+    host.openCompanionId.set(10);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.grant-toggle-status')?.textContent?.trim())
+      .toBe("Kael can create a companion from their sheet.");
+  });
+
+  it('should say existing companions are unaffected when companions are disabled', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    host.openCompanionId.set(10);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.grant-toggle-status')?.textContent).toContain("doesn't remove or hide");
+  });
+
+  it('should emit companionChange with the flipped enabled state when the drawer toggle is clicked', () => {
+    host.canManage.set(true);
+    host.canGrantCompanions.set(true);
+    host.openCompanionId.set(10);
+    fixture.detectChanges();
+
+    (el.querySelector('.grant-toggle-btn') as HTMLButtonElement).click();
+
+    expect(host.companionChangeEvent).toEqual({ sheetId: 10, request: { enabled: true } });
   });
 });

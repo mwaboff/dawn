@@ -16,6 +16,7 @@ function buildSummary(overrides: Partial<CampaignCharacterSummary> = {}): Campai
     classNames: [],
     subclassNames: [],
     transformationEnabled: false,
+    companionsEnabled: false,
     ...overrides,
   };
 }
@@ -56,7 +57,7 @@ describe('CampaignTransformationControl', () => {
   let el: HTMLElement;
 
   function toggleButton(): HTMLButtonElement {
-    return el.querySelector('.transformation-toggle') as HTMLButtonElement;
+    return el.querySelector('.grant-toggle-btn') as HTMLButtonElement;
   }
 
   function select(): HTMLSelectElement {
@@ -64,7 +65,7 @@ describe('CampaignTransformationControl', () => {
   }
 
   function statusText(): string {
-    return el.querySelector('.transformation-status')?.textContent?.trim() ?? '';
+    return el.querySelector('.grant-toggle-status')?.textContent?.trim() ?? '';
   }
 
   function selectOption(value: string): void {

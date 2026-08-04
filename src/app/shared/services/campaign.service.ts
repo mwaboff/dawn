@@ -11,6 +11,8 @@ import {
   JoinCampaignResponse,
   UpdateCharacterTransformationRequest,
   CharacterTransformationStateResponse,
+  UpdateCharacterCompanionsEnabledRequest,
+  CharacterCompanionsEnabledStateResponse,
 } from '../models/campaign-api.model';
 
 @Injectable({ providedIn: 'root' })
@@ -124,6 +126,24 @@ export class CampaignService {
   ): Observable<CharacterTransformationStateResponse> {
     return this.http.put<CharacterTransformationStateResponse>(
       `${this.baseUrl}/${campaignId}/character-sheets/${sheetId}/transformation`, request, { withCredentials: true }
+    );
+  }
+
+  /**
+   * GM-only (campaign GM / creator / Moderator+). Lets new companions be created for a character
+   * outside the Beastbound feature. Disabling only stops *new* companions being created -- it never
+   * hides or removes a companion the character already has (Companions plan §3.4).
+   *
+   * Built against the documented contract for the core repo's Companions GM-flag work package,
+   * which had not shipped when this was written -- re-verify against the backend once it lands.
+   */
+  updateCharacterCompanionsEnabled(
+    campaignId: number,
+    sheetId: number,
+    request: UpdateCharacterCompanionsEnabledRequest,
+  ): Observable<CharacterCompanionsEnabledStateResponse> {
+    return this.http.put<CharacterCompanionsEnabledStateResponse>(
+      `${this.baseUrl}/${campaignId}/character-sheets/${sheetId}/companions`, request, { withCredentials: true }
     );
   }
 

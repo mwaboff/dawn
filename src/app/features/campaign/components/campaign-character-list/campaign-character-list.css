@@ -116,41 +116,21 @@
   border-color: rgba(224, 122, 95, 0.3);
 }
 
-.character-transformation-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: rgba(245, 230, 211, 0.55);
-  background: none;
-  border: 1px solid rgba(245, 230, 211, 0.1);
-  padding: 0.375rem 0.75rem;
-  border-radius: 2px;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+/* .character-transformation-grant needs no override -- app-campaign-character-grant-button's
+   --grant-toggle-accent already defaults to the same --color-accent gold this used before the
+   extraction. .character-companion-grant retints it to the companion card-type color instead. */
+.character-companion-grant {
+  --grant-toggle-accent: var(--color-card-companion);
 }
 
-.character-transformation-btn:hover {
-  color: var(--color-accent);
-  border-color: rgba(212, 160, 86, 0.35);
-}
-
-.character-transformation-btn--on {
-  color: var(--color-accent);
-  border-color: rgba(212, 160, 86, 0.35);
-}
-
-.character-transformation-badge {
-  font-size: var(--text-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  border: 1px solid rgba(212, 160, 86, 0.4);
-  border-radius: 2px;
-  padding: 0 0.25rem;
+.companion-control {
+  --grant-toggle-accent: var(--color-card-companion);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0.875rem;
+  background: color-mix(in srgb, var(--color-card-companion) 4%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-card-companion) 15%, transparent);
 }
 
 .character-confirm-text {

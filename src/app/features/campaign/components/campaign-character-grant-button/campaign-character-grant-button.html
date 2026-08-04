@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="grant-btn"
+  [class.grant-btn--on]="on()"
+  (click)="onClick($event)"
+  [attr.aria-expanded]="expanded()"
+  [attr.aria-controls]="controlsId()"
+>
+  {{ label() }}
+  @if (on()) {
+    <span class="grant-badge">On</span>
+  }
+</button>

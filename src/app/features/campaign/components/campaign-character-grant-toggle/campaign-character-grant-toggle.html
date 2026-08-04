@@ -1,0 +1,11 @@
+<div class="grant-toggle">
+  <button
+    type="button"
+    class="grant-toggle-btn"
+    [disabled]="saving()"
+    [attr.aria-label]="toggleAriaLabel()"
+    (click)="onToggle()"
+  >{{ toggleLabel() }}</button>
+
+  <p class="grant-toggle-status">{{ statusText() }}</p>
+</div>

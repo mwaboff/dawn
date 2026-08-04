@@ -78,6 +78,7 @@
         [campaign]="c"
         [canManage]="canManage()"
         [canGrantTransformations]="canManage() && !c.isEnded"
+        [canGrantCompanions]="canManage() && !c.isEnded"
         [confirmingRemoveId]="confirmingRemoveId()"
         [characterSummaries]="c.characterSummaries ?? []"
         [openTransformationId]="openTransformationId()"
@@ -85,12 +86,16 @@
         [transformationCatalog]="transformationCatalog()"
         [transformationCatalogLoading]="transformationCatalogLoading()"
         [transformationCatalogError]="transformationCatalogError()"
+        [openCompanionId]="openCompanionId()"
+        [savingCompanionId]="savingCompanionId()"
         (removeCharacter)="onRemoveCharacter($event)"
         (viewCharacter)="onViewCharacter($event)"
         (cancelRemove)="onCancelRemove()"
         (toggleTransformation)="onToggleTransformation($event)"
         (transformationChange)="onTransformationChange($event)"
         (retryTransformationCatalog)="loadTransformationCatalog()"
+        (toggleCompanion)="onToggleCompanion($event)"
+        (companionChange)="onCompanionChange($event)"
       />
     </div>
 
