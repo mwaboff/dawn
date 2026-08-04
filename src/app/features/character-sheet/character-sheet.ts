@@ -15,9 +15,15 @@ import { hasBeastformFeature } from './utils/beastform-access.utils';
 import { hasMartialStances } from './utils/martial-stance-access.utils';
 import { hasWarlockResources, hasBrawlerResources } from './utils/hf-class-resource-access.utils';
 import { patronDieForLevel } from './utils/patron-die.utils';
+import { hasCompanionFeature, showCompanionPanel, canCreateCompanion } from './utils/companion-access.utils';
 import { BeastformSection } from './components/beastform-section/beastform-section';
 import { MartialStancePanel } from './components/martial-stance-panel/martial-stance-panel';
 import { TransformationPanel } from './components/transformation-panel/transformation-panel';
+import { CompanionPanel, CompanionStressChangedEvent, CompanionTrainingAddedEvent, CompanionTrainingRemovedEvent } from './components/companion-panel/companion-panel';
+import { CompanionCreateSubmission, CompanionUpdateSubmission } from './components/companion-panel/components/companion-form-modal/companion-form-modal';
+import { CompanionService } from '../../shared/services/companion.service';
+import { CompanionApiResponse } from '../../shared/models/companion-api.model';
+import { Experience, isExperienceComplete } from '../../shared/models/experience.model';
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
@@ -47,7 +53,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -55,6 +61,7 @@ export class CharacterSheet implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly diceRollerService = inject(DiceRollerService);
   private readonly transformationCardService = inject(TransformationCardService);
+  private readonly companionService = inject(CompanionService);
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -95,7 +102,15 @@ export class CharacterSheet implements OnInit {
 
   readonly markedHp = computed(() => this.localHpMarked() ?? (this.characterSheet()?.hitPointMarked ?? 0));
   readonly markedStress = computed(() => this.localStressMarked() ?? (this.characterSheet()?.stressMarked ?? 0));
-  readonly markedHope = computed(() => this.localHopeMarked() ?? (this.characterSheet()?.hopeMarked ?? 0));
+  /** Clamped against `hopeMax + companionGrantedHopeSlots`, not just `hopeMax` -- if a companion
+   * carrying `LIGHT_IN_THE_DARK` is deleted (or that Training is removed) while a bonus slot was
+   * marked, the derived total shrinks and a stale `hopeMarked` must not exceed it. Do not route
+   * this through the `HOPE_MAX` modifier system -- see companions plan §6.4. */
+  readonly markedHope = computed(() => {
+    const raw = this.localHopeMarked() ?? (this.characterSheet()?.hopeMarked ?? 0);
+    const total = (this.characterSheet()?.hopeMax.modified ?? 0) + this.companionGrantedHopeSlots();
+    return Math.min(raw, total);
+  });
   readonly markedArmor = computed(() => this.localArmorMarked() ?? (this.characterSheet()?.armorMarked ?? 0));
   readonly currentGold = computed(() => (this.characterSheet()?.gold ?? 0) + this.localGoldAdjustment());
 
@@ -158,6 +173,32 @@ export class CharacterSheet implements OnInit {
     if (!sheet || !user) return false;
     return sheet.ownerId === user.id || isAtLeast(user.role, 'MODERATOR');
   });
+
+  /**
+   * Companions: fetched separately via `CompanionService.getCompanions(characterSheetId)` rather
+   * than an `?expand=companions` key on the sheet response -- core WP3 (which adds that expand,
+   * plus `companionsEnabled`/`companionGrantedHopeSlots`) may not have landed yet when this runs,
+   * and the dedicated companions endpoint is already live either way.
+   */
+  readonly companions = signal<CompanionApiResponse[]>([]);
+  readonly companionsLoading = signal(false);
+  /** Single in-flight flag, not per-companion -- mirrors `hfActionInFlight`'s shape rather than
+   * tracking a saving `Set<number>`, since concurrent companion edits are rare. */
+  readonly companionActionInFlight = signal(false);
+  readonly companionError = signal<string | null>(null);
+
+  /** Beastbound Ranger's "Companion" foundation feature -- see `hasCompanionFeature`'s doc for
+   * why this is stricter than a name-only match. */
+  readonly companionFeatureGranted = computed(() => hasCompanionFeature(this.rawSheet()?.subclassCards));
+  readonly companionsEnabled = computed(() => this.rawSheet()?.companionsEnabled ?? false);
+  /** A GM turning `companionsEnabled` off never hides an existing companion -- see companions
+   * plan §3.4. */
+  readonly showCompanionsSection = computed(() =>
+    showCompanionPanel(this.companionFeatureGranted(), this.companionsEnabled(), this.companions().length));
+  readonly canAddCompanion = computed(() => canCreateCompanion(this.companionFeatureGranted(), this.companionsEnabled()));
+  readonly canManageCompanions = computed(() => this.isOwner() || this.authService.isAdmin());
+  readonly companionGrantedHopeSlots = computed(() => this.rawSheet()?.companionGrantedHopeSlots ?? 0);
+  readonly companionArmorAvailable = computed(() => this.markedArmor() < (this.characterSheet()?.armorScore.modified ?? 0));
 
   private readonly localNotes = signal<string | null>(null);
   readonly notesExpanded = signal(false);
@@ -268,12 +309,26 @@ export class CharacterSheet implements OnInit {
           this.characterSheet.set(mapToCharacterSheetView(response));
           this.loading.set(false);
           this.loadTransformationCatalog();
+          this.loadCompanions(id);
         },
         error: () => {
           this.error.set(true);
           this.loading.set(false);
         },
       });
+  }
+
+  private loadCompanions(characterSheetId: number): void {
+    this.companionsLoading.set(true);
+    this.companionService.getCompanions(characterSheetId).subscribe({
+      next: list => {
+        this.companions.set(list);
+        this.companionsLoading.set(false);
+      },
+      error: () => {
+        this.companionsLoading.set(false);
+      },
+    });
   }
 
   /** Applies a `ResourceTracker`'s already-resolved `markedChange` value and queues the save. */
@@ -827,6 +882,143 @@ export class CharacterSheet implements OnInit {
           this.swapInFlight.set(false);
         },
       });
+  }
+
+  /**
+   * Companion CRUD/Training orchestration. Unlike HP/Stress/Hope/Armor, these are their own REST
+   * resource (not sheet PUT fields), so each action is an immediate optimistic write + rollback
+   * on error, mirroring `swapDomainCard`'s shape rather than the `debounceTime` save pipelines
+   * below -- there is no continuous-typing scenario here to coalesce, and per-companion
+   * debouncing would need one `Subject` per companion id for no real benefit.
+   */
+  onCompanionCreated(submission: CompanionCreateSubmission): void {
+    if (!this.canManageCompanions()) return;
+    this.companionActionInFlight.set(true);
+    this.companionError.set(null);
+    this.companionService.createCompanion(submission.payload).subscribe({
+      next: created => {
+        this.companions.update(list => [...list, created]);
+        this.companionActionInFlight.set(false);
+        this.createCompanionExperiences(created.id, submission.experiences);
+      },
+      error: () => {
+        this.companionActionInFlight.set(false);
+        this.companionError.set('Failed to create companion.');
+      },
+    });
+  }
+
+  private createCompanionExperiences(companionId: number, experiences: Experience[]): void {
+    for (const exp of experiences.filter(isExperienceComplete)) {
+      this.characterSheetService.createExperience({
+        companionId,
+        description: exp.name,
+        modifier: exp.modifier!,
+      }).subscribe({
+        next: created => {
+          this.companions.update(list => list.map(c => c.id === companionId
+            ? {
+                ...c,
+                experiences: [
+                  ...(c.experiences ?? []),
+                  { id: created.id, companionId, description: created.description, modifier: created.modifier },
+                ],
+              }
+            : c));
+        },
+        error: () => { /* best-effort: the companion itself already exists either way */ },
+      });
+    }
+  }
+
+  onCompanionUpdated(submission: CompanionUpdateSubmission): void {
+    if (!this.canManageCompanions()) return;
+    const snapshot = this.companions().find(c => c.id === submission.id);
+    this.companionActionInFlight.set(true);
+    this.companionError.set(null);
+    this.companionService.updateCompanion(submission.id, submission.payload).subscribe({
+      next: updated => {
+        this.companions.update(list => list.map(c => c.id === updated.id ? updated : c));
+        this.companionActionInFlight.set(false);
+      },
+      error: () => {
+        this.companionActionInFlight.set(false);
+        this.companionError.set('Failed to update companion.');
+        if (snapshot) this.companions.update(list => list.map(c => c.id === snapshot.id ? snapshot : c));
+      },
+    });
+  }
+
+  onCompanionDeleted(companionId: number): void {
+    if (!this.canManageCompanions()) return;
+    const previous = this.companions();
+    this.companionActionInFlight.set(true);
+    this.companionError.set(null);
+    this.companions.update(list => list.filter(c => c.id !== companionId));
+    this.companionService.deleteCompanion(companionId).subscribe({
+      next: () => this.companionActionInFlight.set(false),
+      error: () => {
+        this.companionActionInFlight.set(false);
+        this.companionError.set('Failed to delete companion.');
+        this.companions.set(previous);
+      },
+    });
+  }
+
+  onCompanionStressChanged(event: CompanionStressChangedEvent): void {
+    if (!this.canManageCompanions()) return;
+    const snapshot = this.companions().find(c => c.id === event.companionId);
+    if (!snapshot) return;
+    this.companions.update(list => list.map(c => c.id === event.companionId ? { ...c, stressMarked: event.stressMarked } : c));
+    this.companionService.updateCompanion(event.companionId, { stressMarked: event.stressMarked }).subscribe({
+      error: () => {
+        this.companionError.set('Failed to update Stress.');
+        this.companions.update(list => list.map(c => c.id === snapshot.id ? snapshot : c));
+      },
+    });
+  }
+
+  /** Routes through the existing Armor pipeline (`setResourceMarked`) rather than a
+   * companion-specific one -- see recon §7. */
+  onCompanionMarkArmorInstead(): void {
+    const max = this.characterSheet()?.armorScore.modified ?? 0;
+    this.setResourceMarked('armor', Math.min(this.markedArmor() + 1, max));
+  }
+
+  onCompanionTrainingAdded(event: CompanionTrainingAddedEvent): void {
+    if (!this.canManageCompanions()) return;
+    this.companionActionInFlight.set(true);
+    this.companionError.set(null);
+    this.companionService.addTraining(event.companionId, event.request).subscribe({
+      next: updated => {
+        this.companions.update(list => list.map(c => c.id === updated.id ? updated : c));
+        this.companionActionInFlight.set(false);
+      },
+      error: () => {
+        this.companionActionInFlight.set(false);
+        this.companionError.set('Failed to add training.');
+      },
+    });
+  }
+
+  onCompanionTrainingRemoved(event: CompanionTrainingRemovedEvent): void {
+    if (!this.canManageCompanions()) return;
+    this.companionActionInFlight.set(true);
+    this.companionError.set(null);
+    this.companionService.removeTraining(event.companionId, event.trainingId).subscribe({
+      next: updated => {
+        this.companions.update(list => list.map(c => c.id === updated.id ? updated : c));
+        this.companionActionInFlight.set(false);
+      },
+      error: () => {
+        this.companionActionInFlight.set(false);
+        this.companionError.set('Failed to remove training.');
+      },
+    });
+  }
+
+  onDismissCompanionError(): void {
+    this.companionError.set(null);
   }
 
   private initSavePipelines(): void {

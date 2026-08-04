@@ -14,6 +14,8 @@ import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { MartialStanceResponse } from '../../shared/models/martial-stance-api.model';
 import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
 import { TransformationCardService } from '../../shared/services/transformation-card.service';
+import { CompanionService } from '../../shared/services/companion.service';
+import { CompanionApiResponse } from '../../shared/models/companion-api.model';
 import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
 
 const mockResponse: CharacterSheetResponse = {
@@ -64,23 +66,46 @@ const mockResponse: CharacterSheetResponse = {
 describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
   let component: CharacterSheet;
-  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheetNotes: ReturnType<typeof vi.fn> };
-  let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let mockService: {
+    getCharacterSheet: ReturnType<typeof vi.fn>;
+    updateCharacterSheet: ReturnType<typeof vi.fn>;
+    updateCharacterSheetNotes: ReturnType<typeof vi.fn>;
+    createExperience: ReturnType<typeof vi.fn>;
+  };
+  let mockAuthService: { user: ReturnType<typeof vi.fn>; isAdmin: ReturnType<typeof vi.fn> };
   let diceRollerService: DiceRollerService;
   let diceRollSpy: ReturnType<typeof vi.spyOn>;
   let mockTransformationCardService: { getAllTransformationCards: ReturnType<typeof vi.fn> };
+  let mockCompanionService: {
+    getCompanions: ReturnType<typeof vi.fn>;
+    createCompanion: ReturnType<typeof vi.fn>;
+    updateCompanion: ReturnType<typeof vi.fn>;
+    deleteCompanion: ReturnType<typeof vi.fn>;
+    addTraining: ReturnType<typeof vi.fn>;
+    removeTraining: ReturnType<typeof vi.fn>;
+  };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
     mockService = {
       getCharacterSheet: vi.fn().mockReturnValue(serviceResponse),
       updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)),
       updateCharacterSheetNotes: vi.fn().mockReturnValue(of(mockResponse)),
+      createExperience: vi.fn().mockReturnValue(of({ id: 1, description: '', modifier: 0 })),
     };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
+      isAdmin: vi.fn().mockReturnValue(false),
     };
     mockTransformationCardService = {
       getAllTransformationCards: vi.fn().mockReturnValue(of([])),
+    };
+    mockCompanionService = {
+      getCompanions: vi.fn().mockReturnValue(of([])),
+      createCompanion: vi.fn(),
+      updateCompanion: vi.fn(),
+      deleteCompanion: vi.fn(),
+      addTraining: vi.fn(),
+      removeTraining: vi.fn(),
     };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
@@ -91,6 +116,7 @@ describe('CharacterSheet', () => {
         { provide: CharacterSheetService, useValue: mockService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: TransformationCardService, useValue: mockTransformationCardService },
+        { provide: CompanionService, useValue: mockCompanionService },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -2221,6 +2247,316 @@ describe('CharacterSheet', () => {
         component.onTransformationSelected(5);
 
         expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Companions', () => {
+    function beastboundSubclass(): SubclassCardResponse {
+      return {
+        id: 30,
+        name: 'Beastbound',
+        features: [{ id: 3, name: 'Companion', description: 'An animal companion.', featureType: 'SUBCLASS' }],
+      };
+    }
+
+    function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
+      return {
+        id: 1,
+        characterSheetId: 1,
+        name: 'Forest Wolf',
+        evasion: 10,
+        baseEvasion: 10,
+        attackName: 'Bite',
+        attackRange: 'MELEE',
+        baseAttackRange: 'MELEE',
+        damageDice: 'D6',
+        baseDamageDice: 'D6',
+        attackDiceCount: 1,
+        damageType: 'PHYSICAL',
+        stressMax: 3,
+        baseStressMax: 3,
+        stressMarked: 0,
+        outOfScene: false,
+        origin: 'SUBCLASS_FEATURE',
+        advancesOnLevelUp: true,
+        trainings: [],
+        remainingByOption: {},
+        createdAt: '',
+        lastModifiedAt: '',
+        ...overrides,
+      };
+    }
+
+    describe('panel gating', () => {
+      it('hides the panel without the Companion feature, the flag, or any companion', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [] }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(false);
+      });
+
+      it('shows the panel when the character has the Companion feature', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass()] }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('shows the panel when a GM has enabled companions', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: true }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('keeps showing the panel for an existing companion after the flag is turned back off', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: false }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('only gates creation on the feature or the flag, not existing companion count', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: false }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        expect(component.canAddCompanion()).toBe(false);
+      });
+
+      it('lets an ADMIN manage companions even without owning the sheet', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        mockAuthService.isAdmin.mockReturnValue(true);
+        fixture.detectChanges();
+
+        expect(component.canManageCompanions()).toBe(true);
+      });
+
+      it('does not let a non-owner, non-admin manage companions', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        fixture.detectChanges();
+
+        expect(component.canManageCompanions()).toBe(false);
+      });
+    });
+
+    describe('Hope slot bonus', () => {
+      it('passes companionGrantedHopeSlots through as the Hope tracker bonusCount', () => {
+        createComponent('1', of({ ...mockResponse, companionGrantedHopeSlots: 1, hopeMax: 3, hopeMarked: 0 }));
+        fixture.detectChanges();
+
+        const el: HTMLElement = fixture.nativeElement;
+        const hopeBoxes = el.querySelectorAll('#hope-1, #hope-2, #hope-3, #hope-4');
+        expect(hopeBoxes.length).toBe(4);
+      });
+
+      it('clamps hopeMarked when the derived total shrinks below the stored value', () => {
+        createComponent('1', of({ ...mockResponse, companionGrantedHopeSlots: 0, hopeMax: 3, hopeMarked: 3 }));
+        fixture.detectChanges();
+
+        expect(component.markedHope()).toBe(3);
+      });
+    });
+
+    describe('create', () => {
+      it('adds the returned companion to the list on success', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(of(buildCompanion({ id: 7, name: 'Wolf' })));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(component.companions().map(c => c.id)).toContain(7);
+      });
+
+      it('creates a companion Experience for each complete row', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(of(buildCompanion({ id: 7 })));
+        mockService.createExperience.mockReturnValue(of({ id: 99, companionId: 7, description: 'Tracker', modifier: 2 }));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+        });
+
+        expect(mockService.createExperience).toHaveBeenCalledTimes(1);
+        expect(mockService.createExperience).toHaveBeenCalledWith({ companionId: 7, description: 'Tracker', modifier: 2 });
+      });
+
+      it('shows an error and does not add anything on failure', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(component.companions()).toEqual([]);
+        expect(component.companionError()).toBeTruthy();
+      });
+
+      it('does nothing for a non-owner', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        fixture.detectChanges();
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(mockCompanionService.createCompanion).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('update', () => {
+      it('replaces the companion in the list on success', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, name: 'Forest Wolf' })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(of(buildCompanion({ id: 1, name: 'Renamed Wolf' })));
+
+        component.onCompanionUpdated({ id: 1, payload: { name: 'Renamed Wolf' } });
+
+        expect(component.companions()[0].name).toBe('Renamed Wolf');
+      });
+
+      it('rolls back to the previous companion on failure', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, name: 'Forest Wolf' })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionUpdated({ id: 1, payload: { name: 'Renamed Wolf' } });
+
+        expect(component.companions()[0].name).toBe('Forest Wolf');
+      });
+    });
+
+    describe('delete', () => {
+      it('optimistically removes the companion', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1 })]));
+        fixture.detectChanges();
+        mockCompanionService.deleteCompanion.mockReturnValue(of(undefined));
+
+        component.onCompanionDeleted(1);
+
+        expect(component.companions()).toEqual([]);
+      });
+
+      it('restores the companion if the delete fails', () => {
+        const companion = buildCompanion({ id: 1 });
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([companion]));
+        fixture.detectChanges();
+        mockCompanionService.deleteCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionDeleted(1);
+
+        expect(component.companions()).toEqual([companion]);
+      });
+    });
+
+    describe('Stress', () => {
+      it('optimistically marks Stress and PUTs the new value', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, stressMarked: 0 })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(of(buildCompanion({ id: 1, stressMarked: 1 })));
+
+        component.onCompanionStressChanged({ companionId: 1, stressMarked: 1 });
+
+        expect(component.companions()[0].stressMarked).toBe(1);
+        expect(mockCompanionService.updateCompanion).toHaveBeenCalledWith(1, { stressMarked: 1 });
+      });
+
+      it('rolls back Stress on failure', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, stressMarked: 0 })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionStressChanged({ companionId: 1, stressMarked: 1 });
+
+        expect(component.companions()[0].stressMarked).toBe(0);
+      });
+
+      it('routes "mark Armor instead" through the existing Armor pipeline, clamped to the Armor score', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          armorMarked: 1,
+          inventoryArmors: [{ id: 200, armorId: 200, equipped: true, armor: { id: 200, name: 'Chainmail', baseScore: 5, features: [] } }],
+        }));
+        fixture.detectChanges();
+
+        component.onCompanionMarkArmorInstead();
+
+        expect(component.markedArmor()).toBe(2);
+      });
+
+      it('clamps "mark Armor instead" at the Armor score even if already full', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          armorMarked: 3,
+          inventoryArmors: [{ id: 200, armorId: 200, equipped: true, armor: { id: 200, name: 'Chainmail', baseScore: 3, features: [] } }],
+        }));
+        fixture.detectChanges();
+
+        component.onCompanionMarkArmorInstead();
+
+        expect(component.markedArmor()).toBe(3);
+      });
+    });
+
+    describe('training', () => {
+      it('adds training and replaces the companion with the derived response', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, remainingByOption: { AWARE: 1 } })]));
+        fixture.detectChanges();
+        mockCompanionService.addTraining.mockReturnValue(of(buildCompanion({
+          id: 1,
+          evasion: 12,
+          trainings: [{ id: 1, option: 'AWARE', acquiredAtLevel: 5 }],
+          remainingByOption: { AWARE: 0 },
+        })));
+
+        component.onCompanionTrainingAdded({ companionId: 1, request: { option: 'AWARE' } });
+
+        expect(mockCompanionService.addTraining).toHaveBeenCalledWith(1, { option: 'AWARE' });
+        expect(component.companions()[0].evasion).toBe(12);
+      });
+
+      it('removes training and replaces the companion with the derived response', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({
+          id: 1,
+          trainings: [{ id: 5, option: 'AWARE', acquiredAtLevel: 5 }],
+        })]));
+        fixture.detectChanges();
+        mockCompanionService.removeTraining.mockReturnValue(of(buildCompanion({ id: 1, trainings: [] })));
+
+        component.onCompanionTrainingRemoved({ companionId: 1, trainingId: 5 });
+
+        expect(mockCompanionService.removeTraining).toHaveBeenCalledWith(1, 5);
+        expect(component.companions()[0].trainings).toEqual([]);
+      });
+
+      it('does nothing for a non-owner', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1 })]));
+        fixture.detectChanges();
+
+        component.onCompanionTrainingAdded({ companionId: 1, request: { option: 'AWARE' } });
+
+        expect(mockCompanionService.addTraining).not.toHaveBeenCalled();
       });
     });
   });

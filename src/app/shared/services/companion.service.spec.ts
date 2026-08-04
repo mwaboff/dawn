@@ -13,11 +13,22 @@ function buildCompanionResponse(overrides: Partial<CompanionApiResponse> = {}): 
     characterSheetId: 1,
     name: 'Forest Wolf',
     evasion: 10,
+    baseEvasion: 10,
     attackName: 'Bite',
     attackRange: 'MELEE',
-    damageDice: '1d6',
+    baseAttackRange: 'MELEE',
+    damageDice: 'D6',
+    baseDamageDice: 'D6',
+    attackDiceCount: 1,
+    damageType: 'PHYSICAL',
     stressMax: 3,
+    baseStressMax: 3,
     stressMarked: 0,
+    outOfScene: false,
+    origin: 'SUBCLASS_FEATURE',
+    advancesOnLevelUp: true,
+    trainings: [],
+    remainingByOption: {},
     createdAt: '2025-01-01T00:00:00Z',
     lastModifiedAt: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -50,57 +61,110 @@ describe('CompanionService', () => {
     httpTesting.verify();
   });
 
-  it('should call the correct endpoint', () => {
-    service.getCompanions().subscribe();
+  describe('getCompanions', () => {
+    it('sends characterSheetId as a required query param', () => {
+      service.getCompanions(7).subscribe();
 
-    const req = httpTesting.expectOne(r => r.url === baseUrl);
-    expect(req.request.method).toBe('GET');
-    req.flush(buildPaginatedResponse([]));
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.params.get('characterSheetId')).toBe('7');
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('requests the experiences expand', () => {
+      service.getCompanions(7).subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.params.get('expand')).toBe('experiences');
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('sends withCredentials: true', () => {
+      service.getCompanions(7).subscribe();
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      expect(req.request.withCredentials).toBe(true);
+      req.flush(buildPaginatedResponse([]));
+    });
+
+    it('returns the response content array', () => {
+      const mockData = [buildCompanionResponse({ id: 1 }), buildCompanionResponse({ id: 2, name: 'Shadow Cat' })];
+      let result: CompanionApiResponse[] | undefined;
+
+      service.getCompanions(7).subscribe(data => (result = data));
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      req.flush(buildPaginatedResponse(mockData));
+
+      expect(result).toHaveLength(2);
+      expect(result![1].name).toBe('Shadow Cat');
+    });
+
+    it('propagates HTTP errors', () => {
+      let error: HttpErrorResponse | undefined;
+      service.getCompanions(7).subscribe({ error: e => (error = e) });
+
+      const req = httpTesting.expectOne(r => r.url === baseUrl);
+      req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+      expect(error?.status).toBe(404);
+    });
   });
 
-  it('should send withCredentials: true', () => {
-    service.getCompanions().subscribe();
+  describe('createCompanion', () => {
+    it('POSTs to the base endpoint', () => {
+      service.createCompanion({
+        characterSheetId: 7,
+        name: 'Wolf',
+        attackName: 'Bite',
+        attackRange: 'MELEE',
+        damageDice: 'D6',
+      }).subscribe();
 
-    const req = httpTesting.expectOne(r => r.url === baseUrl);
-    expect(req.request.withCredentials).toBe(true);
-    req.flush(buildPaginatedResponse([]));
+      const req = httpTesting.expectOne(baseUrl);
+      expect(req.request.method).toBe('POST');
+      req.flush(buildCompanionResponse());
+    });
   });
 
-  it('should return the raw companion response array', () => {
-    const mockData: CompanionApiResponse[] = [
-      buildCompanionResponse({ id: 1, name: 'Forest Wolf' }),
-      buildCompanionResponse({ id: 2, name: 'Shadow Cat', attackName: 'Claw' }),
-    ];
+  describe('updateCompanion', () => {
+    it('PUTs to the companion endpoint', () => {
+      service.updateCompanion(1, { stressMarked: 2 }).subscribe();
 
-    let result: CompanionApiResponse[] | undefined;
-    service.getCompanions().subscribe(data => (result = data));
-
-    const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush(buildPaginatedResponse(mockData));
-
-    expect(result).toHaveLength(2);
-    expect(result![0].id).toBe(1);
-    expect(result![0].name).toBe('Forest Wolf');
-    expect(result![1].name).toBe('Shadow Cat');
+      const req = httpTesting.expectOne(`${baseUrl}/1`);
+      expect(req.request.method).toBe('PUT');
+      expect(req.request.body).toEqual({ stressMarked: 2 });
+      req.flush(buildCompanionResponse({ stressMarked: 2 }));
+    });
   });
 
-  it('should return empty array when no companions', () => {
-    let result: CompanionApiResponse[] | undefined;
-    service.getCompanions().subscribe(data => (result = data));
+  describe('deleteCompanion', () => {
+    it('DELETEs the companion endpoint', () => {
+      service.deleteCompanion(1).subscribe();
 
-    const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush(buildPaginatedResponse([]));
-
-    expect(result).toEqual([]);
+      const req = httpTesting.expectOne(`${baseUrl}/1`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null);
+    });
   });
 
-  it('should propagate HTTP errors', () => {
-    let error: HttpErrorResponse | undefined;
-    service.getCompanions().subscribe({ error: e => (error = e) });
+  describe('addTraining', () => {
+    it('POSTs to the trainings endpoint', () => {
+      service.addTraining(1, { option: 'AWARE' }).subscribe();
 
-    const req = httpTesting.expectOne(r => r.url === baseUrl);
-    req.flush('Not Found', { status: 404, statusText: 'Not Found' });
+      const req = httpTesting.expectOne(`${baseUrl}/1/trainings`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ option: 'AWARE' });
+      req.flush(buildCompanionResponse());
+    });
+  });
 
-    expect(error?.status).toBe(404);
+  describe('removeTraining', () => {
+    it('DELETEs the specific training selection', () => {
+      service.removeTraining(1, 5).subscribe();
+
+      const req = httpTesting.expectOne(`${baseUrl}/1/trainings/5`);
+      expect(req.request.method).toBe('DELETE');
+      req.flush(buildCompanionResponse());
+    });
   });
 });

@@ -1,0 +1,53 @@
+<div class="card-group">
+  <div class="card-group__heading-row">
+    <h3 class="card-group__heading card-group__heading--companion">Companions</h3>
+    @if (saving()) { <app-saving-spinner /> }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="companion-panel-error" role="alert">
+      {{ errorMessage() }}
+      <button type="button" class="companion-panel-error__dismiss" (click)="onDismissError()">Dismiss</button>
+    </p>
+  }
+
+  @if (companions().length === 0) {
+    <p class="empty-state">No companions yet.</p>
+  } @else {
+    <div class="card-group__list">
+      @for (companion of companions(); track companion.id) {
+        <app-companion-card
+          [companion]="companion"
+          [proficiency]="proficiency()"
+          [canManage]="canManage()"
+          [processing]="saving()"
+          [armorAvailable]="armorAvailable()"
+          (editRequested)="openEditModal(companion)"
+          (deleteConfirmed)="onDelete(companion.id)"
+          (stressChanged)="onStressChanged(companion.id, $event)"
+          (markArmorInstead)="onMarkArmorInstead()"
+          (trainingAdded)="onTrainingAdded(companion.id, $event)"
+          (trainingRemoved)="onTrainingRemoved(companion.id, $event)"
+        />
+      }
+    </div>
+  }
+
+  @if (canCreate()) {
+    <button type="button" class="companion-add-btn" [disabled]="saving()" (click)="openCreateModal()">
+      + Add Companion
+    </button>
+  }
+</div>
+
+@if (modalMode(); as mode) {
+  <app-companion-form-modal
+    [mode]="mode"
+    [characterSheetId]="characterSheetId()"
+    [companion]="editingCompanion()"
+    [processing]="saving()"
+    (dismissed)="closeModal()"
+    (created)="onCreated($event)"
+    (updated)="onUpdated($event)"
+  />
+}

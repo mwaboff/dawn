@@ -106,8 +106,11 @@ export interface UpdateCharacterSheetRequest {
   inventoryItems?: InventoryLootRequest[];
 }
 
+/** Exactly one of `characterSheetId` or `companionId` must be set -- the backend enforces this
+ * with a single-owner CHECK constraint (`chk_experience_single_owner`). */
 export interface CreateExperienceRequest {
-  characterSheetId: number;
+  characterSheetId?: number;
+  companionId?: number;
   description: string;
   modifier: number;
 }
@@ -364,6 +367,19 @@ export interface CharacterSheetResponse {
   activeMartialStanceId?: number;
   /** Full active martial stance object (included only when `expand=activeMartialStance`). */
   activeMartialStance?: MartialStanceResponse;
+  /**
+   * Whether a GM has enabled companion creation for this character independent of the Beastbound
+   * Ranger's Companion feature (companions plan §3.4) -- lands with core WP3. Optional here so
+   * responses that predate it still typecheck; treat a missing value as `false`. A companion this
+   * flag helped create is never hidden again just because the flag is later turned back off.
+   */
+  companionsEnabled?: boolean;
+  /**
+   * Bonus Hope slots granted by companion Training (`LIGHT_IN_THE_DARK`), summed across every
+   * `advancesOnLevelUp` companion -- lands with core WP3. Optional here for the same reason as
+   * {@link companionsEnabled}; treat a missing value as `0`.
+   */
+  companionGrantedHopeSlots?: number;
 }
 
 export interface UpdateCharacterSheetNotesRequest {

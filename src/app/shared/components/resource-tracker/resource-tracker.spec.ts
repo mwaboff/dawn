@@ -13,6 +13,7 @@ import { ResourceTracker, ResourceTrackerVariant } from './resource-tracker';
       [variant]="variant()"
       [idPrefix]="idPrefix()"
       [ariaLabel]="ariaLabel()"
+      [bonusCount]="bonusCount()"
       (markedChange)="onMarkedChange($event)"
     >
       @if (withProjectedContent()) {
@@ -28,6 +29,7 @@ class TestHost {
   variant = signal<ResourceTrackerVariant>('default');
   idPrefix = signal('');
   ariaLabel = signal('');
+  bonusCount = signal(0);
   withProjectedContent = signal(false);
   lastEmitted: number | null = null;
 
@@ -175,5 +177,55 @@ describe('ResourceTracker', () => {
 
     const projected = fixture.nativeElement.querySelector('.projected');
     expect(projected).toBeTruthy();
+  });
+
+  describe('bonusCount', () => {
+    it('renders max + bonusCount boxes', () => {
+      host.bonusCount.set(2);
+      fixture.detectChanges();
+
+      expect(boxes().length).toBe(7);
+    });
+
+    it('marks the trailing bonus boxes with the companion class, not the base boxes', () => {
+      host.bonusCount.set(2);
+      fixture.detectChanges();
+
+      const flags = boxes().map(b => b.classList.contains('resource-box--companion'));
+      expect(flags).toEqual([false, false, false, false, false, true, true]);
+    });
+
+    it('shows the bonus total in the marked/max count', () => {
+      host.bonusCount.set(2);
+      fixture.detectChanges();
+
+      const count = fixture.nativeElement.querySelector('.resource-row__count');
+      expect(count.textContent.trim()).toBe('2/7');
+    });
+
+    it('allows marking all the way into the bonus range, not just up to the base max', () => {
+      host.bonusCount.set(2);
+      fixture.detectChanges();
+
+      boxes()[6].click();
+
+      expect(host.lastEmitted).toBe(7);
+    });
+
+    it('does not clamp a bonus-box click down to the base max', () => {
+      // Regression guard: toggle()'s clamp ceiling must be totalBoxes(), not max() -- with the
+      // old max()-only clamp, clicking a bonus box silently emitted max() instead of the bonus index.
+      host.bonusCount.set(2);
+      fixture.detectChanges();
+
+      boxes()[5].click();
+
+      expect(host.lastEmitted).toBe(6);
+      expect(host.lastEmitted).not.toBe(host.max());
+    });
+
+    it('defaults to no bonus boxes when bonusCount is not provided', () => {
+      expect(boxes().length).toBe(5);
+    });
   });
 });

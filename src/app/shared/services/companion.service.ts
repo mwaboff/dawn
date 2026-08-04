@@ -3,26 +3,26 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse } from '../models/api.model';
-import { CompanionApiResponse } from '../models/companion-api.model';
-
-export interface CompanionOptions {
-  page?: number;
-  size?: number;
-}
+import {
+  CompanionApiResponse,
+  CreateCompanionRequest,
+  CreateCompanionTrainingRequest,
+  UpdateCompanionRequest,
+} from '../models/companion-api.model';
 
 /**
- * Companions are no longer browsable catalog content (see WP6 of the companions plan) --
- * this service is a stub kept alive for WP8, which rewrites it into a real per-character
- * CRUD service. `mapCompanionToCardData` and its catalog-card shape are gone; these two
- * methods return the raw API response until that rewrite lands.
+ * Real per-character CRUD service for companions -- companions are per-character-sheet data,
+ * not browsable catalog content (see the WP6 removal of the Codex/admin companion surface).
+ * `GET /api/dh/companions` always requires `characterSheetId`; there is no unfiltered listing.
  */
 @Injectable({ providedIn: 'root' })
 export class CompanionService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/dh/companions`;
 
-  getCompanions(page = 0, size = 100): Observable<CompanionApiResponse[]> {
+  getCompanions(characterSheetId: number, page = 0, size = 100): Observable<CompanionApiResponse[]> {
     const params = new HttpParams()
+      .set('characterSheetId', characterSheetId)
       .set('page', page)
       .set('size', size)
       .set('expand', 'experiences');
@@ -32,14 +32,30 @@ export class CompanionService {
       .pipe(map(response => response.content));
   }
 
-  getCompanionsPaginated(options: CompanionOptions = {}): Observable<PaginatedResponse<CompanionApiResponse>> {
-    const { page = 0, size = 20 } = options;
+  createCompanion(request: CreateCompanionRequest): Observable<CompanionApiResponse> {
+    return this.http.post<CompanionApiResponse>(this.baseUrl, request, { withCredentials: true });
+  }
 
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size)
-      .set('expand', 'experiences');
+  updateCompanion(id: number, request: UpdateCompanionRequest): Observable<CompanionApiResponse> {
+    return this.http.put<CompanionApiResponse>(`${this.baseUrl}/${id}`, request, { withCredentials: true });
+  }
 
-    return this.http.get<PaginatedResponse<CompanionApiResponse>>(this.baseUrl, { params, withCredentials: true });
+  deleteCompanion(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
+  }
+
+  addTraining(companionId: number, request: CreateCompanionTrainingRequest): Observable<CompanionApiResponse> {
+    return this.http.post<CompanionApiResponse>(
+      `${this.baseUrl}/${companionId}/trainings`,
+      request,
+      { withCredentials: true },
+    );
+  }
+
+  removeTraining(companionId: number, trainingId: number): Observable<CompanionApiResponse> {
+    return this.http.delete<CompanionApiResponse>(
+      `${this.baseUrl}/${companionId}/trainings/${trainingId}`,
+      { withCredentials: true },
+    );
   }
 }

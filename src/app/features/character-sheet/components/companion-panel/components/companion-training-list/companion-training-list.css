@@ -1,0 +1,24 @@
+:host { display: block; }
+
+.training-taken { list-style: none; margin: 0 0 var(--space-5); padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.training-taken__item { display: flex; align-items: center; gap: .35rem; padding: .2rem .55rem; border-radius: 3px; background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); border: 1px solid color-mix(in srgb, var(--color-card-companion) 35%, transparent); }
+.training-taken__label { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment); }
+.training-taken__remove { background: none; border: none; color: rgba(200,110,90,.85); cursor: pointer; font-size: .9rem; line-height: 1; padding: 0; }
+.training-taken__remove:disabled { opacity: .4; cursor: not-allowed; }
+
+.training-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.training-option { padding: .4rem .6rem; border-radius: 4px; border: 1px solid rgba(212,160,86,.15); }
+.training-option--exhausted { opacity: .55; }
+.training-option__row { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.training-option__label { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; color: var(--color-card-companion); min-width: 8rem; }
+.training-option__effect { flex: 1 1 14rem; font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.75); }
+.training-option__remaining { font-family: var(--font-body); font-size: var(--text-xs); color: rgba(245,230,211,.55); }
+.training-option__take { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .2rem .55rem; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-card-companion) 45%, transparent); background: transparent; color: var(--color-card-companion); cursor: pointer; }
+.training-option__take:hover:not(:disabled) { background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); }
+.training-option__take:disabled { opacity: .4; cursor: not-allowed; }
+
+.training-pending { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .4rem; padding-top: .4rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.training-pending__prompt { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.75); flex-basis: 100%; }
+.training-pending__choice { font-family: var(--font-body); font-size: var(--text-sm); padding: .2rem .55rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: var(--color-accent); cursor: pointer; }
+.training-pending__choice:hover { background: rgba(212,160,86,.1); }
+.training-pending__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: rgba(245,230,211,.5); cursor: pointer; text-decoration: underline; }
