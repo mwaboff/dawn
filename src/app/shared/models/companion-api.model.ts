@@ -12,9 +12,9 @@ export type CompanionDiceType = 'D6' | 'D8' | 'D10' | 'D12';
 
 /**
  * A companion's attack is always physical or magic, never `PHYSICAL_AND_MAGIC` (that "Otherworldly"
- * either/or mechanic is weapon-only). `damageType` is read-only on the wire today -- see
- * `CompanionApiResponse.damageType` -- there is no field for it on `CreateCompanionRequest` or
- * `UpdateCompanionRequest`, so it cannot be set from this form.
+ * either/or mechanic is weapon-only) -- core-01:1327, "Choose whether they deal physical or magic
+ * damage." Settable on both `CreateCompanionRequest` and `UpdateCompanionRequest`; the backend
+ * rejects `PHYSICAL_AND_MAGIC` for a companion.
  */
 export type CompanionDamageType = 'PHYSICAL' | 'MAGIC';
 
@@ -97,6 +97,8 @@ export interface CreateCompanionRequest {
   attackName: string;
   attackRange: CompanionRange;
   damageDice: CompanionDiceType;
+  /** Defaults server-side to `PHYSICAL` when omitted. */
+  damageType?: CompanionDamageType;
   stressMax?: number;
   stressMarked?: number;
 }
@@ -109,6 +111,7 @@ export interface UpdateCompanionRequest {
   attackName?: string;
   attackRange?: CompanionRange;
   damageDice?: CompanionDiceType;
+  damageType?: CompanionDamageType;
   stressMax?: number;
   stressMarked?: number;
 }

@@ -17,13 +17,14 @@ const COMPANION_DICE_OPTIONS = [
   { value: 'D12', label: 'd12' },
 ];
 
-/**
- * No `damageType` field: it defaults to Physical server-side and is read-only on the wire --
- * absent from both `CreateCompanionRequest` and `UpdateCompanionRequest` -- so it cannot be set
- * from this form despite being listed in the companions plan §6.2. See `companion-form-modal.ts`.
- *
- * No `previewTags`/`previewSubtitle`: this schema never backs a card preview.
- */
+/** core-01:1327: "Choose whether they deal physical or magic damage." Never
+ * `PHYSICAL_AND_MAGIC` -- that's a weapon-only ("Otherworldly") either/or mechanic. */
+const COMPANION_DAMAGE_TYPE_OPTIONS = [
+  { value: 'PHYSICAL', label: 'Physical' },
+  { value: 'MAGIC', label: 'Magic' },
+];
+
+/** No `previewTags`/`previewSubtitle`: this schema never backs a card preview. */
 export const COMPANION_FORM_SCHEMA: EntityFormSchema = {
   cardType: 'companion',
   sections: [
@@ -42,6 +43,7 @@ export const COMPANION_FORM_SCHEMA: EntityFormSchema = {
         { name: 'attackName', label: 'Attack Name', kind: 'text', required: true, maxLength: 200, column: 'full' },
         { name: 'attackRange', label: 'Attack Range', kind: 'enum', required: true, column: 1, options: COMPANION_RANGE_OPTIONS },
         { name: 'damageDice', label: 'Damage Die', kind: 'enum', required: true, column: 2, options: COMPANION_DICE_OPTIONS },
+        { name: 'damageType', label: 'Damage Type', kind: 'enum', required: true, column: 1, options: COMPANION_DAMAGE_TYPE_OPTIONS },
       ],
     },
   ],
@@ -56,5 +58,6 @@ export const COMPANION_FORM_DEFAULTS: Record<string, unknown> = {
   attackName: '',
   attackRange: 'MELEE',
   damageDice: 'D6',
+  damageType: 'PHYSICAL',
   stressMax: 3,
 };

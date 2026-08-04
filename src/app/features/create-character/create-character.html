@@ -49,6 +49,12 @@
               />
             }
           }
+          @case ('companion') {
+            <app-companion-creator
+              [initialDraft]="companionDraft()"
+              (draftChanged)="onCompanionDraftChanged($event)"
+            />
+          }
           @case ('martial-stances') {
             <app-martial-stance-selector
               [cards]="martialStanceCards()"
@@ -147,6 +153,7 @@
               [armor]="selectedArmor()"
               [experiences]="effectiveExperiences()"
               [domainCards]="selectedDomainCards()"
+              [companionDraft]="companionDraft()"
               [submitting]="submitting()"
               [submitError]="submitError()"
               (submitClicked)="onSubmitCharacter()"

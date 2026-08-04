@@ -35,15 +35,19 @@
           (tabSelected)="onTabSelected($event)"
         />
 
+        <app-also-happening-banner [items]="alsoHappeningItems()" />
+
         <div class="tab-content" role="tabpanel" [id]="'lu-panel-' + activeTab()" [attr.aria-labelledby]="'lu-tab-' + activeTab()">
-          @switch (activeTab()) {
+          @switch (activeTabKind()) {
             @case ('tier-achievements') {
               <app-tier-achievements-step
                 [nextLevel]="levelUpOptions()!.nextLevel"
                 [currentTier]="levelUpOptions()!.currentTier"
                 [nextTier]="levelUpOptions()!.nextTier"
                 [initialDescription]="newExperienceDescription()"
+                [companionExperienceTargets]="companionExperienceTargets()"
                 (experienceDescriptionChanged)="onExperienceDescriptionChanged($event)"
+                (companionExperiencesChanged)="onCompanionExperiencesChanged($event)"
               />
             }
             @case ('advancements') {
@@ -54,6 +58,14 @@
                 [initialAdvancements]="selectedAdvancements()"
                 [newExperienceDescription]="newExperienceDescription()"
                 (advancementsChanged)="onAdvancementsChanged($event)"
+              />
+            }
+            @case ('companion') {
+              <app-companion-step
+                [characterSheetId]="sheet.id"
+                [restorableCompanions]="restorableCompanions()"
+                [initialSelection]="companionSelection()"
+                (selectionChanged)="onCompanionSelectionChanged($event)"
               />
             }
             @case ('martial-stance') {
@@ -67,6 +79,16 @@
                 [selectedStanceIds]="selectedMartialStanceIds()"
                 (stancesSelected)="onMartialStanceSelected($event)"
               />
+            }
+            @case ('training') {
+              @if (activeTrainingEntry(); as training) {
+                <app-training-step
+                  [training]="training"
+                  [picksAvailable]="picksAvailableFor(training.companionId)"
+                  [selections]="trainingSelectionsFor(training.companionId)"
+                  (selectionsChanged)="onTrainingSelectionsChanged(training.companionId, $event)"
+                />
+              }
             }
             @case ('domain-card') {
               @if (bonusDomainCardSlots() > 0) {
@@ -115,6 +137,7 @@
                 [selectedDomainCards]="selectedDomainCards()"
                 [equipNewDomainCard]="equipNewDomainCard()"
                 [tradeDisplayPairs]="tradeDisplayPairs()"
+                [companionReviews]="companionReviewEntries()"
                 [submitting]="submitting()"
                 [submitError]="submitError()"
                 (submitClicked)="onSubmit()"

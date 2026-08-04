@@ -10,6 +10,7 @@ import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
 import { AncestryCardResponse } from '../../shared/models/ancestry-api.model';
 import { CommunityCardResponse } from '../../shared/models/community-api.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
+import { CharacterSheetResponse } from './models/character-sheet-api.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -259,13 +260,14 @@ describe('CreateCharacter', () => {
       expect(component.activeTab()).toBe('class');
     });
 
-    it('hides the bonuses tab when no card grants bonus experience', () => {
+    it('hides the bonuses, martial-stances, and companion tabs when no subclass is selected', () => {
       fixture.detectChanges();
       flushClassCards();
       const tabIds = component.tabs().map(t => t.id);
       expect(tabIds).not.toContain('bonuses');
+      expect(tabIds).not.toContain('companion');
       expect(tabIds).toEqual(
-        CHARACTER_TABS.filter(t => t.id !== 'bonuses' && t.id !== 'martial-stances').map(t => t.id),
+        CHARACTER_TABS.filter(t => t.id !== 'bonuses' && t.id !== 'martial-stances' && t.id !== 'companion').map(t => t.id),
       );
     });
   });
@@ -1219,6 +1221,179 @@ describe('CreateCharacter', () => {
       );
       expect(putReq.request.body).toEqual({ knownMartialStanceIds: [1, 2] });
       putReq.flush({ id: 42, name: '', level: 1 } as unknown as CardData & { id: number });
+    });
+  });
+
+  describe('Companion', () => {
+    function buildBeastboundSubclass(): SubclassCardResponse {
+      return buildSubclassCardResponse({
+        id: 600,
+        name: 'Beastbound',
+        subclassPathId: 60,
+        level: 'FOUNDATION',
+        features: [{
+          id: 20,
+          name: 'Companion',
+          description: 'You have an animal companion of your choice.',
+          featureType: 'SUBCLASS',
+          expansionId: 1,
+          costTagIds: [],
+          costTags: [],
+        }],
+      });
+    }
+
+    function selectBeastboundSubclass(): void {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards([...MOCK_SUBCLASSES, buildBeastboundSubclass()]);
+      const card = component.subclassCards().find(c => c.name === 'Beastbound')!;
+      component.onCardClicked(card);
+    }
+
+    const companionDraft = (attackName = 'Bite') => ({
+      payload: {
+        name: 'Rufus',
+        description: undefined,
+        evasion: 10,
+        attackName,
+        attackRange: 'MELEE' as const,
+        damageDice: 'D6' as const,
+        stressMax: 3,
+      },
+      experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+    });
+
+    /** Visiting the (skippable) companion tab marks it complete regardless of the draft, so
+     * later tabs stay reachable -- mirrors visiting starting-weapon/starting-armor. */
+    function completeToReview(): void {
+      component.onTabSelected('companion');
+
+      component.onTabSelected('ancestry');
+      flushAncestryCards();
+      const ancestryCard = component.ancestryCards()[0];
+      component.onCardClicked(ancestryCard);
+
+      component.onTabSelected('community');
+      flushCommunityCards();
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+
+      component.onTraitsChanged({
+        agility: 2, strength: 1, finesse: 1, instinct: 0, presence: 0, knowledge: -1,
+      });
+    }
+
+    it('hides the companion tab for a subclass without the Companion feature', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards();
+      const foundationCard = component.subclassCards().find(c => c.metadata?.['level'] === 'FOUNDATION')!;
+      component.onCardClicked(foundationCard);
+
+      expect(component.tabs().map(t => t.id)).not.toContain('companion');
+    });
+
+    it('shows the companion tab for a subclass with the Companion feature', () => {
+      selectBeastboundSubclass();
+
+      expect(component.tabs().map(t => t.id)).toContain('companion');
+    });
+
+    it('marks the companion step complete on visit regardless of whether a draft exists', () => {
+      selectBeastboundSubclass();
+
+      component.onTabSelected('companion');
+
+      expect(component.completedSteps().has('companion')).toBe(true);
+      expect(component.companionDraft()).toBeNull();
+    });
+
+    it('clears the companion draft when a different subclass is selected', () => {
+      selectBeastboundSubclass();
+      component.onCompanionDraftChanged(companionDraft());
+      expect(component.companionDraft()).not.toBeNull();
+
+      component.onTabSelected('subclass');
+      const differentSubclass = component.subclassCards().find(c => c.name === 'Troubadour')!;
+      component.onCardClicked(differentSubclass);
+
+      expect(component.companionDraft()).toBeNull();
+    });
+
+    it('creates the companion and its completed experiences after the sheet is created', () => {
+      selectBeastboundSubclass();
+      component.onCompanionDraftChanged(companionDraft());
+      completeToReview();
+
+      component.onSubmitCharacter();
+
+      const createReq = httpTesting.expectOne(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
+      createReq.flush({ id: 55, name: '', level: 1 } as unknown as CardData & { id: number });
+
+      const companionReq = httpTesting.expectOne(r => r.url.includes('/dh/companions') && r.method === 'POST');
+      expect(companionReq.request.body).toEqual({
+        characterSheetId: 55,
+        name: 'Rufus',
+        description: undefined,
+        evasion: 10,
+        attackName: 'Bite',
+        attackRange: 'MELEE',
+        damageDice: 'D6',
+        stressMax: 3,
+      });
+      companionReq.flush({ id: 9, characterSheetId: 55 } as unknown as CardData & { id: number });
+
+      // Only the one complete experience ("Tracker") is sent -- the second, blank row is dropped.
+      const expReq = httpTesting.expectOne(r => r.url.includes('/dh/experiences') && r.method === 'POST');
+      expect(expReq.request.body).toEqual({ companionId: 9, description: 'Tracker', modifier: 2 });
+      expReq.flush({});
+    });
+
+    it('does not create a companion when the draft is missing its required attack name', () => {
+      selectBeastboundSubclass();
+      component.onCompanionDraftChanged(companionDraft(''));
+      completeToReview();
+
+      component.onSubmitCharacter();
+
+      const createReq = httpTesting.expectOne(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
+      createReq.flush({ id: 56, name: '', level: 1 } as unknown as CardData & { id: number });
+
+      httpTesting.expectNone(r => r.url.includes('/dh/companions'));
+    });
+
+    it('does not create a companion when the step was skipped (no draft at all)', () => {
+      selectBeastboundSubclass();
+      completeToReview();
+
+      component.onSubmitCharacter();
+
+      const createReq = httpTesting.expectOne(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
+      createReq.flush({ id: 58, name: '', level: 1 } as unknown as CardData & { id: number });
+
+      httpTesting.expectNone(r => r.url.includes('/dh/companions'));
+    });
+
+    it('does not double-create the companion on a resubmit after the sheet was already created', () => {
+      // Reproduces the retry-guard scenario: a first submit got as far as creating the sheet
+      // (and, inside the same guarded call, the companion) but a *later* step failed, so the
+      // player resubmits. `createdSheet` being already set is exactly what `onSubmitCharacter`
+      // checks to skip `submitCharacterSheet` -- and therefore `createCompanionFromDraft` -- on
+      // the retry, the same class of bug the level-up flow hit with its own re-submit guard.
+      selectBeastboundSubclass();
+      component.onCompanionDraftChanged(companionDraft());
+      completeToReview();
+
+      component['createdSheet'].set({ id: 57, name: '', level: 1 } as unknown as CharacterSheetResponse);
+
+      component.onSubmitCharacter();
+
+      httpTesting.expectNone(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
+      httpTesting.expectNone(r => r.url.includes('/dh/companions') && r.method === 'POST');
+      httpTesting.expectNone(r => r.url.includes('/dh/experiences') && r.method === 'POST');
     });
   });
 });

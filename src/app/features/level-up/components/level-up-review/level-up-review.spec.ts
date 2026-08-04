@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 
-import { LevelUpReview } from './level-up-review';
+import { CompanionReviewEntry, LevelUpReview } from './level-up-review';
 import { AdvancementChoice, TradeDisplayPair, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
@@ -40,6 +40,7 @@ function buildCardData(overrides: Partial<CardData> = {}): CardData {
       [selectedDomainCards]="selectedDomainCards()"
       [equipNewDomainCard]="equipNewDomainCard()"
       [tradeDisplayPairs]="tradeDisplayPairs()"
+      [companionReviews]="companionReviews()"
       [submitting]="submitting()"
       [submitError]="submitError()"
       (submitClicked)="onSubmitClicked()"
@@ -54,6 +55,7 @@ class TestHost {
   selectedDomainCards = signal<CardData[]>([]);
   equipNewDomainCard = signal(false);
   tradeDisplayPairs = signal<TradeDisplayPair[]>([]);
+  companionReviews = signal<CompanionReviewEntry[]>([]);
   submitting = signal(false);
   submitError = signal<string | null>(null);
   submitClickedCount = 0;
@@ -234,6 +236,34 @@ describe('LevelUpReview', () => {
     const values = compiled.querySelectorAll('.review-item--trade .review-item__value');
     expect(labels[0]?.textContent?.trim()).toBe('Flame Strike');
     expect(values[0]?.textContent?.trim()).toBe('Lightning Bolt');
+  });
+
+  it('should render a section per companion with its status, experience, and training picks', () => {
+    host.companionReviews.set([
+      { companionId: 7, name: 'Rufus', statusLabel: 'Creating new', trainingLabels: [], experienceDescription: undefined },
+      { companionId: 9, name: 'Whiskers', trainingLabels: ['Aware', 'Vicious (Damage Die)'], experienceDescription: 'Learned to trust' },
+    ]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const sectionTitles = Array.from(compiled.querySelectorAll('.review-section__title')).map(t => t.textContent?.trim());
+    expect(sectionTitles).toContain('Rufus');
+    expect(sectionTitles).toContain('Whiskers');
+
+    const allText = compiled.textContent ?? '';
+    expect(allText).toContain('Creating new');
+    expect(allText).toContain('Aware');
+    expect(allText).toContain('Vicious (Damage Die)');
+    expect(allText).toContain('Learned to trust');
+  });
+
+  it('should not render any companion sections when companionReviews is empty', () => {
+    host.companionReviews.set([]);
+    hostFixture.detectChanges();
+
+    const compiled = hostFixture.nativeElement as HTMLElement;
+    const sectionTitles = Array.from(compiled.querySelectorAll('.review-section__title')).map(t => t.textContent?.trim());
+    expect(sectionTitles).not.toContain('Rufus');
   });
 
   it('should not render trades section when trades are empty', () => {

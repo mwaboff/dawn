@@ -7,6 +7,7 @@ import { CardData } from '../../../../shared/components/daggerheart-card/daggerh
 import { TraitAssignments } from '../../models/trait.model';
 import { Experience } from '../../../../shared/models/experience.model';
 import { SubmitError } from '../../models/submit-error.model';
+import { CompanionDraft } from '../../models/companion-draft.model';
 
 function makeCard(overrides: Partial<CardData> = {}): CardData {
   return {
@@ -49,6 +50,7 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
       [armor]="armor"
       [experiences]="experiences"
       [domainCards]="domainCards"
+      [companionDraft]="companionDraft"
       [submitting]="submitting"
       [submitError]="submitError"
       (submitClicked)="onSubmitClicked()"
@@ -68,6 +70,7 @@ class TestHost {
     makeCard({ id: 10, cardType: 'domain', name: 'Shadow Step', subtitle: 'Midnight' }),
     makeCard({ id: 11, cardType: 'domain', name: 'Bone Cage', subtitle: 'Bone' }),
   ];
+  companionDraft: CompanionDraft | null = null;
   submitting = false;
   submitError: SubmitError | null = null;
   submitClickCount = 0;
@@ -299,6 +302,53 @@ describe('ReviewSection', () => {
       fixture.detectChanges();
       const banner = fixture.nativeElement.querySelector('.submit-error-banner');
       expect(banner).toBeNull();
+    });
+  });
+
+  describe('Companion', () => {
+    function buildDraft(overrides: Partial<CompanionDraft['payload']> = {}): CompanionDraft {
+      return {
+        payload: {
+          name: 'Rufus',
+          description: undefined,
+          evasion: 10,
+          attackName: 'Bite',
+          attackRange: 'MELEE',
+          damageDice: 'D6',
+          stressMax: 3,
+          ...overrides,
+        },
+        experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+      };
+    }
+
+    it('shows "no companion" when nothing was drafted', () => {
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
+    });
+
+    it('shows the drafted companion once it has its required fields', () => {
+      host.companionDraft = buildDraft();
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Rufus');
+      expect(text).toContain('Bite');
+      expect(text).toContain('d6');
+      expect(text).toContain('Melee');
+      expect(text).toContain('10');
+    });
+
+    it('shows only the completed companion experience', () => {
+      host.companionDraft = buildDraft();
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Tracker');
+    });
+
+    it('treats an incomplete draft (missing attack name) as no companion', () => {
+      host.companionDraft = buildDraft({ attackName: '' });
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
     });
   });
 });

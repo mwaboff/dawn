@@ -45,4 +45,20 @@
     />
     <span class="experience-hint">This experience will have a +2 modifier</span>
   </div>
+
+  @for (target of companionExperienceTargets(); track target.companionId) {
+    <div class="experience-input-group">
+      <label class="experience-label" [for]="'companion-experience-' + target.companionId">{{ target.name }}'s New Experience</label>
+      <input
+        [id]="'companion-experience-' + target.companionId"
+        type="text"
+        class="experience-input"
+        placeholder="e.g., Learned to trust again"
+        [value]="companionDescriptionFor(target.companionId)"
+        (input)="onCompanionDescriptionInput(target.companionId, $event)"
+        maxlength="200"
+      />
+      <span class="experience-hint">{{ target.name }} also gains an Experience at +2</span>
+    </div>
+  }
 </div>

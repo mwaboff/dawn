@@ -1,0 +1,37 @@
+<div class="companion-step">
+  @if (selection(); as sel) {
+    <div class="companion-choice">
+      @if (sel.mode === 'create') {
+        <p class="companion-choice__text">
+          Creating a new companion: <strong>{{ sel.draft.payload.name }}</strong>
+        </p>
+      } @else {
+        <p class="companion-choice__text">
+          Restoring <strong>{{ sel.name }}</strong>
+        </p>
+      }
+      <button type="button" class="btn btn--secondary btn--sm" (click)="onChangeSelection()">Change</button>
+    </div>
+  } @else {
+    <p class="companion-step__intro">
+      Your character has gained a companion. Create a new one, or restore a previous companion if you have one.
+    </p>
+    <div class="companion-step__options">
+      <button type="button" class="btn btn--primary" (click)="openCreateModal()">+ Create New Companion</button>
+      @for (companion of restorableCompanions(); track companion.id) {
+        <button type="button" class="btn btn--secondary" (click)="onRestoreChosen(companion)">
+          Restore {{ companion.name }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (showCreateModal()) {
+    <app-companion-form-modal
+      mode="create"
+      [characterSheetId]="characterSheetId()"
+      (dismissed)="onCreateDismissed()"
+      (created)="onDraftCreated($event)"
+    />
+  }
+</div>

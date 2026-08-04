@@ -17,7 +17,10 @@ import { PreferencesService } from '../../../../core/services/preferences.servic
   imports: [LevelUpTabNav],
 })
 class TestHost {
-  tabs: LevelUpTab[] = ALL_LEVEL_UP_TABS;
+  // Excludes the 'companion' tab -- it's conditional (only shown the level-up a companion is
+  // newly granted) and this suite tests generic nav behavior against a fixed 6-tab list, not the
+  // visibility computation itself (see `level-up-steps.utils.spec.ts` for that).
+  tabs: LevelUpTab[] = ALL_LEVEL_UP_TABS.filter(t => t.kind !== 'companion');
   activeTab = signal<LevelUpTabId>('tier-achievements');
   completedSteps = signal<Set<LevelUpTabId>>(new Set());
   selectedTab: LevelUpTabId | null = null;

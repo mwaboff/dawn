@@ -1,0 +1,118 @@
+:host {
+  display: block;
+}
+
+.companion-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.companion-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(170deg, #faf7f2, #f0e4d0);
+  border: 1px solid #d8c8a8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.companion-toggle .form-checkbox {
+  margin-top: 0.2rem;
+}
+
+.companion-toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.companion-toggle__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: #3a2817;
+}
+
+.companion-toggle__hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 0.875rem);
+  font-style: italic;
+  color: #7a5c46;
+}
+
+.companion-step__empty {
+  font-family: var(--font-body);
+  font-size: var(--text-sm, 0.875rem);
+  font-style: italic;
+  color: #7a5c46;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+/*
+ * The Companion step reuses the same dark, `--color-card-companion`-accented styling as
+ * `CompanionFormModal` and the character-sheet companion panel -- rather than fighting to re-skin
+ * the shared schema-driven form onto this page's light parchment palette -- because the rulebook
+ * itself frames the companion as a separate physical sheet ("Take the Ranger Companion sheet").
+ * Rendering it as a distinct dark insert tucked into the lighter creator page leans into that: it
+ * reads as its own sheet, not a mismatched fallback.
+ */
+.companion-sheet {
+  --dialog-accent: var(--color-card-companion);
+  padding: 1.5rem 1.75rem 1.75rem;
+  background: var(--color-bg-dark);
+  border: 1px solid color-mix(in srgb, var(--color-card-companion) 45%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.companion-sheet__eyebrow {
+  margin: 0 0 var(--space-7);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-card-companion);
+}
+
+.form-section {
+  margin-bottom: var(--space-7);
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-accent-a75);
+  margin: 0 0 var(--space-5);
+}
+
+.form-section__hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-parchment);
+  opacity: 0.7;
+  margin: -0.25rem 0 var(--space-5);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-7) var(--space-10);
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

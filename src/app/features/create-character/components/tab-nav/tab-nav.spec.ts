@@ -320,7 +320,7 @@ describe('TabNav', () => {
     it('should navigate sequentially through all steps when all are completed', () => {
       // Mark all steps as completed
       const allCompleted = new Set<TabId>([
-        'class', 'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
+        'class', 'subclass', 'companion', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ]);
       host.completedSteps.set(allCompleted);
@@ -329,7 +329,7 @@ describe('TabNav', () => {
       const compiled = hostFixture.nativeElement as HTMLElement;
       const nextBtn = compiled.querySelector('.arrow-next') as HTMLButtonElement;
       const expectedOrder: TabId[] = [
-        'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
+        'subclass', 'companion', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards',
       ];
 
@@ -724,7 +724,7 @@ describe('TabNav', () => {
 
     it('jumps to the last tab on End, skipping disabled tabs', () => {
       const allCompleted = new Set<TabId>([
-        'class', 'subclass', 'martial-stances', 'ancestry', 'community', 'traits',
+        'class', 'subclass', 'companion', 'martial-stances', 'ancestry', 'community', 'traits',
         'starting-weapon', 'starting-armor', 'experiences', 'domain-cards', 'bonuses', 'review',
       ]);
       host.completedSteps.set(allCompleted);

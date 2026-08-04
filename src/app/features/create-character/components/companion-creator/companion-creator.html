@@ -1,0 +1,48 @@
+<div class="companion-step">
+  <label class="companion-toggle">
+    <input
+      type="checkbox"
+      class="form-checkbox"
+      [checked]="wantsCompanion()"
+      (change)="onToggleChanged($event)"
+    />
+    <span class="companion-toggle__text">
+      <span class="companion-toggle__title">Bring a companion</span>
+      <span class="companion-toggle__hint">
+        Optional, at the GM's discretion. You can always add one later from the character sheet.
+      </span>
+    </span>
+  </label>
+
+  @if (wantsCompanion()) {
+    <div class="companion-sheet">
+      <p class="companion-sheet__eyebrow">Ranger Companion Sheet</p>
+
+      <form [formGroup]="form">
+        @for (section of schema.sections; track section.title) {
+          <div class="form-section">
+            <h3 class="form-section__title">{{ section.title }}</h3>
+            <div class="form-grid">
+              @for (field of section.fields; track field.name) {
+                <app-entity-form-field [field]="field" [control]="getControl(field.name)" />
+              }
+            </div>
+          </div>
+        }
+
+        <div class="form-section">
+          <h3 class="form-section__title">Experiences</h3>
+          <p class="form-section__hint">Your companion starts with two Experiences at +2.</p>
+          <app-experience-selector
+            [initialExperiences]="initialDraft()?.experiences"
+            (experiencesChanged)="onExperiencesChanged($event)"
+          />
+        </div>
+      </form>
+    </div>
+  } @else {
+    <p class="companion-step__empty">
+      No companion for now &mdash; you or your GM can create one anytime from the character sheet.
+    </p>
+  }
+</div>

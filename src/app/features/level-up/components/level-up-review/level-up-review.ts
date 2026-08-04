@@ -2,6 +2,22 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
 import { AdvancementChoice, AdvancementType, TradeDisplayPair, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
+/**
+ * One companion's recap, one per eligible companion plus (if shown this level-up) the
+ * Companion tab's own create/restore choice. Pre-formatted by `level-up.ts` rather than by
+ * `formatAdvancementType`/`formatAdvancementDetail` below -- those are keyed strictly off
+ * `AdvancementChoice`/`AdvancementType` and aren't reusable for companion data, which isn't an
+ * advancement. Only the surrounding `.review-section`/`.review-item` markup convention is shared.
+ */
+export interface CompanionReviewEntry {
+  companionId: number;
+  name: string;
+  /** Set only for the Companion tab's own selection, e.g. "Creating new" / "Restoring". */
+  statusLabel?: string;
+  trainingLabels: string[];
+  experienceDescription?: string;
+}
+
 @Component({
   selector: 'app-level-up-review',
   templateUrl: './level-up-review.html',
@@ -15,6 +31,7 @@ export class LevelUpReview {
   readonly selectedDomainCards = input.required<CardData[]>();
   readonly equipNewDomainCard = input<boolean>(false);
   readonly tradeDisplayPairs = input<TradeDisplayPair[]>([]);
+  readonly companionReviews = input<CompanionReviewEntry[]>([]);
   readonly submitting = input(false);
   readonly submitError = input<string | null>(null);
 
