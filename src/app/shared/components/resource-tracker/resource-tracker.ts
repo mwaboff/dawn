@@ -31,12 +31,20 @@ export class ResourceTracker {
   /** Extra boxes appended after `max()`, styled with `.resource-box--companion` -- e.g. Hope
    * slots granted by a companion's `Light in the Dark` Training (`--color-card-companion`). */
   readonly bonusCount = input<number>(0);
+  /** Spoken qualifier distinguishing a bonus box from a normal one. Bonus boxes are otherwise
+   * only distinguished by colour, which a screen reader cannot convey. */
+  readonly bonusLabel = input<string>('bonus');
 
   readonly markedChange = output<number>();
 
   readonly totalBoxes = computed(() => Math.max(0, this.max()) + Math.max(0, this.bonusCount()));
   readonly boxNumbers = computed(() => Array.from({ length: this.totalBoxes() }, (_, i) => i + 1));
   readonly boxAriaLabel = computed(() => this.ariaLabel() || this.label());
+
+  ariaLabelFor(index: number): string {
+    const base = `${this.boxAriaLabel()} ${index}`;
+    return this.isBonusBox(index) ? `${base} (${this.bonusLabel()})` : base;
+  }
 
   toggle(index: number): void {
     const current = this.marked();

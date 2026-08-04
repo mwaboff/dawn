@@ -14,6 +14,7 @@ import { ResourceTracker, ResourceTrackerVariant } from './resource-tracker';
       [idPrefix]="idPrefix()"
       [ariaLabel]="ariaLabel()"
       [bonusCount]="bonusCount()"
+      [bonusLabel]="bonusLabel()"
       (markedChange)="onMarkedChange($event)"
     >
       @if (withProjectedContent()) {
@@ -30,6 +31,7 @@ class TestHost {
   idPrefix = signal('');
   ariaLabel = signal('');
   bonusCount = signal(0);
+  bonusLabel = signal('bonus');
   withProjectedContent = signal(false);
   lastEmitted: number | null = null;
 
@@ -228,4 +230,18 @@ describe('ResourceTracker', () => {
       expect(boxes().length).toBe(5);
     });
   });
+
+  it('marks a bonus box as such in its aria-label, so it is not distinguished by colour alone', () => {
+    host.max.set(2);
+    host.marked.set(0);
+    host.bonusCount.set(1);
+    host.ariaLabel.set('Hope');
+    host.bonusLabel.set('from companion');
+    fixture.detectChanges();
+
+    const labels = boxes().map(b => b.getAttribute('aria-label'));
+
+    expect(labels).toEqual(['Hope 1', 'Hope 2', 'Hope 3 (from companion)']);
+  });
+
 });

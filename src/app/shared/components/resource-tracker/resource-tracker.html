@@ -13,7 +13,7 @@
         [class.resource-box--marked]="i <= marked()"
         [attr.id]="boxId(i)"
         (click)="toggle(i)"
-        [attr.aria-label]="boxAriaLabel() + ' ' + i"
+        [attr.aria-label]="ariaLabelFor(i)"
         [attr.aria-pressed]="i <= marked()"
       ></button>
     }
