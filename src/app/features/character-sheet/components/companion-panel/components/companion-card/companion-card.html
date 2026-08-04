@@ -60,6 +60,8 @@
         [trainings]="companion().trainings"
         [remainingByOption]="companion().remainingByOption"
         [experiences]="companion().experiences ?? []"
+        [damageDice]="companion().damageDice"
+        [attackRange]="companion().attackRange"
         [canManage]="canManage()"
         [processing]="processing()"
         (trainingAdded)="onTrainingAdded($event)"

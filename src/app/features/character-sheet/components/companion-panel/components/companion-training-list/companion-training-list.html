@@ -42,8 +42,12 @@
           @if (pendingOption() === opt.option && opt.option === 'VICIOUS') {
             <div class="training-pending">
               <span class="training-pending__prompt">Which ladder?</span>
-              <button type="button" class="training-pending__choice" (click)="onViciousAxisChosen('DAMAGE_DIE')">Damage Die</button>
-              <button type="button" class="training-pending__choice" (click)="onViciousAxisChosen('RANGE')">Range</button>
+              <button type="button" class="training-pending__choice" [disabled]="damageAtCap()" (click)="onViciousAxisChosen('DAMAGE_DIE')">
+                Damage Die{{ damageAtCap() ? ' (maxed)' : '' }}
+              </button>
+              <button type="button" class="training-pending__choice" [disabled]="rangeAtCap()" (click)="onViciousAxisChosen('RANGE')">
+                Range{{ rangeAtCap() ? ' (maxed)' : '' }}
+              </button>
               <button type="button" class="training-pending__cancel" (click)="onCancelPending()">Cancel</button>
             </div>
           }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import {
   CompanionExperienceApiResponse,
   CompanionTrainingApiResponse,
@@ -25,6 +25,10 @@ export class CompanionTrainingList {
   readonly trainings = input.required<CompanionTrainingApiResponse[]>();
   readonly remainingByOption = input.required<Partial<Record<CompanionTrainingOption, number>>>();
   readonly experiences = input<CompanionExperienceApiResponse[]>([]);
+  /** Current derived damage die / range, used to grey out a `VICIOUS` ladder already at its cap.
+   * The server rejects a step past the cap, so offering it would only produce an error. */
+  readonly damageDice = input<string>('');
+  readonly attackRange = input<string>('');
   readonly canManage = input(false);
   readonly processing = input(false);
 
@@ -40,8 +44,16 @@ export class CompanionTrainingList {
     return this.remainingByOption()[option] ?? 0;
   }
 
+  /** `D12` and `VERY_FAR` are the ends of the two ladders `VICIOUS` steps along. */
+  readonly damageAtCap = computed(() => this.damageDice() === 'D12');
+  readonly rangeAtCap = computed(() => this.attackRange() === 'VERY_FAR');
+  readonly viciousExhausted = computed(() => this.damageAtCap() && this.rangeAtCap());
+
   canTake(option: CompanionTrainingOption): boolean {
-    return this.canManage() && !this.processing() && this.remainingFor(option) > 0;
+    if (!this.canManage() || this.processing() || this.remainingFor(option) <= 0) return false;
+    // Picks may remain while both ladders are maxed -- there would be nothing left to step.
+    if (option === 'VICIOUS' && this.viciousExhausted()) return false;
+    return true;
   }
 
   needsSubChoice(option: CompanionTrainingOption): boolean {

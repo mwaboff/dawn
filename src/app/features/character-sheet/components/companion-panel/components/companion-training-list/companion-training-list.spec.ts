@@ -15,6 +15,8 @@ import {
       [trainings]="trainings()"
       [remainingByOption]="remainingByOption()"
       [experiences]="experiences()"
+      [damageDice]="damageDice()"
+      [attackRange]="attackRange()"
       [canManage]="canManage()"
       [processing]="processing()"
       (trainingAdded)="onAdded($event)"
@@ -29,6 +31,8 @@ class TestHost {
     VICIOUS: 3, RESILIENT: 3, BONDED: 1, AWARE: 3,
   });
   experiences = signal<CompanionExperienceApiResponse[]>([]);
+  damageDice = signal('D6');
+  attackRange = signal('MELEE');
   canManage = signal(true);
   processing = signal(false);
   lastAdded: CreateCompanionTrainingRequest | undefined;
@@ -157,4 +161,34 @@ describe('CompanionTrainingList', () => {
     expect(el.querySelector('.training-taken__remove')).toBeFalsy();
     expect(el.querySelector('.training-option__take')).toBeFalsy();
   });
+
+  it('greys out a Vicious ladder already at its cap rather than letting the server reject it', () => {
+    host.damageDice.set('D12');
+    host.attackRange.set('CLOSE');
+    fixture.detectChanges();
+
+    const vicious = Array.from(el.querySelectorAll('.training-option'))
+      .find(li => li.textContent?.includes('Vicious')) as HTMLElement;
+    (vicious.querySelector('.training-option__take') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const choices = Array.from(
+      vicious.querySelectorAll('.training-pending__choice'),
+    ) as HTMLButtonElement[];
+    expect(choices[0].disabled).toBe(true);
+    expect(choices[0].textContent).toContain('maxed');
+    expect(choices[1].disabled).toBe(false);
+  });
+
+  it('disables Vicious entirely once both ladders are maxed', () => {
+    host.damageDice.set('D12');
+    host.attackRange.set('VERY_FAR');
+    fixture.detectChanges();
+
+    const vicious = Array.from(el.querySelectorAll('.training-option'))
+      .find(li => li.textContent?.includes('Vicious')) as HTMLElement;
+    const take = vicious.querySelector('.training-option__take') as HTMLButtonElement;
+    expect(take.disabled).toBe(true);
+  });
+
 });
