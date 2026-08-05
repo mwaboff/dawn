@@ -5,8 +5,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { ReviewSection } from './review-section';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { TraitAssignments } from '../../models/trait.model';
-import { Experience } from '../../models/experience.model';
+import { Experience } from '../../../../shared/models/experience.model';
 import { SubmitError } from '../../models/submit-error.model';
+import { CompanionDraft } from '../../models/companion-draft.model';
 
 function makeCard(overrides: Partial<CardData> = {}): CardData {
   return {
@@ -49,6 +50,8 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
       [armor]="armor"
       [experiences]="experiences"
       [domainCards]="domainCards"
+      [companionDraft]="companionDraft"
+      [showCompanion]="showCompanion"
       [submitting]="submitting"
       [submitError]="submitError"
       (submitClicked)="onSubmitClicked()"
@@ -58,7 +61,12 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
 })
 class TestHost {
   classCard = makeClassCard();
-  subclassCard = makeCard({ cardType: 'subclass', name: 'Shadow', subtitle: 'Midnight / Bone' });
+  subclassCard = makeCard({
+    cardType: 'subclass',
+    name: 'Shadow',
+    subtitle: 'Ranger',
+    subtitleSecondary: 'Midnight · Bone',
+  });
   ancestryCard = makeCard({ cardType: 'ancestry', name: 'Elf' });
   communityCard = makeCard({ cardType: 'community', name: 'Nomadic' });
   traits = makeTraits();
@@ -68,6 +76,8 @@ class TestHost {
     makeCard({ id: 10, cardType: 'domain', name: 'Shadow Step', subtitle: 'Midnight' }),
     makeCard({ id: 11, cardType: 'domain', name: 'Bone Cage', subtitle: 'Bone' }),
   ];
+  companionDraft: CompanionDraft | null = null;
+  showCompanion = false;
   submitting = false;
   submitError: SubmitError | null = null;
   submitClickCount = 0;
@@ -96,11 +106,22 @@ describe('ReviewSection', () => {
     expect((fixture.nativeElement.textContent as string)).toContain('Warrior');
   });
 
-  it('should display subclass name and domains', () => {
+  it('should display subclass name', () => {
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Shadow');
-    expect(text).toContain('Midnight / Bone');
+  });
+
+  it('should display the subclass domains, not the associated class name', () => {
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Midnight · Bone');
+  });
+
+  it('should not display the associated class name in the domains row', () => {
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Ranger');
   });
 
   it('should display ancestry and community names', () => {
@@ -300,5 +321,84 @@ describe('ReviewSection', () => {
       const banner = fixture.nativeElement.querySelector('.submit-error-banner');
       expect(banner).toBeNull();
     });
+  });
+
+  describe('Companion', () => {
+    function buildDraft(overrides: Partial<CompanionDraft['payload']> = {}): CompanionDraft {
+      return {
+        payload: {
+          name: 'Rufus',
+          description: undefined,
+          evasion: 10,
+          attackName: 'Bite',
+          attackRange: 'MELEE',
+          damageDice: 'D6',
+          stressMax: 3,
+          ...overrides,
+        },
+        experiences: [{ name: 'Tracker', modifier: 2 }, { name: 'Loyal Guardian', modifier: 2 }],
+      };
+    }
+
+    it('shows "no companion" when nothing was drafted', () => {
+      host.showCompanion = true;
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
+    });
+
+    it('shows the drafted companion once it has its required fields', () => {
+      host.showCompanion = true;
+      host.companionDraft = buildDraft();
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Rufus');
+      expect(text).toContain('Bite');
+      expect(text).toContain('d6');
+      expect(text).toContain('Melee');
+      expect(text).toContain('10');
+    });
+
+    it('shows both starting companion experiences, each at +2', () => {
+      host.showCompanion = true;
+      host.companionDraft = buildDraft();
+      fixture.detectChanges();
+      const text = fixture.nativeElement.textContent as string;
+      expect(text).toContain('Tracker');
+      expect(text).toContain('Loyal Guardian');
+    });
+
+    it('treats an incomplete draft (missing attack name) as no companion', () => {
+      host.showCompanion = true;
+      host.companionDraft = buildDraft({ attackName: '' });
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
+    });
+
+    it('treats a draft with only one named starting experience as no companion', () => {
+      host.showCompanion = true;
+      host.companionDraft = {
+        payload: {
+          name: 'Rufus',
+          description: undefined,
+          evasion: 10,
+          attackName: 'Bite',
+          attackRange: 'MELEE',
+          damageDice: 'D6',
+          stressMax: 3,
+        },
+        experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: 2 }],
+      };
+      fixture.detectChanges();
+      expect((fixture.nativeElement.textContent as string)).toContain('No companion');
+    });
+
+    it('omits the Companion section entirely for a class that cannot have one', () => {
+      host.showCompanion = false;
+      host.companionDraft = null;
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent as string).not.toContain('Companion');
+    });
+
   });
 });

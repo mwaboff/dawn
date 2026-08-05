@@ -1,0 +1,30 @@
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only
+   the companion accent and this card's own unique markup live here. */
+.expandable-card--companion { border-left-color: var(--color-card-companion); }
+.expandable-card__meta-badge--companion { color: var(--color-card-companion); border-color: color-mix(in srgb, var(--color-card-companion) 35%, transparent); }
+.expandable-card__meta-badge--depleted { color: rgba(200,110,90,.85); border-color: rgba(200,110,90,.35); }
+
+.companion-description { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.75); margin: 0; }
+
+.companion-stats { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+.companion-stat { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.85); }
+
+.armor-instead-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 4px; background: rgba(212,160,86,.06); border: 1px solid rgba(212,160,86,.2); }
+.armor-instead-prompt__text { flex-basis: 100%; font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); }
+.armor-instead-prompt__btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .6rem; border-radius: 2px; border: 1px solid var(--color-accent); background: transparent; color: var(--color-accent); cursor: pointer; }
+.armor-instead-prompt__btn:hover { background: rgba(212,160,86,.1); }
+.armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: rgba(245,230,211,.5); cursor: pointer; text-decoration: underline; }
+
+.companion-experiences { display: flex; flex-direction: column; gap: .2rem; }
+.companion-experience-item { display: flex; align-items: baseline; gap: var(--space-3); padding: .2rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }
+.companion-experience-item:last-child { border-bottom: none; }
+.companion-experience-item__modifier { font-size: var(--text-sm); font-weight: 700; color: var(--color-card-companion); min-width: 2rem; }
+.companion-experience-item__description { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); }
+
+.companion-reminders { display: flex; flex-direction: column; gap: .3rem; }
+.companion-reminder { font-family: var(--font-body); font-size: var(--text-xs); font-style: italic; color: rgba(245,230,211,.6); margin: 0; }
+
+.companion-actions { display: flex; align-items: center; gap: var(--space-3); }
+.companion-action-btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .08em; padding: .35rem var(--space-5); border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; transition: background-color .15s, border-color .15s; }
+.companion-action-btn:hover:not(:disabled) { background: rgba(212,160,86,.1); border-color: var(--color-accent); }
+.companion-action-btn:disabled { opacity: .4; cursor: not-allowed; }

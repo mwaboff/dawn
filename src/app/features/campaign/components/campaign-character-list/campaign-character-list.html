@@ -43,19 +43,24 @@
             @if (canManage()) {
               <div class="character-actions">
                 @if (canGrantTransformations()) {
-                  <button
-                    type="button"
-                    class="character-transformation-btn"
-                    [class.character-transformation-btn--on]="isTransformationEnabled(character)"
-                    (click)="onToggleTransformationControl(character.id, $event)"
-                    [attr.aria-expanded]="openTransformationId() === character.id"
-                    [attr.aria-controls]="transformationControlId(character.id)"
-                  >
-                    Transformation
-                    @if (isTransformationEnabled(character)) {
-                      <span class="character-transformation-badge">On</span>
-                    }
-                  </button>
+                  <app-campaign-character-grant-button
+                    class="character-transformation-grant"
+                    label="Transformation"
+                    [on]="isTransformationEnabled(character)"
+                    [expanded]="openTransformationId() === character.id"
+                    [controlsId]="transformationControlId(character.id)"
+                    (clicked)="onToggleTransformationControl(character.id)"
+                  />
+                }
+                @if (canGrantCompanions()) {
+                  <app-campaign-character-grant-button
+                    class="character-companion-grant"
+                    label="Companions"
+                    [on]="isCompanionsEnabled(character)"
+                    [expanded]="openCompanionId() === character.id"
+                    [controlsId]="companionControlId(character.id)"
+                    (clicked)="onToggleCompanionControl(character.id)"
+                  />
                 }
                 @if (confirmingRemoveId() === character.id) {
                   <span class="character-confirm-text">Remove?</span>
@@ -80,6 +85,18 @@
               (transformationChange)="onTransformationChange(character.id, $event)"
               (retryCatalog)="retryTransformationCatalog.emit()"
             />
+          }
+
+          @if (canGrantCompanions() && openCompanionId() === character.id) {
+            <div class="companion-control" [id]="companionControlId(character.id)">
+              <app-campaign-character-grant-toggle
+                [enabled]="isCompanionsEnabled(character)"
+                label="Companions"
+                [statusText]="companionStatusText(character)"
+                [saving]="savingCompanionId() === character.id"
+                (toggled)="onCompanionToggled(character)"
+              />
+            </div>
           }
         </li>
       }

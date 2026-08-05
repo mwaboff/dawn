@@ -74,6 +74,38 @@
       </div>
     </div>
 
+    @for (companion of companionReviews(); track companion.companionId) {
+      <div class="review-section">
+        <h4 class="review-section__title">{{ companion.name }}</h4>
+        <div class="review-section__content">
+          @if (companion.statusLabel) {
+            <div class="review-item">
+              <span class="review-item__label">Companion</span>
+              <span class="review-item__value">{{ companion.statusLabel }}</span>
+            </div>
+          }
+          @if (companion.experienceDescription) {
+            <div class="review-item">
+              <span class="review-item__label">New Experience</span>
+              <span class="review-item__value">{{ companion.experienceDescription }} (+2)</span>
+            </div>
+          }
+          @for (label of companion.trainingLabels; track $index) {
+            <div class="review-item">
+              <span class="review-item__label">Training</span>
+              <span class="review-item__value">{{ label }}</span>
+            </div>
+          } @empty {
+            @if (!companion.statusLabel && !companion.experienceDescription) {
+              <div class="review-item">
+                <span class="review-item__value">(no changes)</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
     @if (tradeDisplayPairs().length > 0) {
       <div class="review-section">
         <h4 class="review-section__title">Domain Card Trades</h4>

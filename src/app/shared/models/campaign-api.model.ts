@@ -58,6 +58,12 @@ export interface CampaignCharacterSummary {
   /** The transformation assigned to this character; kept even while `transformationEnabled` is false. */
   transformationCardId?: number;
   transformationCardName?: string;
+  /**
+   * Whether a GM has granted companion creation to this character outside the Beastbound feature.
+   * Turning this off only stops *new* companions from being created -- it never hides or removes a
+   * companion the character already has (Companions plan §3.4).
+   */
+  companionsEnabled: boolean;
 }
 
 /**
@@ -79,6 +85,28 @@ export interface CharacterTransformationStateResponse {
   id: number;
   transformationEnabled: boolean;
   transformationCardId?: number;
+}
+
+/**
+ * Body of `PUT /dh/campaigns/{campaignId}/character-sheets/{sheetId}/companions`.
+ *
+ * This endpoint is part of the core repo's Companions GM-flag work package, which had not shipped
+ * when this was written -- built against the documented contract (Companions plan §6.7/§4)
+ * rather than a live endpoint. Re-verify field names against the backend once it lands.
+ */
+export interface UpdateCharacterCompanionsEnabledRequest {
+  enabled: boolean;
+}
+
+/**
+ * The companions-enabled endpoint is expected to return the full character-sheet response, but
+ * `shared/` may not import from `features/` (see CLAUDE.md), so this is typed as the narrow slice
+ * the campaign page actually consumes rather than re-declaring the sheet contract here -- mirrors
+ * {@link CharacterTransformationStateResponse}.
+ */
+export interface CharacterCompanionsEnabledStateResponse {
+  id: number;
+  companionsEnabled: boolean;
 }
 
 export interface CreateCampaignRequest {

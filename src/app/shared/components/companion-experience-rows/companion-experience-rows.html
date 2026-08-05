@@ -1,0 +1,20 @@
+<div class="companion-experiences">
+  @for (name of names(); track $index) {
+    <div class="companion-experience-row">
+      <span class="row-index" aria-hidden="true">{{ $index + 1 }}</span>
+      <input
+        type="text"
+        class="form-input"
+        placeholder="e.g. Tracker, Loyal Guardian..."
+        [attr.maxlength]="nameMaxLength"
+        [attr.aria-label]="'Companion experience ' + ($index + 1) + ' name, modifier +' + modifier"
+        [value]="name"
+        (input)="onNameChange($index, $event)"
+      />
+      <span class="companion-experience-modifier" aria-hidden="true">+{{ modifier }}</span>
+    </div>
+  }
+</div>
+@if (nameError()) {
+  <p class="field-error">{{ nameError() }}</p>
+}

@@ -193,4 +193,14 @@ describe('CampaignService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush({ id: 3 });
   });
+
+  it('should update whether a character can create companions', () => {
+    service.updateCharacterCompanionsEnabled(3, 10, { enabled: true }).subscribe();
+
+    const req = httpTesting.expectOne('http://localhost:8080/api/dh/campaigns/3/character-sheets/10/companions');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ enabled: true });
+    expect(req.request.withCredentials).toBe(true);
+    req.flush({ id: 10, companionsEnabled: true });
+  });
 });

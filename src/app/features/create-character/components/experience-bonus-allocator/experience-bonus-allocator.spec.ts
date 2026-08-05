@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { ExperienceBonusAllocator } from './experience-bonus-allocator';
-import { Experience } from '../../models/experience.model';
+import { Experience } from '../../../../shared/models/experience.model';
 
 @Component({
   imports: [ExperienceBonusAllocator],

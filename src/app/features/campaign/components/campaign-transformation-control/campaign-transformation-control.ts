@@ -1,12 +1,14 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CampaignCharacterSummary, UpdateCharacterTransformationRequest } from '../../../../shared/models/campaign-api.model';
 import { TransformationCardResponse } from '../../../../shared/models/transformation-card-api.model';
+import { CampaignCharacterGrantToggle } from '../campaign-character-grant-toggle/campaign-character-grant-toggle';
 
 @Component({
   selector: 'app-campaign-transformation-control',
   templateUrl: './campaign-transformation-control.html',
   styleUrl: './campaign-transformation-control.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CampaignCharacterGrantToggle],
 })
 export class CampaignTransformationControl {
   readonly controlId = input.required<string>();
@@ -30,8 +32,6 @@ export class CampaignTransformationControl {
     if (id == null) return undefined;
     return this.summary()?.transformationCardName ?? this.catalog().find(card => card.id === id)?.name;
   });
-
-  readonly toggleLabel = computed(() => (this.enabled() ? 'Turn off' : 'Turn on'));
 
   readonly statusText = computed(() => {
     const name = this.characterName();

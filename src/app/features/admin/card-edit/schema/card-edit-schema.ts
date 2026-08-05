@@ -1,4 +1,4 @@
-import { CardSchema } from './card-edit-schema.types';
+import { EntityFormSchema } from '../../../../shared/components/entity-form/entity-form.types';
 import { FEATURE_TYPE_LABELS } from '../../../../shared/models/feature-type.model';
 
 const FEATURE_TYPE_OPTIONS = (Object.keys(FEATURE_TYPE_LABELS) as (keyof typeof FEATURE_TYPE_LABELS)[])
@@ -21,7 +21,7 @@ const BASICS_FIELDS_FULL = [
   { name: 'backgroundImageUrl', label: 'Background image URL', kind: 'url' as const, maxLength: 500, column: 'full' as const },
 ];
 
-export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
+export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
   domainCard: {
     cardType: 'domainCard',
     sections: [
@@ -324,23 +324,6 @@ export const CARD_EDIT_SCHEMAS: Record<string, CardSchema> = {
       v['tier'] != null ? `Tier ${v['tier']}` : null,
       v['isConsumable'] ? 'Consumable' : null,
     ].filter((t): t is string => !!t),
-  },
-
-  companion: {
-    cardType: 'companion',
-    sections: [
-      {
-        title: 'Basics',
-        fields: [
-          { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
-          { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
-          // No `expansionId` or `isOfficial` fields here: Companion is user-owned per-character
-          // data cascaded from CharacterSheet, not catalogue content -- the entity has neither
-          // field. See `Companion.java` / `CreateCompanionRequest` / `UpdateCompanionRequest`.
-        ],
-      },
-    ],
-    previewTags: () => [],
   },
 
   adversary: {

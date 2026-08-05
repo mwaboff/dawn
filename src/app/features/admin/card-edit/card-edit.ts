@@ -18,17 +18,19 @@ import { RawCardResponse, RawFeatureResponse, FeatureInput } from '../models/adm
 import { EditableFeature } from './components/card-edit-features/card-edit-features';
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
-import { CardSchema, EntityField, FieldDef } from './schema/card-edit-schema.types';
-import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors, buildPreviewCard } from './utils/card-edit-form.utils';
+import { EntityFormSchema, EntityField, FieldDef } from '../../../shared/components/entity-form/entity-form.types';
+import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors } from '../../../shared/components/entity-form/entity-form.utils';
+import { ENTITY_FORM_LOOKUP } from '../../../shared/components/entity-form/entity-form-lookup.token';
+import { buildPreviewCard } from './utils/card-preview.utils';
 import { AdminLookupService } from './services/admin-lookup.service';
 import { CardEditToolbar } from './components/card-edit-toolbar/card-edit-toolbar';
-import { CardEditField } from './components/card-edit-field/card-edit-field';
+import { EntityFormField } from '../../../shared/components/entity-form/entity-form-field/entity-form-field';
 import { CardEditFeatures } from './components/card-edit-features/card-edit-features';
 import { CardEditPreview } from './components/card-edit-preview/card-edit-preview';
 import { AddExpansionDialog } from './components/add-expansion-dialog/add-expansion-dialog';
 import { ExpansionOption } from '../../../shared/models/expansion-api.model';
 
-const FALLBACK_SCHEMA: CardSchema = {
+const FALLBACK_SCHEMA: EntityFormSchema = {
   cardType: 'unknown',
   sections: [
     {
@@ -48,7 +50,8 @@ const FALLBACK_SCHEMA: CardSchema = {
   templateUrl: './card-edit.html',
   styleUrl: './card-edit.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CardEditToolbar, CardEditField, CardEditFeatures, CardEditPreview, AddExpansionDialog],
+  imports: [ReactiveFormsModule, CardEditToolbar, EntityFormField, CardEditFeatures, CardEditPreview, AddExpansionDialog],
+  providers: [{ provide: ENTITY_FORM_LOOKUP, useExisting: AdminLookupService }],
 })
 export class CardEdit implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -76,7 +79,7 @@ export class CardEdit implements OnInit {
 
   cardForm!: FormGroup;
 
-  readonly schema = computed<CardSchema>(() => CARD_EDIT_SCHEMAS[this.cardType()] ?? FALLBACK_SCHEMA);
+  readonly schema = computed<EntityFormSchema>(() => CARD_EDIT_SCHEMAS[this.cardType()] ?? FALLBACK_SCHEMA);
 
   readonly previewCard = computed<CardData | null>(() => {
     this.formVersion();

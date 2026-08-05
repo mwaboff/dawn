@@ -1,0 +1,15 @@
+@if (trainings().length > 0) {
+  <div class="training-list">
+    <h5 class="training-list__heading">Training</h5>
+    <ul class="training-taken">
+      @for (training of trainings(); track training.id) {
+        <li class="training-taken__item">
+          {{ trainingLabels[training.option] }}
+          @if (training.viciousAxis) {
+            ({{ training.viciousAxis === 'DAMAGE_DIE' ? 'Damage Die' : 'Range' }})
+          }
+        </li>
+      }
+    </ul>
+  </div>
+}

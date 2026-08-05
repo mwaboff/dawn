@@ -68,7 +68,6 @@ describe('defaultFeatureTypeForCard', () => {
 
   it('falls back to OTHER for unknown card types', () => {
     expect(defaultFeatureTypeForCard('adversary')).toBe('OTHER');
-    expect(defaultFeatureTypeForCard('companion')).toBe('OTHER');
     expect(defaultFeatureTypeForCard('not-a-real-type')).toBe('OTHER');
   });
 

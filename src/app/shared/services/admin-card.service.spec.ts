@@ -118,8 +118,8 @@ describe('AdminCardService', () => {
 
   describe('restoreCard', () => {
     it('should POST to restore endpoint', () => {
-      service.restoreCard('companion', 2).subscribe();
-      const req = httpMock.expectOne('http://localhost:8080/api/dh/companions/2/restore');
+      service.restoreCard('loot', 2).subscribe();
+      const req = httpMock.expectOne('http://localhost:8080/api/dh/loot/2/restore');
       expect(req.request.method).toBe('POST');
       req.flush({});
     });
@@ -137,7 +137,6 @@ describe('AdminCardService', () => {
         'weapon': '/dh/weapons',
         'armor': '/dh/armors',
         'loot': '/dh/loot',
-        'companion': '/dh/companions',
         'subclassPath': '/dh/subclass-paths',
         'adversary': '/dh/adversaries',
         'feature': '/dh/features',

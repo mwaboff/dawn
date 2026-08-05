@@ -1,12 +1,12 @@
 import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
-import { ModalFocusDirective } from '../../directives/modal-focus.directive';
+import { ModalShell } from '../modal-shell/modal-shell';
 
 @Component({
   selector: 'app-confirm-dialog',
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ModalFocusDirective],
+  imports: [ModalShell],
 })
 export class ConfirmDialog {
   readonly title = input.required<string>();
@@ -27,12 +27,6 @@ export class ConfirmDialog {
   onCancel(): void {
     if (!this.processing()) {
       this.cancelled.emit();
-    }
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
-      this.onCancel();
     }
   }
 }

@@ -2,11 +2,11 @@ import { Component, ChangeDetectionStrategy, inject, output, signal } from '@ang
 import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ExpansionService } from '../../../../../shared/services/expansion.service';
 import { ExpansionOption } from '../../../../../shared/models/expansion-api.model';
-import { ModalFocusDirective } from '../../../../../shared/directives/modal-focus.directive';
+import { ModalShell } from '../../../../../shared/components/modal-shell/modal-shell';
 
 @Component({
   selector: 'app-add-expansion-dialog',
-  imports: [ReactiveFormsModule, ModalFocusDirective],
+  imports: [ReactiveFormsModule, ModalShell],
   templateUrl: './add-expansion-dialog.html',
   styleUrl: './add-expansion-dialog.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,12 +68,6 @@ export class AddExpansionDialog {
   onCancel(): void {
     if (!this.processing()) {
       this.cancelled.emit();
-    }
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
-      this.onCancel();
     }
   }
 }

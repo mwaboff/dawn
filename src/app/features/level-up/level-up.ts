@@ -1,37 +1,58 @@
 import { Component, OnInit, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of, switchMap, tap, Observable } from 'rxjs';
+import { forkJoin, of, switchMap, tap, map, Observable } from 'rxjs';
 
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
+import { CompanionService } from '../../shared/services/companion.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { mapToCharacterSheetView } from '../character-sheet/utils/character-sheet-view.mapper';
 import { CharacterSheetView } from '../character-sheet/models/character-sheet-view.model';
-import { LevelUpOptionsResponse, AdvancementChoice, AvailableAdvancement, DomainCardTradeRequest, TradeDisplayPair } from './models/level-up-api.model';
-import { LevelUpTab, LevelUpTabId } from './models/level-up.model';
+import {
+  LevelUpOptionsResponse,
+  AdvancementChoice,
+  AvailableAdvancement,
+  DomainCardTradeRequest,
+  TradeDisplayPair,
+  CompanionTrainingEligibility,
+  CompanionTrainingSelection,
+  CompanionExperienceGrant,
+} from './models/level-up-api.model';
+import { LevelUpTab, LevelUpTabId, LevelUpTabKind } from './models/level-up.model';
 import { computeVisibleTabs } from './utils/level-up-steps.utils';
 import { assembleLevelUpRequest } from './utils/level-up-request-assembler.utils';
 import { countBonusSlotsFromAdvancements } from './utils/bonus-domain-card.utils';
 import { acquiresMartialStances } from './utils/acquires-martial-stances.utils';
+import { acquiresCompanionFeature } from './utils/acquires-companion-feature.utils';
+import { companionTrainingBonusPicks } from './utils/companion-training-bonus.utils';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { SubclassService } from '../../shared/services/subclass.service';
 import { MartialStanceService } from '../../shared/services/martial-stance.service';
 import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
 import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
+import { hasCompanionFeature } from '../character-sheet/utils/companion-access.utils';
 import { tierForLevel } from '../character-sheet/utils/beastform-access.utils';
+import { CompanionApiResponse } from '../../shared/models/companion-api.model';
+import { isExperienceComplete } from '../../shared/models/experience.model';
+import { COMPANION_TRAINING_LABELS } from '../character-sheet/components/companion-panel/components/companion-training-list/companion-training-list.model';
 
 import { LevelUpTabNav } from './components/level-up-tab-nav/level-up-tab-nav';
 import { ConfirmDialog } from '../../shared/components/confirm-dialog/confirm-dialog';
-import { TierAchievementsStep } from './components/tier-achievements-step/tier-achievements-step';
+import { TierAchievementsStep, CompanionExperienceTarget } from './components/tier-achievements-step/tier-achievements-step';
 import { AdvancementsStep } from './components/advancements-step/advancements-step';
+import { CompanionStep, CompanionStepSelection } from './components/companion-step/companion-step';
 import { MartialStanceStep } from './components/martial-stance-step/martial-stance-step';
+import { TrainingStep } from './components/training-step/training-step';
 import { DomainCardStep } from './components/domain-card-step/domain-card-step';
 import { DomainTradeStep, TradeRow } from './components/domain-trade-step/domain-trade-step';
-import { LevelUpReview } from './components/level-up-review/level-up-review';
+import { LevelUpReview, CompanionReviewEntry } from './components/level-up-review/level-up-review';
 
 @Component({
   selector: 'app-level-up',
-  imports: [LevelUpTabNav, ConfirmDialog, TierAchievementsStep, AdvancementsStep, MartialStanceStep, DomainCardStep, DomainTradeStep, LevelUpReview],
+  imports: [
+    LevelUpTabNav, ConfirmDialog, TierAchievementsStep, AdvancementsStep, CompanionStep, MartialStanceStep,
+    TrainingStep, DomainCardStep, DomainTradeStep, LevelUpReview,
+  ],
   templateUrl: './level-up.html',
   styleUrl: './level-up.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,12 +64,14 @@ export class LevelUp implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly subclassService = inject(SubclassService);
   private readonly martialStanceService = inject(MartialStanceService);
+  private readonly companionService = inject(CompanionService);
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly characterSheet = signal<CharacterSheetView | null>(null);
   private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   readonly levelUpOptions = signal<LevelUpOptionsResponse | null>(null);
+  private readonly activeCompanions = signal<CompanionApiResponse[]>([]);
 
   readonly activeTab = signal<LevelUpTabId>('advancements');
   private readonly completedStepsSignal = signal<Set<LevelUpTabId>>(new Set());
@@ -69,6 +92,10 @@ export class LevelUp implements OnInit {
   readonly martialStanceCardsError = signal(false);
   readonly selectedMartialStanceIds = signal<number[]>([]);
 
+  readonly companionSelection = signal<CompanionStepSelection | null>(null);
+  private readonly companionTrainingSelections = signal<Record<number, CompanionTrainingSelection[]>>({});
+  private readonly companionExperienceGrants = signal<CompanionExperienceGrant[]>([]);
+
   readonly submitting = signal(false);
   readonly submitError = signal<string | null>(null);
   /**
@@ -76,6 +103,15 @@ export class LevelUp implements OnInit {
    * stance PUT fails, resubmitting must NOT level the character a second time.
    */
   private readonly levelUpCompleted = signal(false);
+  /**
+   * Set once a brand-new companion has been created (phase 0, BEFORE the level-up call, since its
+   * id must be sent inside the level-up request as `newCompanionId`). Guards against a double
+   * create on retry: `resolveCompanionId` skips the create call entirely once this is set, the
+   * same way `levelUpCompleted` guards phase 1. Restoring an existing companion needs no such
+   * guard -- there is no create call to repeat, the backend restores it as part of applying the
+   * level-up request itself.
+   */
+  private readonly companionCreatedId = signal<number | null>(null);
   readonly showLevelDownDialog = signal(false);
   readonly levelDownProcessing = signal(false);
 
@@ -89,6 +125,11 @@ export class LevelUp implements OnInit {
   readonly isMinLevel = computed(() => {
     const options = this.levelUpOptions();
     return options !== null && options.currentLevel <= 1;
+  });
+
+  readonly isTierTransition = computed(() => {
+    const options = this.levelUpOptions();
+    return !!options && (options.tierTransition || options.currentTier !== options.nextTier);
   });
 
   readonly ownedDomainCardIds = computed(() => {
@@ -106,13 +147,31 @@ export class LevelUp implements OnInit {
    * appears as soon as the player chooses a MULTICLASS/UPGRADE_SUBCLASS advancement that newly
    * grants Stance Fighter -- the advancements step comes before the martial-stance tab in
    * `ALL_LEVEL_UP_TABS`, so the tab must react to that choice, not just the character's
-   * already-owned subclass cards.
+   * already-owned subclass cards. Same reactive treatment for `needsCompanionStep` and the
+   * generated `training` tabs (one per `eligibleCompanionTrainings` entry).
    */
   readonly visibleTabs = computed<LevelUpTab[]>(() => {
     const options = this.levelUpOptions();
     if (!options) return [];
-    return computeVisibleTabs(options, this.showMartialStanceStep());
+    return computeVisibleTabs(options, {
+      hasMartialStances: this.showMartialStanceStep(),
+      needsCompanionStep: this.needsCompanionStep(),
+      trainingCompanions: this.eligibleCompanionTrainings().map(t => ({ companionId: t.companionId, name: t.name })),
+    });
   });
+
+  /** What `level-up.html`'s `@switch` actually dispatches on -- see `models/level-up.model.ts`. */
+  readonly activeTabKind = computed<LevelUpTabKind | undefined>(() =>
+    this.visibleTabs().find(t => t.id === this.activeTab())?.kind
+  );
+
+  readonly activeTabCompanionId = computed<number | undefined>(() =>
+    this.visibleTabs().find(t => t.id === this.activeTab())?.companionId
+  );
+
+  readonly activeTrainingEntry = computed<CompanionTrainingEligibility | undefined>(() =>
+    this.eligibleCompanionTrainings().find(t => t.companionId === this.activeTabCompanionId())
+  );
 
   private static readonly TIER_3_ONLY_TYPES = new Set<string>(['UPGRADE_SUBCLASS', 'MULTICLASS']);
 
@@ -186,6 +245,75 @@ export class LevelUp implements OnInit {
     this.acquiresMartialStancesThisLevelUp() ? 1 : tierForLevel(this.levelUpOptions()?.nextLevel ?? 1)
   );
 
+  /** True when a chosen advancement THIS level-up newly grants the Beastbound Ranger's Companion
+   * foundation feature -- the `acquiresMartialStancesThisLevelUp` analog, gated on
+   * `hasCompanionFeature` instead of `hasMartialStances`. */
+  readonly acquiresCompanionFeatureThisLevelUp = computed<boolean>(() =>
+    acquiresCompanionFeature(
+      this.selectedAdvancements(),
+      new Set(this.rawSheet()?.subclassCardIds ?? []),
+      (id) => this.subclassService.getCachedCardResponseById(id),
+      hasCompanionFeature(this.rawSheet()?.subclassCards),
+    )
+  );
+
+  /**
+   * Gates the `companion` tab: shown only the level-up that newly grants the feature (not every
+   * level-up thereafter -- a character who already has the feature and no companion can still add
+   * one from the character sheet's own "+ Add Companion", out of scope here), AND only while the
+   * character has no active companion yet (companions plan §3.4/§6.6).
+   */
+  readonly needsCompanionStep = computed<boolean>(() =>
+    this.acquiresCompanionFeatureThisLevelUp() && this.activeCompanions().length === 0
+  );
+
+  /** Extra Training picks granted THIS level-up by Expert/Advanced Training -- see
+   * `companionTrainingBonusPicks` for why this must be recomputed client-side. */
+  readonly companionTrainingBonusPicksThisLevelUp = computed<number>(() =>
+    companionTrainingBonusPicks(
+      this.selectedAdvancements(),
+      new Set(this.rawSheet()?.subclassCardIds ?? []),
+      (id) => this.subclassService.getCachedCardResponseById(id),
+    )
+  );
+
+  readonly eligibleCompanionTrainings = computed<CompanionTrainingEligibility[]>(() =>
+    this.levelUpOptions()?.companionTraining ?? []
+  );
+
+  readonly restorableCompanions = computed<CompanionApiResponse[]>(() =>
+    this.levelUpOptions()?.restorableCompanions ?? []
+  );
+
+  /** Every eligible companion also gains a new Experience on a tier transition -- companions plan
+   * §3.2. Empty on a non-tier-transition level-up, same gate as the character's own grant. */
+  readonly companionExperienceTargets = computed<CompanionExperienceTarget[]>(() =>
+    this.isTierTransition() ? this.eligibleCompanionTrainings().map(t => ({ companionId: t.companionId, name: t.name })) : []
+  );
+
+  readonly companionReviewEntries = computed<CompanionReviewEntry[]>(() => {
+    const entries: CompanionReviewEntry[] = [];
+    const selection = this.companionSelection();
+    if (selection) {
+      entries.push({
+        companionId: selection.mode === 'restore' ? selection.companionId : -1,
+        name: selection.mode === 'create' ? selection.draft.payload.name : selection.name,
+        statusLabel: selection.mode === 'create' ? 'Creating new' : 'Restoring',
+        trainingLabels: [],
+      });
+    }
+    for (const training of this.eligibleCompanionTrainings()) {
+      const experience = this.companionExperienceGrants().find(g => g.companionId === training.companionId);
+      entries.push({
+        companionId: training.companionId,
+        name: training.name,
+        trainingLabels: this.trainingSelectionsFor(training.companionId).map(s => this.formatTrainingLabel(s)),
+        experienceDescription: experience?.description.trim() ? experience.description : undefined,
+      });
+    }
+    return entries;
+  });
+
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (isNaN(id) || id <= 0) {
@@ -218,7 +346,20 @@ export class LevelUp implements OnInit {
 
   onExperienceDescriptionChanged(description: string): void {
     this.newExperienceDescription.set(description);
-    if (description.trim().length > 0) {
+    this.refreshTierAchievementsCompletion();
+  }
+
+  onCompanionExperiencesChanged(grants: CompanionExperienceGrant[]): void {
+    this.companionExperienceGrants.set(grants);
+    this.refreshTierAchievementsCompletion();
+  }
+
+  private refreshTierAchievementsCompletion(): void {
+    const ownComplete = this.newExperienceDescription().trim().length > 0;
+    const companionsComplete = this.companionExperienceTargets().every(target =>
+      (this.companionExperienceGrants().find(g => g.companionId === target.companionId)?.description ?? '').trim().length > 0
+    );
+    if (ownComplete && companionsComplete) {
       this.markStepComplete('tier-achievements');
     } else {
       this.removeStepComplete('tier-achievements');
@@ -232,17 +373,66 @@ export class LevelUp implements OnInit {
     } else {
       this.removeStepComplete('advancements');
     }
-    // Changing advancements can change whether the martial-stance step is shown at all and how
-    // many stances it requires (acquiring the feature asks for 2, an ordinary level-up for 1).
-    // Selections made under the old rules would otherwise survive as a stale "complete" flag with
-    // the wrong number of stances chosen, letting the user submit an under-filled selection.
+    // Changing advancements can change whether the martial-stance/companion steps are shown at
+    // all, how many stances martial-stance requires, and how many picks each training tab has
+    // (Expert/Advanced Training's reactive bonus). Selections made under the old rules would
+    // otherwise survive as a stale "complete" flag, letting the user submit an under-filled or
+    // now-invalid selection.
     this.clearMartialStanceSelections();
+    this.clearCompanionSelections();
   }
 
   /** Drops any stance picks and the step's completed flag, so the step must be re-satisfied. */
   private clearMartialStanceSelections(): void {
     this.selectedMartialStanceIds.set([]);
     this.removeStepComplete('martial-stance');
+  }
+
+  /** Drops the companion tab's create/restore choice and every training tab's staged picks, so
+   * each must be re-satisfied under the (possibly changed) eligibility/picks-available rules. */
+  private clearCompanionSelections(): void {
+    this.companionSelection.set(null);
+    this.removeStepComplete('companion');
+    this.companionTrainingSelections.set({});
+    for (const training of this.eligibleCompanionTrainings()) {
+      this.removeStepComplete(`training-${training.companionId}`);
+    }
+  }
+
+  onCompanionSelectionChanged(selection: CompanionStepSelection | null): void {
+    this.companionSelection.set(selection);
+    if (selection) {
+      this.markStepComplete('companion');
+    } else {
+      this.removeStepComplete('companion');
+    }
+  }
+
+  trainingSelectionsFor(companionId: number): CompanionTrainingSelection[] {
+    return this.companionTrainingSelections()[companionId] ?? [];
+  }
+
+  picksAvailableFor(companionId: number): number {
+    const entry = this.eligibleCompanionTrainings().find(t => t.companionId === companionId);
+    return (entry?.picksAvailable ?? 0) + this.companionTrainingBonusPicksThisLevelUp();
+  }
+
+  onTrainingSelectionsChanged(companionId: number, selections: CompanionTrainingSelection[]): void {
+    this.companionTrainingSelections.update(current => ({ ...current, [companionId]: selections }));
+    const tabId = `training-${companionId}`;
+    if (selections.length === this.picksAvailableFor(companionId)) {
+      this.markStepComplete(tabId);
+    } else {
+      this.removeStepComplete(tabId);
+    }
+  }
+
+  private formatTrainingLabel(selection: CompanionTrainingSelection): string {
+    const label = COMPANION_TRAINING_LABELS[selection.option];
+    if (selection.viciousAxis) {
+      return `${label} (${selection.viciousAxis === 'DAMAGE_DIE' ? 'Damage Die' : 'Range'})`;
+    }
+    return label;
   }
 
   onDomainCardsSelected(cards: CardData[]): void {
@@ -296,30 +486,42 @@ export class LevelUp implements OnInit {
 
     const bonusDomainCardIds = cards.slice(base).map(c => c.id);
 
-    const request = assembleLevelUpRequest({
-      advancements,
-      newExperienceDescription: (options.tierTransition || options.currentTier !== options.nextTier) ? this.newExperienceDescription() : undefined,
-      newDomainCardId: cards[0].id,
-      equipNewDomainCard: this.equipNewDomainCard(),
-      unequipDomainCardId: this.unequipDomainCardId(),
-      trades: this.trades(),
-      bonusDomainCardIds,
-    });
-
     this.submitting.set(true);
     this.submitError.set(null);
 
-    // The level-up and the stance attach are two calls. If the level-up lands but the stance PUT
-    // fails, the character is ALREADY leveled -- resubmitting `levelUp` would level them a second
-    // time. So record that the first phase succeeded and, on retry, resume from the stance PUT.
-    const firstPhase$: Observable<unknown> = this.levelUpCompleted()
-      ? of(null)
-      : this.characterSheetService
-          .levelUp(this.characterId, request)
-          .pipe(tap(() => this.levelUpCompleted.set(true)));
+    // Phase 0: resolve `newCompanionId` before the level-up call itself, since a brand-new
+    // companion's id must be sent INSIDE that request. Guarded independently of `levelUpCompleted`
+    // (see `companionCreatedId`) so a retry after a later phase's failure never creates a second
+    // companion.
+    this.resolveCompanionId().pipe(
+      switchMap(newCompanionId => {
+        const request = assembleLevelUpRequest({
+          advancements,
+          newExperienceDescription: this.isTierTransition() ? this.newExperienceDescription() : undefined,
+          newDomainCardId: cards[0].id,
+          equipNewDomainCard: this.equipNewDomainCard(),
+          unequipDomainCardId: this.unequipDomainCardId(),
+          trades: this.trades(),
+          bonusDomainCardIds,
+          companionTrainings: Object.values(this.companionTrainingSelections()).flat(),
+          companionExperiences: this.isTierTransition()
+            ? this.companionExperienceGrants().filter(g => g.description.trim().length > 0)
+            : [],
+          newCompanionId,
+        });
 
-    firstPhase$.pipe(
-      switchMap(() => this.attachMartialStance()),
+        // The level-up and the stance attach are two calls. If the level-up lands but the stance
+        // PUT fails, the character is ALREADY leveled -- resubmitting `levelUp` would level them a
+        // second time. So record that the first phase succeeded and, on retry, resume from the
+        // stance PUT.
+        const firstPhase$: Observable<unknown> = this.levelUpCompleted()
+          ? of(null)
+          : this.characterSheetService
+              .levelUp(this.characterId, request)
+              .pipe(tap(() => this.levelUpCompleted.set(true)));
+
+        return firstPhase$.pipe(switchMap(() => this.attachMartialStance()));
+      }),
     ).subscribe({
       next: () => {
         this.submitting.set(false);
@@ -330,6 +532,13 @@ export class LevelUp implements OnInit {
         const message = err && typeof err === 'object' && 'error' in err
           ? (err.error as { message?: string } | undefined)?.message
           : undefined;
+
+        const selection = this.companionSelection();
+        if (selection?.mode === 'create' && this.companionCreatedId() == null) {
+          this.submitError.set(message ?? 'Failed to create your companion. Submit again to retry.');
+          return;
+        }
+
         this.submitError.set(
           this.levelUpCompleted()
             ? (message ?? 'Your character leveled up, but the new stance could not be saved. Submit again to retry saving the stance.')
@@ -337,6 +546,39 @@ export class LevelUp implements OnInit {
         );
       },
     });
+  }
+
+  /**
+   * Resolves the id to send as `LevelUpRequest.newCompanionId`. Restoring is a no-op here (the
+   * backend restores the soft-deleted companion as part of applying the level-up request itself);
+   * creating POSTs the new companion (and its initial Experiences, best-effort, mirroring
+   * `character-sheet.ts`'s `createCompanionExperiences`) exactly once, skipping the call entirely
+   * on retry once `companionCreatedId` is set.
+   */
+  private resolveCompanionId(): Observable<number | undefined> {
+    const selection = this.companionSelection();
+    if (!selection) return of(undefined);
+    if (selection.mode === 'restore') return of(selection.companionId);
+
+    const createdId = this.companionCreatedId();
+    if (createdId != null) return of(createdId);
+
+    return this.companionService.createCompanion(selection.draft.payload).pipe(
+      switchMap(created => {
+        this.companionCreatedId.set(created.id);
+        const completeExperiences = selection.draft.experiences.filter(isExperienceComplete);
+        if (completeExperiences.length === 0) return of(created.id);
+        return forkJoin(
+          completeExperiences.map(exp =>
+            this.characterSheetService.createExperience({
+              companionId: created.id,
+              description: exp.name,
+              modifier: exp.modifier!,
+            }),
+          ),
+        ).pipe(map(() => created.id));
+      }),
+    );
   }
 
   /**
@@ -389,8 +631,9 @@ export class LevelUp implements OnInit {
     forkJoin({
       sheet: this.characterSheetService.getCharacterSheet(id, expandFields),
       options: this.characterSheetService.getLevelUpOptions(id),
+      companions: this.companionService.getCompanions(id),
     }).subscribe({
-      next: ({ sheet, options }) => {
+      next: ({ sheet, options, companions }) => {
         const user = this.authService.user();
         if (user && sheet.ownerId !== user.id) {
           this.error.set('You do not own this character.');
@@ -401,6 +644,7 @@ export class LevelUp implements OnInit {
         this.rawSheet.set(sheet);
         this.characterSheet.set(mapToCharacterSheetView(sheet));
         this.levelUpOptions.set(options);
+        this.activeCompanions.set(companions);
 
         this.activeTab.set(this.visibleTabs()[0].id);
 

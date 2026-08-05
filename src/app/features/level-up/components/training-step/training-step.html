@@ -1,0 +1,87 @@
+<div class="training-step">
+  <div class="training-step__header">
+    <div class="training-step__identity">
+      <h3 class="training-step__name">{{ training().name }}</h3>
+      <p class="training-step__stats">
+        Evasion {{ stats().evasion }} &middot; {{ attackLine() }} &middot; Stress {{ stats().stressMarked }}/{{ stats().stressMax }}
+      </p>
+    </div>
+    <div class="selection-badge" [class.complete]="isComplete()" aria-live="polite">
+      <span class="selection-badge__count">{{ selectionCount() }}</span>
+      <span class="selection-badge__sep">/</span>
+      <span class="selection-badge__max">{{ picksAvailable() }}</span>
+    </div>
+  </div>
+
+  @if (selections().length > 0) {
+    <ul class="training-taken">
+      @for (sel of selections(); track $index) {
+        <li class="training-taken__item">
+          <span class="training-taken__label">
+            {{ trainingLabels[sel.option] }}
+            @if (sel.viciousAxis) {
+              ({{ sel.viciousAxis === 'DAMAGE_DIE' ? 'Damage Die' : 'Range' }})
+            }
+          </span>
+          <button
+            type="button"
+            class="training-taken__remove"
+            (click)="onRemove($index)"
+            [attr.aria-label]="'Remove ' + trainingLabels[sel.option] + ' training'"
+          >&times;</button>
+        </li>
+      }
+    </ul>
+  }
+
+  <ul class="training-options">
+    @for (opt of options; track opt.option) {
+      <li class="training-option" [class.training-option--exhausted]="remainingFor(opt.option) === 0">
+        <div class="training-option__row">
+          <span class="training-option__label">{{ opt.label }}</span>
+          <span class="training-option__remaining">{{ remainingFor(opt.option) }} left</span>
+          <button
+            type="button"
+            class="training-option__take"
+            [disabled]="!canTake(opt.option)"
+            (click)="onTakeClicked(opt.option)"
+          >+ Take</button>
+        </div>
+        <p class="training-option__effect">{{ opt.effect }}</p>
+
+        @if (opt.option === 'INTELLIGENT' && !hasExperiences()) {
+          <p class="training-option__hint">This companion has no Experiences to bolster yet.</p>
+        }
+        @if (opt.option === 'VICIOUS' && isViciousExhausted()) {
+          <p class="training-option__hint">Both the damage die and range ladders are already maxed.</p>
+        }
+
+        @if (pendingOption() === opt.option && opt.option === 'VICIOUS') {
+          <div class="training-pending">
+            <span class="training-pending__prompt">Which ladder?</span>
+            <button type="button" class="training-pending__choice" [disabled]="isViciousAxisCapped('DAMAGE_DIE')" (click)="onViciousAxisChosen('DAMAGE_DIE')">Damage Die</button>
+            <button type="button" class="training-pending__choice" [disabled]="isViciousAxisCapped('RANGE')" (click)="onViciousAxisChosen('RANGE')">Range</button>
+            <button type="button" class="training-pending__cancel" (click)="onCancelPending()">Cancel</button>
+          </div>
+        }
+
+        @if (pendingOption() === opt.option && opt.option === 'INTELLIGENT') {
+          <div class="training-pending">
+            @if (hasExperiences()) {
+              <span class="training-pending__prompt">Which Experience?</span>
+              @for (exp of stats().experiences ?? []; track exp.id) {
+                <button type="button" class="training-pending__choice" (click)="onExperienceChosen(exp.id)">
+                  {{ exp.description }}
+                </button>
+              }
+              <button type="button" class="training-pending__cancel" (click)="onCancelPending()">Cancel</button>
+            } @else {
+              <span class="training-pending__prompt">This companion has no Experiences to bolster yet.</span>
+              <button type="button" class="training-pending__cancel" (click)="onCancelPending()">Close</button>
+            }
+          </div>
+        }
+      </li>
+    }
+  </ul>
+</div>

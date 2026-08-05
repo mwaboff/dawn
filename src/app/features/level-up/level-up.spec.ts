@@ -7,9 +7,11 @@ import { CharacterSheetService } from '../../core/services/character-sheet.servi
 import { AuthService } from '../../core/services/auth.service';
 import { SubclassService } from '../../shared/services/subclass.service';
 import { MartialStanceService } from '../../shared/services/martial-stance.service';
+import { CompanionService } from '../../shared/services/companion.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
-import { LevelUpOptionsResponse } from './models/level-up-api.model';
-import { SubclassCardResponse } from '../../shared/models/subclass-api.model';
+import { CompanionTrainingEligibility, LevelUpOptionsResponse } from './models/level-up-api.model';
+import { SubclassCardResponse, SubclassFeatureResponse } from '../../shared/models/subclass-api.model';
+import { CompanionApiResponse } from '../../shared/models/companion-api.model';
 
 function makeSubclassCardWithBonus(id: number, value: number): SubclassCardResponse {
   return {
@@ -116,6 +118,76 @@ function makeOptionsResponse(overrides: Partial<LevelUpOptionsResponse> = {}): L
   };
 }
 
+function makeCompanionResponse(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
+  return {
+    id: 7,
+    characterSheetId: 1,
+    name: 'Rufus',
+    evasion: 10,
+    baseEvasion: 10,
+    attackName: 'Bite',
+    attackRange: 'MELEE',
+    baseAttackRange: 'MELEE',
+    damageDice: 'D6',
+    baseDamageDice: 'D6',
+    attackDiceCount: 1,
+    damageType: 'PHYSICAL',
+    stressMax: 3,
+    baseStressMax: 3,
+    stressMarked: 0,
+    outOfScene: false,
+    origin: 'SUBCLASS_FEATURE',
+    advancesOnLevelUp: true,
+    trainings: [],
+    remainingByOption: {},
+    experiences: [],
+    createdAt: '',
+    lastModifiedAt: '',
+    ...overrides,
+  };
+}
+
+function makeCompanionTraining(overrides: Partial<CompanionTrainingEligibility> = {}): CompanionTrainingEligibility {
+  return {
+    companionId: 7,
+    name: 'Rufus',
+    currentStats: makeCompanionResponse(),
+    availableOptions: [{ option: 'AWARE', remaining: 3 }],
+    picksAvailable: 1,
+    ...overrides,
+  };
+}
+
+function makeBeastboundCard(
+  id: number,
+  level: SubclassCardResponse['level'],
+  features: Partial<SubclassFeatureResponse>[] = [{ name: 'Companion', featureType: 'SUBCLASS' }],
+): SubclassCardResponse {
+  return {
+    id,
+    name: `Beastbound Card ${id}`,
+    cardType: 'SUBCLASS',
+    expansionId: 1,
+    isOfficial: true,
+    featureIds: [1],
+    features: features.map((f, i) => ({
+      id: i + 1,
+      name: f.name ?? 'feat',
+      description: '',
+      featureType: f.featureType ?? 'PASSIVE',
+      expansionId: 1,
+      costTagIds: [],
+      costTags: [],
+    })),
+    costTagIds: [],
+    costTags: [],
+    subclassPathId: 1,
+    level,
+    createdAt: '',
+    lastModifiedAt: '',
+  };
+}
+
 describe('LevelUp', () => {
   let fixture: ComponentFixture<LevelUp>;
   let component: LevelUp;
@@ -125,10 +197,15 @@ describe('LevelUp', () => {
     levelUp: ReturnType<typeof vi.fn>;
     undoLevelUp: ReturnType<typeof vi.fn>;
     updateCharacterSheet: ReturnType<typeof vi.fn>;
+    createExperience: ReturnType<typeof vi.fn>;
   };
   let mockAuthService: { user: ReturnType<typeof vi.fn> };
   let mockSubclassService: { getCachedCardResponseById: ReturnType<typeof vi.fn> };
   let mockMartialStanceService: { getAllMartialStances: ReturnType<typeof vi.fn> };
+  let mockCompanionService: {
+    getCompanions: ReturnType<typeof vi.fn>;
+    createCompanion: ReturnType<typeof vi.fn>;
+  };
   let mockRouter: Router;
 
   function createComponent(
@@ -136,6 +213,7 @@ describe('LevelUp', () => {
     sheetResponse = of(makeSheetResponse()),
     optionsResponse = of(makeOptionsResponse()),
     subclassCards: ReadonlyMap<number, SubclassCardResponse> = new Map(),
+    activeCompanions: CompanionApiResponse[] = [],
   ) {
     mockCharacterSheetService = {
       getCharacterSheet: vi.fn().mockReturnValue(sheetResponse),
@@ -143,6 +221,7 @@ describe('LevelUp', () => {
       levelUp: vi.fn().mockReturnValue(of({ characterSheet: makeSheetResponse({ level: 5 }), advancementLogId: 1, appliedChanges: [] })),
       undoLevelUp: vi.fn().mockReturnValue(of(makeSheetResponse({ level: 3 }))),
       updateCharacterSheet: vi.fn().mockReturnValue(of(makeSheetResponse())),
+      createExperience: vi.fn().mockReturnValue(of({ id: 300, description: 'x', modifier: 2 })),
     };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
@@ -153,6 +232,10 @@ describe('LevelUp', () => {
     mockMartialStanceService = {
       getAllMartialStances: vi.fn().mockReturnValue(of([])),
     };
+    mockCompanionService = {
+      getCompanions: vi.fn().mockReturnValue(of(activeCompanions)),
+      createCompanion: vi.fn().mockReturnValue(of(makeCompanionResponse({ id: 999 }))),
+    };
     TestBed.configureTestingModule({
       imports: [LevelUp],
       providers: [
@@ -161,6 +244,7 @@ describe('LevelUp', () => {
         { provide: AuthService, useValue: mockAuthService },
         { provide: SubclassService, useValue: mockSubclassService },
         { provide: MartialStanceService, useValue: mockMartialStanceService },
+        { provide: CompanionService, useValue: mockCompanionService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => id } } } },
       ],
     });
@@ -222,6 +306,7 @@ describe('LevelUp', () => {
           undoLevelUp: vi.fn(),
         }},
         { provide: AuthService, useValue: mockAuthService },
+        { provide: CompanionService, useValue: { getCompanions: vi.fn().mockReturnValue(of([])) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
       ],
     });
@@ -790,6 +875,279 @@ describe('LevelUp', () => {
         component.onMartialStanceSelected([1, 2]);
         expect(component.completedSteps().has('martial-stance')).toBe(true);
       });
+    });
+  });
+
+  describe('companion tab', () => {
+    it('excludes the companion tab by default (no companion feature acquired)', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      expect(component.visibleTabs().map(t => t.id)).not.toContain('companion');
+    });
+
+    it('includes the companion tab once a MULTICLASS advancement newly grants the Companion feature', () => {
+      const subclassCards = new Map([[900, makeBeastboundCard(900, 'FOUNDATION')]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse({ subclassCardIds: [100] })),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'MULTICLASS', description: 'Multiclass', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'UPGRADE_SUBCLASS' },
+          ],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      expect(component.visibleTabs().map(t => t.id)).not.toContain('companion');
+
+      component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+
+      expect(component.visibleTabs().map(t => t.id)).toContain('companion');
+    });
+
+    it('does not offer the companion tab when the character already has an active companion', () => {
+      const subclassCards = new Map([[900, makeBeastboundCard(900, 'FOUNDATION')]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse({ subclassCardIds: [100] })),
+        of(makeOptionsResponse({ nextLevel: 5 })),
+        subclassCards,
+        [makeCompanionResponse()],
+      );
+      fixture.detectChanges();
+      component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+
+      expect(component.needsCompanionStep()).toBe(false);
+      expect(component.visibleTabs().map(t => t.id)).not.toContain('companion');
+    });
+
+    it('marks the companion step complete once a restore selection is made, and clears it on "Change"', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onCompanionSelectionChanged({ mode: 'restore', companionId: 5, name: 'Rufus' });
+      expect(component.completedSteps().has('companion')).toBe(true);
+
+      component.onCompanionSelectionChanged(null);
+      expect(component.completedSteps().has('companion')).toBe(false);
+    });
+
+    it('clears the companion selection when advancements change afterwards', () => {
+      const subclassCards = new Map([[900, makeBeastboundCard(900, 'FOUNDATION')]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse({ subclassCardIds: [100] })),
+        of(makeOptionsResponse({ nextLevel: 5 })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+      component.onAdvancementsChanged([{ type: 'MULTICLASS', subclassCardId: 900 }]);
+      component.onCompanionSelectionChanged({ mode: 'restore', companionId: 5, name: 'Rufus' });
+      expect(component.completedSteps().has('companion')).toBe(true);
+
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }]);
+
+      expect(component.completedSteps().has('companion')).toBe(false);
+      expect(component.companionSelection()).toBeNull();
+    });
+  });
+
+  describe('training tabs and reactive picksAvailable', () => {
+    it('adds one training tab per eligible companion from levelUpOptions().companionTraining', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        companionTraining: [makeCompanionTraining({ companionId: 7, name: 'Rufus' })],
+      })));
+      fixture.detectChanges();
+
+      expect(component.visibleTabs().map(t => t.id)).toContain('training-7');
+    });
+
+    it('defaults picksAvailable to the server baseline (1) with no qualifying advancement chosen', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        companionTraining: [makeCompanionTraining({ companionId: 7, picksAvailable: 1 })],
+      })));
+      fixture.detectChanges();
+
+      expect(component.picksAvailableFor(7)).toBe(1);
+    });
+
+    it('adds +1 to picksAvailable when the Beastbound SPECIALIZATION card ("Expert Training") is taken this level-up', () => {
+      // Verified production data: Specialization carries "Expert Training" + "Battle-Bonded", not
+      // "Companion" (that's Foundation-only) -- the bonus is detected by feature name, matching
+      // the server, not by `card.level`.
+      const subclassCards = new Map([[500, makeBeastboundCard(500, 'SPECIALIZATION', [
+        { name: 'Expert Training', featureType: 'SUBCLASS' },
+        { name: 'Battle-Bonded', featureType: 'SUBCLASS' },
+      ])]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse()),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'UPGRADE_SUBCLASS', description: 'Upgrade', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+          ],
+          companionTraining: [makeCompanionTraining({ companionId: 7, picksAvailable: 1 })],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([{ type: 'UPGRADE_SUBCLASS', subclassCardId: 500 }]);
+
+      expect(component.picksAvailableFor(7)).toBe(2);
+    });
+
+    it('adds +2 to picksAvailable when the Beastbound MASTERY card ("Advanced Training") is taken this level-up', () => {
+      const subclassCards = new Map([[500, makeBeastboundCard(500, 'MASTERY', [
+        { name: 'Advanced Training', featureType: 'SUBCLASS' },
+        { name: 'Loyal Friend', featureType: 'SUBCLASS' },
+      ])]]);
+      createComponent(
+        '1',
+        of(makeSheetResponse()),
+        of(makeOptionsResponse({
+          nextLevel: 5,
+          availableAdvancements: [
+            { type: 'UPGRADE_SUBCLASS', description: 'Upgrade', limitPerTier: 1, usedInTier: 0, remaining: 1, mutuallyExclusiveWith: 'MULTICLASS' },
+          ],
+          companionTraining: [makeCompanionTraining({ companionId: 7, picksAvailable: 1 })],
+        })),
+        subclassCards,
+      );
+      fixture.detectChanges();
+
+      component.onAdvancementsChanged([{ type: 'UPGRADE_SUBCLASS', subclassCardId: 500 }]);
+
+      expect(component.picksAvailableFor(7)).toBe(3);
+    });
+
+    it('marks a training tab complete once its picksAvailable budget is filled', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        companionTraining: [makeCompanionTraining({ companionId: 7, picksAvailable: 1 })],
+      })));
+      fixture.detectChanges();
+
+      component.onTrainingSelectionsChanged(7, [{ companionId: 7, option: 'AWARE' }]);
+
+      expect(component.completedSteps().has('training-7')).toBe(true);
+    });
+
+    it('clears staged training picks and their completion flag when advancements change afterwards', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        companionTraining: [makeCompanionTraining({ companionId: 7, picksAvailable: 1 })],
+      })));
+      fixture.detectChanges();
+
+      component.onTrainingSelectionsChanged(7, [{ companionId: 7, option: 'AWARE' }]);
+      expect(component.completedSteps().has('training-7')).toBe(true);
+
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }]);
+
+      expect(component.completedSteps().has('training-7')).toBe(false);
+      expect(component.trainingSelectionsFor(7)).toEqual([]);
+    });
+  });
+
+  describe('companion experience grant (tier transitions only)', () => {
+    it('requires a companion experience description before tier-achievements is complete', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        tierTransition: true,
+        companionTraining: [makeCompanionTraining({ companionId: 7, name: 'Rufus' })],
+      })));
+      fixture.detectChanges();
+
+      component.onExperienceDescriptionChanged('Defeated the dragon');
+      expect(component.completedSteps().has('tier-achievements')).toBe(false);
+
+      component.onCompanionExperiencesChanged([{ companionId: 7, description: 'Learned to trust' }]);
+      expect(component.completedSteps().has('tier-achievements')).toBe(true);
+    });
+
+    it('does not require a companion experience on a non-tier-transition level-up', () => {
+      createComponent('1', of(makeSheetResponse()), of(makeOptionsResponse({
+        tierTransition: false,
+        currentTier: 2,
+        nextTier: 2,
+        companionTraining: [makeCompanionTraining({ companionId: 7, name: 'Rufus' })],
+      })));
+      fixture.detectChanges();
+
+      component.onExperienceDescriptionChanged('Defeated the dragon');
+      expect(component.completedSteps().has('tier-achievements')).toBe(true);
+      expect(component.companionExperienceTargets()).toEqual([]);
+    });
+  });
+
+  describe('phase 0: companion creation on submit', () => {
+    it('creates the companion before calling levelUp, and sends its id as newCompanionId', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onCompanionSelectionChanged({
+        mode: 'create',
+        draft: {
+          payload: { characterSheetId: 1, name: 'Rufus', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        },
+      });
+
+      component.onSubmit();
+
+      expect(mockCompanionService.createCompanion).toHaveBeenCalledWith({
+        characterSheetId: 1, name: 'Rufus', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6',
+      });
+      const submitted = mockCharacterSheetService.levelUp.mock.calls[0][1];
+      expect(submitted.newCompanionId).toBe(999);
+    });
+
+    it('sends an existing restored companion id as newCompanionId without calling createCompanion', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onCompanionSelectionChanged({ mode: 'restore', companionId: 42, name: 'Rufus' });
+
+      component.onSubmit();
+
+      expect(mockCompanionService.createCompanion).not.toHaveBeenCalled();
+      const submitted = mockCharacterSheetService.levelUp.mock.calls[0][1];
+      expect(submitted.newCompanionId).toBe(42);
+    });
+
+    it('does not re-create the companion on retry after a later phase fails', () => {
+      createComponent('1');
+      // First submit: companion creation succeeds, but the level-up call itself fails.
+      mockCharacterSheetService.levelUp.mockReturnValue(throwError(() => new Error('server error')));
+      fixture.detectChanges();
+
+      component.onDomainCardsSelected([{ id: 50, name: 'Test', description: '', cardType: 'domain' }]);
+      component.onAdvancementsChanged([{ type: 'GAIN_HP' }, { type: 'GAIN_STRESS' }]);
+      component.onCompanionSelectionChanged({
+        mode: 'create',
+        draft: {
+          payload: { characterSheetId: 1, name: 'Rufus', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        },
+      });
+
+      component.onSubmit();
+      expect(mockCompanionService.createCompanion).toHaveBeenCalledTimes(1);
+      expect(component.submitError()).toBeTruthy();
+
+      // Retry: the level-up call now succeeds. createCompanion must NOT be called again.
+      mockCharacterSheetService.levelUp.mockReturnValue(of({ characterSheet: makeSheetResponse({ level: 5 }), advancementLogId: 1, appliedChanges: [] }));
+      component.onSubmit();
+
+      expect(mockCompanionService.createCompanion).toHaveBeenCalledTimes(1);
+      const submitted = mockCharacterSheetService.levelUp.mock.calls[1][1];
+      expect(submitted.newCompanionId).toBe(999);
     });
   });
 });

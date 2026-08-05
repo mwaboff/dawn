@@ -1,11 +1,12 @@
 <div class="transformation-control" [id]="controlId()">
   <div class="transformation-row">
-    <button
-      type="button"
-      class="transformation-toggle"
-      [disabled]="saving()"
-      (click)="onToggle()"
-    >{{ toggleLabel() }}</button>
+    <app-campaign-character-grant-toggle
+      [enabled]="enabled()"
+      label="Transformation"
+      [statusText]="statusText()"
+      [saving]="saving()"
+      (toggled)="onToggle()"
+    />
 
     @if (catalogLoading()) {
       <p class="transformation-loading">Loading transformations…</p>
@@ -31,6 +32,4 @@
       </label>
     }
   </div>
-
-  <p class="transformation-status">{{ statusText() }}</p>
 </div>

@@ -164,6 +164,8 @@
               <app-resource-tracker
                 [max]="sheet.hopeMax.modified"
                 [marked]="markedHope()"
+                [bonusCount]="companionGrantedHopeSlots()"
+                bonusLabel="from companion"
                 variant="hope"
                 ariaLabel="Hope"
                 idPrefix="hope"
@@ -636,6 +638,26 @@
           (wolfFormToggle)="onWolfFormToggle($event)"
           (cardSelected)="onTransformationSelected($event)"
           (cardRemoved)="onTransformationRemoved()"
+        />
+      }
+
+      @if (showCompanionsSection()) {
+        <app-companion-panel
+          [companions]="companions()"
+          [proficiency]="sheet.proficiency.modified"
+          [characterSheetId]="sheet.id"
+          [canManage]="canManageCompanions()"
+          [canCreate]="canAddCompanion()"
+          [saving]="companionActionInFlight()"
+          [armorAvailable]="companionArmorAvailable()"
+          [errorMessage]="companionError()"
+          [classFeatureReminders]="companionFeatureReminders()"
+          (companionCreated)="onCompanionCreated($event)"
+          (companionUpdated)="onCompanionUpdated($event)"
+          (companionDeleted)="onCompanionDeleted($event)"
+          (companionStressChanged)="onCompanionStressChanged($event)"
+          (markArmorInstead)="onCompanionMarkArmorInstead()"
+          (dismissError)="onDismissCompanionError()"
         />
       }
 

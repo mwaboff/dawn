@@ -1,0 +1,35 @@
+.training-step { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.training-step__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 1rem 1.25rem; background: rgba(212, 160, 86, .08); border: 1px solid rgba(212, 160, 86, .3); border-radius: 6px; }
+.training-step__name { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: #3e2723; margin: 0 0 .25rem; }
+.training-step__stats { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #7a5c46; margin: 0; }
+
+.selection-badge { display: flex; align-items: baseline; gap: .2rem; padding: .3rem .7rem; border-radius: 999px; background: #faf7f2; border: 1px solid #d8c8a8; font-family: 'Cinzel', serif; font-weight: 700; color: #7a5c46; flex-shrink: 0; }
+.selection-badge.complete { color: #4a7a4a; border-color: rgba(74, 122, 74, .4); background: rgba(74, 122, 74, .08); }
+.selection-badge__sep { opacity: .5; }
+
+.training-taken { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.training-taken__item { display: flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border-radius: 4px; background: #faf7f2; border: 1px solid #d8c8a8; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #3e2723; }
+.training-taken__remove { background: none; border: none; color: #b33; cursor: pointer; font-size: 1rem; line-height: 1; padding: 0; }
+
+.training-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.training-option { padding: .75rem .875rem; border-radius: 4px; border: 1px solid #d8c8a8; background: #fff; }
+.training-option--exhausted { opacity: .6; }
+.training-option__row { display: flex; align-items: center; flex-wrap: wrap; gap: .625rem; }
+.training-option__label { font-family: 'Cinzel', serif; font-size: var(--text-sm, .875rem); font-weight: 700; color: #3e2723; }
+/* Verbatim rule text (up to a full paragraph for Bonded) gets its own row below the scan line
+   (label / remaining / Take), not squeezed into that flex row -- a quoted-text left rule marks it
+   as rules text you read, not UI copy, same idea as `.training-pending`'s own row below. */
+.training-option__effect { display: block; margin: .5rem 0 0; padding-left: .7rem; border-left: 2px solid #d4a056; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); line-height: 1.55; color: #5a4230; }
+.training-option__remaining { margin-left: auto; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #8b7355; }
+.training-option__take { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 600; padding: .3rem .7rem; border-radius: 3px; border: 1px solid #d4a056; background: transparent; color: #8b5e34; cursor: pointer; }
+.training-option__take:hover:not(:disabled) { background: rgba(212, 160, 86, .12); }
+.training-option__take:disabled { opacity: .4; cursor: not-allowed; }
+.training-option__hint { margin: .4rem 0 0; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); font-style: italic; color: #8b5e34; }
+
+.training-pending { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .5rem; padding-top: .5rem; border-top: 1px dashed #d8c8a8; }
+.training-pending__prompt { flex-basis: 100%; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #5a4230; }
+.training-pending__choice { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); padding: .3rem .7rem; border-radius: 3px; border: 1px solid #d4a056; background: transparent; color: #8b5e34; cursor: pointer; }
+.training-pending__choice:hover:not(:disabled) { background: rgba(212, 160, 86, .12); }
+.training-pending__choice:disabled { opacity: .4; cursor: not-allowed; }
+.training-pending__cancel { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); background: none; border: none; color: #8b7355; cursor: pointer; text-decoration: underline; }

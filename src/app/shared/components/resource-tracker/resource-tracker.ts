@@ -28,19 +28,39 @@ export class ResourceTracker {
   readonly idPrefix = input<string>('');
   /** Spoken label for each box's `aria-label`; falls back to `label()` when unset. */
   readonly ariaLabel = input<string>('');
+  /** Extra boxes appended after `max()`, styled with `.resource-box--companion` -- e.g. Hope
+   * slots granted by a companion's `Light in the Dark` Training (`--color-card-companion`). */
+  readonly bonusCount = input<number>(0);
+  /** Spoken qualifier distinguishing a bonus box from a normal one. Bonus boxes are otherwise
+   * only distinguished by colour, which a screen reader cannot convey. */
+  readonly bonusLabel = input<string>('bonus');
+  /** Renders the boxes as non-interactive. Use when the viewer may see the resource but not
+   * change it, so the control doesn't look live and silently do nothing. */
+  readonly readonly = input(false);
 
   readonly markedChange = output<number>();
 
-  readonly boxNumbers = computed(() => Array.from({ length: Math.max(0, this.max()) }, (_, i) => i + 1));
+  readonly totalBoxes = computed(() => Math.max(0, this.max()) + Math.max(0, this.bonusCount()));
+  readonly boxNumbers = computed(() => Array.from({ length: this.totalBoxes() }, (_, i) => i + 1));
   readonly boxAriaLabel = computed(() => this.ariaLabel() || this.label());
 
+  ariaLabelFor(index: number): string {
+    const base = `${this.boxAriaLabel()} ${index}`;
+    return this.isBonusBox(index) ? `${base} (${this.bonusLabel()})` : base;
+  }
+
   toggle(index: number): void {
+    if (this.readonly()) return;
     const current = this.marked();
     const next = current === index ? index - 1 : index;
-    this.markedChange.emit(Math.max(0, Math.min(next, this.max())));
+    this.markedChange.emit(Math.max(0, Math.min(next, this.totalBoxes())));
   }
 
   boxId(index: number): string | null {
     return this.idPrefix() ? `${this.idPrefix()}-${index}` : null;
+  }
+
+  isBonusBox(index: number): boolean {
+    return index > this.max();
   }
 }

@@ -9,14 +9,16 @@
         class="resource-box"
         [class.resource-box--hope]="variant() === 'hope'"
         [class.resource-box--stress]="variant() === 'stress'"
+        [class.resource-box--companion]="isBonusBox(i)"
         [class.resource-box--marked]="i <= marked()"
         [attr.id]="boxId(i)"
         (click)="toggle(i)"
-        [attr.aria-label]="boxAriaLabel() + ' ' + i"
+        [attr.aria-label]="ariaLabelFor(i)"
         [attr.aria-pressed]="i <= marked()"
+        [disabled]="readonly()"
       ></button>
     }
   </div>
-  <span class="resource-row__count">{{ marked() }}/{{ max() }}</span>
+  <span class="resource-row__count">{{ marked() }}/{{ totalBoxes() }}</span>
   <ng-content />
 </div>

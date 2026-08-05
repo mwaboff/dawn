@@ -14,6 +14,8 @@ import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { MartialStanceResponse } from '../../shared/models/martial-stance-api.model';
 import { TransformationCardResponse } from '../../shared/models/transformation-card-api.model';
 import { TransformationCardService } from '../../shared/services/transformation-card.service';
+import { CompanionService } from '../../shared/services/companion.service';
+import { CompanionApiResponse } from '../../shared/models/companion-api.model';
 import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
 
 const mockResponse: CharacterSheetResponse = {
@@ -45,6 +47,12 @@ const mockResponse: CharacterSheetResponse = {
   hopeMarked: 0,
   gold: 50,
   ownerId: 1,
+  /** Present (even as `''`) means "the backend authorized this viewer to see notes" -- the
+   * default fixture represents an authorized owner with nothing written yet. Tests that need an
+   * unauthorized viewer must explicitly omit this field rather than set it to `undefined`, so
+   * the fixture matches what the backend actually sends (a field that's absent from the JSON,
+   * not present-with-value-undefined). */
+  notes: '',
   proficiency: 1,
   transformationEnabled: true,
   equippedDomainCardIds: [],
@@ -61,26 +69,53 @@ const mockResponse: CharacterSheetResponse = {
   lastModifiedAt: '2026-01-01T00:00:00',
 };
 
+/** A sheet response as an unauthorized viewer would receive it: `notes` genuinely absent from
+ * the JSON (not present-with-value-`undefined`), matching what the backend actually sends. */
+function sheetWithoutNotes(): CharacterSheetResponse {
+  const sheet = { ...mockResponse };
+  delete sheet.notes;
+  return sheet;
+}
+
 describe('CharacterSheet', () => {
   let fixture: ComponentFixture<CharacterSheet>;
   let component: CharacterSheet;
-  let mockService: { getCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheet: ReturnType<typeof vi.fn>; updateCharacterSheetNotes: ReturnType<typeof vi.fn> };
-  let mockAuthService: { user: ReturnType<typeof vi.fn> };
+  let mockService: {
+    getCharacterSheet: ReturnType<typeof vi.fn>;
+    updateCharacterSheet: ReturnType<typeof vi.fn>;
+    updateCharacterSheetNotes: ReturnType<typeof vi.fn>;
+    createExperience: ReturnType<typeof vi.fn>;
+  };
+  let mockAuthService: { user: ReturnType<typeof vi.fn>; isAdmin: ReturnType<typeof vi.fn> };
   let diceRollerService: DiceRollerService;
   let diceRollSpy: ReturnType<typeof vi.spyOn>;
   let mockTransformationCardService: { getAllTransformationCards: ReturnType<typeof vi.fn> };
+  let mockCompanionService: {
+    getCompanions: ReturnType<typeof vi.fn>;
+    createCompanion: ReturnType<typeof vi.fn>;
+    updateCompanion: ReturnType<typeof vi.fn>;
+    deleteCompanion: ReturnType<typeof vi.fn>;
+  };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
     mockService = {
       getCharacterSheet: vi.fn().mockReturnValue(serviceResponse),
       updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)),
       updateCharacterSheetNotes: vi.fn().mockReturnValue(of(mockResponse)),
+      createExperience: vi.fn().mockReturnValue(of({ id: 1, description: '', modifier: 0 })),
     };
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
+      isAdmin: vi.fn().mockReturnValue(false),
     };
     mockTransformationCardService = {
       getAllTransformationCards: vi.fn().mockReturnValue(of([])),
+    };
+    mockCompanionService = {
+      getCompanions: vi.fn().mockReturnValue(of([])),
+      createCompanion: vi.fn(),
+      updateCompanion: vi.fn(),
+      deleteCompanion: vi.fn(),
     };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
@@ -91,6 +126,7 @@ describe('CharacterSheet', () => {
         { provide: CharacterSheetService, useValue: mockService },
         { provide: AuthService, useValue: mockAuthService },
         { provide: TransformationCardService, useValue: mockTransformationCardService },
+        { provide: CompanionService, useValue: mockCompanionService },
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => id } } },
@@ -1502,46 +1538,59 @@ describe('CharacterSheet', () => {
 
   describe('notes', () => {
     describe('access gating', () => {
-      it('canAccessNotes() returns true when user is the sheet owner', () => {
-        createComponent('1');
+      // `canAccessNotes()` is driven entirely by whether the backend included `notes` on the
+      // response -- not by role or ownership. The backend now sends `notes` (as `''` when
+      // genuinely empty) only to an authorized viewer and omits the field entirely otherwise, so
+      // presence is authoritative; these tests exercise all three states plus the explicit
+      // "role/ownership doesn't matter" guard against re-introducing the old client-side guess.
+
+      it('canAccessNotes() returns true when the backend sends notes with content', () => {
+        createComponent('1', of({ ...mockResponse, notes: 'Some backstory' }));
         fixture.detectChanges();
 
         expect(component.canAccessNotes()).toBe(true);
       });
 
-      it('canAccessNotes() returns false for a non-owner USER', () => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      it('canAccessNotes() returns true when the backend sends an empty string (authorized, nothing written yet)', () => {
+        createComponent('1', of({ ...mockResponse, notes: '' }));
+        fixture.detectChanges();
+
+        expect(component.canAccessNotes()).toBe(true);
+      });
+
+      it('canAccessNotes() returns false when the backend omits notes entirely', () => {
+        createComponent('1', of(sheetWithoutNotes()));
         fixture.detectChanges();
 
         expect(component.canAccessNotes()).toBe(false);
       });
 
-      it.each([
-        ['MODERATOR'],
-        ['ADMIN'],
-        ['OWNER'],
-      ])('canAccessNotes() returns true for non-owner with role %s', (role) => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role, createdAt: '', lastModifiedAt: '' });
+      it('does not fall back to an owner or role check when notes is omitted', () => {
+        // Guards against re-introducing the removed client-side guess: this user IS the sheet
+        // owner (mockAuthService id 1 === mockResponse ownerId 1) and even a MODERATOR+ role
+        // used to unlock notes under the old rule -- neither matters now. Only presence does.
+        createComponent('1', of(sheetWithoutNotes()));
+        mockAuthService.user.mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'MODERATOR', createdAt: '', lastModifiedAt: '' });
         fixture.detectChanges();
 
-        expect(component.canAccessNotes()).toBe(true);
+        expect(component.canAccessNotes()).toBe(false);
       });
 
-      it('notes-section is absent from DOM when canAccessNotes() is false', () => {
-        createComponent('1');
-        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: 'other@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' });
+      it('notes-section is absent from DOM -- no heading, no placeholder -- when notes is omitted', () => {
+        createComponent('1', of(sheetWithoutNotes()));
         fixture.detectChanges();
 
-        expect(fixture.nativeElement.querySelector('.notes-section')).toBeNull();
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('.notes-section')).toBeNull();
+        expect(compiled.textContent).not.toContain('Notes');
       });
 
-      it('notes-section is present in DOM when canAccessNotes() is true', () => {
-        createComponent('1');
+      it('notes-section is present in DOM, with an empty editor, when the backend sends an empty string', () => {
+        createComponent('1', of({ ...mockResponse, notes: '' }));
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('.notes-section')).not.toBeNull();
+        expect(component.currentNotes()).toBe('');
       });
     });
 
@@ -1653,6 +1702,30 @@ describe('CharacterSheet', () => {
         expect(component.isSavingNotes()).toBe(false);
         expect(component.notesSavedAt()).toBeNull();
         expect(component.currentNotes()).toBe('');
+      });
+
+      // Regression guard: a save failure -- including a 403 if authorization changes mid-session
+      // (e.g. a GM's access is revoked between page load and typing) -- is an expected, silent
+      // outcome, not a failure to surface. This must stay silent on purpose; if someone "fixes"
+      // it into a toast or a console.error later without realizing that was deliberate, this test
+      // should catch it.
+      it('a save failure of any kind -- including a 403 -- never surfaces a console error or an error element', () => {
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        createComponent('1');
+        const forbidden = { status: 403, message: 'Forbidden' };
+        mockService.updateCharacterSheetNotes.mockReturnValue(throwError(() => forbidden));
+        fixture.detectChanges();
+
+        component.onNotesInput({ target: { value: 'attempted text' } } as unknown as Event);
+        vi.advanceTimersByTime(800);
+        fixture.detectChanges();
+
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('[class*="error"]')).toBeNull();
+        expect(compiled.querySelector('[role="alert"]')).toBeNull();
+
+        consoleErrorSpy.mockRestore();
       });
     });
 
@@ -2221,6 +2294,317 @@ describe('CharacterSheet', () => {
         component.onTransformationSelected(5);
 
         expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Companions', () => {
+    function beastboundSubclass(): SubclassCardResponse {
+      return {
+        id: 30,
+        name: 'Beastbound',
+        features: [{ id: 3, name: 'Companion', description: 'An animal companion.', featureType: 'SUBCLASS' }],
+      };
+    }
+
+    function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
+      return {
+        id: 1,
+        characterSheetId: 1,
+        name: 'Forest Wolf',
+        evasion: 10,
+        baseEvasion: 10,
+        attackName: 'Bite',
+        attackRange: 'MELEE',
+        baseAttackRange: 'MELEE',
+        damageDice: 'D6',
+        baseDamageDice: 'D6',
+        attackDiceCount: 1,
+        damageType: 'PHYSICAL',
+        stressMax: 3,
+        baseStressMax: 3,
+        stressMarked: 0,
+        outOfScene: false,
+        origin: 'SUBCLASS_FEATURE',
+        advancesOnLevelUp: true,
+        trainings: [],
+        remainingByOption: {},
+        createdAt: '',
+        lastModifiedAt: '',
+        ...overrides,
+      };
+    }
+
+    describe('panel gating', () => {
+      it('hides the panel without the Companion feature, the flag, or any companion', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [] }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(false);
+      });
+
+      it('shows the panel when the character has the Companion feature', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass()] }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('shows the panel when a GM has enabled companions', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: true }));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('keeps showing the panel for an existing companion after the flag is turned back off', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: false }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        expect(component.showCompanionsSection()).toBe(true);
+      });
+
+      it('only gates creation on the feature or the flag, not existing companion count', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [], companionsEnabled: false }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        expect(component.canAddCompanion()).toBe(false);
+      });
+
+      it('lets an ADMIN manage companions even without owning the sheet', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        mockAuthService.isAdmin.mockReturnValue(true);
+        fixture.detectChanges();
+
+        expect(component.canManageCompanions()).toBe(true);
+      });
+
+      it('does not let a non-owner, non-admin manage companions', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        fixture.detectChanges();
+
+        expect(component.canManageCompanions()).toBe(false);
+      });
+    });
+
+    describe('class feature reminders', () => {
+      it('is empty without the Specialization/Mastery features', () => {
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass()] }));
+        fixture.detectChanges();
+
+        expect(component.companionFeatureReminders()).toEqual([]);
+      });
+
+      it('includes Battle-Bonded once the Specialization feature is present', () => {
+        const specialization: SubclassCardResponse = {
+          id: 31,
+          name: 'Beastbound Specialization',
+          features: [
+            { id: 4, name: 'Expert Training', description: '', featureType: 'SUBCLASS' },
+            { id: 5, name: 'Battle-Bonded', description: '', featureType: 'SUBCLASS' },
+          ],
+        };
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass(), specialization] }));
+        fixture.detectChanges();
+
+        expect(component.companionFeatureReminders().map(r => r.label)).toEqual(['Battle-Bonded']);
+      });
+
+      it('passes classFeatureReminders through to the companion panel', () => {
+        const specialization: SubclassCardResponse = {
+          id: 31,
+          name: 'Beastbound Specialization',
+          features: [{ id: 5, name: 'Battle-Bonded', description: '', featureType: 'SUBCLASS' }],
+        };
+        createComponent('1', of({ ...mockResponse, subclassCards: [beastboundSubclass(), specialization] }));
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion()]));
+        fixture.detectChanges();
+
+        const el: HTMLElement = fixture.nativeElement;
+        // Scoped to app-companion-panel: `.expandable-card__header` is shared by every card type
+        // on the sheet (weapons, armor, items...), so an unscoped query can pick up the wrong one.
+        const header = el.querySelector<HTMLButtonElement>('app-companion-panel .expandable-card__header');
+        expect(header).toBeTruthy();
+        header!.click();
+        fixture.detectChanges();
+
+        expect(el.querySelector('app-companion-panel .companion-reminder')?.textContent).toContain('Battle-Bonded');
+      });
+    });
+
+    describe('Hope slot bonus', () => {
+      it('passes companionGrantedHopeSlots through as the Hope tracker bonusCount', () => {
+        createComponent('1', of({ ...mockResponse, companionGrantedHopeSlots: 1, hopeMax: 3, hopeMarked: 0 }));
+        fixture.detectChanges();
+
+        const el: HTMLElement = fixture.nativeElement;
+        const hopeBoxes = el.querySelectorAll('#hope-1, #hope-2, #hope-3, #hope-4');
+        expect(hopeBoxes.length).toBe(4);
+      });
+
+      it('clamps hopeMarked when the derived total shrinks below the stored value', () => {
+        createComponent('1', of({ ...mockResponse, companionGrantedHopeSlots: 0, hopeMax: 3, hopeMarked: 3 }));
+        fixture.detectChanges();
+
+        expect(component.markedHope()).toBe(3);
+      });
+    });
+
+    describe('create', () => {
+      it('adds the returned companion to the list on success', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(of(buildCompanion({ id: 7, name: 'Wolf' })));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(component.companions().map(c => c.id)).toContain(7);
+      });
+
+      it('creates a companion Experience for each complete row', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(of(buildCompanion({ id: 7 })));
+        mockService.createExperience.mockReturnValue(of({ id: 99, companionId: 7, description: 'Tracker', modifier: 2 }));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [{ name: 'Tracker', modifier: 2 }, { name: '', modifier: null }],
+        });
+
+        expect(mockService.createExperience).toHaveBeenCalledTimes(1);
+        expect(mockService.createExperience).toHaveBeenCalledWith({ companionId: 7, description: 'Tracker', modifier: 2 });
+      });
+
+      it('shows an error and does not add anything on failure', () => {
+        createComponent('1');
+        fixture.detectChanges();
+        mockCompanionService.createCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(component.companions()).toEqual([]);
+        expect(component.companionError()).toBeTruthy();
+      });
+
+      it('does nothing for a non-owner', () => {
+        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
+        fixture.detectChanges();
+
+        component.onCompanionCreated({
+          payload: { characterSheetId: 1, name: 'Wolf', attackName: 'Bite', attackRange: 'MELEE', damageDice: 'D6' },
+          experiences: [],
+        });
+
+        expect(mockCompanionService.createCompanion).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('update', () => {
+      it('replaces the companion in the list on success', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, name: 'Forest Wolf' })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(of(buildCompanion({ id: 1, name: 'Renamed Wolf' })));
+
+        component.onCompanionUpdated({ id: 1, payload: { name: 'Renamed Wolf' } });
+
+        expect(component.companions()[0].name).toBe('Renamed Wolf');
+      });
+
+      it('rolls back to the previous companion on failure', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, name: 'Forest Wolf' })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionUpdated({ id: 1, payload: { name: 'Renamed Wolf' } });
+
+        expect(component.companions()[0].name).toBe('Forest Wolf');
+      });
+    });
+
+    describe('delete', () => {
+      it('optimistically removes the companion', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1 })]));
+        fixture.detectChanges();
+        mockCompanionService.deleteCompanion.mockReturnValue(of(undefined));
+
+        component.onCompanionDeleted(1);
+
+        expect(component.companions()).toEqual([]);
+      });
+
+      it('restores the companion if the delete fails', () => {
+        const companion = buildCompanion({ id: 1 });
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([companion]));
+        fixture.detectChanges();
+        mockCompanionService.deleteCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionDeleted(1);
+
+        expect(component.companions()).toEqual([companion]);
+      });
+    });
+
+    describe('Stress', () => {
+      it('optimistically marks Stress and PUTs the new value', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, stressMarked: 0 })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(of(buildCompanion({ id: 1, stressMarked: 1 })));
+
+        component.onCompanionStressChanged({ companionId: 1, stressMarked: 1 });
+
+        expect(component.companions()[0].stressMarked).toBe(1);
+        expect(mockCompanionService.updateCompanion).toHaveBeenCalledWith(1, { stressMarked: 1 });
+      });
+
+      it('rolls back Stress on failure', () => {
+        createComponent('1');
+        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, stressMarked: 0 })]));
+        fixture.detectChanges();
+        mockCompanionService.updateCompanion.mockReturnValue(throwError(() => new Error('fail')));
+
+        component.onCompanionStressChanged({ companionId: 1, stressMarked: 1 });
+
+        expect(component.companions()[0].stressMarked).toBe(0);
+      });
+
+      it('routes "mark Armor instead" through the existing Armor pipeline, clamped to the Armor score', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          armorMarked: 1,
+          inventoryArmors: [{ id: 200, armorId: 200, equipped: true, armor: { id: 200, name: 'Chainmail', baseScore: 5, features: [] } }],
+        }));
+        fixture.detectChanges();
+
+        component.onCompanionMarkArmorInstead();
+
+        expect(component.markedArmor()).toBe(2);
+      });
+
+      it('clamps "mark Armor instead" at the Armor score even if already full', () => {
+        createComponent('1', of({
+          ...mockResponse,
+          armorMarked: 3,
+          inventoryArmors: [{ id: 200, armorId: 200, equipped: true, armor: { id: 200, name: 'Chainmail', baseScore: 3, features: [] } }],
+        }));
+        fixture.detectChanges();
+
+        component.onCompanionMarkArmorInstead();
+
+        expect(component.markedArmor()).toBe(3);
       });
     });
   });

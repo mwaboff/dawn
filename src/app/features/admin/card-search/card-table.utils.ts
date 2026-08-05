@@ -26,7 +26,6 @@ const SEARCH_TYPE_TO_CATEGORY: Partial<Record<SearchableEntityType, string>> = {
   LOOT: 'loot',
   ADVERSARY: 'adversary',
   ENVIRONMENT: 'environment',
-  COMPANION: 'companion',
   FEATURE: 'feature',
   BEASTFORM: 'beastform',
   TRANSFORMATION_CARD: 'transformationCard',

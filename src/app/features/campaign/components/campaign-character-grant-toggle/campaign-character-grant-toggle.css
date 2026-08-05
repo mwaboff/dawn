@@ -1,0 +1,39 @@
+:host { display: block; }
+
+.grant-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.grant-toggle-btn {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--grant-toggle-accent, var(--color-accent));
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--grant-toggle-accent, var(--color-accent)) 35%, transparent);
+  padding: 0.375rem 0.75rem;
+  border-radius: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.grant-toggle-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--grant-toggle-accent, var(--color-accent)) 12%, transparent);
+}
+
+.grant-toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.grant-toggle-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: rgba(245, 230, 211, 0.65);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grant-toggle-btn { transition: none; }
+}

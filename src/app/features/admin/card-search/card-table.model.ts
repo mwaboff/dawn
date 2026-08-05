@@ -83,7 +83,6 @@ const CATEGORY_DEFS: AdminCategory[] = [
     { key: 'environmentType', label: 'Type', width: '9rem' },
     { key: 'difficulty', label: 'Diff', width: '4.5rem', numeric: true },
   ] },
-  { id: 'companion', label: 'Companions', type: 'COMPANION', columns: [] },
   { id: 'feature', label: 'Features', type: 'FEATURE', columns: [
     { key: 'detail', label: 'Detail', width: '14rem' },
   ] },

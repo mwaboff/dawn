@@ -149,9 +149,6 @@ export const TYPE_FILTERS: Partial<Record<SearchableEntityType, FilterControl[]>
     { kind: 'select', key: 'associatedClassId', label: 'Class', options: [{ value: '', label: 'Any Class' }] },
     { kind: 'checkbox', key: 'isOfficial', label: 'Official content only' },
   ],
-  // Companions are user-owned per-character data (cascaded from CharacterSheet), not
-  // catalogue content -- there is no `isOfficial` field on the entity, so no filters apply.
-  COMPANION: [],
   ENVIRONMENT: [
     { kind: 'select', key: 'tier', label: 'Tier', options: TIER_OPTIONS },
     { kind: 'select', key: 'environmentType', label: 'Environment Type', options: ENVIRONMENT_TYPE_OPTIONS },

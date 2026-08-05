@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 
-import { TierAchievementsStep } from './tier-achievements-step';
+import { CompanionExperienceTarget, TierAchievementsStep } from './tier-achievements-step';
+import { CompanionExperienceGrant } from '../../models/level-up-api.model';
 
 @Component({
   template: `
@@ -10,7 +11,10 @@ import { TierAchievementsStep } from './tier-achievements-step';
       [currentTier]="currentTier()"
       [nextTier]="nextTier()"
       [initialDescription]="initialDescription()"
+      [companionExperienceTargets]="companionExperienceTargets()"
+      [initialCompanionExperiences]="initialCompanionExperiences()"
       (experienceDescriptionChanged)="onDescriptionChanged($event)"
+      (companionExperiencesChanged)="onCompanionExperiencesChanged($event)"
     />
   `,
   imports: [TierAchievementsStep],
@@ -20,10 +24,17 @@ class TestHost {
   currentTier = signal(1);
   nextTier = signal(2);
   initialDescription = signal('');
+  companionExperienceTargets = signal<CompanionExperienceTarget[]>([]);
+  initialCompanionExperiences = signal<CompanionExperienceGrant[]>([]);
   lastEmittedDescription: string | null = null;
+  lastEmittedCompanionExperiences: CompanionExperienceGrant[] | null = null;
 
   onDescriptionChanged(value: string): void {
     this.lastEmittedDescription = value;
+  }
+
+  onCompanionExperiencesChanged(value: CompanionExperienceGrant[]): void {
+    this.lastEmittedCompanionExperiences = value;
   }
 }
 
@@ -134,5 +145,49 @@ describe('TierAchievementsStep', () => {
     expect(label?.textContent).toContain('New Experience Description');
     expect(hint?.textContent).toContain('+2 modifier');
     expect(input).toBeTruthy();
+  });
+
+  describe('companion experience targets', () => {
+    it('renders no companion rows by default', () => {
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelectorAll('.experience-input-group').length).toBe(1);
+    });
+
+    it('renders one input row per companion target, labeled with the companion name', () => {
+      host.companionExperienceTargets.set([{ companionId: 7, name: 'Rufus' }, { companionId: 9, name: 'Whiskers' }]);
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      expect(compiled.querySelectorAll('.experience-input-group').length).toBe(3);
+      expect(compiled.querySelector('#companion-experience-7')).toBeTruthy();
+      expect(compiled.querySelector('#companion-experience-9')).toBeTruthy();
+      expect(compiled.textContent).toContain("Rufus's New Experience");
+    });
+
+    it('emits the full companion experience array on input, keyed by companionId', () => {
+      host.companionExperienceTargets.set([{ companionId: 7, name: 'Rufus' }]);
+      hostFixture.detectChanges();
+
+      const compiled = hostFixture.nativeElement as HTMLElement;
+      const input = compiled.querySelector('#companion-experience-7') as HTMLInputElement;
+      input.value = 'Learned to trust again';
+      input.dispatchEvent(new Event('input'));
+      hostFixture.detectChanges();
+
+      expect(host.lastEmittedCompanionExperiences).toEqual([{ companionId: 7, description: 'Learned to trust again' }]);
+    });
+
+    it('pre-fills companion experience inputs from initialCompanionExperiences', () => {
+      // ngOnInit only seeds once, at construction -- must set inputs on a FRESH fixture before
+      // its first detectChanges(), same as the "pre-fill input with initialDescription" case above.
+      const freshFixture = TestBed.createComponent(TestHost);
+      freshFixture.componentInstance.companionExperienceTargets.set([{ companionId: 7, name: 'Rufus' }]);
+      freshFixture.componentInstance.initialCompanionExperiences.set([{ companionId: 7, description: 'Already typed' }]);
+      freshFixture.detectChanges();
+
+      const compiled = freshFixture.nativeElement as HTMLElement;
+      const input = compiled.querySelector('#companion-experience-7') as HTMLInputElement;
+      expect(input.value).toBe('Already typed');
+    });
   });
 });

@@ -20,19 +20,24 @@ import { DomainService } from '../../shared/services/domain.service';
 import { MartialStanceService } from '../../shared/services/martial-stance.service';
 import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
 import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
+import { hasCompanionFeature } from '../character-sheet/utils/companion-access.utils';
 import { TraitSelector } from './components/trait-selector/trait-selector';
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
-import { ExperienceSelector } from './components/experience-selector/experience-selector';
+import { ExperienceSelector } from '../../shared/components/experience-selector/experience-selector';
 import { ExperienceBonusAllocator } from './components/experience-bonus-allocator/experience-bonus-allocator';
 import { ReviewSection } from './components/review-section/review-section';
+import { CompanionCreator } from './components/companion-creator/companion-creator';
 import { TraitAssignments, TraitKey } from './models/trait.model';
-import { Experience, isExperienceComplete } from './models/experience.model';
+import { Experience, isExperienceComplete } from '../../shared/models/experience.model';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { CompanionService } from '../../shared/services/companion.service';
 import { CharacterSheetResponse, ModifierResponse } from './models/character-sheet-api.model';
 import { CharacterSheetData } from './models/character-sheet.model';
+import { CompanionDraft } from './models/companion-draft.model';
 import { assembleCharacterSheet } from './utils/character-sheet-assembler.utils';
 import { toCreateCharacterSheetRequest } from './utils/character-sheet-submission.utils';
+import { isCompanionDraftReady } from './utils/companion-draft.utils';
 import { SubmitError, parseSubmitError } from './models/submit-error.model';
 import { SubclassFeatureResponse } from '../../shared/models/subclass-api.model';
 import { sumFeatureModifier } from '../../shared/utils/feature-modifier.utils';
@@ -43,7 +48,7 @@ interface FeatureWithModifiers {
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, MartialStanceSelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, MartialStanceSelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection, CompanionCreator],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +61,7 @@ export class CreateCharacter implements OnInit {
   private readonly domainService = inject(DomainService);
   private readonly martialStanceService = inject(MartialStanceService);
   private readonly characterSheetService = inject(CharacterSheetService);
+  private readonly companionService = inject(CompanionService);
   private readonly router = inject(Router);
 
   readonly activeTab = signal<TabId>('class');
@@ -133,6 +139,22 @@ export class CreateCharacter implements OnInit {
     return hasMartialStances([{ features }] as Parameters<typeof hasMartialStances>[0]);
   });
 
+  /**
+   * True when the selected subclass grants the Beastbound Ranger's "Companion" foundation
+   * feature. Reuses `hasCompanionFeature` -- the same predicate the character sheet and level-up
+   * flow use -- via the same "wrap the raw feature array and cast" approach `showMartialStanceStep`
+   * above already uses to bridge `CardData.metadata['features']`'s shape to the utility's expected
+   * subclass-card shape.
+   */
+  readonly showCompanionStep = computed<boolean>(() => {
+    const subclass = this.selectedSubclassCard();
+    if (!subclass) return false;
+    const features = subclass.metadata?.['features'] as SubclassFeatureResponse[] | undefined;
+    return hasCompanionFeature([{ features }] as Parameters<typeof hasCompanionFeature>[0]);
+  });
+
+  readonly companionDraft = signal<CompanionDraft | null>(null);
+
   private static readonly CREATION_BASE_DOMAIN_CARDS = 2;
 
   readonly bonusDomainCardSlots = computed<number>(() => {
@@ -176,8 +198,11 @@ export class CreateCharacter implements OnInit {
   readonly tabs = computed<Tab[]>(() => {
     const showBonuses = this.experienceBonusPoints() > 0;
     const showMartialStances = this.showMartialStanceStep();
+    const showCompanion = this.showCompanionStep();
     return CHARACTER_TABS.filter(t =>
-      (showBonuses || t.id !== 'bonuses') && (showMartialStances || t.id !== 'martial-stances'),
+      (showBonuses || t.id !== 'bonuses') &&
+      (showMartialStances || t.id !== 'martial-stances') &&
+      (showCompanion || t.id !== 'companion'),
     );
   });
 
@@ -187,7 +212,7 @@ export class CreateCharacter implements OnInit {
     return {
       class: cards['class']?.name,
       subclass: cards['subclass']?.name,
-      domains: cards['subclass']?.subtitle,
+      domains: cards['subclass']?.subtitleSecondary,
       ancestry: cards['ancestry']?.name,
       community: cards['community']?.name,
       traits: this.formatTraitSummary(),
@@ -215,6 +240,13 @@ export class CreateCharacter implements OnInit {
       }
       if (tabId === 'community') {
         this.loadCommunityCards();
+      }
+      if (tabId === 'companion') {
+        // The Companion step is always skippable (companions plan §1/§6.5, "at the GM's
+        // discretion") -- mark it complete the moment it's visited, the same way
+        // starting-weapon/starting-armor below are marked complete regardless of whether the
+        // player actually picks anything, rather than gating on `companionDraft` being non-null.
+        this.markStepComplete('companion');
       }
       if (tabId === 'starting-weapon') {
         this.markStepComplete('starting-weapon');
@@ -253,6 +285,7 @@ export class CreateCharacter implements OnInit {
       if (currentTab === 'subclass' && previousCard && previousCard.id !== card.id) {
         this.clearDomainCardSelections();
         this.clearMartialStanceSelections();
+        this.clearCompanionDraft();
       }
     }
   }
@@ -412,6 +445,16 @@ export class CreateCharacter implements OnInit {
     const updated = new Set(this.completedStepsSignal());
     updated.delete('martial-stances');
     this.completedStepsSignal.set(updated);
+  }
+
+  onCompanionDraftChanged(draft: CompanionDraft | null): void {
+    this.companionDraft.set(draft);
+  }
+
+  /** A player who picks Beastbound, drafts a companion, then switches to a different subclass
+   * must not carry a phantom companion into submission -- mirrors `clearMartialStanceSelections`. */
+  private clearCompanionDraft(): void {
+    this.companionDraft.set(null);
   }
 
   onDomainCardsSelected(cards: CardData[]): void {
@@ -602,6 +645,45 @@ export class CreateCharacter implements OnInit {
 
         return forkJoin(experienceRequests).pipe(map(() => sheet));
       }),
+      switchMap(sheet => this.createCompanionFromDraft(sheet)),
+    );
+  }
+
+  /**
+   * Creates the companion drafted in the (skippable) Companion step, plus its starting
+   * Experiences, using the just-created sheet's id. Folded into `submitCharacterSheet` -- not a
+   * separate pipeline stage -- specifically so it is covered by the same `createdSheet`
+   * re-submit guard as sheet/experience creation (see the comment on `alreadyCreated` in
+   * `onSubmitCharacter`): if a *later* step (attaching martial stances) fails and the player
+   * resubmits, `submitCharacterSheet` -- and this method with it -- never runs again, so the
+   * companion is never created twice.
+   */
+  private createCompanionFromDraft(sheet: CharacterSheetResponse): Observable<CharacterSheetResponse> {
+    const draft = this.companionDraft();
+    if (!isCompanionDraftReady(draft)) {
+      return of(sheet);
+    }
+
+    return this.companionService.createCompanion({
+      ...draft.payload,
+      characterSheetId: sheet.id,
+    }).pipe(
+      switchMap(companion => {
+        const completeExperiences = draft.experiences.filter(isExperienceComplete);
+        if (completeExperiences.length === 0) {
+          return of(sheet);
+        }
+
+        const experienceRequests = completeExperiences.map(exp =>
+          this.characterSheetService.createExperience({
+            companionId: companion.id,
+            description: exp.name,
+            modifier: exp.modifier!,
+          }),
+        );
+
+        return forkJoin(experienceRequests).pipe(map(() => sheet));
+      }),
     );
   }
 
@@ -658,6 +740,7 @@ export class CreateCharacter implements OnInit {
     this.selectedCards.set(updatedCards);
     this.experienceBonusAllocations.set([]);
     this.clearMartialStanceSelections();
+    this.clearCompanionDraft();
   }
 
   private isTabReachable(tabId: TabId): boolean {

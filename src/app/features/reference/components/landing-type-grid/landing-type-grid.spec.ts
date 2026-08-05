@@ -30,24 +30,24 @@ describe('LandingTypeGrid', () => {
     expect(fixture.nativeElement.querySelector('app-landing-type-grid')).toBeTruthy();
   });
 
-  it('renders 15 type cards', () => {
+  it('renders 14 type cards', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card');
-    expect(cards.length).toBe(15);
+    expect(cards.length).toBe(14);
   });
 
   it('renders a glyph for each card', () => {
     const glyphs = fixture.nativeElement.querySelectorAll('.type-glyph');
-    expect(glyphs.length).toBe(15);
+    expect(glyphs.length).toBe(14);
   });
 
   it('renders a label for each card', () => {
     const labels = fixture.nativeElement.querySelectorAll('.type-label');
-    expect(labels.length).toBe(15);
+    expect(labels.length).toBe(14);
   });
 
   it('renders a tagline for each card', () => {
     const taglines = fixture.nativeElement.querySelectorAll('.type-tagline');
-    expect(taglines.length).toBe(15);
+    expect(taglines.length).toBe(14);
   });
 
   it('emits WEAPON when Weapons card is clicked', () => {
@@ -132,12 +132,6 @@ describe('LandingTypeGrid', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLElement>;
     const featureCard = Array.from(cards).find(c => c.textContent?.includes('Features'));
     expect(featureCard).toBeUndefined();
-  });
-
-  it('renders a Companions card', () => {
-    const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
-    const companionCard = Array.from(cards).find(c => c.textContent?.includes('Companions'));
-    expect(companionCard).toBeTruthy();
   });
 
   it('renders Domains as the first card', () => {

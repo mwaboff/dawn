@@ -21,9 +21,6 @@ export const CARD_TYPE_OPTIONS = [
   { value: 'weapon', label: 'Weapons' },
   { value: 'armor', label: 'Armor' },
   { value: 'loot', label: 'Loot' },
-  // 'companion' intentionally omitted: Companion has no bulk endpoint (character-owned
-  // content, not catalog content) and by design none is planned. Offering it here would
-  // silently fail on every upload attempt.
   { value: 'subclassPath', label: 'Subclass Paths' },
   { value: 'adversary', label: 'Adversaries' },
   { value: 'feature', label: 'Features' },

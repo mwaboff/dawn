@@ -13,7 +13,6 @@ import { AncestryService } from './ancestry.service';
 import { CommunityService } from './community.service';
 import { DomainService } from './domain.service';
 import { SubclassService } from './subclass.service';
-import { CompanionService } from './companion.service';
 import { FeatureLookupService } from './feature-lookup.service';
 import { BrowseResult } from '../models/search.model';
 import { PaginatedCards } from '../models/api.model';
@@ -50,7 +49,6 @@ describe('CodexBrowseService', () => {
   let communitySpy: { getCommunitiesPaginated: ReturnType<typeof vi.fn> };
   let domainSpy: { getDomainCardsBrowse: ReturnType<typeof vi.fn>; getDomainsPaginated: ReturnType<typeof vi.fn> };
   let subclassSpy: { getSubclassesPaginated: ReturnType<typeof vi.fn> };
-  let companionSpy: { getCompanionsPaginated: ReturnType<typeof vi.fn> };
   let featureSpy: { getFeaturesPaginated: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -68,7 +66,6 @@ describe('CodexBrowseService', () => {
       getDomainsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())),
     };
     subclassSpy = { getSubclassesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
-    companionSpy = { getCompanionsPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
     featureSpy = { getFeaturesPaginated: vi.fn().mockReturnValue(of(buildPaginatedCards())) };
 
     TestBed.configureTestingModule({
@@ -85,7 +82,6 @@ describe('CodexBrowseService', () => {
         { provide: CommunityService, useValue: communitySpy },
         { provide: DomainService, useValue: domainSpy },
         { provide: SubclassService, useValue: subclassSpy },
-        { provide: CompanionService, useValue: companionSpy },
         { provide: FeatureLookupService, useValue: featureSpy },
       ],
     });
@@ -222,12 +218,6 @@ describe('CodexBrowseService', () => {
     expect(subclassSpy.getSubclassesPaginated).toHaveBeenCalledWith(
       expect.objectContaining({ associatedClassId: 5 }),
     );
-  });
-
-  it('should dispatch COMPANION to CompanionService.getCompanionsPaginated', () => {
-    service.browse('COMPANION', {}, 0).subscribe();
-
-    expect(companionSpy.getCompanionsPaginated).toHaveBeenCalled();
   });
 
   it('should dispatch FEATURE to FeatureLookupService.getFeaturesPaginated with correct filters', () => {

@@ -1,0 +1,87 @@
+<div class="expandable-card expandable-card--companion">
+  <span class="sr-only" role="status">{{ outOfSceneAnnouncement() }}</span>
+
+  <button type="button" class="expandable-card__header" (click)="toggleExpanded()"
+          [attr.aria-expanded]="expanded()"
+          [attr.aria-controls]="'companion-body-' + companion().id">
+    <span class="expandable-card__chevron" [class.expandable-card__chevron--open]="expanded()" aria-hidden="true">&#9654;</span>
+    <h4 class="expandable-card__name">{{ companion().name }}</h4>
+    <div class="expandable-card__meta">
+      @if (companion().outOfScene) {
+        <span class="expandable-card__meta-badge expandable-card__meta-badge--depleted">Out of scene</span>
+      }
+      <span class="expandable-card__meta-badge expandable-card__meta-badge--companion">
+        Stress {{ companion().stressMarked }}/{{ companion().stressMax }}
+      </span>
+    </div>
+  </button>
+
+  @if (expanded()) {
+    <div class="expandable-card__body" [id]="'companion-body-' + companion().id">
+      @if (companion().description) {
+        <p class="companion-description" [innerHTML]="companion().description | formatText"></p>
+      }
+
+      <div class="companion-stats">
+        <span class="companion-stat">Evasion {{ companion().evasion }}</span>
+        <span class="companion-stat">{{ attackLine() }}</span>
+      </div>
+
+      <app-resource-tracker
+        [max]="companion().stressMax"
+        [marked]="companion().stressMarked"
+        variant="stress"
+        label="Stress"
+        [idPrefix]="'companion-' + companion().id + '-stress'"
+        [readonly]="!canManage()"
+        (markedChange)="onStressMarkedChange($event)"
+      />
+
+      @if (pendingStressValue() !== null) {
+        <div class="armor-instead-prompt">
+          <span class="armor-instead-prompt__text">Mark {{ companion().name }}'s Stress, or mark an Armor Slot instead?</span>
+          <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkStress()">Mark Stress</button>
+          <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkArmorInstead()">Mark Armor Instead</button>
+          <button type="button" class="armor-instead-prompt__cancel" (click)="cancelPendingStress()">Cancel</button>
+        </div>
+      }
+
+      @if (companion().experiences && companion().experiences!.length > 0) {
+        <div class="companion-experiences">
+          @for (exp of companion().experiences; track exp.id) {
+            <div class="companion-experience-item">
+              <span class="companion-experience-item__modifier">{{ exp.modifier >= 0 ? '+' + exp.modifier : exp.modifier }}</span>
+              <span class="companion-experience-item__description">{{ exp.description }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <app-companion-training-list [trainings]="companion().trainings" />
+
+      @if (reminders().length > 0 || classFeatureReminders().length > 0) {
+        <div class="companion-reminders">
+          @for (reminder of reminders(); track reminder) {
+            <p class="companion-reminder">{{ reminder }}</p>
+          }
+          @for (feature of classFeatureReminders(); track feature.label) {
+            <p class="companion-reminder"><strong>{{ feature.label }}:</strong> {{ feature.text }}</p>
+          }
+        </div>
+      }
+
+      @if (canManage()) {
+        <div class="companion-actions">
+          <button type="button" class="companion-action-btn" [disabled]="processing()" (click)="onEditClicked()">Edit</button>
+          <app-inline-delete-confirm
+            [itemLabel]="companion().name"
+            [active]="deleteConfirmActive()"
+            (requested)="onDeleteRequested()"
+            (confirmed)="onDeleteConfirmed()"
+            (cancelled)="onDeleteCancelled()"
+          />
+        </div>
+      }
+    </div>
+  }
+</div>

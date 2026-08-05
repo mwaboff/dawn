@@ -1,0 +1,48 @@
+/* Layout delta only -- the checkbox layout needs `display:flex` on the label, which
+   `.form-label` (inline by default) can't give it, but the text styling is identical to
+   the global class. Applied together with `.form-label` in the template. */
+.form-label--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
+.form-help {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-parchment);
+  opacity: 0.6;
+  margin-top: -0.25rem;
+}
+
+/* `.form-textarea` has no global counterpart, so its chrome lives here in full. */
+.form-textarea {
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: rgba(26, 20, 18, 0.8);
+  border: 1px solid rgba(212, 160, 86, 0.3);
+  border-radius: 4px;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  transition: border-color 0.2s ease;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(212, 160, 86, 0.2);
+}
+
+/* Size delta only -- `.form-select`'s chrome is forms.css's, and must stay that way. This file is
+   component-scoped, so Angular's emulated encapsulation raises every selector here above the
+   global one: a `background` *shorthand* would reset `background-image` and erase the two-gradient
+   chevron forms.css draws, leaving an `appearance: none` select with no dropdown affordance at
+   all; a `:focus { outline: none }` would likewise outrank forms.css's `:focus-visible` outline
+   and leave only a 1.4:1 box-shadow as the keyboard-focus cue. Both were happening here. */
+.form-select {
+  width: 100%;
+  font-size: var(--text-base);
+}

@@ -1,0 +1,41 @@
+<app-modal-shell [title]="title()" [processing]="processing()" surface="sheet" (dismissed)="onDismiss()">
+  <form modal-body id="companion-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    @for (section of schema.sections; track section.title) {
+      <div class="form-section">
+        <h3 class="form-section__title">{{ section.title }}</h3>
+        <div class="form-grid">
+          @for (field of section.fields; track field.name) {
+            <app-entity-form-field [field]="field" [control]="getControl(field.name)" [submitted]="submitted()" />
+          }
+        </div>
+      </div>
+    }
+
+    @if (mode() === 'create') {
+      <div class="form-section">
+        <h3 class="form-section__title">Experiences</h3>
+        <p class="form-section__hint">Your companion starts with two Experiences, both at +2.</p>
+        <app-companion-experience-rows
+          [names]="experienceNames()"
+          (namesChanged)="onExperienceNamesChanged($event)"
+        />
+      </div>
+    }
+
+  </form>
+
+  <ng-container modal-actions>
+    <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="processing()" (click)="onDismiss()">
+      Cancel
+    </button>
+    <button type="submit" form="companion-form" class="dialog-btn dialog-btn--submit" [disabled]="processing()">
+      @if (processing()) {
+        Saving...
+      } @else if (mode() === 'create') {
+        Add Companion
+      } @else {
+        Save Changes
+      }
+    </button>
+  </ng-container>
+</app-modal-shell>

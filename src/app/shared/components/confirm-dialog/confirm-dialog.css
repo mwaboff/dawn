@@ -1,31 +1,11 @@
-.dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 8, 6, .7);
-  backdrop-filter: blur(2px);
-}
-
-.dialog-panel {
-  background: linear-gradient(170deg, #faf7f2, #f5ede0);
-  border: 1px solid #c9a87c;
-  border-top: 3px solid #b33;
-  border-radius: 6px;
-  padding: var(--space-11);
-  max-width: 420px;
-  width: 90%;
-  box-shadow: 0 12px 40px rgba(0,0,0,.3);
-}
-
-.dialog-title {
-  font-family: 'Cinzel', serif;
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: #3e2723;
-  margin: 0 0 var(--space-5);
+/* No --color-danger/red token exists in src/styles.css (confirmed against the full palette) --
+   this exact #b33/#922/#a22 red is already the undocumented de-facto "danger" color used verbatim
+   below in .dialog-btn--confirm and elsewhere in the app (e.g. field-error/backend-error text).
+   The nearest tokens, --color-card-weapon (#d17070) and --color-card-martialStance (#d4566e), are
+   both visibly lighter/pinker (same conclusion reached and documented in adversary-card.css for
+   the same red). Kept as a component-local literal rather than inventing a new token. */
+:host {
+  --dialog-accent: #b33;
 }
 
 .dialog-message {
@@ -36,34 +16,8 @@
   margin: 0 0 var(--space-10);
 }
 
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-5);
-}
-
-.dialog-btn {
-  padding: var(--space-3) var(--space-9);
-  border-radius: 4px;
-  font-family: 'Cinzel', serif;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-
-.dialog-btn:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.dialog-btn--cancel {
-  background: transparent;
-  border: 1px solid #c9a87c;
-  color: #5a4230;
-}
-.dialog-btn--cancel:hover:not(:disabled) { background: rgba(139,94,52,.08); }
-
+/* Destructive action. Not .dialog-btn--submit: it darkens on hover with a distinct shade rather
+   than a brightness filter, so it is a genuinely different treatment, not a recolour. */
 .dialog-btn--confirm {
   background: #b33;
   border: 1px solid #922;

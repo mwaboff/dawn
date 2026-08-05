@@ -1,5 +1,45 @@
 /* Shared form control modifiers and density variants. Populated by Slice 4. */
 
+/* Titled group of fields laid out two-up, the shape every schema-driven form here uses. Lived
+   verbatim in both companion-creator.css and companion-form-modal.css before -- the same form
+   rendered in two places, which had to change in lockstep. */
+.form-section {
+  margin-bottom: var(--space-7);
+}
+
+.form-section:last-child {
+  margin-bottom: 0;
+}
+
+.form-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-accent-a75);
+  margin: 0 0 var(--space-5);
+}
+
+.form-section__hint {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-parchment);
+  opacity: 0.7;
+  margin: -0.25rem 0 var(--space-5);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-7) var(--space-10);
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Themed native text/input/textarea -- same dark-parchment chrome as .form-select below. Feature
    stylesheets that hand-roll this same look (background/border/color/padding) should migrate onto
    this and keep only their own size/typography deltas as local overrides, per the "never redeclare

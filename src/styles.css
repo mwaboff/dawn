@@ -13,6 +13,7 @@
 @import "./app/shared/styles/expandable-card.css";
 @import "./app/shared/styles/density.css";
 @import "./app/shared/styles/stat-row.css";
+@import "./app/shared/styles/dialog.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -29,7 +30,9 @@
 
   /* Card type accents. Single source of truth: the wide cards on the codex and the grouped
      sections on the character sheet both read these, so a type looks the same wherever it appears.
-     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). */
+     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). Before
+     adding or changing one, check it against every other token perceptually, not by hue alone: two
+     accents can sit 10+ degrees apart and still be indistinguishable if lightness and chroma match. */
   --color-card-class: #d4a056;
   --color-card-subclass: #b87fd4;
   --color-card-subclassPath: #56b4c7;
@@ -41,7 +44,10 @@
   --color-card-weapon: #d17070;
   --color-card-armor: #5080c7;
   --color-card-loot: #c7a850;
-  --color-card-companion: #6bad56;
+  /* Rose-pink, not the green it used to be. A companion renders directly under the transformation
+     and beastform panels, and the old #6bad56 was the closest pair in this whole palette -- a hair
+     from beastform teal and from community green. Pink is the furthest open slot from all three. */
+  --color-card-companion: #fe8fb9;
   --color-card-beastform: #3fae8f;
   --color-card-environment: #8b82da;
   /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
@@ -171,6 +177,15 @@ h1, h2, h3, h4, h5, h6 {
 .resource-box--stress:hover { border-color: rgba(160,50,50,.6); background: rgba(160,50,50,.1); }
 .resource-box--stress.resource-box--marked { background: rgba(160,50,50,.7); border-color: rgba(160,50,50,.8); }
 .resource-box--stress.resource-box--marked:hover { background: rgba(160,50,50,.55); }
+
+/* Bonus boxes appended past a tracker's own max (e.g. companion-granted Hope slots), layered on
+   top of the hope/stress/default shape rather than replacing it. */
+.resource-box--companion:not(.resource-box--hope) { border-color: color-mix(in srgb, var(--color-card-companion) 45%, transparent); }
+.resource-box--companion:not(.resource-box--hope):hover { border-color: color-mix(in srgb, var(--color-card-companion) 70%, transparent); background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); }
+.resource-box--companion.resource-box--marked:not(.resource-box--hope) { background: var(--color-card-companion); border-color: var(--color-card-companion); }
+.resource-box--companion.resource-box--hope::before { border-color: color-mix(in srgb, var(--color-card-companion) 45%, transparent); }
+.resource-box--companion.resource-box--hope:hover::before { border-color: color-mix(in srgb, var(--color-card-companion) 70%, transparent); background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); }
+.resource-box--companion.resource-box--hope.resource-box--marked::before { background: var(--color-card-companion); border-color: var(--color-card-companion); }
 
 .empty-state { font-family: var(--font-body); color: rgba(245,230,211,.65); font-style: italic; font-size: var(--text-sm); margin: 0; }
 

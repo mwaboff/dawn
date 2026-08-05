@@ -6,6 +6,7 @@ export interface Tab {
 export type TabId =
   | 'class'
   | 'subclass'
+  | 'companion'
   | 'martial-stances'
   | 'ancestry'
   | 'community'
@@ -34,6 +35,7 @@ export interface CharacterSelections {
 export const CHARACTER_TABS: Tab[] = [
   { id: 'class', label: 'Class' },
   { id: 'subclass', label: 'Subclass' },
+  { id: 'companion', label: 'Companion' },
   { id: 'martial-stances', label: 'Martial Stances' },
   { id: 'ancestry', label: 'Ancestry' },
   { id: 'community', label: 'Community' },

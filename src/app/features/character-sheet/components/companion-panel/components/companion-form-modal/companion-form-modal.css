@@ -1,0 +1,7 @@
+/* Structure (`.form-section`, `.form-grid`) is global (shared/styles/forms.css); the panel chrome
+   is `.dialog-panel--sheet` (shared/styles/dialog.css). Only this dialog's own accent and width
+   live here, both as custom properties so they cross into ModalShell's encapsulated template. */
+:host {
+  --dialog-accent: var(--color-card-companion);
+  --dialog-max-w: 44rem;
+}

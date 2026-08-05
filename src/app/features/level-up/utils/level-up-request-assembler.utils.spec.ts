@@ -8,6 +8,8 @@ function makeState(overrides: Partial<LevelUpWizardState> = {}): LevelUpWizardSt
     equipNewDomainCard: false,
     trades: [],
     bonusDomainCardIds: [],
+    companionTrainings: [],
+    companionExperiences: [],
     ...overrides,
   };
 }
@@ -139,6 +141,37 @@ describe('assembleLevelUpRequest', () => {
       expect(result.advancements).toHaveLength(3);
       expect(result.advancements[0]).toEqual({ type: 'GAIN_DOMAIN_CARD', domainCardId: 50, equipDomainCard: true });
       expect(result.advancements[2]).toEqual({ type: 'FEATURE_DOMAIN_CARD', domainCardId: 60 });
+    });
+  });
+
+  describe('companion fields', () => {
+    it('omits companionTrainings, companionExperiences, and newCompanionId by default', () => {
+      const result = assembleLevelUpRequest(makeState());
+      expect(result.companionTrainings).toBeUndefined();
+      expect(result.companionExperiences).toBeUndefined();
+      expect(result.newCompanionId).toBeUndefined();
+    });
+
+    it('includes companionTrainings when non-empty', () => {
+      const companionTrainings = [{ companionId: 7, option: 'AWARE' as const }];
+      const result = assembleLevelUpRequest(makeState({ companionTrainings }));
+      expect(result.companionTrainings).toEqual(companionTrainings);
+    });
+
+    it('includes companionExperiences when non-empty', () => {
+      const companionExperiences = [{ companionId: 7, description: 'Learned to hunt' }];
+      const result = assembleLevelUpRequest(makeState({ companionExperiences }));
+      expect(result.companionExperiences).toEqual(companionExperiences);
+    });
+
+    it('includes newCompanionId when set, even to a falsy-looking but valid id', () => {
+      const result = assembleLevelUpRequest(makeState({ newCompanionId: 0 }));
+      expect(result.newCompanionId).toBe(0);
+    });
+
+    it('omits newCompanionId when undefined', () => {
+      const result = assembleLevelUpRequest(makeState());
+      expect(result.newCompanionId).toBeUndefined();
     });
   });
 });

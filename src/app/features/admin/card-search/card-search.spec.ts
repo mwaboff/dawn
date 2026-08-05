@@ -402,12 +402,11 @@ describe('CardSearch', () => {
         .toContain('at least 3 characters');
     });
 
-    it('searches every searchable type, excluding the unindexed COMPANION', () => {
+    it('searches every searchable type', () => {
       setParams({ type: 'all', q: 'blade' });
       const call = (searchService.search as ReturnType<typeof vi.fn>).mock.calls[0][0];
       expect(call.types).toContain('WEAPON');
       expect(call.types).toContain('ADVERSARY');
-      expect(call.types).not.toContain('COMPANION');
     });
 
     it('renders a Type column with per-result routes', () => {

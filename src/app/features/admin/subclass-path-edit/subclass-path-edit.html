@@ -130,7 +130,7 @@
                   <h4 class="panel__title">{{ section.title }}</h4>
                   <div class="panel__grid">
                     @for (field of section.fields; track field.name) {
-                      <app-card-edit-field
+                      <app-entity-form-field
                         [field]="field"
                         [control]="getControl(entry, field.name)"
                         [submitted]="false"

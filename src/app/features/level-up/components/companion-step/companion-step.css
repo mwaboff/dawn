@@ -1,0 +1,8 @@
+.companion-step { display: flex; flex-direction: column; gap: 1.25rem; }
+
+.companion-step__intro { font-family: 'Lora', serif; font-size: var(--text-base, 1rem); color: #5a4230; margin: 0; }
+
+.companion-step__options { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+.companion-choice { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; background: rgba(212, 160, 86, .08); border: 1px solid rgba(212, 160, 86, .3); border-radius: 6px; }
+.companion-choice__text { font-family: 'Lora', serif; font-size: var(--text-base, 1rem); color: #3e2723; margin: 0; }
