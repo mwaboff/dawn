@@ -115,11 +115,3 @@ export interface UpdateCompanionRequest {
   stressMax?: number;
   stressMarked?: number;
 }
-
-export interface CreateCompanionTrainingRequest {
-  option: CompanionTrainingOption;
-  /** Required iff `option === 'VICIOUS'`. */
-  viciousAxis?: ViciousAxis;
-  /** Required iff `option === 'INTELLIGENT'`; must belong to this companion. */
-  targetExperienceId?: number;
-}

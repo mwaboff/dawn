@@ -18,7 +18,7 @@ import { hasCompanionFeature, showCompanionPanel, canCreateCompanion, companionC
 import { BeastformSection } from './components/beastform-section/beastform-section';
 import { MartialStancePanel } from './components/martial-stance-panel/martial-stance-panel';
 import { TransformationPanel } from './components/transformation-panel/transformation-panel';
-import { CompanionPanel, CompanionStressChangedEvent, CompanionTrainingAddedEvent, CompanionTrainingRemovedEvent } from './components/companion-panel/companion-panel';
+import { CompanionPanel, CompanionStressChangedEvent } from './components/companion-panel/companion-panel';
 import { CompanionCreateSubmission, CompanionUpdateSubmission } from './components/companion-panel/components/companion-form-modal/companion-form-modal';
 import { CompanionService } from '../../shared/services/companion.service';
 import { CompanionApiResponse } from '../../shared/models/companion-api.model';
@@ -990,38 +990,6 @@ export class CharacterSheet implements OnInit {
   onCompanionMarkArmorInstead(): void {
     const max = this.characterSheet()?.armorScore.modified ?? 0;
     this.setResourceMarked('armor', Math.min(this.markedArmor() + 1, max));
-  }
-
-  onCompanionTrainingAdded(event: CompanionTrainingAddedEvent): void {
-    if (!this.canManageCompanions()) return;
-    this.companionActionInFlight.set(true);
-    this.companionError.set(null);
-    this.companionService.addTraining(event.companionId, event.request).subscribe({
-      next: updated => {
-        this.companions.update(list => list.map(c => c.id === updated.id ? updated : c));
-        this.companionActionInFlight.set(false);
-      },
-      error: () => {
-        this.companionActionInFlight.set(false);
-        this.companionError.set('Failed to add training.');
-      },
-    });
-  }
-
-  onCompanionTrainingRemoved(event: CompanionTrainingRemovedEvent): void {
-    if (!this.canManageCompanions()) return;
-    this.companionActionInFlight.set(true);
-    this.companionError.set(null);
-    this.companionService.removeTraining(event.companionId, event.trainingId).subscribe({
-      next: updated => {
-        this.companions.update(list => list.map(c => c.id === updated.id ? updated : c));
-        this.companionActionInFlight.set(false);
-      },
-      error: () => {
-        this.companionActionInFlight.set(false);
-        this.companionError.set('Failed to remove training.');
-      },
-    });
   }
 
   onDismissCompanionError(): void {

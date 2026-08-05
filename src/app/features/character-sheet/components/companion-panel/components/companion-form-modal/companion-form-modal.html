@@ -1,4 +1,4 @@
-<app-modal-shell [title]="title()" [processing]="processing()" (dismissed)="onDismiss()">
+<app-modal-shell [title]="title()" [processing]="processing()" surface="sheet" (dismissed)="onDismiss()">
   <form modal-body id="companion-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
     @for (section of schema.sections; track section.title) {
       <div class="form-section">
@@ -14,7 +14,11 @@
     @if (mode() === 'create') {
       <div class="form-section">
         <h3 class="form-section__title">Experiences</h3>
-        <app-experience-selector (experiencesChanged)="onExperiencesChanged($event)" />
+        <p class="form-section__hint">Your companion starts with two Experiences, both at +2.</p>
+        <app-companion-experience-rows
+          [names]="experienceNames()"
+          (namesChanged)="onExperienceNamesChanged($event)"
+        />
       </div>
     }
 

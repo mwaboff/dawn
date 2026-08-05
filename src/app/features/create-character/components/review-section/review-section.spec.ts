@@ -61,7 +61,12 @@ function makeTraits(overrides: Partial<TraitAssignments> = {}): TraitAssignments
 })
 class TestHost {
   classCard = makeClassCard();
-  subclassCard = makeCard({ cardType: 'subclass', name: 'Shadow', subtitle: 'Midnight / Bone' });
+  subclassCard = makeCard({
+    cardType: 'subclass',
+    name: 'Shadow',
+    subtitle: 'Ranger',
+    subtitleSecondary: 'Midnight · Bone',
+  });
   ancestryCard = makeCard({ cardType: 'ancestry', name: 'Elf' });
   communityCard = makeCard({ cardType: 'community', name: 'Nomadic' });
   traits = makeTraits();
@@ -101,11 +106,22 @@ describe('ReviewSection', () => {
     expect((fixture.nativeElement.textContent as string)).toContain('Warrior');
   });
 
-  it('should display subclass name and domains', () => {
+  it('should display subclass name', () => {
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Shadow');
-    expect(text).toContain('Midnight / Bone');
+  });
+
+  it('should display the subclass domains, not the associated class name', () => {
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Midnight · Bone');
+  });
+
+  it('should not display the associated class name in the domains row', () => {
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).not.toContain('Ranger');
   });
 
   it('should display ancestry and community names', () => {

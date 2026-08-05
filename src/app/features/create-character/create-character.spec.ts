@@ -630,6 +630,27 @@ describe('CreateCharacter', () => {
       expect(compiled.querySelector('app-subclass-path-selector')).toBeTruthy();
     });
 
+    it('should show subclass domains, not the associated class name, in characterSelections', () => {
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards([
+        buildSubclassCardResponse({
+          id: 100,
+          name: 'Troubadour',
+          subclassPathId: 10,
+          level: 'FOUNDATION',
+          associatedClassName: 'Bard',
+          domainNames: ['Grace', 'Codex'],
+        }),
+      ]);
+
+      const foundationCard = component.subclassCards()[0];
+      component.onCardClicked(foundationCard);
+
+      expect(component.characterSelections().domains).toBe('Grace · Codex');
+    });
+
     it('should clear subclass selection when different class selected', () => {
       fixture.detectChanges();
       flushClassCards();

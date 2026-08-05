@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
-import { CompanionPanel, CompanionStressChangedEvent, CompanionTrainingAddedEvent, CompanionTrainingRemovedEvent } from './companion-panel';
+import { CompanionPanel, CompanionStressChangedEvent } from './companion-panel';
 import { CompanionApiResponse } from '../../../../shared/models/companion-api.model';
 import { CompanionCreateSubmission, CompanionUpdateSubmission } from './components/companion-form-modal/companion-form-modal';
 import { CompanionClassFeatureReminder } from '../../utils/companion-access.utils';
@@ -52,8 +52,6 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       (companionDeleted)="onDeleted($event)"
       (companionStressChanged)="onStressChanged($event)"
       (markArmorInstead)="markArmorInsteadCount = markArmorInsteadCount + 1"
-      (companionTrainingAdded)="onTrainingAdded($event)"
-      (companionTrainingRemoved)="onTrainingRemoved($event)"
       (dismissError)="dismissErrorCount = dismissErrorCount + 1"
     />
   `,
@@ -74,16 +72,12 @@ class TestHost {
   lastDeleted: number | undefined;
   lastStressChanged: CompanionStressChangedEvent | undefined;
   markArmorInsteadCount = 0;
-  lastTrainingAdded: CompanionTrainingAddedEvent | undefined;
-  lastTrainingRemoved: CompanionTrainingRemovedEvent | undefined;
   dismissErrorCount = 0;
 
   onCreated(e: CompanionCreateSubmission): void { this.lastCreated = e; }
   onUpdated(e: CompanionUpdateSubmission): void { this.lastUpdated = e; }
   onDeleted(id: number): void { this.lastDeleted = id; }
   onStressChanged(e: CompanionStressChangedEvent): void { this.lastStressChanged = e; }
-  onTrainingAdded(e: CompanionTrainingAddedEvent): void { this.lastTrainingAdded = e; }
-  onTrainingRemoved(e: CompanionTrainingRemovedEvent): void { this.lastTrainingRemoved = e; }
 }
 
 describe('CompanionPanel', () => {
@@ -174,19 +168,6 @@ describe('CompanionPanel', () => {
     el.querySelector<HTMLButtonElement>('.resource-box')!.click();
 
     expect(host.lastStressChanged).toEqual({ companionId: 42, stressMarked: 1 });
-  });
-
-  it('forwards companionTrainingAdded with the companion id attached', () => {
-    host.companions.set([buildCompanion({ id: 42, remainingByOption: { AWARE: 1 } })]);
-    fixture.detectChanges();
-    el.querySelector<HTMLButtonElement>('.expandable-card__header')!.click();
-    fixture.detectChanges();
-
-    const rows = Array.from(el.querySelectorAll('.training-option'));
-    const awareRow = rows.find(r => r.querySelector('.training-option__label')?.textContent === 'Aware')!;
-    awareRow.querySelector<HTMLButtonElement>('.training-option__take')!.click();
-
-    expect(host.lastTrainingAdded).toEqual({ companionId: 42, request: { option: 'AWARE' } });
   });
 
   it('forwards classFeatureReminders to every companion card', () => {

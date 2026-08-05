@@ -22,9 +22,74 @@
   border-top: 3px solid var(--dialog-accent, var(--color-accent));
   border-radius: 6px;
   padding: var(--space-11);
-  max-width: 420px;
+  /* Consumers set --dialog-max-w when their body is wider than a confirmation prompt (e.g. a
+     two-column form); the 420px default is the confirm-dialog width every consumer had before. */
+  max-width: var(--dialog-max-w, 420px);
   width: 90%;
   box-shadow: 0 12px 40px rgba(0,0,0,.3);
+}
+
+/* Only ModalShell wraps its projected body in `.dialog-body`, so only it can cap the panel height
+   and scroll the body alone, keeping the title and actions pinned. The two dialogs that use
+   `.dialog-panel` directly (ConfirmDialog, AddExpansionDialog) are a sentence tall by construction
+   and stay plain blocks. */
+.dialog-panel--scrollable {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 56rem);
+}
+
+.dialog-panel--scrollable .dialog-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dialog-panel--scrollable .dialog-actions {
+  flex-shrink: 0;
+  padding-top: var(--space-7);
+}
+
+/* Dark variant, for a dialog opened from a dark surface (the character sheet) rather than from the
+   light parchment of the creation/level-up wizards. The shared form controls (`.form-input`,
+   `.form-select`, `.form-textarea`) are dark-parchment chrome, so this is the surface they were
+   drawn for -- on the light panel they read as unlabelled dark boxes under near-invisible gold
+   labels. Mirrors `companion-creator.css`'s `.companion-sheet`, which already renders this same
+   form dark as an insert inside the light creator page. */
+/* The panel is near-identical in lightness to the scrimmed page behind it (~1.1:1), so unlike the
+   cream panel this variant leans on its edge to separate figure from ground: the border sits at
+   ~3:1 against the backdrop, clearing the WCAG 1.4.11 floor for a non-text boundary. The
+   `border-color` shorthand would otherwise flatten the 3px accent stripe `.dialog-panel` sets on
+   the top edge down to that same dim tint, so it is restated explicitly after it. */
+.dialog-panel--sheet {
+  background: var(--color-bg-dark);
+  border-color: color-mix(in srgb, var(--dialog-accent, var(--color-accent)) 55%, transparent);
+  border-top-color: var(--dialog-accent, var(--color-accent));
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+
+.dialog-panel--sheet .dialog-title {
+  color: var(--color-parchment);
+}
+
+.dialog-panel--sheet .dialog-actions {
+  border-top: 1px solid color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+.dialog-panel--sheet .dialog-btn--cancel {
+  border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: var(--color-parchment);
+}
+.dialog-panel--sheet .dialog-btn--cancel:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: var(--color-accent);
+}
+
+/* Dark ink rather than the light panel's white: white on the companion accent (#fe8fb9) is 2.1:1,
+   short of AA, while near-black on it is ~9.4:1. */
+.dialog-panel--sheet .dialog-btn--submit {
+  color: var(--color-text-darker);
 }
 
 .dialog-title {

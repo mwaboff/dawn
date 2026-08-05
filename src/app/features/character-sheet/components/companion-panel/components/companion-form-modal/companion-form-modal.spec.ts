@@ -140,11 +140,46 @@ describe('CompanionFormModal', () => {
   });
 
   it('shows the Experiences section only in create mode', () => {
-    expect(el.querySelector('app-experience-selector')).toBeTruthy();
+    expect(el.querySelector('app-companion-experience-rows')).toBeTruthy();
 
     create('edit', buildCompanion());
 
-    expect(el.querySelector('app-experience-selector')).toBeFalsy();
+    expect(el.querySelector('app-companion-experience-rows')).toBeFalsy();
+  });
+
+  function typeExperience(index: number, value: string): void {
+    const input = el.querySelectorAll<HTMLInputElement>('.companion-experience-row input')[index];
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  it('submits the named Experiences at the fixed +2 modifier', () => {
+    setInput('name', 'Forest Wolf');
+    setInput('attackName', 'Bite');
+    typeExperience(0, 'Tracker');
+    typeExperience(1, 'Loyal Guardian');
+
+    submit();
+
+    expect(host.lastCreated?.experiences).toEqual([
+      { name: 'Tracker', modifier: 2 },
+      { name: 'Loyal Guardian', modifier: 2 },
+    ]);
+  });
+
+  it('drops an unnamed Experience row rather than posting a blank one', () => {
+    setInput('name', 'Forest Wolf');
+    setInput('attackName', 'Bite');
+    typeExperience(0, 'Tracker');
+
+    submit();
+
+    expect(host.lastCreated?.experiences).toEqual([{ name: 'Tracker', modifier: 2 }]);
+  });
+
+  it('renders on the dark sheet surface, not the wizards\' light parchment panel', () => {
+    expect(el.querySelector('.dialog-panel')?.classList).toContain('dialog-panel--sheet');
   });
 
   it('does not emit created when required fields are blank', () => {

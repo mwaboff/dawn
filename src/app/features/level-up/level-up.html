@@ -35,8 +35,6 @@
           (tabSelected)="onTabSelected($event)"
         />
 
-        <app-also-happening-banner [items]="alsoHappeningItems()" />
-
         <div class="tab-content" role="tabpanel" [id]="'lu-panel-' + activeTab()" [attr.aria-labelledby]="'lu-tab-' + activeTab()">
           @switch (activeTabKind()) {
             @case ('tier-achievements') {

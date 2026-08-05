@@ -33,26 +33,10 @@
         <div class="form-section">
           <h3 class="form-section__title">Experiences</h3>
           <p class="form-section__hint">Your companion starts with two Experiences, both at +2.</p>
-          <div class="companion-experiences">
-            @for (name of experienceNameList(); track $index) {
-              <div class="companion-experience-row">
-                <span class="row-index">{{ $index + 1 }}</span>
-                <input
-                  type="text"
-                  class="form-input"
-                  placeholder="e.g. Tracker, Loyal Guardian..."
-                  [attr.maxlength]="experienceNameMaxLength"
-                  [attr.aria-label]="'Companion experience ' + ($index + 1) + ' name'"
-                  [value]="name"
-                  (input)="onExperienceNameChange($index, $event)"
-                />
-                <span class="companion-experience-modifier" aria-hidden="true">+2</span>
-              </div>
-            }
-          </div>
-          @if (nameError()) {
-            <p class="field-error">{{ nameError() }}</p>
-          }
+          <app-companion-experience-rows
+            [names]="experienceNameList()"
+            (namesChanged)="onExperienceNamesChanged($event)"
+          />
         </div>
       </form>
     </div>

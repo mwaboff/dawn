@@ -95,8 +95,6 @@ describe('CharacterSheet', () => {
     createCompanion: ReturnType<typeof vi.fn>;
     updateCompanion: ReturnType<typeof vi.fn>;
     deleteCompanion: ReturnType<typeof vi.fn>;
-    addTraining: ReturnType<typeof vi.fn>;
-    removeTraining: ReturnType<typeof vi.fn>;
   };
 
   function createComponent(id: string, serviceResponse = of(mockResponse)) {
@@ -118,8 +116,6 @@ describe('CharacterSheet', () => {
       createCompanion: vi.fn(),
       updateCompanion: vi.fn(),
       deleteCompanion: vi.fn(),
-      addTraining: vi.fn(),
-      removeTraining: vi.fn(),
     };
     TestBed.configureTestingModule({
       imports: [CharacterSheet],
@@ -2609,50 +2605,6 @@ describe('CharacterSheet', () => {
         component.onCompanionMarkArmorInstead();
 
         expect(component.markedArmor()).toBe(3);
-      });
-    });
-
-    describe('training', () => {
-      it('adds training and replaces the companion with the derived response', () => {
-        createComponent('1');
-        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1, remainingByOption: { AWARE: 1 } })]));
-        fixture.detectChanges();
-        mockCompanionService.addTraining.mockReturnValue(of(buildCompanion({
-          id: 1,
-          evasion: 12,
-          trainings: [{ id: 1, option: 'AWARE', acquiredAtLevel: 5 }],
-          remainingByOption: { AWARE: 0 },
-        })));
-
-        component.onCompanionTrainingAdded({ companionId: 1, request: { option: 'AWARE' } });
-
-        expect(mockCompanionService.addTraining).toHaveBeenCalledWith(1, { option: 'AWARE' });
-        expect(component.companions()[0].evasion).toBe(12);
-      });
-
-      it('removes training and replaces the companion with the derived response', () => {
-        createComponent('1');
-        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({
-          id: 1,
-          trainings: [{ id: 5, option: 'AWARE', acquiredAtLevel: 5 }],
-        })]));
-        fixture.detectChanges();
-        mockCompanionService.removeTraining.mockReturnValue(of(buildCompanion({ id: 1, trainings: [] })));
-
-        component.onCompanionTrainingRemoved({ companionId: 1, trainingId: 5 });
-
-        expect(mockCompanionService.removeTraining).toHaveBeenCalledWith(1, 5);
-        expect(component.companions()[0].trainings).toEqual([]);
-      });
-
-      it('does nothing for a non-owner', () => {
-        createComponent('1', of({ ...mockResponse, ownerId: 999 }));
-        mockCompanionService.getCompanions.mockReturnValue(of([buildCompanion({ id: 1 })]));
-        fixture.detectChanges();
-
-        component.onCompanionTrainingAdded({ companionId: 1, request: { option: 'AWARE' } });
-
-        expect(mockCompanionService.addTraining).not.toHaveBeenCalled();
       });
     });
   });

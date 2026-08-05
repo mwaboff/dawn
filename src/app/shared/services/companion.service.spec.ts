@@ -146,25 +146,4 @@ describe('CompanionService', () => {
       req.flush(null);
     });
   });
-
-  describe('addTraining', () => {
-    it('POSTs to the trainings endpoint', () => {
-      service.addTraining(1, { option: 'AWARE' }).subscribe();
-
-      const req = httpTesting.expectOne(`${baseUrl}/1/trainings`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ option: 'AWARE' });
-      req.flush(buildCompanionResponse());
-    });
-  });
-
-  describe('removeTraining', () => {
-    it('DELETEs the specific training selection', () => {
-      service.removeTraining(1, 5).subscribe();
-
-      const req = httpTesting.expectOne(`${baseUrl}/1/trainings/5`);
-      expect(req.request.method).toBe('DELETE');
-      req.flush(buildCompanionResponse());
-    });
-  });
 });

@@ -6,7 +6,6 @@ import { PaginatedResponse } from '../models/api.model';
 import {
   CompanionApiResponse,
   CreateCompanionRequest,
-  CreateCompanionTrainingRequest,
   UpdateCompanionRequest,
 } from '../models/companion-api.model';
 
@@ -42,20 +41,5 @@ export class CompanionService {
 
   deleteCompanion(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
-  }
-
-  addTraining(companionId: number, request: CreateCompanionTrainingRequest): Observable<CompanionApiResponse> {
-    return this.http.post<CompanionApiResponse>(
-      `${this.baseUrl}/${companionId}/trainings`,
-      request,
-      { withCredentials: true },
-    );
-  }
-
-  removeTraining(companionId: number, trainingId: number): Observable<CompanionApiResponse> {
-    return this.http.delete<CompanionApiResponse>(
-      `${this.baseUrl}/${companionId}/trainings/${trainingId}`,
-      { withCredentials: true },
-    );
   }
 }

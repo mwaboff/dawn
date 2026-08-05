@@ -5,7 +5,7 @@ import { ModalShell } from './modal-shell';
 
 @Component({
   template: `
-    <app-modal-shell [title]="title()" [processing]="processing()" (dismissed)="onDismissed()">
+    <app-modal-shell [title]="title()" [processing]="processing()" [surface]="surface()" (dismissed)="onDismissed()">
       <p modal-body class="body-content">Body content</p>
       <ng-container modal-actions>
         <button type="button" class="action-btn">Action</button>
@@ -17,6 +17,7 @@ import { ModalShell } from './modal-shell';
 class TestHost {
   readonly title = signal('Test Title');
   readonly processing = signal(false);
+  readonly surface = signal<'parchment' | 'sheet'>('parchment');
   dismissedCount = 0;
 
   onDismissed(): void {
@@ -35,6 +36,21 @@ describe('ModalShell', () => {
     host = fixture.componentInstance;
     el = fixture.nativeElement;
     fixture.detectChanges();
+  });
+
+  it('defaults to the light parchment surface', () => {
+    expect(el.querySelector('.dialog-panel')?.classList).not.toContain('dialog-panel--sheet');
+  });
+
+  it('switches to the dark sheet surface when asked', () => {
+    host.surface.set('sheet');
+    fixture.detectChanges();
+
+    expect(el.querySelector('.dialog-panel')?.classList).toContain('dialog-panel--sheet');
+  });
+
+  it('wraps the projected body so a tall dialog scrolls its body, not the page', () => {
+    expect(el.querySelector('.dialog-body .body-content')).toBeTruthy();
   });
 
   it('renders the title and wires it via aria-labelledby', () => {

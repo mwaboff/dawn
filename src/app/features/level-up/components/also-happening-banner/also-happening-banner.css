@@ -1,6 +1,0 @@
-.also-happening-banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .75rem; padding: .625rem 1rem; margin-bottom: 1rem; background: rgba(212, 160, 86, .06); border: 1px dashed rgba(212, 160, 86, .35); border-radius: 4px; }
-
-.also-happening-banner__label { font-family: 'Cinzel', serif; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #8b5e34; flex-shrink: 0; }
-
-.also-happening-banner__list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #5a4230; }
-.also-happening-banner__list li::before { content: '•'; margin-right: .35rem; color: #d4a056; }

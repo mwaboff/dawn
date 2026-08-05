@@ -4,7 +4,7 @@ import { ResourceTracker } from '../../../../../../shared/components/resource-tr
 import { InlineDeleteConfirm } from '../../../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 import { CompanionTrainingList } from '../companion-training-list/companion-training-list';
 import { titleCase } from '../../../../../../shared/utils/text.utils';
-import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../../../shared/models/companion-api.model';
+import { CompanionApiResponse } from '../../../../../../shared/models/companion-api.model';
 import { CompanionClassFeatureReminder } from '../../../../utils/companion-access.utils';
 
 const DAMAGE_TYPE_CODES: Record<string, string> = { PHYSICAL: 'phy', MAGIC: 'mag' };
@@ -54,8 +54,6 @@ export class CompanionCard {
   readonly deleteConfirmed = output<void>();
   readonly stressChanged = output<number>();
   readonly markArmorInstead = output<void>();
-  readonly trainingAdded = output<CreateCompanionTrainingRequest>();
-  readonly trainingRemoved = output<number>();
 
   readonly expanded = signal(false);
   readonly deleteConfirmActive = signal(false);
@@ -128,13 +126,5 @@ export class CompanionCard {
 
   cancelPendingStress(): void {
     this.pendingStressValue.set(null);
-  }
-
-  onTrainingAdded(request: CreateCompanionTrainingRequest): void {
-    this.trainingAdded.emit(request);
-  }
-
-  onTrainingRemoved(trainingId: number): void {
-    this.trainingRemoved.emit(trainingId);
   }
 }

@@ -3,8 +3,11 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ModalShell } from '../../../../../../shared/components/modal-shell/modal-shell';
 import { EntityFormField } from '../../../../../../shared/components/entity-form/entity-form-field/entity-form-field';
 import { buildFormFromSchema, buildPayloadFromSchema } from '../../../../../../shared/components/entity-form/entity-form.utils';
-import { ExperienceSelector } from '../../../../../../shared/components/experience-selector/experience-selector';
-import { Experience } from '../../../../../../shared/models/experience.model';
+import {
+  CompanionExperienceRows,
+  emptyCompanionExperienceNames,
+} from '../../../../../../shared/components/companion-experience-rows/companion-experience-rows';
+import { DEFAULT_EXPERIENCE_MODIFIER, Experience } from '../../../../../../shared/models/experience.model';
 import {
   CompanionApiResponse,
   CompanionDamageType,
@@ -46,7 +49,7 @@ export interface CompanionUpdateSubmission {
  */
 @Component({
   selector: 'app-companion-form-modal',
-  imports: [ReactiveFormsModule, ModalShell, EntityFormField, ExperienceSelector],
+  imports: [ReactiveFormsModule, ModalShell, EntityFormField, CompanionExperienceRows],
   templateUrl: './companion-form-modal.html',
   styleUrl: './companion-form-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,7 +68,7 @@ export class CompanionFormModal implements OnInit {
 
   readonly schema = COMPANION_FORM_SCHEMA;
   readonly submitted = signal(false);
-  private readonly experiences = signal<Experience[]>([]);
+  readonly experienceNames = signal<string[]>(emptyCompanionExperienceNames());
 
   /** Built in `ngOnInit`, not the constructor: signal inputs bound by the parent (`mode`,
    * `companion`) aren't populated yet when the constructor runs -- only their `input()` default
@@ -83,8 +86,16 @@ export class CompanionFormModal implements OnInit {
     return this.form.get(fieldName)!;
   }
 
-  onExperiencesChanged(list: Experience[]): void {
-    this.experiences.set(list);
+  onExperienceNamesChanged(names: string[]): void {
+    this.experienceNames.set(names);
+  }
+
+  /** Blank rows are dropped rather than posted: a companion created mid-campaign may be given one
+   * Experience or none, and an empty name would only fail server-side validation. */
+  private startingExperiences(): Experience[] {
+    return this.experienceNames()
+      .filter(name => name.trim().length > 0)
+      .map((name): Experience => ({ name, modifier: DEFAULT_EXPERIENCE_MODIFIER }));
   }
 
   onDismiss(): void {
@@ -109,7 +120,7 @@ export class CompanionFormModal implements OnInit {
           damageType: raw['damageType'] as CompanionDamageType,
           stressMax: raw['stressMax'],
         },
-        experiences: this.experiences(),
+        experiences: this.startingExperiences(),
       });
       return;
     }

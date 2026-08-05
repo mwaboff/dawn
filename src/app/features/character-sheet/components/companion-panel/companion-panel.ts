@@ -6,22 +6,12 @@ import {
   CompanionFormModal,
   CompanionUpdateSubmission,
 } from './components/companion-form-modal/companion-form-modal';
-import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../shared/models/companion-api.model';
+import { CompanionApiResponse } from '../../../../shared/models/companion-api.model';
 import { CompanionClassFeatureReminder } from '../../utils/companion-access.utils';
 
 export interface CompanionStressChangedEvent {
   companionId: number;
   stressMarked: number;
-}
-
-export interface CompanionTrainingAddedEvent {
-  companionId: number;
-  request: CreateCompanionTrainingRequest;
-}
-
-export interface CompanionTrainingRemovedEvent {
-  companionId: number;
-  trainingId: number;
 }
 
 /**
@@ -55,8 +45,6 @@ export class CompanionPanel {
   readonly companionDeleted = output<number>();
   readonly companionStressChanged = output<CompanionStressChangedEvent>();
   readonly markArmorInstead = output<void>();
-  readonly companionTrainingAdded = output<CompanionTrainingAddedEvent>();
-  readonly companionTrainingRemoved = output<CompanionTrainingRemovedEvent>();
   readonly dismissError = output<void>();
 
   readonly modalMode = signal<'create' | 'edit' | null>(null);
@@ -105,11 +93,4 @@ export class CompanionPanel {
     this.companionStressChanged.emit({ companionId, stressMarked });
   }
 
-  onTrainingAdded(companionId: number, request: CreateCompanionTrainingRequest): void {
-    this.companionTrainingAdded.emit({ companionId, request });
-  }
-
-  onTrainingRemoved(companionId: number, trainingId: number): void {
-    this.companionTrainingRemoved.emit({ companionId, trainingId });
-  }
 }

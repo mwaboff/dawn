@@ -8,9 +8,11 @@
   appModalFocus
   (escape)="onEscape()"
 >
-  <div class="dialog-panel">
+  <div class="dialog-panel dialog-panel--scrollable" [class.dialog-panel--sheet]="surface() === 'sheet'">
     <h2 class="dialog-title" [id]="titleId">{{ title() }}</h2>
-    <ng-content select="[modal-body]" />
+    <div class="dialog-body">
+      <ng-content select="[modal-body]" />
+    </div>
     <div class="dialog-actions">
       <ng-content select="[modal-actions]" />
     </div>

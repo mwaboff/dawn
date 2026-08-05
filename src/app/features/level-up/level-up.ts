@@ -46,13 +46,12 @@ import { TrainingStep } from './components/training-step/training-step';
 import { DomainCardStep } from './components/domain-card-step/domain-card-step';
 import { DomainTradeStep, TradeRow } from './components/domain-trade-step/domain-trade-step';
 import { LevelUpReview, CompanionReviewEntry } from './components/level-up-review/level-up-review';
-import { AlsoHappeningBanner } from './components/also-happening-banner/also-happening-banner';
 
 @Component({
   selector: 'app-level-up',
   imports: [
     LevelUpTabNav, ConfirmDialog, TierAchievementsStep, AdvancementsStep, CompanionStep, MartialStanceStep,
-    TrainingStep, DomainCardStep, DomainTradeStep, LevelUpReview, AlsoHappeningBanner,
+    TrainingStep, DomainCardStep, DomainTradeStep, LevelUpReview,
   ],
   templateUrl: './level-up.html',
   styleUrl: './level-up.css',
@@ -291,25 +290,6 @@ export class LevelUp implements OnInit {
   readonly companionExperienceTargets = computed<CompanionExperienceTarget[]>(() =>
     this.isTierTransition() ? this.eligibleCompanionTrainings().map(t => ({ companionId: t.companionId, name: t.name })) : []
   );
-
-  readonly alsoHappeningItems = computed<string[]>(() => {
-    const items: string[] = [];
-    if (this.isTierTransition()) {
-      items.push('+1 Proficiency');
-      items.push('+1 Major & Severe damage thresholds');
-    }
-    for (const training of this.eligibleCompanionTrainings()) {
-      const picks = this.picksAvailableFor(training.companionId);
-      items.push(`Companion Training: ${picks} option${picks === 1 ? '' : 's'} for ${training.name}`);
-    }
-    for (const target of this.companionExperienceTargets()) {
-      items.push(`${target.name} gains an Experience (+2)`);
-    }
-    if (this.eligibleCompanionTrainings().length > 0) {
-      items.push('Companion Training does not use either advancement slot.');
-    }
-    return items;
-  });
 
   readonly companionReviewEntries = computed<CompanionReviewEntry[]>(() => {
     const entries: CompanionReviewEntry[] = [];

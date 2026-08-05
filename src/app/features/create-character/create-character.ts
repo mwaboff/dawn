@@ -212,7 +212,7 @@ export class CreateCharacter implements OnInit {
     return {
       class: cards['class']?.name,
       subclass: cards['subclass']?.name,
-      domains: cards['subclass']?.subtitle,
+      domains: cards['subclass']?.subtitleSecondary,
       ancestry: cards['ancestry']?.name,
       community: cards['community']?.name,
       traits: this.formatTraitSummary(),

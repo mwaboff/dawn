@@ -8,6 +8,10 @@ let nextTitleId = 0;
  * backdrop-click/Escape dismissal. Consumers project their body into `[modal-body]` and their
  * action buttons into `[modal-actions]` (see `modal-shell.html`); both are plain attribute
  * selectors, so any top-level projected element/`ng-container` carrying the attribute qualifies.
+ *
+ * `surface` picks which palette the panel is drawn on. `'parchment'` is the light dialog the
+ * creation and level-up wizards sit on; `'sheet'` is the dark one, for a dialog opened from the
+ * character sheet -- the same surface the shared form controls are themed for.
  */
 @Component({
   selector: 'app-modal-shell',
@@ -18,6 +22,7 @@ let nextTitleId = 0;
 export class ModalShell {
   readonly title = input.required<string>();
   readonly processing = input(false);
+  readonly surface = input<'parchment' | 'sheet'>('parchment');
 
   readonly dismissed = output<void>();
 

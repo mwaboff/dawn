@@ -4,12 +4,11 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { EntityFormField } from '../../../../shared/components/entity-form/entity-form-field/entity-form-field';
 import { buildFormFromSchema } from '../../../../shared/components/entity-form/entity-form.utils';
 import {
-  DEFAULT_EXPERIENCE_MODIFIER,
-  Experience,
-  EXPERIENCE_NAME_PATTERN,
-  MAX_EXPERIENCE_NAME_LENGTH,
-  sanitizeExperienceName,
-} from '../../../../shared/models/experience.model';
+  CompanionExperienceRows,
+  emptyCompanionExperienceNames,
+  STARTING_COMPANION_EXPERIENCE_COUNT,
+} from '../../../../shared/components/companion-experience-rows/companion-experience-rows';
+import { DEFAULT_EXPERIENCE_MODIFIER, Experience } from '../../../../shared/models/experience.model';
 import { CompanionDiceType, CompanionRange } from '../../../../shared/models/companion-api.model';
 import {
   COMPANION_FORM_DEFAULTS,
@@ -17,24 +16,15 @@ import {
 } from '../../../character-sheet/components/companion-panel/components/companion-form-modal/companion-form.schema';
 import { CompanionDraft } from '../../models/companion-draft.model';
 
-/** A companion always starts with exactly two Experiences, both fixed at +2 (core-01:1319:
- * "Create two Experiences… Start with +2 in both"). Unlike a character's own Experiences, the
- * player names these but never sets their modifier. */
-const STARTING_EXPERIENCE_COUNT = 2;
-
 /**
  * Character-creation step for the Beastbound Ranger's "Companion" foundation feature. Reuses
  * `COMPANION_FORM_SCHEMA` -- the same schema `CompanionFormModal` uses to edit a companion from
  * the character sheet -- so there is exactly one shape for "the fields that make a companion",
  * not a second copy that could drift from it.
  *
- * Its two starting Experiences are deliberately NOT built with the shared `ExperienceSelector`:
- * that component lets the player add/remove rows (1-5) and freely set each modifier, which is
- * correct for a *character's* Experiences but wrong here -- a companion always gets exactly two,
- * both fixed at +2, never player-chosen (core-01:1319). Rather than bolt a narrow "fixed count,
- * fixed modifier" mode onto a component with four other call sites, this step renders its own pair
- * of name-only inputs and hardcodes the modifier, so `ExperienceSelector`'s behavior for every
- * other consumer is untouched.
+ * Its two starting Experiences use `CompanionExperienceRows` -- shared with `CompanionFormModal`,
+ * and deliberately not the character-facing `ExperienceSelector` (see `CompanionExperienceRows`
+ * for why).
  *
  * Per companions plan §1/§6.5, taking a companion is "at the GM's discretion": this step is
  * always skippable, and a Beastbound player who skips it can still create one later from the
@@ -54,7 +44,7 @@ const STARTING_EXPERIENCE_COUNT = 2;
  */
 @Component({
   selector: 'app-companion-creator',
-  imports: [ReactiveFormsModule, EntityFormField],
+  imports: [ReactiveFormsModule, EntityFormField, CompanionExperienceRows],
   templateUrl: './companion-creator.html',
   styleUrl: './companion-creator.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,11 +57,9 @@ export class CompanionCreator implements OnInit {
 
   readonly schema = COMPANION_FORM_SCHEMA;
   readonly wantsCompanion = signal(false);
-  readonly experienceNameMaxLength = MAX_EXPERIENCE_NAME_LENGTH;
 
-  private readonly experienceNames = signal<string[]>(['', '']);
+  private readonly experienceNames = signal<string[]>(emptyCompanionExperienceNames());
   readonly experienceNameList = this.experienceNames.asReadonly();
-  readonly nameError = signal<string | null>(null);
 
   form!: FormGroup;
 
@@ -96,19 +84,8 @@ export class CompanionCreator implements OnInit {
     this.emitChange();
   }
 
-  onExperienceNameChange(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const sanitized = sanitizeExperienceName(input.value);
-    this.nameError.set(
-      EXPERIENCE_NAME_PATTERN.test(input.value)
-        ? null
-        : 'Only letters, numbers, spaces, hyphens, and apostrophes are allowed',
-    );
-    if (sanitized !== input.value) {
-      input.value = sanitized;
-    }
-    const updated = this.experienceNames().map((name, i) => (i === index ? sanitized : name));
-    this.experienceNames.set(updated);
+  onExperienceNamesChanged(names: string[]): void {
+    this.experienceNames.set(names);
     this.emitChange();
   }
 
@@ -149,6 +126,6 @@ export class CompanionCreator implements OnInit {
 
   private toExperienceNames(experiences: Experience[]): string[] {
     const names = experiences.map(exp => exp.name);
-    return Array.from({ length: STARTING_EXPERIENCE_COUNT }, (_, i) => names[i] ?? '');
+    return Array.from({ length: STARTING_COMPANION_EXPERIENCE_COUNT }, (_, i) => names[i] ?? '');
   }
 }

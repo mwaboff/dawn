@@ -30,7 +30,9 @@
 
   /* Card type accents. Single source of truth: the wide cards on the codex and the grouped
      sections on the character sheet both read these, so a type looks the same wherever it appears.
-     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). */
+     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). Before
+     adding or changing one, check it against every other token perceptually, not by hue alone: two
+     accents can sit 10+ degrees apart and still be indistinguishable if lightness and chroma match. */
   --color-card-class: #d4a056;
   --color-card-subclass: #b87fd4;
   --color-card-subclassPath: #56b4c7;
@@ -42,7 +44,10 @@
   --color-card-weapon: #d17070;
   --color-card-armor: #5080c7;
   --color-card-loot: #c7a850;
-  --color-card-companion: #6bad56;
+  /* Rose-pink, not the green it used to be. A companion renders directly under the transformation
+     and beastform panels, and the old #6bad56 was the closest pair in this whole palette -- a hair
+     from beastform teal and from community green. Pink is the furthest open slot from all three. */
+  --color-card-companion: #fe8fb9;
   --color-card-beastform: #3fae8f;
   --color-card-environment: #8b82da;
   /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group

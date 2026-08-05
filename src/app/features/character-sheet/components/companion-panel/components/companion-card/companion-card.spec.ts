@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { CompanionCard } from './companion-card';
-import { CompanionApiResponse, CreateCompanionTrainingRequest } from '../../../../../../shared/models/companion-api.model';
+import { CompanionApiResponse } from '../../../../../../shared/models/companion-api.model';
 import { CompanionClassFeatureReminder } from '../../../../utils/companion-access.utils';
 
 function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
@@ -48,8 +48,6 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       (deleteConfirmed)="onDeleteConfirmed()"
       (stressChanged)="onStressChanged($event)"
       (markArmorInstead)="onMarkArmorInstead()"
-      (trainingAdded)="onTrainingAdded($event)"
-      (trainingRemoved)="onTrainingRemoved($event)"
     />
   `,
 })
@@ -64,15 +62,11 @@ class TestHost {
   deleteConfirmedCount = 0;
   lastStressChanged: number | undefined;
   markArmorInsteadCount = 0;
-  lastTrainingAdded: CreateCompanionTrainingRequest | undefined;
-  lastTrainingRemoved: number | undefined;
 
   onEditRequested(): void { this.editRequestedCount++; }
   onDeleteConfirmed(): void { this.deleteConfirmedCount++; }
   onStressChanged(v: number): void { this.lastStressChanged = v; }
   onMarkArmorInstead(): void { this.markArmorInsteadCount++; }
-  onTrainingAdded(r: CreateCompanionTrainingRequest): void { this.lastTrainingAdded = r; }
-  onTrainingRemoved(id: number): void { this.lastTrainingRemoved = id; }
 }
 
 describe('CompanionCard', () => {
@@ -261,15 +255,12 @@ describe('CompanionCard', () => {
     expect(host.deleteConfirmedCount).toBe(1);
   });
 
-  it('forwards trainingAdded from the child training list', () => {
-    host.companion.set(buildCompanion({ remainingByOption: { AWARE: 1 } }));
+  it('renders the taken trainings as a read-only list, with no take controls', () => {
+    host.companion.set(buildCompanion({ trainings: [{ id: 1, option: 'AWARE', acquiredAtLevel: 2 }] }));
     fixture.detectChanges();
     expandCard();
 
-    const rows = Array.from(el.querySelectorAll('.training-option'));
-    const awareRow = rows.find(r => r.querySelector('.training-option__label')?.textContent === 'Aware')!;
-    awareRow.querySelector<HTMLButtonElement>('.training-option__take')!.click();
-
-    expect(host.lastTrainingAdded).toEqual({ option: 'AWARE' });
+    expect(el.querySelector('.training-taken__item')?.textContent).toContain('Aware');
+    expect(el.querySelector('.training-option__take')).toBeFalsy();
   });
 });
