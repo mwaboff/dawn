@@ -91,6 +91,15 @@ export class LootService {
   }
 
   /**
+   * Fetches one loot record, expanded far enough for an editor to round-trip it: dropping any of
+   * these relationships would silently blank that part of the record on the next save.
+   */
+  getLootById(id: number): Observable<LootApiResponse> {
+    const params = new HttpParams().set('expand', 'expansion,features,costTags');
+    return this.http.get<LootApiResponse>(`${this.baseUrl}/${id}`, { params, withCredentials: true });
+  }
+
+  /**
    * Creates loot owned by the calling user.
    *
    * Posts to `/custom`, not the bare collection: that endpoint is the admin import path and

@@ -135,6 +135,15 @@ export class WeaponService {
   }
 
   /**
+   * Fetches one weapon, expanded far enough for an editor to round-trip it: dropping any of these
+   * relationships would silently blank that part of the record on the next save.
+   */
+  getWeaponById(id: number): Observable<WeaponResponse> {
+    const params = new HttpParams().set('expand', 'expansion,features,costTags,modifiers');
+    return this.http.get<WeaponResponse>(`${this.baseUrl}/${id}`, { params, withCredentials: true });
+  }
+
+  /**
    * Creates weapon owned by the calling user.
    *
    * Posts to `/custom`, not the bare collection: that endpoint is the admin import path and

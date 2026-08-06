@@ -210,4 +210,27 @@ describe('WeaponService', () => {
     req.flush(buildPaginatedResponse([]));
   });
 
+
+  it('should GET one weapon by id with the relationships an editor needs', () => {
+    // A missing expand here does not fail loudly -- it comes back as an item with no features,
+    // which the next save would then persist as the truth.
+    service.getWeaponById(7).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === `${baseUrl}/7`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.params.get('expand')).toBe('expansion,features,costTags,modifiers');
+    req.flush(buildWeaponResponse({ id: 7 }));
+  });
+
+  it('should surface errors from getWeaponById', () => {
+    let error: HttpErrorResponse | undefined;
+    service.getWeaponById(7).subscribe({ error: e => (error = e) });
+
+    httpTesting
+      .expectOne(r => r.url === `${baseUrl}/7`)
+      .flush('Not found', { status: 404, statusText: 'Not Found' });
+
+    expect(error?.status).toBe(404);
+  });
 });

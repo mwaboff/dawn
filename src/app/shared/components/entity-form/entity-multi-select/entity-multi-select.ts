@@ -2,6 +2,7 @@ import {
   Component,
   ChangeDetectionStrategy,
   signal,
+  computed,
   input,
   inject,
   DestroyRef,
@@ -23,14 +24,24 @@ export class EntityMultiSelect implements OnInit {
   private readonly lookupService = inject(ENTITY_FORM_LOOKUP, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly lookup = input.required<LookupKey>();
+  /** Which catalog to fetch. Omit it when supplying `presetOptions` instead. */
+  readonly lookup = input<LookupKey | undefined>(undefined);
   readonly control = input.required<FormControl<number[]>>();
   readonly label = input<string | undefined>(undefined);
   readonly dependsOnControl = input<FormControl<number | null> | undefined>(undefined);
   readonly params = input<{ classId?: number; expansionId?: number } | undefined>(undefined);
+  /**
+   * Options the caller already holds, which bypass the lookup service entirely. Needed by pickers
+   * whose choices are not an admin catalog at all -- the signed-in user's campaigns, say -- and by
+   * presentational components that must not perform I/O of their own. `null` means "go and fetch".
+   */
+  readonly presetOptions = input<LookupOption[] | null>(null);
 
-  readonly options = signal<LookupOption[]>([]);
-  readonly loading = signal(true);
+  private readonly loadedOptions = signal<LookupOption[]>([]);
+  private readonly fetching = signal(true);
+
+  readonly options = computed(() => this.presetOptions() ?? this.loadedOptions());
+  readonly loading = computed(() => this.presetOptions() === null && this.fetching());
 
   constructor() {
     effect(() => {
@@ -64,20 +75,24 @@ export class EntityMultiSelect implements OnInit {
   }
 
   private loadOptions(): void {
-    if (!this.lookupService) {
+    // Caller-supplied options are authoritative -- never overwrite them with a fetch.
+    if (this.presetOptions() !== null) return;
+
+    const lookup = this.lookup();
+    if (!this.lookupService || !lookup) {
       // No lookup provider (e.g. schemas with no entity/entityMulti fields) -- not an
       // error, just nothing to load.
-      this.loading.set(false);
+      this.fetching.set(false);
       return;
     }
 
-    this.loading.set(true);
+    this.fetching.set(true);
     this.lookupService
-      .list(this.lookup(), this.params())
+      .list(lookup, this.params())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(opts => {
-        this.options.set(opts);
-        this.loading.set(false);
+        this.loadedOptions.set(opts);
+        this.fetching.set(false);
         this.pruneStaleSelections(opts);
       });
   }

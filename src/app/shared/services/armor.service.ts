@@ -107,6 +107,15 @@ export class ArmorService {
   }
 
   /**
+   * Fetches one armor, expanded far enough for an editor to round-trip it: dropping any of these
+   * relationships would silently blank that part of the record on the next save.
+   */
+  getArmorById(id: number): Observable<ArmorResponse> {
+    const params = new HttpParams().set('expand', 'expansion,features,costTags,modifiers');
+    return this.http.get<ArmorResponse>(`${this.baseUrl}/${id}`, { params, withCredentials: true });
+  }
+
+  /**
    * Creates armor owned by the calling user.
    *
    * Posts to `/custom`, not the bare collection: that endpoint is the admin import path and
