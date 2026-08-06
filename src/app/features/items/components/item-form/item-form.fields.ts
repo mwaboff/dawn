@@ -70,15 +70,26 @@ export const thresholdOrderValidator: ValidatorFn = group => {
 };
 
 /**
+ * `Validators.required` counts "   " as present, but the mapper trims on the way to the wire, so a
+ * blank name would be saved as an empty string. Reported as `required` so it reuses that message.
+ */
+export const nonBlankValidator: ValidatorFn = control =>
+  typeof control.value === 'string' && control.value.trim() === '' ? { required: true } : null;
+
+/**
  * Hard validators that only bite while their own kind is selected -- otherwise a half-filled armor
  * threshold would block saving a weapon, with the offending field nowhere on screen.
+ *
+ * `required` is not redundant next to `min`/`positive`: those validators pass a null value, and a
+ * cleared number input writes null, which `Number()` then turns into 0 on the way out. Without it
+ * an emptied Armor Score saved as 0 and an emptied threshold saved as 0/0, under the floors below.
  */
 const KIND_VALIDATORS: Record<ItemKind, Record<string, ValidatorFn[]>> = {
-  weapon: { modifier: [Validators.min(0)] },
+  weapon: { modifier: [Validators.required, Validators.min(0)] },
   armor: {
-    baseScore: [Validators.min(1)],
-    baseMajorThreshold: [positiveValidator],
-    baseSevereThreshold: [positiveValidator],
+    baseScore: [Validators.required, Validators.min(1)],
+    baseMajorThreshold: [Validators.required, positiveValidator],
+    baseSevereThreshold: [Validators.required, positiveValidator],
   },
   loot: {},
 };
@@ -94,7 +105,7 @@ export function buildItemForm(fb: FormBuilder): FormGroup {
   const d = DEFAULT_ITEM_FORM_VALUE;
   const form = fb.group({
     kind: [d.kind],
-    name: ['', [Validators.required, Validators.maxLength(MAX_NAME_LENGTH)]],
+    name: ['', [Validators.required, nonBlankValidator, Validators.maxLength(MAX_NAME_LENGTH)]],
     tier: [String(d.tier), [Validators.required, Validators.min(1), Validators.max(4)]],
     campaignIds: [[] as number[]],
     isPublic: [false],

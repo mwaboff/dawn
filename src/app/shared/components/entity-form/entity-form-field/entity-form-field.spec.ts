@@ -338,4 +338,24 @@ describe('EntityFormField', () => {
       expect(el.querySelector('.form-group--full')).toBeTruthy();
     });
   });
+
+  /**
+   * Blur is the one path `statusChanges` cannot carry: marking a control touched leaves its status
+   * unchanged, so a computed watching only status never re-ran and an already-invalid field the
+   * user tabbed out of showed no error at all. Watching `events` covers touched and dirty too.
+   */
+  it('shows the error when an already-invalid field is blurred without its value changing', async () => {
+    const ctrl = new FormControl('', Validators.required);
+    const { fixture, el } = await setup(
+      { name: 'name', label: 'Name', kind: 'text', required: true },
+      ctrl,
+    );
+    expect(el.querySelector('.field-error')).toBeNull();
+
+    (el.querySelector('input') as HTMLInputElement).dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(ctrl.touched).toBe(true);
+    expect(el.querySelector('.field-error')?.textContent).toContain('Name is required');
+  });
 });

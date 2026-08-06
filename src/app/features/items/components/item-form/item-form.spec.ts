@@ -582,4 +582,127 @@ describe('ItemForm', () => {
       expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
     });
   });
+
+  /**
+   * Regressions found by adversarially attacking the hard-validation rules. Each of these submitted
+   * a saveable item before the fix: `min`/`positive` validators pass a null value, a cleared number
+   * input writes null, and `Number(null)` is 0 -- so an emptied field silently saved as 0, under
+   * the very floor it was meant to enforce. `Validators.required` alongside them is what closes it.
+   */
+  describe('emptied and blank fields cannot be saved', () => {
+    let emitted: ItemFormValue[];
+
+    function setupCapturing(kind: ItemKind): void {
+      setup();
+      emitted = [];
+      component.submitted.subscribe(v => emitted.push(v));
+      selectKind(kind);
+    }
+
+    /** Clears a number input the way the DOM does -- an emptied number field writes null. */
+    function clearNumber(id: string): void {
+      const input: HTMLInputElement = fixture.nativeElement.querySelector(`#${id}`);
+      expect(input?.type).toBe('number');
+      input.value = '';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    function typeText(id: string, value: string): void {
+      const input: HTMLInputElement = fixture.nativeElement.querySelector(`#${id}`);
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    it('blocks an armor score cleared to empty, rather than saving it as 0', () => {
+      setupCapturing('armor');
+      typeText('name', 'Empty Score Plate');
+      clearNumber('baseScore');
+
+      submit();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('blocks a major threshold cleared to empty, rather than saving it as 0', () => {
+      setupCapturing('armor');
+      typeText('name', 'No Major Plate');
+      clearNumber('baseMajorThreshold');
+
+      submit();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('blocks both thresholds cleared, which previously saved as 0/0', () => {
+      setupCapturing('armor');
+      typeText('name', 'No Thresholds');
+      clearNumber('baseMajorThreshold');
+      clearNumber('baseSevereThreshold');
+
+      submit();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('blocks a whitespace-only name, which the mapper would trim to an empty string', () => {
+      setupCapturing('weapon');
+      typeText('name', '   ');
+
+      submit();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('blocks a damage modifier cleared to empty, rather than saving it as 0', () => {
+      setupCapturing('weapon');
+      typeText('name', 'No Modifier Blade');
+      clearNumber('modifier');
+
+      submit();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('still allows a damage modifier of exactly 0, which is a legitimate value', () => {
+      setupCapturing('weapon');
+      typeText('name', 'Zero Modifier Blade');
+      typeText('modifier', '0');
+
+      submit();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].modifier).toBe(0);
+    });
+
+    it('says on screen which field is missing, not just refusing to save', () => {
+      setupCapturing('armor');
+      typeText('name', 'Silent Failure Plate');
+      clearNumber('baseScore');
+
+      submit();
+
+      expect(text()).toContain('required');
+    });
+
+    it('does not let the armor validators block a loot save', () => {
+      setupCapturing('loot');
+      typeText('name', 'Perfectly Good Trinket');
+
+      submit();
+
+      expect(emitted).toHaveLength(1);
+    });
+
+    it('still saves an armor whose numbers are all present, so the guards are not over-broad', () => {
+      setupCapturing('armor');
+      typeText('name', 'Perfectly Good Plate');
+
+      submit();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].name).toBe('Perfectly Good Plate');
+    });
+  });
 });

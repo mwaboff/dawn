@@ -48,25 +48,27 @@ export class EntityFormField {
   });
 
   /**
-   * Validity is not signal-backed, so a `computed` reading only `control()` would cache its first
-   * answer and never notice a field going bad. Tracking `statusChanges` gives the two computeds
-   * below something that actually invalidates them.
+   * Validity, dirtiness and touched-ness are none of them signal-backed, so a `computed` reading
+   * only `control()` would cache its first answer and never notice a field going bad. `events` is
+   * the one stream that covers all three: `statusChanges` alone misses blur, because marking a
+   * control touched does not change its status, so an already-invalid field that the user blurred
+   * showed no error at all.
    */
-  private readonly status = toSignal(
-    toObservable(this.control).pipe(switchMap(ctrl => ctrl.statusChanges.pipe(startWith(ctrl.status)))),
+  private readonly controlEvent = toSignal(
+    toObservable(this.control).pipe(switchMap(ctrl => ctrl.events.pipe(startWith(null)))),
   );
 
   readonly showError = computed(() => {
     // Read every signal dependency up front: `&&` would short-circuit past `submitted()` while a
     // field is still valid, and the computed would then never re-run when it is submitted.
     const submitted = this.submitted();
-    this.status();
+    this.controlEvent();
     const ctrl = this.control();
     return ctrl.invalid && (ctrl.dirty || ctrl.touched || submitted);
   });
 
   readonly errorMessage = computed(() => {
-    this.status();
+    this.controlEvent();
     const ctrl = this.control();
     const errors = ctrl.errors;
     if (!errors) return '';
