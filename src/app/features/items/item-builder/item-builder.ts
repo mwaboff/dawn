@@ -136,12 +136,34 @@ export class ItemBuilder implements OnInit {
       )
       .subscribe(response => {
         if (!response) return;
-        this.campaignOptions.set(response.content.map(c => ({ id: c.id, label: c.name })));
+        this.campaignOptions.set(
+          response.content
+            // Ended campaigns are history; sharing new homebrew into one helps nobody.
+            .filter(campaign => !campaign.isEnded)
+            .map(campaign => ({ id: campaign.id, label: campaign.name })),
+        );
       });
   }
 }
 
+/**
+ * Turns a failed save into something a user can act on.
+ *
+ * `fieldErrors` is checked first and spelled out in full: this backend's `ValidationErrorResponse`
+ * sends per-field messages with no top-level `message` at all, so reading only `message` would
+ * replace "Severe threshold must not be null" with a shrug. Attaching these to the individual
+ * controls would be better still, but that needs a new input on the presentational form -- see the
+ * bd issue.
+ */
 function readErrorMessage(err: unknown): string {
-  const body = (err as { error?: { message?: string } } | null)?.error;
+  const body = (err as { error?: { message?: string; fieldErrors?: Record<string, string> } } | null)?.error;
+
+  const fieldErrors = body?.fieldErrors;
+  if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+    return Object.entries(fieldErrors)
+      .map(([field, message]) => `${field}: ${message}`)
+      .join('; ');
+  }
+
   return body?.message ?? 'Save failed. Please try again.';
 }

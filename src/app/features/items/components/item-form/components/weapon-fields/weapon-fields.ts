@@ -10,7 +10,7 @@ import {
   WEAPON_RANGE_OPTIONS,
   WEAPON_TRAIT_LABELS,
 } from '../../../../models/item-form-value.model';
-import { DICE_COUNT_NOTE } from '../../../../utils/item-balance';
+import { DICE_COUNT_NOTE } from '../../../../utils/item-balance.utils';
 
 function labelOptions(labels: Record<string, string>): { value: string; label: string }[] {
   return Object.entries(labels).map(([value, label]) => ({ value, label }));

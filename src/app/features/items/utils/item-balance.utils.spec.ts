@@ -7,7 +7,7 @@ import {
   damageModifierAdvice,
   expectedDamageModifier,
   itemAdvisories,
-} from './item-balance';
+} from './item-balance.utils';
 
 function value(overrides: Partial<ItemFormValue> = {}): ItemFormValue {
   return { ...DEFAULT_ITEM_FORM_VALUE, ...overrides };

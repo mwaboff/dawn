@@ -21,7 +21,7 @@ import { FeatureEditor } from '../../../../shared/components/feature-editor/feat
 import { FeatureInput } from '../../../../shared/models/feature-api.model';
 import { ItemKind } from '../../item-routes';
 import { ItemFormValue, toEditorFeatures } from '../../models/item-form-value.model';
-import { itemAdvisories } from '../../utils/item-balance';
+import { itemAdvisories } from '../../utils/item-balance.utils';
 import { ArmorFields } from './components/armor-fields/armor-fields';
 import { LootFields } from './components/loot-fields/loot-fields';
 import { WeaponFields } from './components/weapon-fields/weapon-fields';

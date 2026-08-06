@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup } from '@angular/forms';
 
 import { buildItemForm } from '../../item-form.fields';
-import { DICE_COUNT_NOTE } from '../../../../utils/item-balance';
+import { DICE_COUNT_NOTE } from '../../../../utils/item-balance.utils';
 import { WeaponFields } from './weapon-fields';
 
 describe('WeaponFields', () => {

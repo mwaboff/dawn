@@ -35,7 +35,9 @@ function buildWeapon(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
   };
 }
 
-function campaignPage(campaigns: { id: number; name: string }[]): PaginatedResponse<CampaignResponse> {
+function campaignPage(
+  campaigns: { id: number; name: string; isEnded?: boolean }[],
+): PaginatedResponse<CampaignResponse> {
   return {
     content: campaigns as CampaignResponse[],
     currentPage: 0,
@@ -255,6 +257,54 @@ describe('ItemBuilder', () => {
       expect(component.saving()).toBe(false);
     });
 
+    it('spells out per-field validation errors, which arrive with no top-level message', () => {
+      const { fixture, component, itemSubmit } = setup();
+      vi.spyOn(itemSubmit, 'create').mockReturnValue(
+        throwError(() => ({ error: { fieldErrors: { baseSevereThreshold: 'must not be null' } } })),
+      );
+      fixture.detectChanges();
+
+      component.onSubmitted(formValue());
+
+      expect(component.saveError()).toBe('baseSevereThreshold: must not be null');
+    });
+
+    it('joins multiple field errors rather than showing only the first', () => {
+      const { fixture, component, itemSubmit } = setup();
+      vi.spyOn(itemSubmit, 'create').mockReturnValue(
+        throwError(() => ({ error: { fieldErrors: { name: 'must not be blank', tier: 'must be at most 4' } } })),
+      );
+      fixture.detectChanges();
+
+      component.onSubmitted(formValue());
+
+      expect(component.saveError()).toBe('name: must not be blank; tier: must be at most 4');
+    });
+
+    it('prefers field errors over a generic top-level message', () => {
+      const { fixture, component, itemSubmit } = setup();
+      vi.spyOn(itemSubmit, 'create').mockReturnValue(
+        throwError(() => ({ error: { message: 'Validation failed', fieldErrors: { name: 'must not be blank' } } })),
+      );
+      fixture.detectChanges();
+
+      component.onSubmitted(formValue());
+
+      expect(component.saveError()).toBe('name: must not be blank');
+    });
+
+    it('ignores an empty fieldErrors object and uses the message', () => {
+      const { fixture, component, itemSubmit } = setup();
+      vi.spyOn(itemSubmit, 'create').mockReturnValue(
+        throwError(() => ({ error: { message: 'Name already taken.', fieldErrors: {} } })),
+      );
+      fixture.detectChanges();
+
+      component.onSubmitted(formValue());
+
+      expect(component.saveError()).toBe('Name already taken.');
+    });
+
     it('falls back to a generic message when the server sent none', () => {
       const { fixture, component, itemSubmit } = setup();
       vi.spyOn(itemSubmit, 'create').mockReturnValue(throwError(() => new Error('offline')));
@@ -292,6 +342,19 @@ describe('ItemBuilder', () => {
         { id: 1, label: 'Nightfall' },
         { id: 2, label: 'Sundered Coast' },
       ]);
+    });
+
+    it('leaves ended campaigns out of the picker', () => {
+      const { fixture, component } = setup();
+      vi.spyOn(TestBed.inject(CampaignService), 'getMyCampaigns').mockReturnValue(
+        of(campaignPage([
+          { id: 1, name: 'Nightfall' },
+          { id: 2, name: 'Finished Business', isEnded: true },
+        ])),
+      );
+      fixture.detectChanges();
+
+      expect(component.campaignOptions()).toEqual([{ id: 1, label: 'Nightfall' }]);
     });
 
     it('carries on with no campaigns when the fetch fails, since sharing is optional', () => {
