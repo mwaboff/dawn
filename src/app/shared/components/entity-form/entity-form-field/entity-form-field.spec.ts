@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { of } from 'rxjs';
 import { vi, describe, it, expect } from 'vitest';
@@ -13,19 +13,19 @@ function makeLookup(): EntityFormLookup {
 
 @Component({
   template: `<app-entity-form-field
-    [field]="field"
-    [control]="control"
-    [submitted]="submitted"
-    [dependsOnControl]="dependsOnControl"
+    [field]="field()"
+    [control]="control()"
+    [submitted]="submitted()"
+    [dependsOnControl]="dependsOnControl()"
     (createRequested)="onCreateRequested()"
   />`,
   imports: [EntityFormField, ReactiveFormsModule],
 })
 class HostComponent {
-  field!: FieldDef;
-  control!: AbstractControl;
-  submitted = false;
-  dependsOnControl: FormControl<number | null> | undefined = undefined;
+  readonly field = signal<FieldDef>({ name: 'x', label: 'X', kind: 'text' });
+  readonly control = signal<AbstractControl>(new FormControl(''));
+  readonly submitted = signal(false);
+  readonly dependsOnControl = signal<FormControl<number | null> | undefined>(undefined);
   createRequestedCount = 0;
   onCreateRequested(): void {
     this.createRequestedCount++;
@@ -44,9 +44,9 @@ async function setup(
 
   const fixture = TestBed.createComponent(HostComponent);
   const host = fixture.componentInstance;
-  host.field = field;
-  host.control = control;
-  host.submitted = submitted;
+  host.field.set(field);
+  host.control.set(control);
+  host.submitted.set(submitted);
   fixture.detectChanges();
   const el = fixture.nativeElement as HTMLElement;
   return { fixture, host, el };
@@ -195,6 +195,76 @@ describe('EntityFormField', () => {
         true,
       );
       expect(el.querySelector('.field-error')).toBeTruthy();
+    });
+
+    /**
+     * Every other test in this block hands over a control that is *already* invalid, so
+     * `showError` saw `invalid === true` on its first evaluation. That is what hid a real bug: the
+     * computed short-circuited past `submitted()` while a field was still valid, never registered
+     * it as a dependency, and cached `false` forever. A field that starts valid and goes bad --
+     * a damage modifier typed negative, an armor score set to zero -- showed no error at all.
+     */
+    it('shows the error when a field that started valid goes invalid and is submitted', async () => {
+      const ctrl = new FormControl(5, Validators.min(1));
+      const { fixture, host, el } = await setup(
+        { name: 'score', label: 'Score', kind: 'number', min: 1 },
+        ctrl,
+      );
+      expect(el.querySelector('.field-error')).toBeNull();
+
+      ctrl.setValue(0);
+      host.submitted.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.field-error')?.textContent?.trim()).toBe('Score must be at least 1.');
+    });
+
+    it('shows the error when a field goes invalid after being touched', async () => {
+      const ctrl = new FormControl(5, Validators.min(1));
+      const { fixture, el } = await setup(
+        { name: 'score', label: 'Score', kind: 'number', min: 1 },
+        ctrl,
+      );
+
+      ctrl.setValue(0);
+      ctrl.markAsTouched();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.field-error')).toBeTruthy();
+    });
+
+    it('tracks a control swapped in at runtime', async () => {
+      const first = new FormControl(5, Validators.min(1));
+      const { fixture, host, el } = await setup(
+        { name: 'score', label: 'Score', kind: 'number', min: 1 },
+        first,
+        true,
+      );
+      expect(el.querySelector('.field-error')).toBeNull();
+
+      const second = new FormControl(0, Validators.min(1));
+      host.control.set(second);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.field-error')).toBeTruthy();
+    });
+
+    it('stops following the previous control once one is swapped in', async () => {
+      const first = new FormControl(5, Validators.min(1));
+      const { fixture, host, el } = await setup(
+        { name: 'score', label: 'Score', kind: 'number', min: 1 },
+        first,
+        true,
+      );
+
+      const second = new FormControl(9, Validators.min(1));
+      host.control.set(second);
+      fixture.detectChanges();
+      // The abandoned control going bad must not surface an error for the one now bound.
+      first.setValue(0);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.field-error')).toBeNull();
     });
 
     it('shows required error message over maxlength', async () => {
