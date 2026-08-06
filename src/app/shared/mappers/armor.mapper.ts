@@ -1,5 +1,6 @@
 import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { ArmorFeatureResponse, ArmorModifierResponse, ArmorResponse } from '../models/armor-api.model';
+import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
 function mapFeature(feature: ArmorFeatureResponse): CardFeature {
   return {
@@ -29,6 +30,7 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
       `Score: ${response.baseScore}`,
       `Major: ${response.baseMajorThreshold}+`,
       `Severe: ${response.baseSevereThreshold}+`,
+      ...(isCustomContent(response) ? [CUSTOM_CONTENT_TAG] : []),
     ],
     features: features.length > 0 ? features : undefined,
     metadata: {

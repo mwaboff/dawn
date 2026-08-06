@@ -1,5 +1,6 @@
 import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { DamageType, WeaponFeatureResponse, WeaponModifierResponse, WeaponResponse } from '../models/weapon-api.model';
+import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
 function formatTitleCase(value: string): string {
   return value
@@ -57,7 +58,10 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
     cardType: 'weapon',
     subtitle,
     subtitleSecondary: `Tier ${response.tier}`,
-    tags: [response.damage.notation, formattedRange, formattedBurden, formattedTrait],
+    tags: [
+      response.damage.notation, formattedRange, formattedBurden, formattedTrait,
+      ...(isCustomContent(response) ? [CUSTOM_CONTENT_TAG] : []),
+    ],
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

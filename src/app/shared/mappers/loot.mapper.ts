@@ -1,5 +1,6 @@
 import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { LootApiResponse, LootFeature } from '../models/loot-api.model';
+import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
 function mapLootFeature(feature: LootFeature): CardFeature {
   return {
@@ -20,6 +21,9 @@ export function mapLootToCardData(response: LootApiResponse): CardData {
   }
   if (response.costTags?.length) {
     tags.push(...response.costTags);
+  }
+  if (isCustomContent(response)) {
+    tags.push(CUSTOM_CONTENT_TAG);
   }
 
   return {
