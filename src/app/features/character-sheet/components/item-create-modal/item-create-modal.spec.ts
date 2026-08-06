@@ -157,6 +157,24 @@ describe('ItemCreateModal', () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
+  /**
+   * Implicit submission, which is what pressing Enter in a field triggers. Driven through
+   * `requestSubmit()` because jsdom does not synthesise implicit submission from a synthetic
+   * keydown -- a KeyboardEvent test here would pass while asserting nothing.
+   */
+  it('saves on implicit submission, so Enter in a field works with the button outside the form', () => {
+    const { fixture, el, itemSubmit } = setup('weapon');
+    fixture.detectChanges();
+    const create = vi.spyOn(itemSubmit, 'create').mockReturnValue(of(buildWeapon()));
+    const form = fixture.debugElement.query(By.directive(ItemForm)).componentInstance as ItemForm;
+    form.form.controls['name'].setValue('Hearthblade');
+    fixture.detectChanges();
+
+    el.querySelector<HTMLFormElement>('form')!.requestSubmit();
+
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
   it('disables both buttons while a save is in flight', () => {
     const { fixture, el, component } = setup();
     fixture.detectChanges();
