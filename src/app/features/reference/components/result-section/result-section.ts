@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, input, output, computed } from '@an
 import { UpperCasePipe } from '@angular/common';
 import { DaggerheartCard } from '../../../../shared/components/daggerheart-card/daggerheart-card';
 import { AdversaryCard } from '../../../../shared/components/adversary-card/adversary-card';
+import { CustomizeItemAction } from '../customize-item-action/customize-item-action';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { SearchableEntityType, typeLabels, typeGlyphs } from '../../../../shared/models/search.model';
 
@@ -10,7 +11,7 @@ import { SearchableEntityType, typeLabels, typeGlyphs } from '../../../../shared
   templateUrl: './result-section.html',
   styleUrl: './result-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DaggerheartCard, AdversaryCard, UpperCasePipe],
+  imports: [DaggerheartCard, AdversaryCard, CustomizeItemAction, UpperCasePipe],
 })
 export class ResultSection {
   readonly type = input.required<SearchableEntityType>();

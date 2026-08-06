@@ -1,7 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { ResultSection } from './result-section';
+import { AuthService } from '../../../../core/services/auth.service';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { SearchableEntityType } from '../../../../shared/models/search.model';
 
@@ -63,10 +67,12 @@ describe('ResultSection', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;
+    vi.spyOn(TestBed.inject(AuthService), 'isLoggedIn').mockReturnValue(true);
   });
 
   it('should create', () => {
@@ -206,5 +212,25 @@ describe('ResultSection', () => {
     const count = fixture.nativeElement.querySelector('.section-count');
     expect(count.textContent).toContain('match');
     expect(count.textContent).not.toContain('matches');
+  });
+
+  describe('customize action', () => {
+    it('offers one customize action per item card', () => {
+      host.type = 'WEAPON';
+      host.results = [makeCardResult(1), makeCardResult(2)];
+      fixture.detectChanges();
+
+      const actions = fixture.nativeElement.querySelectorAll('app-customize-item-action button');
+      expect(actions.length).toBe(2);
+    });
+
+    it('offers no customize action on adversary results', () => {
+      host.type = 'ADVERSARY';
+      host.results = [makeAdversaryResult(1)];
+      fixture.detectChanges();
+
+      const actions = fixture.nativeElement.querySelectorAll('app-customize-item-action button');
+      expect(actions.length).toBe(0);
+    });
   });
 });
