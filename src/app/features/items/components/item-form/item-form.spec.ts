@@ -1,3 +1,4 @@
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -440,6 +441,114 @@ describe('ItemForm', () => {
       fixture.detectChanges();
 
       expect(component.editorFeatures().map(f => f.name)).toEqual(['Two']);
+    });
+  });
+
+  describe('host-supplied actions', () => {
+    /**
+     * Reproduces how a modal hosts this form: the shell owns the button row, so the submit button
+     * is a *sibling* of `app-item-form` and reaches the form only through `form="<id>"`. If that
+     * association ever breaks, the modal has no way to save and this is what catches it.
+     */
+    @Component({
+      imports: [ItemForm],
+      template: `
+        <app-item-form
+          [formId]="formId()"
+          [showActions]="false"
+          [initialValue]="initialValue()"
+          (submitted)="onSubmitted($event)"
+        />
+        <button type="submit" [attr.form]="formId()" class="host-submit">Create Item</button>
+      `,
+    })
+    class HostActionsComponent {
+      formId = signal('custom-item-form');
+      initialValue = signal<ItemFormValue | null>(formValue());
+      submissions: ItemFormValue[] = [];
+      onSubmitted(value: ItemFormValue): void {
+        this.submissions.push(value);
+      }
+    }
+
+    let hostFixture: ComponentFixture<HostActionsComponent>;
+    let host: HostActionsComponent;
+
+    function setupHost(): void {
+      TestBed.configureTestingModule({
+        imports: [HostActionsComponent],
+        providers: [provideHttpClient(), provideHttpClientTesting()],
+      });
+      vi.spyOn(TestBed.inject(CostTagLookupService), 'listFull').mockReturnValue(of([]));
+      hostFixture = TestBed.createComponent(HostActionsComponent);
+      host = hostFixture.componentInstance;
+      hostFixture.detectChanges();
+    }
+
+    function hostForm(): HTMLFormElement {
+      return hostFixture.nativeElement.querySelector('form');
+    }
+
+    it('renders no actions row of its own', () => {
+      setupHost();
+      expect(hostFixture.nativeElement.querySelector('.item-form__actions')).toBeNull();
+    });
+
+    it('puts the given formId on the form element', () => {
+      setupHost();
+      expect(hostForm().getAttribute('id')).toBe('custom-item-form');
+    });
+
+    it('associates the host button with the form across the component boundary', () => {
+      setupHost();
+      const button: HTMLButtonElement = hostFixture.nativeElement.querySelector('.host-submit');
+
+      expect(button.form).toBe(hostForm());
+    });
+
+    it('submits when the host button is clicked', () => {
+      setupHost();
+
+      hostFixture.nativeElement.querySelector('.host-submit').click();
+
+      expect(host.submissions).toHaveLength(1);
+      expect(host.submissions[0].name).toBe('Seed');
+    });
+
+    it('still blocks an invalid submit driven from the host button', () => {
+      setupHost();
+      host.initialValue.set(formValue({ name: '' }));
+      hostFixture.detectChanges();
+
+      hostFixture.nativeElement.querySelector('.host-submit').click();
+
+      expect(host.submissions).toEqual([]);
+    });
+
+    /**
+     * `requestSubmit()` is the algorithm implicit submission (Enter in a text field) runs, and is
+     * what jsdom implements -- it does not synthesise implicit submission from a keydown. So this
+     * asserts the reachable half: the form submits through its own submit algorithm while the only
+     * submit button lives outside the component.
+     */
+    it('submits via the form submit algorithm, so Enter in a field still saves', () => {
+      setupHost();
+
+      hostForm().requestSubmit();
+
+      expect(host.submissions).toHaveLength(1);
+    });
+  });
+
+  describe('own actions row', () => {
+    it('renders by default, for the routed page that owns its buttons', () => {
+      setup();
+      expect(fixture.nativeElement.querySelector('.item-form__actions')).not.toBeNull();
+    });
+
+    it('defaults the form id, so a lone form on a page needs no configuration', () => {
+      setup();
+      expect(fixture.nativeElement.querySelector('form').getAttribute('id')).toBe('item-form');
     });
   });
 

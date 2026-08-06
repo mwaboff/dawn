@@ -66,6 +66,19 @@ export class ItemForm {
   readonly submitting = input<boolean>(false);
   readonly errorMessage = input<string | null>(null);
   readonly submitLabel = input<string>('Save Item');
+  /**
+   * Id put on the `<form>` element, so a submit button rendered *outside* this component can claim
+   * it with `<button type="submit" form="...">`.
+   *
+   * This is a document-wide id, and `form=""` binds to the first match: any page hosting two item
+   * forms at once must give each its own value or the second form's button will submit the first.
+   */
+  readonly formId = input<string>('item-form');
+  /**
+   * Whether to render the Cancel/submit row. Set false when the host supplies its own actions --
+   * a modal whose shell owns the button row -- and pair it with `formId`, or nothing can submit.
+   */
+  readonly showActions = input<boolean>(true);
   /** Campaigns the signed-in user may share with. Supplied by the caller; never fetched here. */
   readonly campaignOptions = input<LookupOption[]>([]);
   /** Whether to offer the public toggle. The server ignores it for non-moderators regardless. */
