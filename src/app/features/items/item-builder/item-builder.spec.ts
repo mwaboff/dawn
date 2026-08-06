@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
@@ -14,6 +15,7 @@ import { CampaignResponse } from '../../../shared/models/campaign-api.model';
 import { WeaponResponse } from '../../../shared/models/weapon-api.model';
 import { DEFAULT_ITEM_FORM_VALUE, ItemFormValue } from '../models/item-form-value.model';
 import { ItemSubmit } from '../item-submit';
+import { ItemForm } from '../components/item-form/item-form';
 import { ItemBuilder } from './item-builder';
 
 function buildWeapon(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
@@ -383,5 +385,24 @@ describe('ItemBuilder', () => {
 
       expect(component.canSetPublic()).toBe(true);
     });
+  });
+
+  /**
+   * Every other save test calls `onSubmitted` directly, which leaves the template binding that
+   * reaches it untested -- deleting `(submitted)` from item-builder.html failed no test at all, so
+   * the page could ship unable to save anything with a green suite. This drives the child's output
+   * instead, so the wiring itself is what fails if it goes missing.
+   */
+  it('saves when the rendered form emits, not just when the handler is called', () => {
+    const { fixture, itemSubmit } = setup();
+    const create = vi.spyOn(itemSubmit, 'create').mockReturnValue(of(buildWeapon()));
+    fixture.detectChanges();
+
+    const form = fixture.debugElement.query(By.directive(ItemForm));
+    expect(form).not.toBeNull();
+    form.componentInstance.submitted.emit(formValue());
+    fixture.detectChanges();
+
+    expect(create).toHaveBeenCalledTimes(1);
   });
 });
