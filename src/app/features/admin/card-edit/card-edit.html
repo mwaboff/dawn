@@ -35,12 +35,12 @@
         }
       </form>
 
-      <app-card-edit-features
+      <app-feature-editor
         [features]="rawFeatures()"
         [saving]="saving()"
         [groupByType]="cardType() === 'class'"
         [cardType]="cardType()"
-        [expansionId]="rawCard()?.expansionId ?? 0"
+        [expansionId]="rawCard()?.expansionId ?? null"
         (featureDirtyChanged)="bumpFormVersion()"
         (deleteFeature)="onDeleteFeature($event)"
         #featuresRef

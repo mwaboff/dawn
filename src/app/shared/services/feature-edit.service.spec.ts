@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { FeatureEditService } from './feature-edit.service';
-import { FeatureUpdateRequest } from '../../features/admin/models/admin-api.model';
+import { FeatureUpdateRequest } from '../models/feature-api.model';
 
 describe('FeatureEditService', () => {
   let service: FeatureEditService;

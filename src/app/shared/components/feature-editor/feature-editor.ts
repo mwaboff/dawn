@@ -11,14 +11,14 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { RawFeatureResponse, FeatureUpdateRequest, FeatureInput } from '../../../models/admin-api.model';
-import { CostTagLookupService, CostTagFull } from '../../../../../shared/services/cost-tag-lookup.service';
+import { RawFeatureResponse, FeatureUpdateRequest, FeatureInput } from '../../models/feature-api.model';
+import { CostTagLookupService, CostTagFull } from '../../services/cost-tag-lookup.service';
 import {
   FeatureType,
   FEATURE_TYPE_LABELS,
   defaultFeatureTypeForCard,
-} from '../../../../../shared/models/feature-type.model';
-import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+} from '../../models/feature-type.model';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 const MODIFIER_TARGETS = [
   'AGILITY', 'STRENGTH', 'FINESSE', 'INSTINCT', 'PRESENCE', 'KNOWLEDGE',
@@ -49,13 +49,13 @@ export interface EditableFeature {
 }
 
 @Component({
-  selector: 'app-card-edit-features',
-  templateUrl: './card-edit-features.html',
-  styleUrl: './card-edit-features.css',
+  selector: 'app-feature-editor',
+  templateUrl: './feature-editor.html',
+  styleUrl: './feature-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ConfirmDialog],
 })
-export class CardEditFeatures {
+export class FeatureEditor {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly costTagLookupService = inject(CostTagLookupService);
@@ -64,7 +64,8 @@ export class CardEditFeatures {
   readonly saving = input<boolean>(false);
   readonly groupByType = input<boolean>(false);
   readonly cardType = input<string>('');
-  readonly expansionId = input<number>(0);
+  /** Sourcebook new features inherit from the card being edited; null for homebrew. */
+  readonly expansionId = input<number | null>(null);
 
   readonly featureDirtyChanged = output<void>();
   readonly deleteFeature = output<number>();

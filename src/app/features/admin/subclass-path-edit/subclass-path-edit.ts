@@ -16,7 +16,8 @@ import { forkJoin, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
 import { FeatureEditService } from '../../../shared/services/feature-edit.service';
-import { RawCardResponse, RawFeatureResponse } from '../models/admin-api.model';
+import { RawCardResponse } from '../models/admin-api.model';
+import { RawFeatureResponse } from '../../../shared/models/feature-api.model';
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { SubclassLevel } from '../../../shared/models/subclass-api.model';
 import { PaginatedResponse } from '../../../shared/models/api.model';
@@ -27,7 +28,7 @@ import { ENTITY_FORM_LOOKUP } from '../../../shared/components/entity-form/entit
 import { buildPreviewCard } from '../card-edit/utils/card-preview.utils';
 import { AdminLookupService } from '../card-edit/services/admin-lookup.service';
 import { EntityFormField } from '../../../shared/components/entity-form/entity-form-field/entity-form-field';
-import { CardEditFeatures } from '../card-edit/components/card-edit-features/card-edit-features';
+import { FeatureEditor } from '../../../shared/components/feature-editor/feature-editor';
 import { CardEditPreview } from '../card-edit/components/card-edit-preview/card-edit-preview';
 import { AddExpansionDialog } from '../card-edit/components/add-expansion-dialog/add-expansion-dialog';
 import { ExpansionOption } from '../../../shared/models/expansion-api.model';
@@ -56,7 +57,7 @@ interface LevelEntry {
   templateUrl: './subclass-path-edit.html',
   styleUrl: './subclass-path-edit.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, EntityFormField, CardEditFeatures, CardEditPreview, AddExpansionDialog],
+  imports: [ReactiveFormsModule, EntityFormField, FeatureEditor, CardEditPreview, AddExpansionDialog],
   providers: [{ provide: ENTITY_FORM_LOOKUP, useExisting: AdminLookupService }],
 })
 export class SubclassPathEdit implements OnInit {
@@ -69,7 +70,7 @@ export class SubclassPathEdit implements OnInit {
   private readonly featureEditService = inject(FeatureEditService);
   private readonly adminLookupService = inject(AdminLookupService);
 
-  private readonly featureRefs = viewChildren<CardEditFeatures>('featureRef');
+  private readonly featureRefs = viewChildren<FeatureEditor>('featureRef');
 
   readonly pathId = signal(0);
   readonly pathName = signal('');

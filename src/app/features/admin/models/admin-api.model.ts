@@ -1,4 +1,4 @@
-import { FeatureType } from '../../../shared/models/feature-type.model';
+import { RawFeatureResponse } from '../../../shared/models/feature-api.model';
 
 export interface RawCardResponse {
   id: number;
@@ -18,39 +18,3 @@ export interface RawCardResponse {
   costTagIds?: number[];
   [key: string]: unknown;
 }
-
-export interface RawFeatureResponse {
-  id: number;
-  name: string;
-  description: string;
-  featureType: FeatureType;
-  expansionId: number;
-  costTagIds: number[];
-  modifierIds: number[];
-  costTags?: RawCostTag[];
-  modifiers?: RawModifier[];
-}
-
-export interface RawCostTag {
-  id: number;
-  label: string;
-  category: string;
-}
-
-export interface RawModifier {
-  id: number;
-  target: string;
-  operation: string;
-  value: number;
-}
-
-export interface FeatureUpdateRequest {
-  name: string;
-  description: string;
-  featureType: FeatureType;
-  expansionId: number;
-  costTags?: { label: string; category: string }[];
-  modifiers?: { target: string; operation: string; value: number }[];
-}
-
-export type FeatureInput = FeatureUpdateRequest;
