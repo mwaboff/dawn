@@ -1,0 +1,26 @@
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* The kind subcomponents are `display: contents`, so their fields join this grid directly. */
+.item-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-8);
+}
+
+.item-form__advice {
+  margin-top: var(--space-6);
+  color: var(--color-parchment);
+  opacity: 0.7;
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+.item-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-6);
+}

@@ -41,6 +41,20 @@ export const routes: Routes = [
         title: 'Run Encounter'
       },
       {
+        // No ordering hazard with 'items/:type/:id/edit' below: that route is four segments and
+        // this one is two, and a leaf route only matches when it consumes every segment.
+        path: 'items/new',
+        loadComponent: () => import('./features/items/item-builder/item-builder').then(m => m.ItemBuilder),
+        title: 'Create an Item'
+      },
+      {
+        // The kind is in the path because ids only identify a row within one of the three item
+        // tables -- weapon 7, armor 7, and loot 7 are all different items.
+        path: 'items/:type/:id/edit',
+        loadComponent: () => import('./features/items/item-builder/item-builder').then(m => m.ItemBuilder),
+        title: 'Edit Item'
+      },
+      {
         path: '',
         loadComponent: () => import('./features/home/home').then(m => m.Home)
       },

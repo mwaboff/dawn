@@ -1,0 +1,67 @@
+<form class="item-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (errorMessage(); as message) {
+    <p class="form-error" role="alert">{{ message }}</p>
+  }
+
+  <section class="form-section">
+    <div class="item-form__grid">
+      @if (!lockedKind()) {
+        <app-entity-form-field [field]="kindField" [control]="controlFor('kind')" [submitted]="attempted()" />
+      }
+      <app-entity-form-field [field]="nameField" [control]="controlFor('name')" [submitted]="attempted()" />
+      <app-entity-form-field [field]="tierField()" [control]="controlFor('tier')" [submitted]="attempted()" />
+
+      @switch (kind()) {
+        @case ('weapon') {
+          <app-weapon-fields [form]="form" [submitted]="attempted()" />
+        }
+        @case ('armor') {
+          <app-armor-fields [form]="form" [submitted]="attempted()" />
+        }
+        @case ('loot') {
+          <app-loot-fields [form]="form" [submitted]="attempted()" />
+        }
+      }
+    </div>
+
+    @if (showThresholdOrderError()) {
+      <p class="field-error">Severe Threshold must be at least the Major Threshold.</p>
+    }
+    @for (advice of advisories(); track advice) {
+      <p class="item-form__advice">{{ advice }}</p>
+    }
+  </section>
+
+  <section class="form-section">
+    <h3 class="form-section__title">Sharing</h3>
+    <p class="form-section__hint">Homebrew is private to you until you share it with a campaign.</p>
+    <app-entity-multi-select
+      label="Campaigns"
+      [presetOptions]="campaignOptions()"
+      [control]="campaignIdsControl()"
+    />
+    @if (canSetPublic()) {
+      <app-entity-form-field [field]="publicField" [control]="controlFor('isPublic')" [submitted]="attempted()" />
+    }
+  </section>
+
+  <section class="form-section">
+    <h3 class="form-section__title">Features</h3>
+    <app-feature-editor
+      [features]="editorFeatures()"
+      [saving]="submitting()"
+      [cardType]="kind()"
+      [expansionId]="null"
+      (deleteFeature)="onFeatureDeleted($event)"
+    />
+  </section>
+
+  <div class="item-form__actions">
+    <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="onCancel()">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : submitLabel() }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,3 @@
+@for (field of fields; track field.name) {
+  <app-entity-form-field [field]="field" [control]="controlFor(field.name)" [submitted]="submitted()" />
+}
