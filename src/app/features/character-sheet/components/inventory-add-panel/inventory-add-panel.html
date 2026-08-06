@@ -92,5 +92,16 @@
         }
       </ul>
     }
+
+    <div class="add-panel__footer">
+      <button
+        type="button"
+        class="add-panel__create-btn"
+        (click)="onCreateRequested()"
+        [attr.aria-label]="'Create your own ' + itemType()"
+      >
+        + Create your own
+      </button>
+    </div>
   </div>
 }

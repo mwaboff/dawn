@@ -45,6 +45,8 @@ export class InventorySection {
   readonly errorMessage = input<string | null>(null);
 
   readonly addItem = output<{ type: 'weapon' | 'armor' | 'loot'; item: unknown }>();
+  /** A request to build homebrew of the active tab's kind, rather than pick from the catalogue. */
+  readonly createItem = output<'weapon' | 'armor' | 'loot'>();
   readonly removeItem = output<InventoryRemoveEvent>();
   readonly equipWeapon = output<InventoryEquipWeaponEvent>();
   readonly unequipWeapon = output<{ slot: 'primary' | 'secondary' }>();
@@ -138,6 +140,12 @@ export class InventorySection {
 
   onAddPanelClosed(): void {
     this.addPanelOpen.set(false);
+  }
+
+  /** Closes the picker behind the modal, the same way choosing a catalogue item does. */
+  onCreateRequested(type: 'weapon' | 'armor' | 'loot'): void {
+    this.addPanelOpen.set(false);
+    this.createItem.emit(type);
   }
 
   onRemoveClicked(inventoryEntryId: number): void {

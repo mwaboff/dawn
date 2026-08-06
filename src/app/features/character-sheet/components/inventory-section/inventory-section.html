@@ -57,6 +57,7 @@
   [itemType]="activeItemType()"
   [open]="addPanelOpen()"
   (itemAdded)="onItemAdded($event)"
+  (createRequested)="onCreateRequested($event)"
   (closed)="onAddPanelClosed()" />
 
 @switch (activeTab()) {

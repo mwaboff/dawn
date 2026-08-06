@@ -21,6 +21,7 @@ import { WeaponDisplay, ArmorDisplay, LootDisplay } from '../../models/character
       [canEquipArmorSlot]="canEquipArmorSlot()"
       [errorMessage]="errorMessage()"
       (removeItem)="onRemoveItem($event)"
+      (createItem)="onCreateItem($event)"
       (dismissError)="onDismissError()" />
   `,
   imports: [InventorySection],
@@ -43,10 +44,15 @@ class TestHost {
   canEquipArmorSlot = signal(true);
   errorMessage = signal<string | null>(null);
   removeEvents: { type: string; inventoryEntryId: number }[] = [];
+  createRequests: ('weapon' | 'armor' | 'loot')[] = [];
   dismissCount = 0;
 
   onRemoveItem(ev: { type: string; inventoryEntryId: number }): void {
     this.removeEvents.push(ev);
+  }
+
+  onCreateItem(type: 'weapon' | 'armor' | 'loot'): void {
+    this.createRequests.push(type);
   }
 
   onDismissError(): void {
@@ -376,6 +382,45 @@ describe('InventorySection', () => {
       el.querySelector<HTMLButtonElement>('.inventory-error__dismiss')!.click();
 
       expect(host.dismissCount).toBe(1);
+    });
+  });
+
+  describe('create your own', () => {
+    function openAddPanel(): void {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.add-btn')!.click();
+      fixture.detectChanges();
+    }
+
+    it('forwards the panel request with the active tab kind', () => {
+      openAddPanel();
+
+      el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
+
+      expect(host.createRequests).toEqual(['weapon']);
+    });
+
+    it('forwards loot when the loot tab is active', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+      el.querySelectorAll<HTMLButtonElement>('.inventory-tab')[2].click();
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.add-btn')!.click();
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
+
+      expect(host.createRequests).toEqual(['loot']);
+    });
+
+    it('closes the picker behind the modal', () => {
+      openAddPanel();
+
+      el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.add-panel')).toBeNull();
     });
   });
 

@@ -739,6 +739,7 @@
         [canEquipArmorSlot]="canEquipArmor()"
         [errorMessage]="inventoryError()"
         (addItem)="onAddInventoryItem($event)"
+        (createItem)="setCreatingItemKind($event)"
         (removeItem)="onRemoveInventoryItem($event)"
         (equipWeapon)="onEquipWeapon($event)"
         (unequipWeapon)="onUnequipWeapon($event.slot)"
@@ -864,5 +865,12 @@
       </section>
     }
     <app-dice-roller />
+
+    @if (creatingItemKind(); as kind) {
+      <app-item-create-modal
+        [kind]="kind"
+        (created)="onCustomItemCreated($event)"
+        (dismissed)="setCreatingItemKind(null)" />
+    }
   }
 </div>

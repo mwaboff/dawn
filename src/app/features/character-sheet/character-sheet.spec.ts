@@ -1040,6 +1040,52 @@ describe('CharacterSheet', () => {
       });
     });
 
+    it('opens the create-item modal on the kind the inventory asked for', () => {
+      createComponent('1');
+      fixture.detectChanges();
+
+      component.setCreatingItemKind('armor');
+
+      expect(component.creatingItemKind()).toBe('armor');
+    });
+
+    it('closes the create-item modal when dismissed', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      component.setCreatingItemKind('weapon');
+
+      component.setCreatingItemKind(null);
+
+      expect(component.creatingItemKind()).toBeNull();
+    });
+
+    it('adds a freshly created item through the same inventory save as a catalogue pick', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(of(mockResponse));
+      component.setCreatingItemKind('weapon');
+
+      component.onCustomItemCreated({
+        type: 'weapon',
+        item: { id: 42, name: 'Hearthblade' } as never,
+      });
+
+      expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+        inventoryWeapons: [{ weaponId: 42, equipped: false }],
+      });
+      expect(component.creatingItemKind()).toBeNull();
+    });
+
+    it('surfaces a failed save of a created item on the inventory banner', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+      component.onCustomItemCreated({ type: 'loot', item: { id: 9, name: 'Elixir' } as never });
+
+      expect(component.inventoryError()).toContain('Could not add loot');
+    });
+
     it('onDismissInventoryError clears the error signal', () => {
       createComponent('1');
       fixture.detectChanges();

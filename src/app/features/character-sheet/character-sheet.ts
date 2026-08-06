@@ -26,6 +26,8 @@ import { Experience, isExperienceComplete } from '../../shared/models/experience
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
+import { ItemCreateModal, ItemCreatedEvent } from './components/item-create-modal/item-create-modal';
+import { ItemKind } from '../items/item-routes';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
@@ -52,7 +54,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemCreateModal],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -66,6 +68,8 @@ export class CharacterSheet implements OnInit {
   readonly error = signal(false);
   readonly characterSheet = signal<CharacterSheetView | null>(null);
   readonly inventoryError = signal<string | null>(null);
+  /** Non-null while the create-item modal is open; the kind it is locked to. */
+  readonly creatingItemKind = signal<ItemKind | null>(null);
   private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   private readonly expandedCardIds = signal<Set<number>>(new Set());
   private nextTempInventoryId = -1;
@@ -792,6 +796,16 @@ export class CharacterSheet implements OnInit {
         this.handleInventoryError(`Could not add ${event.type}. Please try again.`, raw);
       },
     });
+  }
+
+  setCreatingItemKind(kind: ItemKind | null): void {
+    this.creatingItemKind.set(kind);
+  }
+
+  /** Homebrew reaches the inventory the same way a catalogue pick does -- see the handler above. */
+  onCustomItemCreated(event: ItemCreatedEvent): void {
+    this.creatingItemKind.set(null);
+    this.onAddInventoryItem(event);
   }
 
   onRemoveInventoryItem(event: InventoryRemoveEvent): void {

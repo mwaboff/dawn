@@ -11,13 +11,19 @@ import { LootService } from '../../../../shared/services/loot.service';
   template: `
     <app-inventory-add-panel
       [itemType]="itemType()"
-      [open]="open()" />
+      [open]="open()"
+      (createRequested)="onCreateRequested($event)" />
   `,
   imports: [InventoryAddPanel],
 })
 class TestHost {
   itemType = signal<'weapon' | 'armor' | 'loot'>('weapon');
   open = signal(false);
+  createRequests: ('weapon' | 'armor' | 'loot')[] = [];
+
+  onCreateRequested(type: 'weapon' | 'armor' | 'loot'): void {
+    this.createRequests.push(type);
+  }
 }
 
 describe('InventoryAddPanel', () => {
@@ -340,5 +346,45 @@ describe('InventoryAddPanel', () => {
 
     expect(el.querySelector('.add-panel__item-name')).toBeNull();
     expect(el.querySelector('.add-panel__load-btn')?.textContent?.trim()).toBe('Browse Armor');
+  });
+
+  describe('create your own', () => {
+    it('offers the create button without browsing the catalogue first', () => {
+      host.open.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.add-panel__create-btn')?.textContent?.trim()).toBe('+ Create your own');
+    });
+
+    it('labels the create button with the kind being added', () => {
+      host.itemType.set('loot');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.add-panel__create-btn')?.getAttribute('aria-label'))
+        .toBe('Create your own loot');
+    });
+
+    it('emits the current kind when the create button is clicked', () => {
+      host.itemType.set('armor');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
+
+      expect(host.createRequests).toEqual(['armor']);
+    });
+
+    it('emits the kind the panel switched to, not the one it opened on', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      host.itemType.set('loot');
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
+
+      expect(host.createRequests).toEqual(['loot']);
+    });
   });
 });
