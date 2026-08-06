@@ -5,6 +5,7 @@ import { WeaponResponse } from '../models/weapon-api.model';
 function buildWeaponResponse(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
   return {
     id: 1,
+    isPublic: false,
     name: 'Longbow',
     expansionId: 1,
     tier: 1,

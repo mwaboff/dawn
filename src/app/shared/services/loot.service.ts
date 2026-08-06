@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PaginatedResponse, PaginatedCards } from '../models/api.model';
-import { LootApiResponse, LootFilters } from '../models/loot-api.model';
+import { LootApiResponse, LootFilters, CreateCustomLootRequest, UpdateLootRequest } from '../models/loot-api.model';
 import { mapLootToCardData } from '../mappers/loot.mapper';
 
 export interface PaginatedLoot {
@@ -21,6 +21,12 @@ export class LootService {
   getLoot(filters: LootFilters = {}): Observable<PaginatedCards> {
     let params = new HttpParams().set('expand', 'expansion,features,costTags');
 
+    if (filters.name) {
+      params = params.set('name', filters.name);
+    }
+    if (filters.sort) {
+      params = params.set('sort', filters.sort);
+    }
     if (filters.tier !== undefined) {
       params = params.set('tier', filters.tier);
     }
@@ -51,6 +57,12 @@ export class LootService {
   getLootRaw(filters: LootFilters = {}): Observable<PaginatedLoot> {
     let params = new HttpParams().set('expand', 'expansion,features,costTags');
 
+    if (filters.name) {
+      params = params.set('name', filters.name);
+    }
+    if (filters.sort) {
+      params = params.set('sort', filters.sort);
+    }
     if (filters.tier !== undefined) {
       params = params.set('tier', filters.tier);
     }
@@ -77,4 +89,29 @@ export class LootService {
         totalElements: response.totalElements,
       })));
   }
+
+  /**
+   * Creates loot owned by the calling user.
+   *
+   * Posts to `/custom`, not the bare collection: that endpoint is the admin import path and
+   * rejects non-admins. Ownership and the official/public/expansion fields are resolved
+   * server-side, so they are not part of the payload.
+   */
+  createCustomLoot(request: CreateCustomLootRequest): Observable<LootApiResponse> {
+    return this.http.post<LootApiResponse>(`${this.baseUrl}/custom`, request, { withCredentials: true });
+  }
+
+  /** Updates loot. Only the author, a moderator, or an admin (for official content) may do this. */
+  updateLoot(id: number, request: UpdateLootRequest): Observable<LootApiResponse> {
+    return this.http.put<LootApiResponse>(`${this.baseUrl}/${id}`, request, { withCredentials: true });
+  }
+
+  /**
+   * Copies any record into a new custom one owned by the caller, official content included.
+   * The copy is private, unofficial, carries no sourcebook, and inherits no campaign tags.
+   */
+  copyLoot(id: number): Observable<LootApiResponse> {
+    return this.http.post<LootApiResponse>(`${this.baseUrl}/${id}/copy`, {}, { withCredentials: true });
+  }
+
 }

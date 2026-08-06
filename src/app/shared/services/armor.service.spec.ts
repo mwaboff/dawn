@@ -9,6 +9,7 @@ import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorResponse {
   return {
     id: 1,
+    isPublic: false,
     name: 'Leather Armor',
     expansionId: 1,
     tier: 1,

@@ -10,6 +10,7 @@ import { PaginatedResponse } from '../models/api.model';
 function buildWeaponResponse(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
   return {
     id: 1,
+    isPublic: false,
     name: 'Broadsword',
     expansionId: 1,
     tier: 1,
@@ -131,4 +132,82 @@ describe('WeaponService', () => {
 
     expect(error?.status).toBe(500);
   });
+
+  it('should post custom weapons to /custom, not the admin collection endpoint', () => {
+    // The bare collection is the admin import path and 403s for regular users, so hitting it
+    // here would make creation fail for exactly the people the feature is for.
+    service
+      .createCustomWeapon({
+        name: 'My Blade',
+        tier: 1,
+        isPrimary: true,
+        trait: 'AGILITY',
+        range: 'MELEE',
+        burden: 'ONE_HANDED',
+        damage: { diceType: 'D8', damageType: 'PHYSICAL' },
+      })
+      .subscribe();
+
+    const req = httpTesting.expectOne(`${baseUrl}/custom`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.body.name).toBe('My Blade');
+    req.flush(buildWeaponResponse());
+  });
+
+  it('should not send isOfficial or expansionId when creating a custom weapon', () => {
+    service
+      .createCustomWeapon({
+        name: 'Plain',
+        tier: 1,
+        isPrimary: true,
+        trait: 'AGILITY',
+        range: 'MELEE',
+        burden: 'ONE_HANDED',
+        damage: { diceType: 'D8', damageType: 'PHYSICAL' },
+      })
+      .subscribe();
+
+    const req = httpTesting.expectOne(`${baseUrl}/custom`);
+    expect(req.request.body.isOfficial).toBeUndefined();
+    expect(req.request.body.expansionId).toBeUndefined();
+    req.flush(buildWeaponResponse());
+  });
+
+  it('should PUT updates to the weapon by id', () => {
+    service.updateWeapon(7, { name: 'Renamed' }).subscribe();
+
+    const req = httpTesting.expectOne(`${baseUrl}/7`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(buildWeaponResponse({ id: 7, name: 'Renamed' }));
+  });
+
+  it('should POST to the copy endpoint with an empty body', () => {
+    service.copyWeapon(3).subscribe();
+
+    const req = httpTesting.expectOne(`${baseUrl}/3/copy`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(buildWeaponResponse({ id: 99, name: 'Broadsword (Copy)' }));
+  });
+
+
+  it('should forward name and sort as query params', () => {
+    service.getWeaponsRaw({ name: 'longs', sort: 'NAME' }).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl && r.params.get('name') === 'longs');
+    expect(req.request.params.get('sort')).toBe('NAME');
+    req.flush(buildPaginatedResponse([]));
+  });
+
+  it('should omit name and sort when not requested', () => {
+    service.getWeaponsRaw({}).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === baseUrl);
+    expect(req.request.params.has('name')).toBe(false);
+    expect(req.request.params.has('sort')).toBe(false);
+    req.flush(buildPaginatedResponse([]));
+  });
+
 });
