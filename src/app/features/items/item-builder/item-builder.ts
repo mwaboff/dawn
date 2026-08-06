@@ -10,10 +10,8 @@ import { ItemForm } from '../components/item-form/item-form';
 import { ItemFormValue } from '../models/item-form-value.model';
 import { ItemKind, isItemKind, itemEditPath } from '../item-routes';
 import { ItemSubmit } from '../item-submit';
+import { readSaveErrorMessage, shareableCampaignOptions } from '../utils/item-form-host.utils';
 import { formValueToRequest, responseToFormValue } from './item-builder.mapper';
-
-/** Enough campaigns to cover any realistic table list without paging the picker. */
-const CAMPAIGN_PAGE_SIZE = 100;
 
 /**
  * Routed create/edit shell for homebrew gear. Owns the route, the fetch, the save, and the
@@ -82,7 +80,7 @@ export class ItemBuilder implements OnInit {
     save$
       .pipe(
         catchError((err: unknown) => {
-          this.saveError.set(readErrorMessage(err));
+          this.saveError.set(readSaveErrorMessage(err));
           return of(null);
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -123,47 +121,9 @@ export class ItemBuilder implements OnInit {
       });
   }
 
-  /**
-   * A failure here is not worth an error state: the picker simply offers nothing, and the item
-   * still saves. Sharing is optional, and can be added later from the edit page.
-   */
   private loadCampaigns(): void {
-    this.campaignService
-      .getMyCampaigns(0, CAMPAIGN_PAGE_SIZE)
-      .pipe(
-        catchError(() => of(null)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(response => {
-        if (!response) return;
-        this.campaignOptions.set(
-          response.content
-            // Ended campaigns are history; sharing new homebrew into one helps nobody.
-            .filter(campaign => !campaign.isEnded)
-            .map(campaign => ({ id: campaign.id, label: campaign.name })),
-        );
-      });
+    shareableCampaignOptions(this.campaignService)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(options => this.campaignOptions.set(options));
   }
-}
-
-/**
- * Turns a failed save into something a user can act on.
- *
- * `fieldErrors` is checked first and spelled out in full: this backend's `ValidationErrorResponse`
- * sends per-field messages with no top-level `message` at all, so reading only `message` would
- * replace "Severe threshold must not be null" with a shrug. Attaching these to the individual
- * controls would be better still, but that needs a new input on the presentational form -- see the
- * bd issue.
- */
-function readErrorMessage(err: unknown): string {
-  const body = (err as { error?: { message?: string; fieldErrors?: Record<string, string> } } | null)?.error;
-
-  const fieldErrors = body?.fieldErrors;
-  if (fieldErrors && Object.keys(fieldErrors).length > 0) {
-    return Object.entries(fieldErrors)
-      .map(([field, message]) => `${field}: ${message}`)
-      .join('; ');
-  }
-
-  return body?.message ?? 'Save failed. Please try again.';
 }
