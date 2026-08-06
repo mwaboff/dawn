@@ -6,7 +6,10 @@
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* Above the dice-roller FAB and its menu (1100), which are `position: fixed` on the character
+     sheet and otherwise float over the backdrop and the panel. Also breaks the tie with the
+     navbar (1000), which DOM order alone was deciding. */
+  z-index: 1200;
   display: flex;
   align-items: center;
   justify-content: center;
