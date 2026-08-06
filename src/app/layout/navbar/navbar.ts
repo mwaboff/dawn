@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ENCOUNTER_NEW_PATH } from '../../features/encounters/encounter-routes';
+import { ITEMS_NEW_PATH } from '../../features/items/item-routes';
 
 @Component({
   selector: 'app-navbar',
@@ -45,6 +46,7 @@ export class Navbar {
     { label: '+ Character', onSelect: () => this.onCreateCharacter() },
     { label: '+ Campaign', onSelect: () => this.onCreateCampaign() },
     { label: '+ Encounter', onSelect: () => this.onCreateEncounter() },
+    { label: '+ Item', onSelect: () => this.onCreateItem() },
   ];
 
   constructor() {
@@ -129,6 +131,12 @@ export class Navbar {
     this.closeDropdown();
     this.closeMobileMenu();
     this.router.navigate([ENCOUNTER_NEW_PATH]);
+  }
+
+  onCreateItem(): void {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate([ITEMS_NEW_PATH]);
   }
 
   onLogout(): void {

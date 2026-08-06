@@ -264,7 +264,17 @@ describe('Navbar', () => {
       expect(component.isDropdownOpen()).toBe(false);
     });
 
-    it('should show + Character, + Campaign, and + Encounter in dropdown when open', () => {
+    it('should navigate to the item builder and close dropdown when onCreateItem is called', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.isDropdownOpen.set(true);
+
+      component.onCreateItem();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/items/new']);
+      expect(component.isDropdownOpen()).toBe(false);
+    });
+
+    it('should show + Character, + Campaign, + Encounter, and + Item in dropdown when open', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
       fixture.detectChanges();
       component.isDropdownOpen.set(true);
@@ -276,6 +286,17 @@ describe('Navbar', () => {
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('+ Encounter');
+      expect(texts).toContain('+ Item');
+    });
+
+    it('should not render the create menu at all when logged out, so + Item needs no separate gate', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      component.isDropdownOpen.set(true);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.nav-dropdown')).toBeFalsy();
     });
 
     it('should render plus button when logged in', () => {
@@ -369,6 +390,7 @@ describe('Navbar', () => {
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('+ Encounter');
+      expect(texts).toContain('+ Item');
       expect(texts).toContain('Profile');
       expect(texts).toContain('Logout');
     });
@@ -421,6 +443,13 @@ describe('Navbar', () => {
       vi.spyOn(router, 'navigate');
       component.isMobileMenuOpen.set(true);
       component.onCreateEncounter();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when onCreateItem is called', () => {
+      vi.spyOn(router, 'navigate');
+      component.isMobileMenuOpen.set(true);
+      component.onCreateItem();
       expect(component.isMobileMenuOpen()).toBe(false);
     });
   });
