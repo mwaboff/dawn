@@ -164,6 +164,44 @@ describe('CustomizeItemAction', () => {
     });
   });
 
+  // `mapSearchResult` hands a WEAPON/ARMOR/LOOT result an empty "fallback" card when the backend
+  // returned no `expandedEntity`, and that card reads as a styling bug -- right name, blank body.
+  // The action is still correct there and must not be hidden: `result.id` is a real weapon id
+  // whether or not the entity was expanded, so the copy succeeds and the user lands in the builder
+  // on genuine data. Whoever meets a blank card next should fix the mapper, not this button.
+  describe('unexpanded results', () => {
+    function makeFallbackResult(): MappedSearchResult {
+      return {
+        type: 'WEAPON',
+        id: 7,
+        name: 'Broadsword',
+        relevanceScore: 1,
+        card: { id: 7, name: 'Broadsword', description: '', cardType: 'class' },
+      };
+    }
+
+    it('still offers the action when the card fell back to the empty shape', () => {
+      host.result = makeFallbackResult();
+      fixture.detectChanges();
+
+      expect(button()).toBeTruthy();
+    });
+
+    it('copies the real item id even though the card body is empty', () => {
+      const copySpy = vi
+        .spyOn(weaponService, 'copyWeapon')
+        .mockReturnValue(of({ id: 42 } as WeaponResponse));
+      const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      host.result = makeFallbackResult();
+      fixture.detectChanges();
+
+      button()?.click();
+
+      expect(copySpy).toHaveBeenCalledWith(7);
+      expect(navigateSpy).toHaveBeenCalledWith(['/items/weapon/42/edit']);
+    });
+  });
+
   describe('failure', () => {
     it('surfaces an alert and stays on the codex when the copy fails', () => {
       vi.spyOn(weaponService, 'copyWeapon').mockReturnValue(throwError(() => new Error('500')));
@@ -202,7 +240,10 @@ describe('CustomizeItemAction', () => {
       expect(button()?.textContent?.trim()).toBe('Copying…');
     });
 
-    it('ignores a second click while the first copy is still outstanding', () => {
+    // White-box on purpose: by this point the button is [disabled], so a second DOM click never
+    // reaches the handler. The disabled binding is covered above; this pins the early return that
+    // backs it up, which is why the name talks about onCustomize rather than about clicking.
+    it('onCustomize returns early while a copy is outstanding', () => {
       const copySpy = vi
         .spyOn(weaponService, 'copyWeapon')
         .mockReturnValue(new Subject<WeaponResponse>());
@@ -210,8 +251,6 @@ describe('CustomizeItemAction', () => {
 
       button()?.click();
       fixture.detectChanges();
-      // The button is disabled by now, so drive the handler directly to prove the in-flight guard
-      // exists rather than relying on the DOM to swallow the second click.
       const action = fixture.debugElement.query(By.directive(CustomizeItemAction));
       (action.componentInstance as CustomizeItemAction).onCustomize();
 
