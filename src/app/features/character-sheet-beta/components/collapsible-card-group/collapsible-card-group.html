@@ -1,0 +1,30 @@
+<div class="card-group__heading-row card-group__heading-row--{{ accent() }}">
+  <h3 class="card-group__heading">
+    <button
+      type="button"
+      class="card-group__toggle"
+      [attr.aria-expanded]="!collapsed()"
+      [attr.aria-controls]="bodyId()"
+      (click)="toggle()"
+    >
+      <span class="card-group__chevron" [class.card-group__chevron--open]="!collapsed()" aria-hidden="true">&#8964;</span>
+      <span class="card-group__label">{{ heading() }}</span>
+    </button>
+  </h3>
+  @if (count() !== undefined) {
+    <span class="card-group__count">{{ count() }}</span>
+  }
+  <!-- Non-interactive header trim only (a saving spinner, say). Anything clickable would either
+       nest inside the toggle button or steal its click target, so it belongs in the body. -->
+  <ng-content select="[group-header-extra]" />
+</div>
+
+<!-- The element carrying `bodyId` renders unconditionally so the header's `aria-controls` never
+     dangles while collapsed; only its contents are conditional (same shape as entity-card.html's
+     clip). `<ng-content>` is instantiated once either way -- projected content is not re-created
+     by toggling, so a child's state survives a collapse. -->
+<div [id]="bodyId()" class="card-group__body">
+  @if (!collapsed()) {
+    <ng-content />
+  }
+</div>

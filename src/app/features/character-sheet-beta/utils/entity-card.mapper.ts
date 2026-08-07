@@ -58,8 +58,8 @@ export function subclassCardToEntity(card: SubclassCardSummary): EntityCardData 
     id: card.id,
     name: card.name,
     cardType: 'subclass',
-    // card.level is "Foundation"/"Specialization"/"Mastery" -- exactly the italic subtitle line
-    // EntityCardData documents, not a numeric badge.
+    // card.level is the server's SubclassLevel enum name -- "FOUNDATION"/"SPECIALIZATION"/
+    // "MASTERY" -- exactly the italic subtitle line EntityCardData documents, not a numeric badge.
     subtitle: card.level,
     meta: meta.length ? meta : undefined,
     description: card.description,

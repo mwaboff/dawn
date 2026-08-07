@@ -1,8 +1,5 @@
-<div class="card-group">
-  <div class="card-group__heading-row">
-    <h3 class="card-group__heading card-group__heading--companion">Companions</h3>
-    @if (saving()) { <app-saving-spinner /> }
-  </div>
+<app-collapsible-card-group heading="Companions" accent="companion" sectionId="companions">
+  @if (saving()) { <app-saving-spinner group-header-extra /> }
 
   @if (errorMessage()) {
     <p class="companion-panel-error" role="alert">
@@ -37,7 +34,7 @@
       + Add Companion
     </button>
   }
-</div>
+</app-collapsible-card-group>
 
 @if (modalMode(); as mode) {
   <app-companion-form-modal

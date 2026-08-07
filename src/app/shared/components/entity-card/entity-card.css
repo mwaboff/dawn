@@ -133,7 +133,8 @@
 .entity-card__badge, .entity-card__tag { border: 1px solid var(--color-card-rule); border-radius: 2px; padding: .1rem .3rem; white-space: nowrap; color: var(--color-card-ink-faint); }
 .entity-card__tag { font-family: var(--font-body); font-size: var(--text-xs); background: var(--color-card-face-lift); }
 
-.entity-card__chevron { flex-shrink: 0; font-size: .8rem; color: var(--color-card-ink-faint); transition: transform .2s; }
+/* 1.15rem, not .8rem: the chevron is the only cue that the header is a button. */
+.entity-card__chevron { flex-shrink: 0; font-size: 1.15rem; line-height: 1; color: var(--color-card-ink-faint); transition: transform .2s; }
 .entity-card__chevron--open { transform: rotate(180deg); }
 
 .entity-card__clip { position: relative; overflow: hidden; max-height: 15rem; }
@@ -157,6 +158,10 @@
 .entity-card__fade { position: absolute; left: 0; right: 0; bottom: 0; height: 2.5rem; background: linear-gradient(to bottom, transparent, var(--color-card-face)); pointer-events: none; }
 
 .entity-card__controls:empty, .entity-card__actions:empty { display: none; }
+/* Pins the footer to the bottom of a grid-stretched card. The auto margin must sit on whichever
+   footer comes FIRST or the free space splits the two apart; `display: none` above drops an empty
+   controls bar from layout but not from the selector tree, so `+` still reaches actions. */
+.entity-card__controls, .entity-card__controls:empty + .entity-card__actions { margin-top: auto; }
 /* Projected content ([card-controls]/[card-actions]) is still the caller's own markup, styled by
    the caller's own dark-page-theme classes -- it never learns which of the two card faces
    (light/dark, see src/styles.css) it landed on. Angular still lets us reach it here, though:

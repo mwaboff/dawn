@@ -1,0 +1,41 @@
+/* `.card-group__heading-row` / `.card-group__heading` themselves are global
+   (shared/styles/expandable-card.css); this file adds only what the disclosure needs. */
+:host { display: block; }
+
+/* One accent per group type, declared on the row so the heading and its count chip can never
+   drift apart. These moved here from character-sheet-beta-cards.css and the four beta panels'
+   stylesheets along with the heading markup -- a component's rules cannot reach another
+   component's template, so leaving copies behind would have silently won nothing.
+   `neutral` is the page's own gold, for the two groups that hold more than one card type. A
+   coloured heading therefore means "everything below me is this type"; borrowing the lead
+   member's hue would have said that falsely, and said nothing besides -- --color-card-class is
+   byte-identical to --color-accent and --color-card-ancestry is a few percent off it, so both
+   combined headings already rendered as plain gold while implying a type. Cards keep their own
+   per-type accents either way, via data-card-type. */
+.card-group__heading-row--neutral { --group-accent: var(--color-accent); }
+.card-group__heading-row--domain { --group-accent: var(--color-card-domain); }
+.card-group__heading-row--beastform { --group-accent: var(--color-card-beastform); }
+.card-group__heading-row--martialStance { --group-accent: var(--color-card-martialStance); }
+.card-group__heading-row--transformation { --group-accent: var(--color-card-transformationCard); }
+.card-group__heading-row--companion { --group-accent: var(--color-card-companion); }
+
+.card-group__heading { color: var(--group-accent); }
+
+/* `font: inherit` is what keeps the button reading as the heading it sits inside -- the display
+   face, size and weight come from the global `.card-group__heading`; text-transform and
+   letter-spacing inherit on their own. */
+.card-group__toggle { display: inline-flex; align-items: center; gap: var(--space-2); padding: 0; background: none; border: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.card-group__toggle:hover .card-group__label { text-decoration: underline; text-underline-offset: .25rem; }
+.card-group__toggle:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 3px; border-radius: 2px; }
+
+/* Same glyph and same open/closed rotation as `.entity-card__chevron`, one step larger (1.25rem vs
+   its 1.15rem): a section toggle that reads smaller than the card toggles inside it inverts the
+   hierarchy. Both point down at rest and flip up when open. */
+.card-group__chevron { flex-shrink: 0; font-size: 1.25rem; line-height: 1; transition: transform .2s; }
+.card-group__chevron--open { transform: rotate(180deg); }
+
+.card-group__count { font-family: var(--font-display); font-size: var(--text-xs); letter-spacing: .06em; color: color-mix(in srgb, var(--group-accent) 75%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-group__chevron { transition: none; }
+}

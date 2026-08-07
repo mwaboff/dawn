@@ -1,16 +1,7 @@
-/* Everything the six EntityCard-driven groups need beyond the global `.card-group`/
-   `.card-group__heading` chrome (shared/styles/expandable-card.css). Accent colours read the same
-   `--color-card-*` tokens EntityCard's own `--ca` derives from, so a group heading and its cards
-   always agree on hue -- see entity-card.css for why the cards themselves never use these at
-   full saturation as text. */
-.card-group__heading--class { color: var(--color-card-class); }
-.card-group__heading--subclass { color: var(--color-card-subclass); }
-.card-group__heading--ancestry { color: var(--color-card-ancestry); }
-.card-group__heading--community { color: var(--color-card-community); }
-.card-group__heading--domain { color: var(--color-card-domain); }
-
-.card-group__count { font-family: var(--font-display); font-size: var(--text-xs); letter-spacing: .06em; color: var(--color-accent-a75); }
-.card-group__count--domain { color: rgba(212,128,86,.75); }
+/* Everything the EntityCard-driven groups need beyond the global `.card-group` chrome
+   (shared/styles/expandable-card.css). Group headings, their accent colours and their count chips
+   belong to `CollapsibleCardGroup` now -- its template owns that markup, so its stylesheet owns
+   those rules. */
 
 /* The one visual change this pass makes: a single responsive grid, capped at 1440px by
    character-sheet-beta.css, replacing classic's fixed 2-column `.card-group__list--grid`. */
@@ -38,10 +29,9 @@
 .card-swap-btn--equip:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-swap-equip-text) 50%, transparent); color: var(--color-swap-equip-text); background: color-mix(in srgb, var(--color-swap-equip-text) 8%, transparent); }
 .card-swap-hint { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); font-style: italic; }
 
+/* The vault keeps its own separation from the inventory above it; its heading is a plain
+   `CollapsibleCardGroup` like every other group's. */
 .vault-section { margin-top: var(--space-11); padding-top: var(--space-9); border-top: 1px dashed rgba(212,160,86,.15); }
-.vault-header { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-5); }
-.vault-header__title { font-family: var(--font-display); font-size: .8rem; text-transform: uppercase; letter-spacing: .25em; color: var(--color-accent-a75); margin: 0; }
-.vault-header__count { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); background: rgba(212,160,86,.06); border-radius: 2px; padding: .05rem .3rem; }
 
 .refresh-focus-btn { margin-top: var(--space-3); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: rgba(212,160,86,.8); cursor: pointer; }
 .refresh-focus-btn:hover { background: rgba(212,160,86,.1); border-color: var(--color-accent); }
