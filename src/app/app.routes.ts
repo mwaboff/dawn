@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authSessionGuard } from './core/guards/auth-session.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { classicSheetGuard } from './core/guards/sheet-layout.guard';
 
 export const routes: Routes = [
   {
@@ -89,8 +90,19 @@ export const routes: Routes = [
         title: 'Level Down'
       },
       {
+        // Two routes share this path; the guard picks. `canMatch` returning false makes the router
+        // fall through to the next route rather than blocking navigation, and it runs before
+        // `loadComponent`, so a user only downloads the chunk for the sheet they actually get.
+        // Must precede the beta route -- the classic one is the guarded fall-through source, and
+        // reversing them would strand every classic user on the beta sheet.
         path: 'character/:id',
+        canMatch: [classicSheetGuard],
         loadComponent: () => import('./features/character-sheet/character-sheet').then(m => m.CharacterSheet),
+        title: 'Character Sheet'
+      },
+      {
+        path: 'character/:id',
+        loadComponent: () => import('./features/character-sheet-beta/character-sheet-beta').then(m => m.CharacterSheetBeta),
         title: 'Character Sheet'
       },
       {

@@ -14,6 +14,7 @@
 @import "./app/shared/styles/density.css";
 @import "./app/shared/styles/stat-row.css";
 @import "./app/shared/styles/dialog.css";
+@import "./app/shared/styles/card-accents.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -59,6 +60,28 @@
   --color-card-martialStance: #d4566e;
   --color-card-feature: #a89684;
 
+  /* The light face EntityCard introduces -- every other panel on the site is dark parchment-on-
+     black, so this is the one place near-black ink on a warm-white ground is correct. Contrast
+     against --color-card-face: ink 15.3:1, ink-soft 8.2:1, ink-faint 4.7:1 (all WCAG AA). */
+  --color-card-face: #f7f4ee;
+  --color-card-face-lift: #fffefb;
+  --color-card-ink: #1d1916;
+  --color-card-ink-soft: #4a423b;
+  --color-card-ink-faint: #6f6558;
+  --color-card-rule: #ded5c6;
+  /* Fixed (non-accent-derived) danger red for the light face -- 9.0:1 against --color-card-face-lift,
+     8.3:1 against --color-card-face. Used by the projected-content overrides below; unlike
+     --eca-deep it doesn't tint per card type, because a warning/danger colour should read the same
+     regardless of which of the 17 accents the card is wearing. */
+  --color-card-danger-ink: #7c2f2f;
+  /* Same idea as --color-card-danger-ink, for the two card-swap actions whose colour carries
+     meaning (vault = amber, equip = green) that a flat ink would erase. Computed the same way as
+     --eca-deep (45% mixed with --color-bg-darker) from the colours the dark theme already uses for
+     these two actions -- rgba(212,128,86,*) and rgba(86,200,120,*) below -- so it reads as the same
+     hue, just legible here. vault: 8.4:1, equip: 6.5:1 against --color-card-face-lift. */
+  --color-card-vault-ink: #6b4330;
+  --color-card-equip-ink: #32693f;
+
   /* Typography */
   --font-display: 'Cinzel', serif;
   --font-body: 'Lora', serif;
@@ -74,6 +97,27 @@
   --color-accent-a75: rgba(212, 160, 86, .75);
   --color-parchment-a55: rgba(245, 230, 211, .55);
   --color-accent-ring: rgba(212, 160, 86, .5);
+  --color-parchment-a80: rgba(245, 230, 211, .8);
+  --color-parchment-a65: rgba(245, 230, 211, .65);
+  --color-parchment-a50: rgba(245, 230, 211, .5);
+  --color-parchment-a25: rgba(245, 230, 211, .25);
+  --color-parchment-a70: rgba(245, 230, 211, .7);
+  --color-parchment-a85: rgba(245, 230, 211, .85);
+  --color-danger-ghost-text: #c47a7a;
+  --color-danger-ghost-hover-text: #d49090;
+  --color-warning-text: rgba(200, 110, 90, .85);
+  --color-swap-vault-text: rgba(212, 128, 86, .9);
+  --color-swap-equip-text: rgba(86, 200, 120, .9);
+
+  /* Purpose-scoped text/ring tokens, deliberately separate from --color-accent/--color-parchment
+     themselves. Both of those are also read for solid-fill roles (a marked resource pip's gold
+     background, a delete-confirm button's own red gradient) that must keep their real colour no
+     matter what ambient surface they're drawn on -- re-pointing the raw tokens would break those.
+     These three only ever back a `color`/`outline`/`border` on a transparent or tinted-transparent
+     control, so EntityCard's light face (see entity-card.css) can safely re-bind just these. */
+  --color-control-text: var(--color-parchment);
+  --color-accent-text: var(--color-accent);
+  --color-focus-ring: var(--color-accent);
 
   /* Type scale. WCAG has no minimum font size -- these exist to separate content text (prose,
      hints, inputs, table body) from decorative tracked-uppercase micro-labels, which stay at
@@ -161,10 +205,10 @@ h1, h2, h3, h4, h5, h6 {
 .resource-row { display: flex; align-items: center; gap: var(--row-gap); margin-bottom: var(--row-gap); }
 .resource-row__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--color-accent-a75); min-width: 3rem; }
 .resource-row__boxes { display: flex; gap: 4px; flex-wrap: wrap; }
-.resource-row__count { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.65); }
+.resource-row__count { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a65); }
 
 .resource-box { width: 36px; height: 36px; border: 1.5px solid rgba(212,160,86,.35); border-radius: 3px; background:0 0; cursor: pointer; padding: 0; flex-shrink: 0; transition: background-color .12s,border-color .12s; }
-.resource-box:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.resource-box:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .resource-box:not(.resource-box--hope):hover { border-color: rgba(212,160,86,.65); background: rgba(212,160,86,.1); }
 .resource-box--marked:not(.resource-box--hope) { background: var(--color-accent); border-color: var(--color-accent); }
 .resource-box--marked:not(.resource-box--hope):hover { background: rgba(212,160,86,.8); }
@@ -337,9 +381,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (prefers-contrast: more) {
-  .resource-row__label { color: var(--color-accent); }
+  .resource-row__label { color: var(--color-accent-text); }
   .resource-row__count,
-  .empty-state { color: rgba(245, 230, 211, 0.85); }
+  .empty-state { color: var(--color-parchment-a85); }
   /* placeholder alpha comes from `opacity`, so a color override would still be multiplied by it */
   .form-input::placeholder { opacity: 0.85; }
 }

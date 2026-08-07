@@ -40,9 +40,9 @@ describe('Preferences', () => {
     expect(heading?.textContent).toContain('Display Preferences');
   });
 
-  it('renders two fieldsets: Density and Motion', () => {
+  it('renders three fieldsets: Density, Motion, and Character sheet', () => {
     const legends = Array.from(el.querySelectorAll('legend')).map(l => l.textContent);
-    expect(legends).toEqual(['Density', 'Motion']);
+    expect(legends).toEqual(['Density', 'Motion', 'Character sheet']);
   });
 
   it('renders a note that changes are stored on this device only', () => {
@@ -113,6 +113,53 @@ describe('Preferences', () => {
       fixture.detectChanges();
 
       expect(service.motion()).toBe('reduced');
+    });
+  });
+
+  describe('sheet layout options', () => {
+    it('renders classic and beta options', () => {
+      const values = Array.from(el.querySelectorAll('input[name="sheetLayout"]')).map(
+        i => (i as HTMLInputElement).value,
+      );
+      expect(values).toEqual(['classic', 'beta']);
+    });
+
+    it('marks classic as checked by default', () => {
+      const classic = el.querySelector(
+        'input[name="sheetLayout"][value="classic"]',
+      ) as HTMLInputElement;
+      expect(classic.checked).toBe(true);
+    });
+
+    it('clicking beta calls setSheetLayout on the service', () => {
+      const service = TestBed.inject(PreferencesService);
+
+      const beta = el.querySelector(
+        'input[name="sheetLayout"][value="beta"]',
+      ) as HTMLInputElement;
+      beta.checked = true;
+      beta.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(service.sheetLayout()).toBe('beta');
+    });
+
+    it('applies the selected modifier class to the chosen option', () => {
+      component.onSheetLayoutChange('beta');
+      fixture.detectChanges();
+
+      const betaLabel = el.querySelector('input[name="sheetLayout"][value="beta"]')
+        ?.closest('label');
+      expect(betaLabel?.classList.contains('preferences-option--selected')).toBe(true);
+    });
+
+    it('states in the hint that the change applies the next time a character is opened', () => {
+      const fieldset = Array.from(el.querySelectorAll('fieldset')).find(
+        f => f.querySelector('legend')?.textContent === 'Character sheet',
+      );
+      expect(fieldset?.querySelector('.preferences-hint')?.textContent).toContain(
+        'next time you open a character',
+      );
     });
   });
 });

@@ -1,0 +1,30 @@
+/* The gap between groups lives on the host, not on .card-group -- see transformation-panel.css. */
+:host { display: block; margin-bottom: 1.25rem; }
+:host(:last-child) { margin-bottom: 0; }
+
+/* .card-group chrome and .btn are global; only the transformation accent and the panel's own
+   controls (Feed tokens, Wolf Form, picker, empty state) are specific to this panel. */
+.card-group__heading--transformation { color: var(--color-card-transformationCard); }
+
+.feed-tokens { display: flex; flex-direction: column; gap: var(--space-2); }
+.feed-tokens__stepper { display: flex; align-items: center; gap: var(--space-3); }
+.feed-tokens__btn { width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(212,160,86,.35); background: transparent; color: var(--color-accent-text); cursor: pointer; }
+.feed-tokens__btn:hover:not(:disabled) { background: rgba(212,160,86,.12); }
+.feed-tokens__btn:disabled { opacity: .35; cursor: not-allowed; }
+.feed-tokens__value { font-weight: 700; color: var(--color-control-text); min-width: 3.5rem; text-align: center; }
+.feed-tokens__warning { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-warning-text); margin: 0; }
+
+.wolf-form-toggle { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: var(--color-accent-a75); cursor: pointer; }
+.wolf-form-toggle--active { background: var(--color-accent); border-color: var(--color-accent); color: #1a1412; }
+.wolf-form-toggle:disabled { opacity: .4; cursor: not-allowed; }
+
+.transformation-actions { display: flex; gap: var(--space-2); }
+
+.transformation-empty { display: flex; flex-direction: column; gap: .6rem; padding: var(--space-5); border: 1px dashed rgba(212,160,86,.2); border-radius: 4px; }
+.transformation-empty__copy { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.6); font-style: italic; margin: 0; }
+
+.transformation-picker { margin-top: 1rem; padding-top: .85rem; border-top: 1px dashed rgba(212,160,86,.15); }
+.transformation-picker__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.transformation-picker__heading { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .15em; color: var(--color-accent-a75); margin: 0; }
+.transformation-picker__close { background: none; border: none; font-size: 1.1rem; line-height: 1; color: rgba(212,160,86,.7); cursor: pointer; }
+.transformation-picker__close:hover { color: var(--color-accent); }

@@ -1,0 +1,667 @@
+<div class="sheet-page">
+  @if (loading()) {
+    <div class="sheet-loading" role="status" aria-live="polite">
+      <p class="loading-text">Loading character sheet...</p>
+    </div>
+  } @else if (error()) {
+    <div class="sheet-error" role="alert">
+      <h1 class="error-title">Character Not Found</h1>
+      <p class="error-message">This character sheet could not be loaded.</p>
+    </div>
+  } @else if (characterSheet(); as sheet) {
+    <header class="sheet-header">
+      <div class="sheet-header__identity">
+        <div class="sheet-header__name-row">
+          <h1 class="sheet-name">{{ sheet.name }}</h1>
+          @if (sheet.pronouns) {
+            <span class="sheet-pronouns">{{ sheet.pronouns }}</span>
+          }
+        </div>
+        @if (sheet.ownerName) {
+          <a class="sheet-owner" [routerLink]="['/profile', sheet.ownerId]">by {{ sheet.ownerName }}</a>
+        }
+        @if (sheet.classEntries.length > 0) {
+          <p class="sheet-class">
+            @for (entry of sheet.classEntries; track entry.className; let last = $last) {
+              <span class="sheet-class__entry">
+                <span class="sheet-class__name">{{ entry.className }}</span>
+                @if (entry.subclassName) {
+                  <span class="sheet-class__sep" aria-hidden="true"> · </span>
+                  <span class="sheet-class__subclass">{{ entry.subclassName }}</span>
+                }
+              </span>
+              @if (!last) {
+                <span class="sheet-class__divider" aria-hidden="true"> / </span>
+              }
+            }
+          </p>
+        }
+      </div>
+      <div class="sheet-header__stats">
+        <div class="level-badge" [class.level-badge--can-level]="canLevelUp() || canLevelDown()">
+          <span class="level-badge__label">Lvl</span>
+          <span class="level-badge__value">{{ sheet.level }}</span>
+          @if (canLevelUp()) {
+            <a class="level-up-btn" [routerLink]="['/character', sheet.id, 'level-up']">Level+</a>
+          }
+          @if (canLevelDown()) {
+            <a class="level-down-btn" [routerLink]="['/character', sheet.id, 'level-down']">Level-</a>
+          }
+        </div>
+        <div class="shield">
+          <span class="shield__label">Evasion</span>
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.evasion.hasModifier">{{ sheet.evasion.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.evasion" statLabel="Evasion" />
+          </span>
+        </div>
+        <div class="shield">
+          <span class="shield__label">Armor</span>
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.armorScore" statLabel="Armor score" />
+          </span>
+        </div>
+        <div class="shield">
+          <span class="shield__label">Prof</span>
+          <span class="shield__value-row">
+            <span class="shield__value" [class.shield__value--modified]="sheet.proficiency.hasModifier">{{ sheet.proficiency.modified }}</span>
+            <app-modifier-indicator [stat]="sheet.proficiency" statLabel="Proficiency" />
+          </span>
+        </div>
+        @if (showBrawlerResources()) {
+          <div class="shield">
+            <span class="shield__label">Combo</span>
+            <span class="shield__value-row">
+              <span class="shield__value">{{ comboDie() | lowercase }}</span>
+            </span>
+          </div>
+        }
+        @if (showWarlockResources()) {
+          <div class="shield">
+            <span class="shield__label">Patron</span>
+            <span class="shield__value-row">
+              <span class="shield__value">{{ patronDie() | lowercase }}</span>
+            </span>
+          </div>
+        }
+      </div>
+    </header>
+
+    <section class="traits-section" aria-label="Traits">
+      <div class="traits-row">
+        @for (trait of sheet.traits; track trait.name) {
+          <div class="trait-badge"
+               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier.modified) + (trait.marked ? ', marked' : '')">
+            <span class="trait-badge__indicator">
+              <app-modifier-indicator [stat]="trait.modifier" [statLabel]="trait.name" />
+            </span>
+            <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
+            <span class="trait-badge__modifier" [class.trait-badge__modifier--modified]="trait.modifier.hasModifier" aria-hidden="true">{{ formatModifier(trait.modifier.modified) }}</span>
+            @if (trait.marked) {
+              <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
+            }
+            <div class="trait-badge__subskills" aria-hidden="true">
+              @for (skill of getSubSkills(trait.name); track skill) {
+                <span class="trait-badge__subskill">{{ skill }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="sheet-columns">
+      <div class="column-left">
+        <div class="panel">
+          <h2 class="panel__title">Health @if (isSavingHealth()) { <app-saving-spinner /> }</h2>
+
+          <div class="damage-bar">
+            <div class="damage-zone damage-zone--minor">
+              <span class="damage-zone__label">Minor</span>
+            </div>
+            <div class="damage-marker">
+              <span class="damage-marker__value">{{ sheet.majorDamageThreshold.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.majorDamageThreshold" statLabel="Major damage threshold" />
+            </div>
+            <div class="damage-zone damage-zone--major">
+              <span class="damage-zone__label">Major</span>
+            </div>
+            <div class="damage-marker">
+              <span class="damage-marker__value">{{ sheet.severeDamageThreshold.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.severeDamageThreshold" statLabel="Severe damage threshold" />
+            </div>
+            <div class="damage-zone damage-zone--severe">
+              <span class="damage-zone__label">Severe</span>
+            </div>
+          </div>
+
+          <app-resource-tracker
+            [max]="sheet.hitPointMax.modified"
+            [marked]="markedHp()"
+            label="HP"
+            idPrefix="hp"
+            (markedChange)="setResourceMarked('hp', $event)"
+          >
+            <app-modifier-indicator [stat]="sheet.hitPointMax" statLabel="Hit Points max" />
+          </app-resource-tracker>
+
+          <app-resource-tracker
+            [max]="sheet.armorScore.modified"
+            [marked]="markedArmor()"
+            label="Armor"
+            idPrefix="armor"
+            (markedChange)="setResourceMarked('armor', $event)"
+          />
+        </div>
+
+        <div class="panel panel--hope-stress">
+          <h2 class="panel__title panel__title--hope-stress">Hope & Stress @if (isSavingHopeStress()) { <app-saving-spinner /> }</h2>
+
+          <div class="hope-stress-grid">
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--hope">Hope</span>
+              <app-resource-tracker
+                [max]="sheet.hopeMax.modified"
+                [marked]="markedHope()"
+                [bonusCount]="companionGrantedHopeSlots()"
+                bonusLabel="from companion"
+                variant="hope"
+                ariaLabel="Hope"
+                idPrefix="hope"
+                (markedChange)="setResourceMarked('hope', $event)"
+              >
+                <app-modifier-indicator [stat]="sheet.hopeMax" statLabel="Hope max" />
+              </app-resource-tracker>
+            </div>
+
+            <div class="hope-stress-divider" aria-hidden="true"></div>
+
+            <div class="hope-stress-track">
+              <span class="hope-stress-track__label hope-stress-track__label--stress">Stress</span>
+              <app-resource-tracker
+                [max]="sheet.stressMax.modified"
+                [marked]="markedStress()"
+                variant="stress"
+                ariaLabel="Stress"
+                idPrefix="stress"
+                (markedChange)="setResourceMarked('stress', $event)"
+              >
+                <app-modifier-indicator [stat]="sheet.stressMax" statLabel="Stress max" />
+              </app-resource-tracker>
+            </div>
+          </div>
+        </div>
+
+        @if (showMartialStances()) {
+          <div class="panel">
+            <h2 class="panel__title">Focus @if (isSavingFocus()) { <app-saving-spinner /> }</h2>
+            <app-resource-tracker
+              [max]="focusMax()"
+              [marked]="markedFocus()"
+              label="Focus"
+              idPrefix="focus"
+              (markedChange)="setResourceMarked('focus', $event)"
+            />
+            @if (isOwner()) {
+              <button type="button" class="refresh-focus-btn" (click)="refreshFocus()">Refresh Focus</button>
+              @if (lastFocusRoll(); as roll) {
+                <p class="refresh-focus-result">Rolled highest of {{ roll }} — Focus set to {{ markedFocus() }}.</p>
+              }
+            }
+          </div>
+        }
+
+        @if (showWarlockResources()) {
+          <div class="panel">
+            <h2 class="panel__title">Favor @if (isSavingFavor()) { <app-saving-spinner /> }</h2>
+            <div class="favor-counter" aria-live="polite">
+              <button type="button" class="favor-btn" (click)="adjustFavor(-1)" [disabled]="!isOwner()" aria-label="Remove 1 Favor">&#8722;</button>
+              <span class="favor-counter__value">{{ currentFavor() }}</span>
+              <button type="button" class="favor-btn" (click)="adjustFavor(1)" [disabled]="!isOwner()" aria-label="Add 1 Favor">+</button>
+            </div>
+          </div>
+        }
+
+        @if (sheet.experiences.length > 0) {
+          <div class="panel">
+            <h2 class="panel__title">Experiences</h2>
+            @for (exp of sheet.experiences; track exp.id) {
+              <div class="experience-item">
+                <span class="experience-item__modifier">{{ formatModifier(exp.modifier) }}</span>
+                <span class="experience-item__description" [innerHTML]="exp.description | formatText"></span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="column-right">
+        <div class="panel">
+          <h2 class="panel__title">Equipped Weapons</h2>
+          @if (sheet.activePrimaryWeapon) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activePrimaryWeapon.name }}</span>
+                <span class="equipment-card__badge">Primary</span>
+              </div>
+              <div class="equipment-card__stats">
+                @if (sheet.activePrimaryWeapon.damage) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.damage }}</span>
+                }
+                @if (sheet.activePrimaryWeapon.trait) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.trait }}</span>
+                }
+                @if (sheet.activePrimaryWeapon.range) {
+                  <span class="equip-stat">{{ sheet.activePrimaryWeapon.range }}</span>
+                }
+                @if (sheet.activePrimaryWeapon.burden) {
+                  @switch (sheet.activePrimaryWeapon.burden) {
+                    @case ('TWO_HANDED') {
+                      <span class="equip-stat equip-stat--burden" title="Two-Handed">
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                        <span class="sr-only">Two-Handed</span>
+                      </span>
+                    }
+                    @default {
+                      <span class="equip-stat equip-stat--burden" title="One-Handed">
+                        <svg class="burden-hand" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M7 2c-.6 0-1 .4-1 1v8.5L4.8 10.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4l3.5 3.5c.2.2.4.3.6.4v3.9c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-3.2c1.2-.7 2-2 2-3.5V5c0-.6-.4-1-1-1s-1 .4-1 1v4h-1V4c0-.6-.4-1-1-1s-1 .4-1 1v5h-1V3c0-.6-.4-1-1-1s-1 .4-1 1v6H9V4c0-.6-.4-1-1-1z"/>
+                        </svg>
+                        <span class="sr-only">One-Handed</span>
+                      </span>
+                    }
+                  }
+                }
+              </div>
+              @if (sheet.activePrimaryWeapon.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activePrimaryWeapon.features; track $index) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                      @if (feature.tags.length > 0) {
+                        <div class="feature-row__tags">
+                          @for (tag of feature.tags; track tag) {
+                            <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (sheet.activeSecondaryWeapon) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activeSecondaryWeapon.name }}</span>
+                <span class="equipment-card__badge">Secondary</span>
+              </div>
+              <div class="equipment-card__stats">
+                @if (sheet.activeSecondaryWeapon.damage) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.damage }}</span>
+                }
+                @if (sheet.activeSecondaryWeapon.trait) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.trait }}</span>
+                }
+                @if (sheet.activeSecondaryWeapon.range) {
+                  <span class="equip-stat">{{ sheet.activeSecondaryWeapon.range }}</span>
+                }
+              </div>
+              @if (sheet.activeSecondaryWeapon.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activeSecondaryWeapon.features; track $index) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (!sheet.activePrimaryWeapon && !sheet.activeSecondaryWeapon) {
+            <p class="empty-state">No weapons equipped.</p>
+          }
+        </div>
+
+        <div class="panel">
+          <h2 class="panel__title">Equipped Armor</h2>
+          @if (sheet.activeArmor) {
+            <div class="equipment-card">
+              <div class="equipment-card__header">
+                <span class="equipment-card__name">{{ sheet.activeArmor.name }}</span>
+              </div>
+              <div class="equipment-card__stats">
+                <span class="equip-stat">Score: {{ sheet.activeArmor.baseScore }}</span>
+                <span class="equip-stat">Major: {{ sheet.activeArmor.baseMajorThreshold }}</span>
+                <span class="equip-stat">Severe: {{ sheet.activeArmor.baseSevereThreshold }}</span>
+              </div>
+              @if (sheet.activeArmor.features.length > 0) {
+                <div class="equipment-card__features">
+                  @for (feature of sheet.activeArmor.features; track $index) {
+                    <div>
+                      @if (feature.name) {
+                        <strong class="feature-row__name">{{ feature.name }}</strong>
+                      }
+                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                      @if (feature.tags.length > 0) {
+                        <div class="feature-row__tags">
+                          @for (tag of feature.tags; track tag) {
+                            <span class="feature-tag">{{ tag }}</span>
+                          }
+                        </div>
+                      }
+                      @if (feature.modifiers.length > 0) {
+                        <div class="feature-row__modifiers">
+                          @for (mod of feature.modifiers; track mod.label) {
+                            <span class="modifier-badge" [class.modifier-badge--negative]="mod.value < 0">
+                              {{ mod.label }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-state">No armor equipped.</p>
+          }
+        </div>
+
+        <div class="panel">
+          <h2 class="panel__title">Gold @if (isSavingGold()) { <app-saving-spinner /> }</h2>
+          <div class="gold-total" aria-live="polite">
+            <span class="gold-total__icon" aria-hidden="true">&#9733;</span>
+            <span class="gold-total__value" [class.gold-total__value--negative]="currentGold() < 0">{{ currentGold() }}</span>
+            <span class="gold-total__label">gold</span>
+          </div>
+          <div class="gold-controls" role="group" aria-label="Adjust gold">
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-1)" aria-label="Remove 1 gold (handful)">&#8722;</button>
+              <span class="gold-denomination__label">Handful<span class="gold-denomination__value">(1)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(1)" aria-label="Add 1 gold (handful)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-10)" aria-label="Remove 10 gold (bag)">&#8722;</button>
+              <span class="gold-denomination__label">Bag<span class="gold-denomination__value">(10)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(10)" aria-label="Add 10 gold (bag)">+</button>
+            </div>
+            <div class="gold-denomination">
+              <button class="gold-btn gold-btn--subtract" (click)="adjustGold(-100)" aria-label="Remove 100 gold (chest)">&#8722;</button>
+              <span class="gold-denomination__label">Chest<span class="gold-denomination__value">(100)</span></span>
+              <button class="gold-btn gold-btn--add" (click)="adjustGold(100)" aria-label="Add 100 gold (chest)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="cards-section" aria-label="Cards">
+      @if (classCardEntities().length > 0) {
+        <div class="card-group">
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--class">Class</h3>
+          </div>
+          <div class="entity-card-grid">
+            @for (card of classCardEntities(); track card.id) {
+              <app-entity-card [card]="card" [headingLevel]="4" />
+            }
+          </div>
+        </div>
+      }
+
+      @if (subclassCardEntities().length > 0) {
+        <div class="card-group">
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
+          </div>
+          <div class="entity-card-grid">
+            @for (card of subclassCardEntities(); track card.id) {
+              <app-entity-card [card]="card" [headingLevel]="4" />
+            }
+          </div>
+        </div>
+      }
+
+      @if (ancestryCardEntities().length > 0) {
+        <div class="card-group">
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
+          </div>
+          <div class="entity-card-grid">
+            @for (card of ancestryCardEntities(); track card.id) {
+              <app-entity-card [card]="card" [headingLevel]="4" />
+            }
+          </div>
+        </div>
+      }
+
+      @if (communityCardEntities().length > 0) {
+        <div class="card-group">
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--community">Community</h3>
+          </div>
+          <div class="entity-card-grid">
+            @for (card of communityCardEntities(); track card.id) {
+              <app-entity-card [card]="card" [headingLevel]="4" />
+            }
+          </div>
+        </div>
+      }
+
+      @if (showBeastforms()) {
+        <app-beastform-section-beta [characterLevel]="sheet.level" />
+      }
+
+      @if (showMartialStances()) {
+        <app-martial-stance-panel-beta
+          [knownStances]="knownMartialStances()"
+          [activeStanceId]="activeMartialStanceId()"
+          [focusMarked]="markedFocus()"
+          [canAct]="isOwner()"
+          [actionInFlight]="hfActionInFlight()"
+          (activateStance)="onActivateMartialStance($event)"
+          (clearStance)="onClearMartialStance()"
+        />
+      }
+
+      @if (transformationEnabled()) {
+        <app-transformation-panel-beta
+          [card]="transformationCard()"
+          [catalog]="transformationCatalog()"
+          [catalogLoading]="transformationCatalogLoading()"
+          [catalogError]="transformationCatalogError()"
+          [isOwner]="isOwner()"
+          [tokens]="transformationTokens()"
+          [wolfFormActive]="wolfFormActive()"
+          [canAct]="isOwner() && !hfActionInFlight()"
+          (tokensChange)="onTransformationTokensChange($event)"
+          (wolfFormToggle)="onWolfFormToggle($event)"
+          (cardSelected)="onTransformationSelected($event)"
+          (cardRemoved)="onTransformationRemoved()"
+        />
+      }
+
+      @if (showCompanionsSection()) {
+        <app-companion-panel-beta
+          [companions]="companions()"
+          [proficiency]="sheet.proficiency.modified"
+          [characterSheetId]="sheet.id"
+          [canManage]="canManageCompanions()"
+          [canCreate]="canAddCompanion()"
+          [saving]="companionActionInFlight()"
+          [armorAvailable]="companionArmorAvailable()"
+          [errorMessage]="companionError()"
+          [classFeatureReminders]="companionFeatureReminders()"
+          (companionCreated)="onCompanionCreated($event)"
+          (companionUpdated)="onCompanionUpdated($event)"
+          (companionDeleted)="onCompanionDeleted($event)"
+          (companionStressChanged)="onCompanionStressChanged($event)"
+          (markArmorInstead)="onCompanionMarkArmorInstead()"
+          (dismissError)="onDismissCompanionError()"
+        />
+      }
+
+      @if (equippedDomainCardEntries().length > 0) {
+        <div class="card-group">
+          <div class="card-group__heading-row">
+            <h3 class="card-group__heading card-group__heading--domain">Equipped Domain Cards</h3>
+            <span class="card-group__count card-group__count--domain">{{ sheet.equippedDomainCards.length }}/{{ sheet.maxEquippedDomainCards }}</span>
+          </div>
+          <div class="entity-card-grid">
+            @for (entry of equippedDomainCardEntries(); track entry.cardId) {
+              <app-entity-card [card]="entry.card" [headingLevel]="4">
+                @if (isOwner()) {
+                  <div card-actions class="card-swap-action">
+                    <button type="button" class="card-swap-btn card-swap-btn--vault" (click)="onVaultCard(entry.cardId)" [attr.aria-label]="'Move ' + entry.card.name + ' to vault'">
+                      <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Vault
+                    </button>
+                  </div>
+                }
+              </app-entity-card>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <section class="inventory-section" aria-label="Inventory">
+      <app-inventory-section
+        [weapons]="sheet.inventoryWeapons"
+        [armors]="sheet.inventoryArmors"
+        [items]="sheet.inventoryItems"
+        [isOwner]="isOwner()"
+        [activePrimaryWeapon]="sheet.activePrimaryWeapon"
+        [activeSecondaryWeapon]="sheet.activeSecondaryWeapon"
+        [activeArmor]="sheet.activeArmor"
+        [weaponConstraints]="weaponConstraints()"
+        [canEquipArmorSlot]="canEquipArmor()"
+        [errorMessage]="inventoryError()"
+        [currentUserId]="currentUserId()"
+        (addItem)="onAddInventoryItem($event)"
+        (createItem)="setCreatingItemKind($event)"
+        (editItem)="onEditInventoryItem($event)"
+        (removeItem)="onRemoveInventoryItem($event)"
+        (equipWeapon)="onEquipWeapon($event)"
+        (unequipWeapon)="onUnequipWeapon($event.slot)"
+        (equipArmor)="onEquipArmor($event)"
+        (unequipArmor)="onUnequipArmor()"
+        (dismissError)="onDismissInventoryError()" />
+    </section>
+
+    @if (vaultDomainCardEntries().length > 0) {
+      <section class="vault-section" aria-label="Domain Card Vault">
+        <div class="vault-header">
+          <h3 class="vault-header__title">Domain Card Vault</h3>
+          <span class="vault-header__count">{{ sheet.vaultDomainCards.length }}</span>
+        </div>
+        <div class="entity-card-grid">
+          @for (entry of vaultDomainCardEntries(); track entry.cardId) {
+            <app-entity-card [card]="entry.card" [headingLevel]="4" [muted]="true">
+              @if (isOwner()) {
+                <div card-actions class="card-swap-action">
+                  <button type="button" class="card-swap-btn card-swap-btn--equip"
+                          [disabled]="!canEquipCard()"
+                          (click)="onEquipCard(entry.cardId)"
+                          [attr.aria-label]="'Equip ' + entry.card.name">
+                    <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
+                  </button>
+                  @if (!canEquipCard()) {
+                    <span class="card-swap-hint">Equipped slots full</span>
+                  }
+                </div>
+              }
+            </app-entity-card>
+          }
+        </div>
+      </section>
+    }
+    @if (canAccessNotes()) {
+      <section class="notes-section panel" aria-label="Character notes">
+        <button
+          type="button"
+          class="notes-toggle"
+          [attr.aria-expanded]="notesExpanded()"
+          aria-controls="notes-body"
+          (click)="toggleNotesExpanded()"
+        >
+          <h2 class="panel__title notes-title">
+            <span class="notes-title__label">Notes</span>
+            @if (isSavingNotes()) {
+              <app-saving-spinner />
+            } @else if (notesSavedAt() !== null) {
+              <span class="notes-status notes-status--saved" aria-live="polite">
+                <svg class="notes-status__icon" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Saved
+              </span>
+            }
+          </h2>
+          <span class="notes-chevron" [class.is-open]="notesExpanded()" aria-hidden="true">⌄</span>
+        </button>
+
+        @if (notesExpanded()) {
+          <div id="notes-body" class="notes-body">
+            <textarea
+              class="notes-textarea"
+              [value]="currentNotes()"
+              (input)="onNotesInput($event)"
+              maxlength="10000"
+              rows="10"
+              placeholder="Backstory, session notes, GM hints… (only you and game admins can see this)"
+              aria-label="Free-form character notes"
+            ></textarea>
+            <div class="notes-meta">
+              <span
+                class="notes-count"
+                [class.is-warning]="notesCharCount() >= 9500"
+                [class.is-danger]="notesCharCount() >= 9900"
+              >{{ notesCharCount() | number }} / 10,000</span>
+            </div>
+          </div>
+        }
+      </section>
+    }
+    <app-dice-roller />
+
+    @if (creatingItemKind(); as kind) {
+      <app-item-create-modal
+        [kind]="kind"
+        (created)="onCustomItemCreated($event)"
+        (dismissed)="setCreatingItemKind(null)" />
+    }
+  }
+</div>

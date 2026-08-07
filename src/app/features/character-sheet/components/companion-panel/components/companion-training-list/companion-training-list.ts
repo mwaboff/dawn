@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CompanionTrainingApiResponse } from '../../../../../../shared/models/companion-api.model';
-import { COMPANION_TRAINING_LABELS } from './companion-training-list.model';
+import { COMPANION_TRAINING_LABELS, VICIOUS_AXIS_LABELS } from './companion-training-list.model';
 
 /**
  * Read-only record of the Training options a companion has already taken.
@@ -20,4 +20,5 @@ export class CompanionTrainingList {
   readonly trainings = input.required<CompanionTrainingApiResponse[]>();
 
   readonly trainingLabels = COMPANION_TRAINING_LABELS;
+  readonly axisLabels = VICIOUS_AXIS_LABELS;
 }

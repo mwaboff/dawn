@@ -1,25 +1,8 @@
-/* Each type sets only its accent; the border and glow tints are derived so a colour is defined in
-   exactly one place. The accents themselves live in styles.css as --color-card-* tokens, shared
-   with the character sheet's grouped sections. A card type with no rule here renders with the
-   inherited parchment text and no accent, which is what left beastforms looking white. */
-.card--type-class { --ca: var(--color-card-class); }
-.card--type-subclass { --ca: var(--color-card-subclass); }
-.card--type-subclassPath { --ca: var(--color-card-subclassPath); }
-.card--type-heritage { --ca: var(--color-card-heritage); }
-.card--type-ancestry { --ca: var(--color-card-ancestry); }
-.card--type-community { --ca: var(--color-card-community); }
-.card--type-domain { --ca: var(--color-card-domain); }
-.card--type-domainCard { --ca: var(--color-card-domainCard); }
-.card--type-weapon { --ca: var(--color-card-weapon); }
-.card--type-armor { --ca: var(--color-card-armor); }
-.card--type-loot { --ca: var(--color-card-loot); }
-.card--type-companion { --ca: var(--color-card-companion); }
-.card--type-beastform { --ca: var(--color-card-beastform); }
-.card--type-environment { --ca: var(--color-card-environment); }
-.card--type-feature { --ca: var(--color-card-feature); }
-.card--type-transformationCard { --ca: var(--color-card-transformationCard); }
-.card--type-martialStance { --ca: var(--color-card-martialStance); }
-
+/* --ca itself comes from the shared `[data-card-type]` map in
+   src/app/shared/styles/card-accents.css (imported globally by styles.css) -- this file only
+   derives the border and glow tints from it, so a card type's colour is defined in exactly one
+   place. A card type with no rule in card-accents.css renders with the inherited parchment text
+   and no accent, which is what left beastforms looking white. */
 .card {
   --cd: color-mix(in srgb, var(--ca) 30%, transparent);
   --cg: color-mix(in srgb, var(--ca) 15%, transparent);

@@ -1,0 +1,107 @@
+<!-- Shared between the button and div branches below, so the disclosure header markup exists once
+     -- see .agents/rules/component-design.md on never duplicating a template block across branches. -->
+<ng-template #headerContent>
+  <span class="entity-card__tab">{{ typeLabel() }}</span>
+  <span class="entity-card__title">
+    <span class="entity-card__name">{{ card().name }}</span>
+    @if (displaySize() === 'compact') {
+      @if (card().headline) {
+        <span class="entity-card__headline">{{ card().headline }}</span>
+      }
+    } @else if (card().subtitle) {
+      <span class="entity-card__subtitle">{{ card().subtitle }}</span>
+    }
+  </span>
+  @if (displaySize() !== 'compact' && card().badges?.length) {
+    <span class="entity-card__badges">
+      @for (badge of card().badges; track badge.label) {
+        <span class="entity-card__badge">{{ badge.value ? badge.label + ': ' + badge.value : badge.label }}</span>
+      }
+    </span>
+  }
+  @if (showToggle()) {
+    <span
+      class="entity-card__chevron"
+      [class.entity-card__chevron--open]="displaySize() === 'expanded'"
+      aria-hidden="true"
+    >&#8964;</span>
+  }
+</ng-template>
+
+<div role="heading" [attr.aria-level]="headingLevel()" class="entity-card__heading">
+  @if (showToggle()) {
+    <button
+      type="button"
+      class="entity-card__header entity-card__header--interactive"
+      [attr.aria-expanded]="displaySize() === 'expanded'"
+      [attr.aria-controls]="bodyId()"
+      [attr.aria-label]="toggleLabel() + ' ' + card().name"
+      (click)="toggle()"
+    >
+      <ng-container [ngTemplateOutlet]="headerContent" />
+    </button>
+  } @else {
+    <div class="entity-card__header">
+      <ng-container [ngTemplateOutlet]="headerContent" />
+    </div>
+  }
+</div>
+
+<div
+  #clip
+  [id]="bodyId()"
+  class="entity-card__clip"
+  [class.entity-card__clip--expanded]="displaySize() === 'expanded'"
+  [attr.tabindex]="displaySize() === 'expanded' ? 0 : null"
+  [attr.role]="displaySize() === 'expanded' ? 'group' : null"
+  [attr.aria-label]="displaySize() === 'expanded' ? card().name + ' details' : null"
+>
+  @if (displaySize() !== 'compact') {
+    <div class="entity-card__body">
+      @if (card().meta?.length) {
+        <div class="entity-card__meta">
+          @for (item of card().meta; track item.label) {
+            <p class="entity-card__meta-row">{{ item.value ? item.label + ': ' + item.value : item.label }}</p>
+          }
+        </div>
+      }
+      @if (card().description) {
+        <p class="entity-card__description" [innerHTML]="card().description | formatText"></p>
+      }
+      @if (card().features?.length) {
+        <div class="entity-card__features">
+          @for (feature of card().features; track $index) {
+            <div class="entity-card__feature">
+              @if (feature.name) {
+                <span class="entity-card__feature-name">{{ feature.name }}</span>
+              }
+              <p class="entity-card__feature-description" [innerHTML]="feature.description | formatText"></p>
+              @if (feature.tags?.length || feature.modifiers?.length) {
+                <div class="entity-card__feature-tags">
+                  @for (tag of feature.tags; track tag) {
+                    <span class="entity-card__tag">{{ tag }}</span>
+                  }
+                  @for (modifier of feature.modifiers; track modifier.label) {
+                    <span class="entity-card__tag">{{
+                      (modifier.value > 0 ? '+' + modifier.value : modifier.value) + ' ' + modifier.label
+                    }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+    @if (displaySize() === 'normal' && overflows()) {
+      <div class="entity-card__fade" aria-hidden="true"></div>
+    }
+  }
+</div>
+
+<div class="entity-card__controls">
+  <ng-content select="[card-controls]" />
+</div>
+<div class="entity-card__actions">
+  <ng-content select="[card-actions]" />
+</div>

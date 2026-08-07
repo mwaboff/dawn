@@ -1,4 +1,4 @@
-import { CompanionTrainingOption } from '../../../../../../shared/models/companion-api.model';
+import { CompanionTrainingOption, ViciousAxis } from '../../../../../../shared/models/companion-api.model';
 
 export interface CompanionTrainingOptionMeta {
   option: CompanionTrainingOption;
@@ -28,3 +28,10 @@ export const COMPANION_TRAINING_OPTIONS: readonly CompanionTrainingOptionMeta[] 
 
 export const COMPANION_TRAINING_LABELS: Readonly<Record<CompanionTrainingOption, string>> =
   Object.fromEntries(COMPANION_TRAINING_OPTIONS.map(o => [o.option, o.label])) as Record<CompanionTrainingOption, string>;
+
+/** Suffix shown after `Vicious`'s taken-Training label, naming which of the two steps
+ * (`core-01:1355`, "Increase your companion's damage dice or range by one step") it applies to. */
+export const VICIOUS_AXIS_LABELS: Readonly<Record<ViciousAxis, string>> = {
+  DAMAGE_DIE: 'Damage Die',
+  RANGE: 'Range',
+};

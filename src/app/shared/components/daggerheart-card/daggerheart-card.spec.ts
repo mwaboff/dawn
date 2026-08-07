@@ -127,9 +127,9 @@ describe('DaggerheartCard', () => {
     expect(badge.textContent.trim()).toBe('Class');
   });
 
-  it('should apply the card type class', () => {
+  it('should apply the card type attribute', () => {
     const card = fixture.nativeElement.querySelector('.card');
-    expect(card.classList.contains('card--type-class')).toBe(true);
+    expect(card.getAttribute('data-card-type')).toBe('class');
   });
 
   it('should apply selected class when selected', () => {
@@ -540,11 +540,11 @@ describe('DaggerheartCard', () => {
   });
 
   describe('card type accents', () => {
-    it('should apply the type class the accent variants key off', () => {
+    it('should apply the data-card-type attribute the accent map keys off', () => {
       host.card.set({ ...MOCK_CARD, cardType: 'transformationCard' });
       fixture.detectChanges();
 
-      expect(fixture.nativeElement.querySelector('.card--type-transformationCard')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('[data-card-type="transformationCard"]')).toBeTruthy();
     });
   });
 });

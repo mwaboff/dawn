@@ -63,5 +63,33 @@
         }
       </div>
     </fieldset>
+
+    <fieldset class="preferences-fieldset">
+      <legend class="preferences-legend">Character sheet</legend>
+      <p class="preferences-hint">
+        Choose which character sheet layout to use. This applies the next time you open a
+        character — it won't change the sheet you're currently viewing.
+      </p>
+
+      <div class="preferences-options">
+        @for (option of sheetLayoutOptions; track option.value) {
+          <label
+            class="preferences-option"
+            [class.preferences-option--selected]="sheetLayout() === option.value"
+          >
+            <input
+              type="radio"
+              name="sheetLayout"
+              class="sr-only"
+              [value]="option.value"
+              [checked]="sheetLayout() === option.value"
+              (change)="onSheetLayoutChange(option.value)"
+            />
+            <span class="preferences-option__label">{{ option.label }}</span>
+            <span class="preferences-option__desc">{{ option.description }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
   </form>
 </div>

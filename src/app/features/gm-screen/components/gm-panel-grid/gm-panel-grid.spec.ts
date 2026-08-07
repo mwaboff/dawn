@@ -7,7 +7,7 @@ import { GmPanelDef } from '../../models/gm-panel.model';
 import {
   ResizeObserverStubHandle,
   installResizeObserverStub,
-} from '../../layout/testing/resize-observer.stub';
+} from '../../../../shared/testing/resize-observer.stub';
 
 @Component({ selector: 'app-fear-panel', template: '<span class="fear-marker">FEAR</span>' })
 class FearPanel {}

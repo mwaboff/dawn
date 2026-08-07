@@ -1,0 +1,53 @@
+/* The gap between groups lives on the host, not on .card-group -- see companion-panel.css for why
+   (.card-group:last-child would zero out the previous group's margin too). */
+:host { display: block; margin-bottom: 1.25rem; }
+:host(:last-child) { margin-bottom: 0; }
+
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only
+   the companion accent and this panel's own unique markup live here -- view encapsulation means
+   classic CompanionPanel's copy of these same rules can't reach this component. */
+.card-group__heading--companion { color: var(--color-card-companion); }
+
+.companion-panel-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: rgba(200,110,90,.9);
+  background: rgba(160,50,50,.08);
+  border: 1px solid rgba(160,50,50,.25);
+  border-radius: 4px;
+  padding: var(--space-3) var(--space-5);
+  margin: 0 0 var(--space-5);
+}
+
+.companion-panel-error__dismiss {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.companion-add-btn {
+  margin-top: var(--space-5);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: .4rem var(--space-6);
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--color-card-companion) 45%, transparent);
+  background: transparent;
+  color: var(--color-card-companion);
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s;
+}
+.companion-add-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-card-companion) 12%, transparent); border-color: var(--color-card-companion); }
+.companion-add-btn:disabled { opacity: .4; cursor: not-allowed; }

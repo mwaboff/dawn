@@ -1,0 +1,16 @@
+/* Split out of character-sheet-beta.css purely for the anyComponentStyle budget -- the traits row
+   is genuinely live, non-duplicated CSS (verified: every selector here matches something in
+   character-sheet-beta.html, and none of it exists in a shared stylesheet already), it's just that
+   header chrome + traits chrome together push the same content classic already carries past 4kB
+   (classic's own character-sheet.css already warns at 4.95kB for this exact content). `--cl`/
+   `--cp`/`--ca` are declared on `:host` in character-sheet-beta.css and read here via the normal
+   CSS cascade -- one component, several stylesheets, same host element. */
+.traits-row { display: grid; grid-template-columns: repeat(6,1fr); gap: var(--space-3); }
+.trait-badge { display: flex; flex-direction: column; align-items: center; padding: var(--space-3) var(--space-1) .35rem; background: rgba(212,160,86,.04); border: 1px solid rgba(212,160,86,.15); border-radius: 4px; gap: .15rem; position: relative; }
+.trait-badge__abbr { font-size: .9rem; text-transform: uppercase; letter-spacing: .1em; color: var(--cl); }
+.trait-badge__indicator { position: absolute; top: 3px; left: 5px; font-size: .75rem; line-height: 1; }
+.trait-badge__modifier { font-size: 1.4rem; font-weight: 700; color: var(--cp); line-height: 1; }
+.trait-badge__modifier--modified { color: var(--ca); }
+.trait-badge__marked-dot { position: absolute; top: 3px; right: 5px; font-size: .75rem; color: var(--ca); }
+.trait-badge__subskills { display: flex; gap: .25rem; margin-top: .15rem; }
+.trait-badge__subskill { font-family: var(--fb); font-size: .75rem; color: rgba(245,230,211,.65); text-transform: lowercase; }

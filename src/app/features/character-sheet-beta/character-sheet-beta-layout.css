@@ -1,0 +1,78 @@
+/* Non-card slice of classic's character-sheet-layout.css. The card-group/expandable-card accent
+   modifiers, card-meta and card-description rules are dropped entirely -- `EntityCard` (its own
+   view, its own stylesheet) replaced all of that; see character-sheet-beta-cards.css for what
+   the card groups keep. Also dropped from classic's copy: `.shield:focus-visible` (no `.shield`
+   in this template carries a `tabindex`, so it's unreachable), `.gold-btn:focus-visible`
+   (identical to the global `:where(button...):focus-visible` ring in buttons.css, just redeclared
+   with extra specificity) and the reduced-motion `.resource-box` rule (that markup lives inside
+   `ResourceTracker`'s own encapsulated view, which this stylesheet can never reach, and
+   styles.css's universal reduced-motion killswitch already covers it anyway). */
+:host { --color-damage-minor: #6aad7a; --color-damage-major: #c8943c; --color-damage-severe: #c05050; }
+
+.traits-section, .cards-section, .inventory-section { margin-bottom: 1.5rem; }
+.card-group { margin-bottom: 1.25rem; }
+.card-group:last-child { margin-bottom: 0; }
+
+/* No overflow:hidden here -- it would clip the modifier tooltip that opens above the bar; the end
+   zones carry their own corner radii instead. */
+.damage-bar { display: flex; align-items: stretch; border-radius: 4px; margin-bottom: var(--space-5); height: 36px; border: 1px solid rgba(212,160,86,.15); }
+.damage-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
+.damage-zone--minor { background: rgba(74,124,89,.14); border-radius: 3px 0 0 3px; }
+.damage-zone--major { background: rgba(180,120,40,.14); }
+.damage-zone--severe { background: rgba(160,50,50,.14); border-radius: 0 3px 3px 0; }
+.damage-zone__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
+.damage-zone--minor .damage-zone__label { color: var(--color-damage-minor); }
+.damage-zone--major .damage-zone__label { color: var(--color-damage-major); }
+.damage-zone--severe .damage-zone__label { color: var(--color-damage-severe); }
+.damage-marker { display: flex; align-items: center; justify-content: center; gap: 1px; min-width: 22px; padding: 0 3px; flex-shrink: 0; background: rgba(13,8,6,.5); border-inline: 1px solid var(--cb); }
+.damage-marker__value { font-size: .8rem; font-weight: 700; color: var(--color-parchment); }
+
+.experience-item { display: flex; align-items: baseline; gap: var(--space-3); padding: .3rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }
+.experience-item__modifier { font-size: var(--text-sm); font-weight: 700; color: var(--ca); min-width: 2rem; }
+.experience-item__description { font-family: var(--fb); font-size: var(--text-sm); color: rgba(245,230,211,.8); }
+
+.panel--hope-stress { border-color: var(--cb); background: rgba(26,20,15,.6); }
+.hope-stress-grid { display: flex; flex-direction: column; gap: var(--space-3); }
+.hope-stress-track { display: flex; align-items: center; gap: .6rem; }
+.hope-stress-track__label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; min-width: 3rem; font-weight: 600; }
+/* `--color-hope`/`--color-stress` were never defined anywhere in this codebase -- the `var(...,
+   fallback)` wrapper always resolved to its fallback. Read the fallback's own token instead of its
+   literal value, though: `--ca` (this file's alias for --color-accent) and --color-damage-severe
+   (declared on :host above) are the exact same colours already in scope, and a bare hex here would
+   be a palette literal. */
+.hope-stress-track__label--hope { color: var(--ca); }
+.hope-stress-track__label--stress { color: var(--color-damage-severe); }
+.hope-stress-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(212,160,86,.15) 20%, rgba(212,160,86,.15) 80%, transparent); }
+
+.gold-total { display: flex; align-items: baseline; justify-content: center; gap: var(--space-2); margin-bottom: var(--space-5); }
+.gold-total__icon { font-size: 1.25rem; color: var(--ca); }
+/* No font-family here -- :host in character-sheet-beta.css already sets Cinzel for the whole
+   component, and nothing between here and there resets it. */
+.gold-total__value { font-size: 1.75rem; font-weight: 900; color: var(--ca); }
+.gold-total__value--negative { color: var(--color-damage-severe); }
+.gold-total__label { font-size: var(--text-sm); color: rgba(245,230,211,.7); }
+.gold-controls { display: flex; flex-direction: column; gap: var(--space-2); }
+.gold-denomination { display: flex; align-items: center; gap: var(--space-3); padding: .3rem 0; border-bottom: 1px solid rgba(212,160,86,.06); }
+.gold-denomination:last-child, .experience-item:last-child { border-bottom: none; }
+.gold-denomination__label { flex: 1; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: .08em; color: rgba(245,230,211,.85); text-align: center; }
+.gold-denomination__value { font-family: var(--fb); font-size: var(--text-sm); color: var(--color-accent-a75); letter-spacing: 0; text-transform: none; margin-left: var(--space-1); }
+.gold-btn { width: 32px; height: 32px; border-radius: 3px; border: 1.5px solid var(--cg); background: transparent; color: rgba(245,230,211,.8); font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: background-color .12s,border-color .12s; flex-shrink: 0; }
+.gold-btn:hover { border-color: rgba(212,160,86,.6); background: rgba(212,160,86,.1); }
+.gold-btn:active { background: var(--cb); }
+/* No :focus-visible override here -- buttons.css's zero-specificity :where(button...):focus-visible
+   already puts a 2px solid var(--color-accent) ring at a 2px offset, identical to what this used
+   to redeclare. */
+.gold-btn--add:hover { border-color: rgba(74,124,89,.6); background: rgba(74,124,89,.15); color: var(--color-damage-minor); }
+.gold-btn--subtract:hover { border-color: rgba(160,50,50,.5); background: rgba(160,50,50,.12); color: var(--color-damage-severe); }
+
+@media (max-width: 768px) {
+  .sheet-header { flex-direction: column; gap: var(--space-5); align-items: flex-start; }
+  .sheet-columns { grid-template-columns: 1fr; }
+  .traits-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .trait-badge__subskills { display: none; }
+  .level-badge { width: 44px; height: 44px; }
+  .level-badge__value { font-size: 1.2rem; }
+}
