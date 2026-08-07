@@ -1,6 +1,8 @@
 import { Injectable, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
+  CARD_THEMES,
+  CardTheme,
   DENSITIES,
   Density,
   MOTION_PREFERENCES,
@@ -14,6 +16,7 @@ import {
 const DEFAULT_DENSITY: Density = 'comfortable';
 const DEFAULT_MOTION: MotionPreference = 'system';
 const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
+const DEFAULT_CARD_THEME: CardTheme = 'dark';
 
 function isDensity(value: unknown): value is Density {
   return (DENSITIES as readonly unknown[]).includes(value);
@@ -27,19 +30,24 @@ function isSheetLayout(value: unknown): value is SheetLayout {
   return (SHEET_LAYOUTS as readonly unknown[]).includes(value);
 }
 
+function isCardTheme(value: unknown): value is CardTheme {
+  return (CARD_THEMES as readonly unknown[]).includes(value);
+}
+
 @Injectable({ providedIn: 'root' })
 export class PreferencesService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
-  // The pre-paint script in index.html stamps both attributes on <html> before Angular boots
-  // (falling back to comfortable/system on its own parse failure), so the DOM is the freshest
+  // The pre-paint script in index.html stamps these attributes on <html> before Angular boots
+  // (falling back to their defaults on its own parse failure), so the DOM is the freshest
   // source of truth at startup -- storage is only consulted if the attribute is missing or bad.
   readonly density = signal<Density>(this.initialDensity());
   readonly motion = signal<MotionPreference>(this.initialMotion());
   // Unlike density/motion there is no pre-paint DOM attribute for sheet layout -- it initializes
   // from storage only.
   readonly sheetLayout = signal<SheetLayout>(this.readStorage()?.sheetLayout ?? DEFAULT_SHEET_LAYOUT);
+  readonly cardTheme = signal<CardTheme>(this.initialCardTheme());
 
   readonly effectiveMotion = computed<Exclude<MotionPreference, 'system'>>(() => {
     const motion = this.motion();
@@ -52,25 +60,52 @@ export class PreferencesService {
     effect(() => {
       const density = this.density();
       const motion = this.motion();
+      const cardTheme = this.cardTheme();
       if (!this.isBrowser) return;
       document.documentElement.setAttribute('data-density', density);
       document.documentElement.setAttribute('data-motion', motion);
+      document.documentElement.setAttribute('data-card-theme', cardTheme);
     });
   }
 
   setDensity(density: Density): void {
     this.density.set(density);
-    this.persist({ density, motion: this.motion(), sheetLayout: this.sheetLayout() });
+    this.persist({
+      density,
+      motion: this.motion(),
+      sheetLayout: this.sheetLayout(),
+      cardTheme: this.cardTheme(),
+    });
   }
 
   setMotion(motion: MotionPreference): void {
     this.motion.set(motion);
-    this.persist({ density: this.density(), motion, sheetLayout: this.sheetLayout() });
+    this.persist({
+      density: this.density(),
+      motion,
+      sheetLayout: this.sheetLayout(),
+      cardTheme: this.cardTheme(),
+    });
   }
 
   setSheetLayout(sheetLayout: SheetLayout): void {
     this.sheetLayout.set(sheetLayout);
-    this.persist({ density: this.density(), motion: this.motion(), sheetLayout });
+    this.persist({
+      density: this.density(),
+      motion: this.motion(),
+      sheetLayout,
+      cardTheme: this.cardTheme(),
+    });
+  }
+
+  setCardTheme(cardTheme: CardTheme): void {
+    this.cardTheme.set(cardTheme);
+    this.persist({
+      density: this.density(),
+      motion: this.motion(),
+      sheetLayout: this.sheetLayout(),
+      cardTheme,
+    });
   }
 
   private initialDensity(): Density {
@@ -83,6 +118,12 @@ export class PreferencesService {
     const fromDom = this.readDomAttr('data-motion');
     if (isMotion(fromDom)) return fromDom;
     return this.readStorage()?.motion ?? DEFAULT_MOTION;
+  }
+
+  private initialCardTheme(): CardTheme {
+    const fromDom = this.readDomAttr('data-card-theme');
+    if (isCardTheme(fromDom)) return fromDom;
+    return this.readStorage()?.cardTheme ?? DEFAULT_CARD_THEME;
   }
 
   private readDomAttr(name: string): string | null {
@@ -106,6 +147,7 @@ export class PreferencesService {
         density: isDensity(candidate.density) ? candidate.density : DEFAULT_DENSITY,
         motion: isMotion(candidate.motion) ? candidate.motion : DEFAULT_MOTION,
         sheetLayout: isSheetLayout(candidate.sheetLayout) ? candidate.sheetLayout : DEFAULT_SHEET_LAYOUT,
+        cardTheme: isCardTheme(candidate.cardTheme) ? candidate.cardTheme : DEFAULT_CARD_THEME,
       };
     } catch {
       return null;

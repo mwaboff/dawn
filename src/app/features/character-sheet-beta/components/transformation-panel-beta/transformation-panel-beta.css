@@ -8,14 +8,19 @@
 
 .feed-tokens { display: flex; flex-direction: column; gap: var(--space-2); }
 .feed-tokens__stepper { display: flex; align-items: center; gap: var(--space-3); }
-.feed-tokens__btn { width: 26px; height: 26px; border-radius: 3px; border: 1px solid rgba(212,160,86,.35); background: transparent; color: var(--color-accent-text); cursor: pointer; }
-.feed-tokens__btn:hover:not(:disabled) { background: rgba(212,160,86,.12); }
+/* Border/hover-wash derive from --color-accent-text (this card's re-bound --eca-deep) rather than a
+   flat gold literal, so both controls' chrome adapts per card theme along with their text. */
+.feed-tokens__btn { width: 26px; height: 26px; border-radius: 3px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 35%, transparent); background: transparent; color: var(--color-accent-text); cursor: pointer; }
+.feed-tokens__btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent-text) 12%, transparent); }
 .feed-tokens__btn:disabled { opacity: .35; cursor: not-allowed; }
 .feed-tokens__value { font-weight: 700; color: var(--color-control-text); min-width: 3.5rem; text-align: center; }
 .feed-tokens__warning { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-warning-text); margin: 0; }
 
-.wolf-form-toggle { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid rgba(212,160,86,.3); background: transparent; color: var(--color-accent-a75); cursor: pointer; }
-.wolf-form-toggle--active { background: var(--color-accent); border-color: var(--color-accent); color: #1a1412; }
+.wolf-form-toggle { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: .3rem .6rem; border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 30%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; }
+/* Background stays the un-rebound --color-accent (this pill is its own solid gold, not the card
+   face) so near-black text stays legible regardless of card theme -- var(--color-bg-dark) instead
+   of the literal it duplicated is the only change here. */
+.wolf-form-toggle--active { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-bg-dark); }
 .wolf-form-toggle:disabled { opacity: .4; cursor: not-allowed; }
 
 .transformation-actions { display: flex; gap: var(--space-2); }

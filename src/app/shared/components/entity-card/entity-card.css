@@ -1,14 +1,114 @@
-/* --ca (card-accents.css) is tuned for a dark bg -- several --color-card-* tokens fail WCAG AA as
-   text here. --eca-deep pins every hue to L <= 0.11 against --color-bg-darker (>=6:1 regardless of
-   accent); --eca-tint is the same idea at low mix. Full-strength --ca stays non-text: the rail/edge. */
+/* --ca (card-accents.css) is tuned for a dark bg. On the light face (`data-card-theme='light'` --
+   see the --eca-* tokens in src/styles.css; note dark is the DEFAULT, light is the opt-in), several
+   --color-card-* hues fail WCAG AA as text, so --eca-deep mixes each one 45% toward
+   --color-bg-darker (worst case across all 17:
+   5.69:1 against --color-card-face, ancestry). On the dark face that would be backwards -- the
+   hues already read fine on dark -- so --eca-mix/--eca-anchor flip to 75% raw accent toward a
+   LIGHT anchor instead (worst case: 5.25:1, heritage). Either way --eca-deep stays >=4.5:1 as text
+   against --color-card-face. --eca-tint is the same color-mix() idea at a low, theme-specific
+   percentage for the header wash. Full-strength --ca stays non-text where it appears at all: the
+   light-theme rail (dark drops the rail entirely -- see --eca-rail-color below) and the tab chip
+   fill (dark only) -- see --eca-chip-bg below.
+
+   --eca-chip-bg MUST be computed here, not in styles.css with the other --eca-* tokens. A custom
+   property's computed value is resolved once, where it's declared, using only properties valid AT
+   THAT ELEMENT -- it does not re-substitute per descendant. --ca/--eca-deep only exist on a card
+   instance, not at :root, so `--eca-chip-bg: var(--eca-deep)` at :root computed to invalid there,
+   and every card inherited that already-invalid value regardless of its own --eca-deep (confirmed
+   via getComputedStyle() on a static copy: --eca-chip-bg came back "", background transparent, in
+   both themes). --eca-chip-mix is what styles.css is allowed to own instead: a plain percentage,
+   no --ca/--eca-deep inside it, so it inherits validly and this rule combines it with the locally-
+   valid --ca/--eca-deep. mix=0% (light) -> --eca-deep; mix=100% (dark) -> raw --ca. */
 :host {
   display: flex; flex-direction: column; overflow: hidden;
-  background: var(--color-card-face); border: 1px solid var(--color-card-rule);
-  border-top: 2px solid var(--ca); border-left: 3px solid var(--ca); border-radius: 0 8px 8px 0;
-  --eca-deep: color-mix(in srgb, var(--ca) 45%, var(--color-bg-darker));
-  --eca-tint: color-mix(in srgb, var(--ca) 12%, var(--color-card-face));
+  background: var(--color-card-face); border: 1px solid var(--color-card-rule); border-radius: 8px;
+  /* Rail colour, not width, is what's theme-driven and why it lives here rather than as a flat
+     value in styles.css: light keeps the full-strength --ca rail (--eca-rail-mix: 100%, so this
+     resolves to pure --ca); dark drops the accent rail entirely (--eca-rail-mix: 0%, so this
+     resolves to pure --color-card-rule, matching the other two edges -- a uniform 1px frame with
+     no accent on the border at all in dark mode). Same "--ca is invalid at :root, so anything that
+     multiplies it can't be declared there" rule as --eca-chip-bg above -- --eca-rail-mix itself is
+     a plain percentage (styles.css, safe anywhere); this color-mix() has to run here. */
+  border-top: var(--eca-rail-top-width) solid var(--eca-rail-color);
+  border-left: var(--eca-rail-left-width) solid var(--eca-rail-color);
+  --eca-rail-color: color-mix(in srgb, var(--ca) var(--eca-rail-mix), var(--color-card-rule));
+  --eca-deep: color-mix(in srgb, var(--ca) var(--eca-mix), var(--eca-anchor));
+  --eca-tint: color-mix(in srgb, var(--ca) var(--eca-tint-pct), var(--color-card-face));
+  --eca-chip-bg: color-mix(in srgb, var(--ca) var(--eca-chip-mix), var(--eca-deep));
+  /* Muted-state feature-name colour. Computed fresh from --ca/--eca-mix/--eca-anchor/
+     --color-card-face rather than as `color-mix(in srgb, var(--eca-deep) N%, var(--color-card-face))`
+     -- the obvious-looking version -- because that IS a cycle: a more-specific rule matching this
+     same element that redeclares --eca-deep in terms of var(--eca-deep) computes to invalid, full
+     stop, regardless of whether the "other" value came from inheritance or another rule (verified
+     empirically, not assumed -- see the muted block below for the full story). Nesting the same
+     color-mix() --eca-deep is built from, then blending THAT toward the face, reads as the same
+     visual idea without ever naming --eca-deep on the right-hand side. */
+  --eca-deep-muted: color-mix(in srgb, color-mix(in srgb, var(--ca) var(--eca-mix), var(--eca-anchor)) var(--eca-muted-text-mix), var(--color-card-face));
 }
-:host(.entity-card--muted) .entity-card__header, :host(.entity-card--muted) .entity-card__clip { opacity: .6; }
+/* Muted history, briefly, because this took three tries to get right and the failure modes are not
+   obvious: it used to be opacity on .entity-card__header/__clip. Opacity composites a subtree's own
+   colours toward whatever opaque backdrop is already behind it (:host's solid --color-card-face),
+   so muted ink effectively became ink*a + face*(1-a). At the original .6 that broke WCAG AA on the
+   highest-traffic text on the card (light ink-soft 3.14:1, light ink 4.44:1, dark ink-soft
+   3.66-3.87:1). Raising it to .78 looked sufficient checking only ink-soft, but ink-faint and
+   --eca-deep are fainter still and were never checked -- at .78 those failed outright (light
+   --eca-deep 11/17 accents, worst ancestry 3.57:1). The true minimum opacity that clears every text
+   token in both themes turned out to be .984 -- "muted" at that point has no effect left at all, so
+   opacity cannot solve this by construction, not just by bad tuning.
+   Pixel-sampling the rendered .78 cards settled the next question: does dimming ONLY decoration
+   (skip text, only fade the rail/header wash) carry enough of the effect on its own? No -- measured
+   against the actual PNGs, the header wash shifts by 2-3 units (imperceptible; it's a light 10-12%
+   mix over the face to begin with) while ink shifted 30-39 units. Nearly the entire muted affordance
+   was riding on the text dimming. So both pieces are real and both are here: --eca-muted-mix
+   (src/styles.css) still fades the DECORATIVE rail and header wash toward transparent below -- not
+   text, no 4.5:1 to owe, just the softer 3:1 UI-boundary guideline -- and separately,
+   --color-card-ink-muted/--color-card-ink-soft-muted (src/styles.css) are dedicated, directly-
+   computed, per-theme TEXT colours, re-pointing the existing --color-card-ink/--color-card-ink-soft
+   names locally on just the header and clip (NOT on :host itself) so every element that already
+   reads those names -- name, subtitle, body, meta, feature-description -- picks up the dimmer
+   value with no template changes, while .entity-card__controls/__actions (a sibling, not a
+   descendant of header/clip) is untouched: a vaulted card's Equip/Remove buttons should never go
+   dim, the user still needs to read them to act. Verified against every real backdrop (plain face,
+   and the muted per-accent header wash -- all 17 accents, both themes): worst case 9.16:1 (ink),
+   5.21:1 (ink-soft).
+   --color-card-ink-faint (badges, the tag, the chevron) and the chip are BOTH excluded from muting
+   entirely, for the same underlying reason: ink-faint already has the thinnest margin of any token
+   in this file -- in light it is 4.52:1 against the header wash at FULL strength, i.e. before any
+   muting is applied at all, so there is simply no headroom to spend on dimming it (two reviewers
+   misread an earlier wording of this line as a figure for the muted wash; it is not -- the muted
+   wash is 35%-faded toward the face and actually gives ink-faint MORE room, 4.95-5.39:1). The chip
+   is excluded for the mirror-image reason: its near-black text against a less-than-full --ca fill drags toward
+   unreadable (checked: as low as ~1.8:1). Rather than add yet more dedicated muted tokens to rescue
+   two tokens that have essentially no headroom to give, both stay exactly as they render normally.
+   A muted card's type identity (chip) and secondary metadata (badges) stay fully legible; its name,
+   body text, and framing are what visibly recede. --eca-muted-text-mix (src/styles.css) is
+   --eca-deep's equivalent, at a much higher retention (92% vs 35%) because it has a 4.5:1 floor to
+   respect and the worst accents (ancestry light, heritage dark) have very little margin to spend --
+   worst case 4.77:1 / 4.66:1. See --eca-deep-muted above for why it can't just reference --eca-deep. */
+:host(.entity-card--muted) {
+  /* --eca-rail-color, not raw --ca -- fades whatever the current theme's rail actually is, which
+     is why this can stay ONE rule instead of branching on theme. --eca-muted-rail-mix carries the
+     theme difference as data: 35% in light, so the accent rail visibly recedes, matching every
+     other muted decoration; 100% in dark, i.e. NO fade at all -- color-mix() at 100% retention
+     reproduces --eca-rail-color exactly (verified with getComputedStyle(): a muted dark card's four
+     border colours are byte-identical to an unmuted one's).
+     This is deliberate, not an oversight: dark has no accent rail to fade in the first place (see
+     --eca-rail-mix above), and --color-card-rule is carrying 100% of the dark card's separation
+     from the page at 3.72:1 -- two rounds of work to get it there. Fading it toward transparent on
+     exactly the cards that are already hardest to pick out (muted/vaulted ones) would undermine
+     that for no benefit, since there's no accent identity left on the border to justify the fade.
+     Muted in dark is carried entirely by the ink tokens and the header wash instead; muted in light
+     carries those PLUS the rail fade, because light's rail still means something (an accent
+     receding) and light's card-vs-page separation was never in question (16.6:1). */
+  border-top-color: color-mix(in srgb, var(--eca-rail-color) var(--eca-muted-rail-mix), transparent);
+  border-left-color: color-mix(in srgb, var(--eca-rail-color) var(--eca-muted-rail-mix), transparent);
+}
+:host(.entity-card--muted) .entity-card__header { background: color-mix(in srgb, var(--eca-tint) var(--eca-muted-mix), transparent); }
+:host(.entity-card--muted) .entity-card__header, :host(.entity-card--muted) .entity-card__clip {
+  --color-card-ink: var(--color-card-ink-muted);
+  --color-card-ink-soft: var(--color-card-ink-soft-muted);
+}
+:host(.entity-card--muted) .entity-card__feature-name { color: var(--eca-deep-muted); }
 
 .entity-card__heading { display: contents; }
 /* flex-wrap: wrap so an accent tab + a full badge row (domain cards can carry three, see
@@ -18,11 +118,11 @@
    chevron) are always narrow enough to fit one line on their own. */
 .entity-card__header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-5); width: 100%; padding: var(--space-4) var(--space-7); background: var(--eca-tint); border: none; border-bottom: 1px solid var(--color-card-rule); font: inherit; text-align: left; color: inherit; }
 .entity-card__header--interactive { cursor: pointer; }
-.entity-card__header--interactive:hover { background: color-mix(in srgb, var(--ca) 18%, var(--color-card-face)); }
+.entity-card__header--interactive:hover { background: color-mix(in srgb, var(--ca) var(--eca-hover-pct), var(--color-card-face)); }
 .entity-card__header--interactive:focus-visible { outline: 2px solid var(--eca-deep); outline-offset: -2px; }
 
 .entity-card__tab, .entity-card__badge, .entity-card__feature-name { font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
-.entity-card__tab { flex-shrink: 0; color: var(--color-text-lighter); background: var(--eca-deep); padding: .2rem .5rem; border-radius: 3px; }
+.entity-card__tab { flex-shrink: 0; color: var(--eca-chip-ink); background: var(--eca-chip-bg); padding: .2rem .5rem; border-radius: 3px; }
 .entity-card__title { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .entity-card__name, .entity-card__subtitle, .entity-card__headline { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entity-card__name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-base); letter-spacing: .04em; text-transform: uppercase; color: var(--color-card-ink); }
@@ -58,17 +158,19 @@
 
 .entity-card__controls:empty, .entity-card__actions:empty { display: none; }
 /* Projected content ([card-controls]/[card-actions]) is still the caller's own markup, styled by
-   the caller's own dark-theme classes -- it never learns it landed on this card's light face.
-   Angular still lets us reach it here, though: these two elements are entity-card's own template
-   nodes, not projected ones, so this rule can target them without ::ng-deep, and every custom
-   property it sets is inherited straight through the projected subtree regardless of view
-   encapsulation. Re-pointing the purpose-scoped text/ring tokens (src/styles.css) turns any caller
-   markup that already reads them into correctly-inked text with zero per-component patches.
+   the caller's own dark-page-theme classes -- it never learns which of the two card faces
+   (light/dark, see src/styles.css) it landed on. Angular still lets us reach it here, though:
+   these two elements are entity-card's own template nodes, not projected ones, so this rule can
+   target them without ::ng-deep, and every custom property it sets is inherited straight through
+   the projected subtree regardless of view encapsulation. Re-pointing the purpose-scoped text/ring
+   tokens (src/styles.css) turns any caller markup that already reads them into correctly-inked
+   text with zero per-component patches.
    --color-accent/--color-parchment themselves stay untouched here on purpose: a marked resource
    pip's gold fill and a delete-confirm button's own red gradient read those directly and need the
    real value regardless of the surrounding face. --eca-deep already varies correctly per card type
-   (17 accents, all >=6:1 against both light backgrounds -- verified when this was written), so the
-   accent-family remaps ride it straight through. */
+   AND per theme (17 accents, all >=4.5:1 against --color-card-face in both themes -- worst cases
+   5.69:1 light/ancestry, 5.25:1 dark/heritage, verified with a real sRGB contrast calculation), so
+   the accent-family remaps ride it straight through. */
 .entity-card__controls, .entity-card__actions {
   padding: var(--space-4) var(--space-7); border-top: 1px solid var(--color-card-rule); background: var(--color-card-face-lift);
   --color-control-text: var(--color-card-ink);
@@ -78,6 +180,11 @@
   --color-danger-ghost-text: var(--color-card-danger-ink);
   --color-danger-ghost-hover-text: var(--color-card-danger-ink);
   --color-warning-text: var(--color-card-danger-ink);
+  --color-secondary-border: color-mix(in srgb, var(--eca-deep) 40%, transparent);
+  --color-secondary-hover-wash: color-mix(in srgb, var(--eca-deep) 10%, transparent);
+  --color-danger-ghost-border: color-mix(in srgb, var(--color-card-danger-ink) 40%, transparent);
+  --color-danger-ghost-hover-wash: color-mix(in srgb, var(--color-card-danger-ink) 10%, transparent);
+  --color-danger-ghost-hover-border: color-mix(in srgb, var(--color-card-danger-ink) 60%, transparent);
   --color-swap-vault-text: var(--color-card-vault-ink);
   --color-swap-equip-text: var(--color-card-equip-ink);
   --color-parchment-a85: var(--color-card-ink-soft);

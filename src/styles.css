@@ -60,17 +60,34 @@
   --color-card-martialStance: #d4566e;
   --color-card-feature: #a89684;
 
-  /* The light face EntityCard introduces -- every other panel on the site is dark parchment-on-
-     black, so this is the one place near-black ink on a warm-white ground is correct. Contrast
-     against --color-card-face: ink 15.3:1, ink-soft 8.2:1, ink-faint 4.7:1 (all WCAG AA). */
+  /* EntityCard has two faces, chosen by `data-card-theme` on <html> (plumbed elsewhere; this file
+     only reacts to it). Light is the original: every other panel on the site is dark parchment-on-
+     black, so this is the one place near-black ink on a warm-white ground is correct. Dark is a
+     card "lifted off the table" -- a warm charcoal, lighter and LESS saturated than
+     --color-bg-dark, so a card reads as an object resting on the page rather than a hole in it.
+     Both ink triples below are verified >=4.5:1 (WCAG AA) against both --color-card-face and
+     --color-card-face-lift, computed with a real sRGB relative-luminance calculation, not eyeballed.
+     Light: ink 15.90:1 / 17.31:1 (face / face-lift), ink-soft 8.97:1 / 9.76:1,
+            ink-faint 5.20:1 / 5.66:1.
+     Dark:  ink 13.09:1 / 11.91:1, ink-soft 8.11:1 / 7.38:1, ink-faint 5.78:1 / 5.26:1 (face is
+            #272423, +2 CIE L* over the first dark-theme render -- see the dark override block
+            below for why; ink-faint's own colour was revised separately for headroom, see there
+            too). */
   --color-card-face: #f7f4ee;
   --color-card-face-lift: #fffefb;
   --color-card-ink: #1d1916;
   --color-card-ink-soft: #4a423b;
   --color-card-ink-faint: #6f6558;
   --color-card-rule: #ded5c6;
-  /* Fixed (non-accent-derived) danger red for the light face -- 9.0:1 against --color-card-face-lift,
-     8.3:1 against --color-card-face. Used by the projected-content overrides below; unlike
+  /* Dedicated `.entity-card--muted` ink pair -- see entity-card.css for why muted text needs its
+     own directly-computed colours rather than an opacity fade or a formula referencing the normal
+     ink tokens. Verified >=4.5:1 against every real backdrop muted text can sit on (plain face,
+     and the muted, per-accent-tinted header wash, all 17 accents): worst case 9.78:1 (ink) / 5.21:1
+     (ink-soft). --color-card-ink-faint has NO muted counterpart on purpose -- see there too. */
+  --color-card-ink-muted: #3e3a36;
+  --color-card-ink-soft-muted: #69625b;
+  /* Fixed (non-accent-derived) danger red for the light face -- 9.03:1 against --color-card-face-lift,
+     8.30:1 against --color-card-face. Used by the projected-content overrides below; unlike
      --eca-deep it doesn't tint per card type, because a warning/danger colour should read the same
      regardless of which of the 17 accents the card is wearing. */
   --color-card-danger-ink: #7c2f2f;
@@ -78,9 +95,54 @@
      meaning (vault = amber, equip = green) that a flat ink would erase. Computed the same way as
      --eca-deep (45% mixed with --color-bg-darker) from the colours the dark theme already uses for
      these two actions -- rgba(212,128,86,*) and rgba(86,200,120,*) below -- so it reads as the same
-     hue, just legible here. vault: 8.4:1, equip: 6.5:1 against --color-card-face-lift. */
+     hue, just legible here. vault: 8.43:1, equip: 6.45:1 against --color-card-face-lift. */
   --color-card-vault-ink: #6b4330;
   --color-card-equip-ink: #32693f;
+
+  /* --eca-* tokens read by entity-card.css to build --eca-deep/--eca-tint from the 17 --color-card-*
+     accent hues without the component ever branching on theme. --eca-mix/--eca-anchor pin
+     --eca-deep's color-mix(): light keeps the original 45%-toward-near-black behaviour that buries
+     every hue in ink (necessary on white -- see the dark override below for why it inverts).
+     --eca-chip-ink drives the `.entity-card__tab` lozenge's ink; --eca-chip-mix drives its bg --
+     see entity-card.css's :host block for why --eca-chip-bg itself must NOT be declared here.
+     Both are plain leaf values (a colour, a percentage) with no --ca/--eca-deep inside them, which
+     matters -- see below.
+     --eca-muted-mix is shared by both themes (not overridden below): the percentage of the header
+     wash retained on a `.entity-card--muted` card -- DECORATIVE fading only, see entity-card.css.
+     Same value works for both themes because it's a relative retention, not an absolute colour.
+     --eca-muted-rail-mix is the same idea for the top/left border, but it IS overridden per theme,
+     and the asymmetry is deliberate: 35% in light, where the border is a full --ca accent rail and
+     fading it reads as that accent receding; 100% (i.e. untouched) in dark, where there is no
+     accent rail left to fade and the border is plain --color-card-rule. Fading it in dark would
+     attack the one thing separating a dark card from the page -- --color-card-rule carries 100% of
+     that job at 3.72:1, and muted cards are already the hardest to pick out, so that is exactly
+     where the edge must stay at full strength. A muted dark card recedes via its ink tokens and
+     header wash instead. Do not "fix" this back to a single shared value. --eca-muted-text-mix is
+     the equivalent for the one piece of TEXT that still derives from --ca -- the feature-name
+     colour -- and is deliberately much closer to 100%: text has a 4.5:1 floor decoration doesn't,
+     so it can only be dimmed a little (worst case across all 17 accents is 4.5-4.8:1 either theme;
+     see entity-card.css for the exact formula and why it can't just reference --eca-deep directly).
+     Muted TEXT overall is never opacity-faded -- that used to be the mechanism, and it silently
+     broke WCAG AA in both themes; this is the fix.
+     --eca-rail-mix/--eca-rail-top-width/--eca-rail-left-width drive the card's top/left border --
+     the user's call, not a design default: light keeps the original full-strength --ca rail at its
+     original asymmetric widths (2px top, 3px left); dark drops the accent rail entirely, at 1px
+     matching the other two edges, so the border reads as a plain uniform frame with the accent
+     confined to the chip and feature-name text. All three are plain leaf values (a percentage, two
+     lengths) with no --ca inside them -- entity-card.css's :host block is where --eca-rail-color
+     actually multiplies --ca, for the same reason --eca-chip-bg has to live there. */
+  --eca-mix: 45%;
+  --eca-anchor: var(--color-bg-darker);
+  --eca-tint-pct: 12%;
+  --eca-hover-pct: 18%;
+  --eca-chip-mix: 0%;
+  --eca-chip-ink: var(--color-text-lighter);
+  --eca-rail-mix: 100%;
+  --eca-rail-top-width: 2px;
+  --eca-rail-left-width: 3px;
+  --eca-muted-mix: 35%;
+  --eca-muted-rail-mix: 35%;
+  --eca-muted-text-mix: 92%;
 
   /* Typography */
   --font-display: 'Cinzel', serif;
@@ -113,11 +175,20 @@
      themselves. Both of those are also read for solid-fill roles (a marked resource pip's gold
      background, a delete-confirm button's own red gradient) that must keep their real colour no
      matter what ambient surface they're drawn on -- re-pointing the raw tokens would break those.
-     These three only ever back a `color`/`outline`/`border` on a transparent or tinted-transparent
-     control, so EntityCard's light face (see entity-card.css) can safely re-bind just these. */
+     These only ever back a `color`/`outline`/`border`/`background` on a transparent or
+     tinted-transparent control, so EntityCard's light face (see entity-card.css) can safely
+     re-bind just these. --color-secondary-border/-hover-wash and --color-danger-ghost-border/
+     -hover-wash/-hover-border are the .btn--secondary/.btn--danger-ghost border and hover-wash
+     literals from buttons.css, pulled out so entity-card.css can re-bind them the same way; values
+     are unchanged, just named. */
   --color-control-text: var(--color-parchment);
   --color-accent-text: var(--color-accent);
   --color-focus-ring: var(--color-accent);
+  --color-secondary-border: rgba(212, 160, 86, 0.4);
+  --color-secondary-hover-wash: rgba(212, 160, 86, 0.1);
+  --color-danger-ghost-border: rgba(139, 37, 37, 0.4);
+  --color-danger-ghost-hover-wash: rgba(139, 37, 37, 0.1);
+  --color-danger-ghost-hover-border: rgba(139, 37, 37, 0.6);
 
   /* Type scale. WCAG has no minimum font size -- these exist to separate content text (prose,
      hints, inputs, table body) from decorative tracked-uppercase micro-labels, which stay at
@@ -149,6 +220,100 @@
   --row-gap: 0.6rem;
   --panel-pad-y: var(--space-7);
   --panel-pad-x: var(--space-9);
+}
+
+/* EntityCard dark face -- "the card lifted off the table". Deliberately desaturated warm charcoal,
+   lighter than --color-bg-dark (#1a1412) but NOT closer to its hue: elevation and desaturation do
+   the separating, not more brown-and-gold, or a card would read as a hole in the page instead of
+   an object on it. Ink is --color-card-ink, not --color-parchment -- parchment is the page's own
+   cream, and card ink has to read cooler than the page it sits on. All contrast figures verified
+   with a real sRGB relative-luminance calculation (see the :root block above for the method note
+   and the light-theme figures this must not regress).
+   --color-card-face/--color-card-face-lift are +2 CIE L* over the original #23201f/#2b2724 (the
+   a* and b* channels are unchanged, so the hue/chroma relationship is preserved). This alone was
+   NOT enough: --color-card-face vs --color-bg-dark is only 1.18:1 at +2 L*, and the ceiling for
+   pushing it further is +~2.7 L* (~1.20:1) before --color-card-ink-faint/--color-card-danger-ink/
+   --eca-deep(heritage) start failing 4.5:1 against --color-card-face-lift -- a fill-only fix
+   physically cannot reach a strongly visible step without also re-tuning those. The real fix is
+   --color-card-rule below: raised from a 1.51:1-vs-page hairline to 3.72:1 (comfortably past the
+   WCAG 1.4.11 non-text/UI-boundary guideline of 3:1 -- the first revision landed exactly on 3.08:1,
+   zero margin, and was nudged lighter for headroom), which is what actually makes the card read as
+   a distinct object -- confirmed by rendering the same cards with each lever alone and combined;
+   the rule change was the one that mattered, the face bump is a minor assist on top of it. */
+:root[data-card-theme='dark'] {
+  --color-card-face: #272423;
+  --color-card-face-lift: #2f2b28;
+  --color-card-ink: #f0ece5;
+  --color-card-ink-soft: #c3bbb0;
+  /* Two steps lighter than the flat #968d83 starting point -- that value cleared face (4.96:1) but
+     landed at 4.54:1 against face-lift, a hair above the 4.5 floor with no rounding margin, and the
+     next revision (#9c948a, +2 L* face) only brought it to 4.69:1 -- still zero real headroom. An
+     accessibility reviewer flagged both this and the --eca-mix value below as passing-but-fragile;
+     this is 5.78:1 / 5.26:1 (face / face-lift), real margin instead of a rounding artifact. */
+  --color-card-ink-faint: #a69d95;
+  /* Muted-state ink pair, same idea as the light theme's above: worst case 9.16:1 (ink) / 5.55:1
+     (ink-soft) against every real backdrop (plain face, muted per-accent header wash, all 17
+     accents). --color-card-ink-faint again has no muted counterpart -- see entity-card.css. */
+  --color-card-ink-muted: #d2cec8;
+  --color-card-ink-soft-muted: #a7a097;
+  /* 3.72:1 against --color-bg-dark (was #3a3532, 1.51:1) -- see the block comment above. Still a
+     warm neutral, not a hue from the accent family, so it never competes with --ca's colour-coding
+     job; it's just bright enough to read as a real edge instead of a hairline. 3.15:1 against
+     --color-card-face itself, which is what the header's bottom divider and badge/tag borders also
+     use -- visibly more defined than before but not loud (checked on a rendered card, not just the
+     ratio). */
+  --color-card-rule: #75706c;
+  /* Bright counterparts of the fixed danger/vault/equip inks, legible on the dark face. danger
+     reuses --color-danger-ghost-hover-text's exact hue for consistency with the rest of the dark
+     theme; vault/equip are lifted from the same rgba(212,128,86,*)/rgba(86,200,120,*) hues the
+     light-theme tokens were derived from. danger 6.01:1 / 5.47:1 (face / face-lift), vault
+     6.13:1 / 5.58:1, equip 7.97:1 / 7.25:1. */
+  --color-card-danger-ink: #d49090;
+  --color-card-vault-ink: #dc9268;
+  --color-card-equip-ink: #6fce88;
+
+  /* --eca-deep inverts here: the 17 --ca hues were tuned for a dark background, so on the dark
+     face they can run as text near their own value instead of buried in ink. --eca-mix stays high
+     (75% raw accent -- was 78%, see below) so already-bright accents barely move; the remaining
+     --eca-anchor (--color-card-ink, our near-white) is enough to lift the darker hues --
+     --color-card-armor and --color-card-feature especially -- to AA. Worst case across all 17:
+     heritage at 5.25:1 against --color-card-face, 4.78:1 against --color-card-face-lift.
+     78% originally passed everywhere but with near-zero headroom against face-lift (heritage
+     4.60:1, martialStance 4.66:1, armor 4.74:1 -- an accessibility reviewer flagged these as
+     fragile, not actually failing). Counterintuitively, LOWERING --eca-mix is what buys margin:
+     more --eca-anchor (near-white) pulls every hue further from the dark face, so heritage's
+     margin goes from 0.10 to 0.28 at 75%. Raising it moves the wrong direction -- more raw
+     (comparatively darker) accent and less anchor, which was tried and made every case worse.
+     --eca-chip-mix/--eca-chip-ink flip too: the chip becomes a solid, full-strength --ca fill with
+     near-black ink, rather than dark-accent-on-light-ink -- --eca-deep is light here, so it can no
+     longer serve as a legible chip background. Verified against the raw (unmixed) --ca for all 17;
+     worst case is armor/heritage at 5.00:1 / 5.01:1 -- unaffected by the face-lightness change,
+     since the chip's own background is --ca itself, never --color-card-face. This pair is also why
+     `.entity-card--muted` never fades the chip (see entity-card.css): a faded, less-than-full --ca
+     chip background would drag near-black chip text toward unreadable against a face this dark.
+     --eca-tint-pct/--eca-hover-pct both drop a couple of points: unlike the light face, a colour
+     wash reads muddier at this low a lightness, so the header wash and hover state stay a touch
+     more restrained even though contrast headroom at 12%/18% is not the constraint (both would
+     still pass; this is a legibility-adjacent design call, not a fix).
+     --eca-rail-mix: 0% -- the user's call for dark specifically: no accent on the border at all,
+     just a uniform 1px --color-card-rule frame (--eca-rail-top-width/--eca-rail-left-width both
+     1px, matching the un-overridden right/bottom). Card-type identity in dark mode now lives only
+     in the chip and the feature-name text -- deliberately, not a gap; verified visually that it
+     still reads at a glance.
+     --eca-muted-rail-mix: 100% -- a muted dark card's border is left completely alone. See the
+     :root comment: with no accent rail here, --color-card-rule is the only thing separating a card
+     from the page, so fading it on exactly the cards that are already hardest to spot would be
+     backwards. Muting in dark is carried by the ink tokens and the header wash. */
+  --eca-mix: 75%;
+  --eca-anchor: var(--color-card-ink);
+  --eca-tint-pct: 10%;
+  --eca-hover-pct: 15%;
+  --eca-chip-mix: 100%;
+  --eca-chip-ink: var(--color-text-darker);
+  --eca-rail-mix: 0%;
+  --eca-rail-top-width: 1px;
+  --eca-rail-left-width: 1px;
+  --eca-muted-rail-mix: 100%;
 }
 
 @media (max-width: 768px) {

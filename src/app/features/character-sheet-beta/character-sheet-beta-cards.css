@@ -26,13 +26,16 @@
 }
 
 .card-swap-action { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); }
-.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid rgba(212,160,86,.25); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
-.card-swap-btn:hover:not(:disabled) { background: rgba(212,160,86,.08); border-color: rgba(212,160,86,.4); color: var(--color-accent-text); }
+/* Border/hover-wash derive from the same re-bound tokens the text already uses (--color-accent-text
+   generally, --color-swap-vault-text/--color-swap-equip-text for the two semantic hovers) so the
+   button's chrome, not just its text, adapts per card theme instead of staying a fixed gold literal. */
+.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 25%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.card-swap-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent-text) 8%, transparent); border-color: color-mix(in srgb, var(--color-accent-text) 40%, transparent); color: var(--color-accent-text); }
 .card-swap-btn:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 .card-swap-btn:disabled { opacity: .4; cursor: not-allowed; }
 .card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
-.card-swap-btn--vault:hover:not(:disabled) { border-color: rgba(160,100,50,.5); color: var(--color-swap-vault-text); background: rgba(212,128,86,.08); }
-.card-swap-btn--equip:hover:not(:disabled) { border-color: rgba(86,180,120,.5); color: var(--color-swap-equip-text); background: rgba(86,180,120,.08); }
+.card-swap-btn--vault:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-swap-vault-text) 50%, transparent); color: var(--color-swap-vault-text); background: color-mix(in srgb, var(--color-swap-vault-text) 8%, transparent); }
+.card-swap-btn--equip:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-swap-equip-text) 50%, transparent); color: var(--color-swap-equip-text); background: color-mix(in srgb, var(--color-swap-equip-text) 8%, transparent); }
 .card-swap-hint { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); font-style: italic; }
 
 .vault-section { margin-top: var(--space-11); padding-top: var(--space-9); border-top: 1px dashed rgba(212,160,86,.15); }
