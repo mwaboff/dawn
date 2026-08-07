@@ -148,6 +148,7 @@ function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency
   return {
     id: weapon.id,
     inventoryEntryId: entryId,
+    createdByUserId: weapon.createdByUserId,
     name: weapon.name,
     tier: weapon.tier,
     isPrimary: weapon.isPrimary ?? true,
@@ -163,6 +164,7 @@ function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay 
   return {
     id: armor.id,
     inventoryEntryId: entryId,
+    createdByUserId: armor.createdByUserId,
     name: armor.name,
     tier: armor.tier,
     baseScore: armor.baseScore ?? 0,
@@ -240,6 +242,7 @@ function buildLootDisplay(entryId: number, loot: LootApiResponse): LootDisplay {
   return {
     id: loot.id,
     inventoryEntryId: entryId,
+    createdByUserId: loot.createdByUserId,
     name: loot.name,
     description: loot.description,
     isConsumable: loot.isConsumable ?? false,

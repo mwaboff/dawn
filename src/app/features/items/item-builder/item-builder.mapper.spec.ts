@@ -7,6 +7,7 @@ import {
   formValueToRequest,
   lootToFormValue,
   responseToFormValue,
+  savedResponseToFormValue,
   weaponToFormValue,
 } from './item-builder.mapper';
 
@@ -175,6 +176,64 @@ describe('responseToFormValue', () => {
     expect(responseToFormValue('weapon', buildWeapon()).kind).toBe('weapon');
     expect(responseToFormValue('armor', buildArmor()).kind).toBe('armor');
     expect(responseToFormValue('loot', { id: 1, name: 'x' }).kind).toBe('loot');
+  });
+});
+
+describe('savedResponseToFormValue', () => {
+  const submitted = [{
+    name: 'Whispers',
+    description: 'It talks.',
+    featureType: 'ITEM' as const,
+    expansionId: null,
+    costTags: [],
+    modifiers: [],
+  }];
+
+  it('keeps the submitted features when the response omits the array', () => {
+    const value = savedResponseToFormValue('weapon', buildWeapon(), submitted);
+
+    expect(value.features).toEqual(submitted);
+  });
+
+  it('prefers what the server saved when the response carries the array', () => {
+    const saved = buildWeapon({
+      features: [{
+        id: 11,
+        name: 'Renamed',
+        description: 'By the server.',
+        featureType: 'ITEM',
+        expansionId: 4,
+        costTagIds: [],
+        costTags: [],
+        modifierIds: [],
+        modifiers: [],
+      }],
+    });
+
+    const value = savedResponseToFormValue('weapon', saved, submitted);
+
+    expect(value.features).toEqual([{
+      name: 'Renamed',
+      description: 'By the server.',
+      featureType: 'ITEM',
+      expansionId: null,
+      costTags: [],
+      modifiers: [],
+    }]);
+  });
+
+  it('lets an intentional clear through, since the fallback is what was submitted', () => {
+    // Deleting every feature omits the array on the way back too -- the fallback has to be the
+    // empty list the user actually sent, not the list they had before.
+    const value = savedResponseToFormValue('weapon', buildWeapon(), []);
+
+    expect(value.features).toEqual([]);
+  });
+
+  it('carries the rest of the response across untouched', () => {
+    const value = savedResponseToFormValue('weapon', buildWeapon({ name: 'Renamed' }), submitted);
+
+    expect(value).toMatchObject({ name: 'Renamed', tier: 2, modifier: 6 });
   });
 });
 

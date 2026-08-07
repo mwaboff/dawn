@@ -7,11 +7,19 @@
   background: rgba(26, 20, 18, 0.7);
   backdrop-filter: blur(2px);
   border-bottom: 1px solid rgba(212, 160, 86, 0.1);
-  transition: all .3s ease;
+  /* Named properties, not `all`: `all` animated `backdrop-filter` too, so every scroll that
+     crossed the threshold spent 300ms recomputing a viewport-wide blur. Only these two change. */
+  transition: background-color .3s ease, border-color .3s ease;
 }
+
+/* The blur is dropped once the bar is opaque. `backdrop-filter` on a fixed element re-samples and
+   re-blurs whatever scrolls beneath it every frame, and behind a 95%-opaque surface almost none of
+   that survives to the screen -- so it was costing the most exactly when it showed the least. It
+   stays on the translucent resting state, where it is actually visible. */
 .nav.scrolled {
   background: rgba(26, 20, 18, 0.95);
   border-bottom-color: rgba(212, 160, 86, 0.2);
+  backdrop-filter: none;
 }
 .nav-container {
   max-width: 1400px;

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of, throwError, Subject } from 'rxjs';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CharacterSheet } from './character-sheet';
@@ -1037,6 +1037,43 @@ describe('CharacterSheet', () => {
         inventoryWeapons: [
           { weaponId: 7, equipped: false },
         ],
+      });
+    });
+
+    it('leaves the sheet for the item builder when a row asks to edit its own homebrew', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.onEditInventoryItem({ type: 'armor', itemId: 7 });
+
+      expect(navigate).toHaveBeenCalledWith(['/items/armor/7/edit'], {
+        queryParams: { returnTo: expect.any(String) },
+      });
+    });
+
+    it('routes an edit by the item id, not the inventory entry id', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+      component.onEditInventoryItem({ type: 'loot', itemId: 12 });
+
+      expect(navigate).toHaveBeenCalledWith(['/items/loot/12/edit'], {
+        queryParams: { returnTo: expect.any(String) },
+      });
+    });
+
+    it('tells the builder where to come back to, so leaving an edit returns to this sheet', () => {
+      createComponent('1');
+      fixture.detectChanges();
+      const router = TestBed.inject(Router);
+      const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      component.onEditInventoryItem({ type: 'weapon', itemId: 3 });
+
+      expect(navigate).toHaveBeenCalledWith(['/items/weapon/3/edit'], {
+        queryParams: { returnTo: router.url },
       });
     });
 

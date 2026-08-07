@@ -9,9 +9,10 @@ export const LOOT_FIELDS: FieldDef[] = [
     name: 'isConsumable',
     label: 'Consumable',
     kind: 'checkbox',
+    column: 'full',
     helpText: 'Consumables are spent when used.',
   },
-  { name: 'description', label: 'Description', kind: 'textarea' },
+  { name: 'description', label: 'Description', kind: 'textarea', column: 'full' },
 ];
 
 /**

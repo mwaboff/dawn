@@ -78,4 +78,16 @@ export class ItemSubmit {
         return this.lootService.updateLoot(id, request as UpdateLootRequest);
     }
   }
+
+  /** Server-side copy into a new private, unofficial record owned by the caller. */
+  copy(kind: ItemKind, id: number): Observable<ItemResponse> {
+    switch (kind) {
+      case 'weapon':
+        return this.weaponService.copyWeapon(id);
+      case 'armor':
+        return this.armorService.copyArmor(id);
+      case 'loot':
+        return this.lootService.copyLoot(id);
+    }
+  }
 }

@@ -85,6 +85,11 @@ export interface TraitDisplay {
 export interface WeaponDisplay {
   id: number;
   inventoryEntryId: number;
+  /**
+   * Author of a custom weapon, null for official content. Carried through so the inventory can
+   * offer an edit shortcut on gear the viewer wrote and nothing else.
+   */
+  createdByUserId?: number | null;
   name: string;
   tier?: number;
   isPrimary: boolean;
@@ -98,6 +103,8 @@ export interface WeaponDisplay {
 export interface ArmorDisplay {
   id: number;
   inventoryEntryId: number;
+  /** See `WeaponDisplay.createdByUserId`. */
+  createdByUserId?: number | null;
   name: string;
   tier?: number;
   baseScore: number;
@@ -109,6 +116,8 @@ export interface ArmorDisplay {
 export interface LootDisplay {
   id: number;
   inventoryEntryId: number;
+  /** See `WeaponDisplay.createdByUserId`. */
+  createdByUserId?: number | null;
   name: string;
   description?: string;
   isConsumable: boolean;

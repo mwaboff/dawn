@@ -73,6 +73,18 @@ export const ITEM_KIND_LABELS: Record<ItemKind, string> = {
   loot: 'Loot',
 };
 
+/**
+ * Each kind's accent, reusing the global card-type tokens the codex and character sheet already
+ * colour weapons, armor, and loot with. Held as `var(...)` strings so they can be bound straight
+ * onto a host as a custom property, which is how the accent reaches both the form's own sections
+ * and the dialog chrome around it.
+ */
+export const ITEM_KIND_ACCENTS: Record<ItemKind, string> = {
+  weapon: 'var(--color-card-weapon)',
+  armor: 'var(--color-card-armor)',
+  loot: 'var(--color-card-loot)',
+};
+
 export const WEAPON_TRAIT_LABELS: Record<WeaponTrait, string> = {
   AGILITY: 'Agility',
   STRENGTH: 'Strength',

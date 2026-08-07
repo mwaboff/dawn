@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, DestroyRef, OnInit, inject, signal,
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { UserResponse } from '../../core/models/auth.model';
@@ -16,8 +16,20 @@ import { CharacterSummary } from './models/profile.model';
 import { mapToSummary } from './models/profile.mapper';
 import { RosterList } from './components/roster-list/roster-list';
 import { RosterPanel } from './components/roster-panel/roster-panel';
-import { campaignToRosterItem, encounterToRosterItem } from './components/roster-panel/roster-panel.mapper';
+import { RosterPanelItem } from './components/roster-panel/roster-panel.model';
+import { campaignToRosterItem, encounterToRosterItem, ownedItemToRosterItem } from './components/roster-panel/roster-panel.mapper';
 import { ENCOUNTER_NEW_PATH, ENCOUNTERS_LIST_PATH, encounterEditPath } from '../encounters/encounter-routes';
+import { ITEMS_NEW_PATH, ItemKind, itemEditPath } from '../items/item-routes';
+import { WeaponService } from '../../shared/services/weapon.service';
+import { ArmorService } from '../../shared/services/armor.service';
+import { LootService } from '../../shared/services/loot.service';
+import {
+  OwnedCustomItem,
+  armorToOwnedItem,
+  lootToOwnedItem,
+  ownedItemKey,
+  weaponToOwnedItem,
+} from './models/custom-item.model';
 
 @Component({
   selector: 'app-profile',
@@ -34,11 +46,15 @@ export class Profile implements OnInit {
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly campaignService = inject(CampaignService);
   private readonly encounterService = inject(EncounterService);
+  private readonly weaponService = inject(WeaponService);
+  private readonly armorService = inject(ArmorService);
+  private readonly lootService = inject(LootService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly rosterList = viewChild(RosterList);
   private readonly campaignRoster = viewChild<RosterPanel>('campaignRosterPanel');
   private readonly encounterRoster = viewChild<RosterPanel>('encounterRosterPanel');
+  private readonly itemRoster = viewChild<RosterPanel>('itemRosterPanel');
 
   readonly campaignsListPath = '/campaigns';
   readonly encountersListPath = ENCOUNTERS_LIST_PATH;
@@ -55,9 +71,13 @@ export class Profile implements OnInit {
   readonly encounters = signal<EncounterResponse[]>([]);
   readonly encountersLoading = signal(true);
   readonly encountersError = signal(false);
+  readonly customItems = signal<OwnedCustomItem[]>([]);
+  readonly itemsLoading = signal(true);
+  readonly itemsError = signal(false);
 
   readonly campaignItems = computed(() => this.campaigns().map(campaignToRosterItem));
   readonly encounterItems = computed(() => this.encounters().map(encounterToRosterItem));
+  readonly itemRosterItems = computed(() => this.customItems().map(ownedItemToRosterItem));
 
   readonly isOwnProfile = computed(() => {
     const current = this.authService.user();
@@ -92,6 +112,20 @@ export class Profile implements OnInit {
    */
   readonly showEncountersHiddenNote = computed(() => this.canViewCampaigns() && !this.isOwnProfile());
 
+  /**
+   * As permissive as campaigns rather than as strict as encounters. The item endpoints take a
+   * `createdByUserId` filter, and MODERATOR-and-above bypass item visibility filtering entirely
+   * server-side, so an admin viewing another profile gets that user's complete list -- including
+   * their private homebrew -- not the silently-truncated subset that forced encounters to be
+   * restricted. A plain MODERATOR is left out only because delete is gated at ADMIN below.
+   */
+  readonly canViewItems = computed(() => {
+    const current = this.authService.user();
+    if (!current) return false;
+    if (this.isOwnProfile()) return true;
+    return isAtLeast(current.role, 'ADMIN');
+  });
+
   readonly canDeleteItems = computed(() => {
     const current = this.authService.user();
     if (!current) return false;
@@ -122,6 +156,7 @@ export class Profile implements OnInit {
         this.charactersLoading.set(false);
         this.campaignsLoading.set(false);
         this.encountersLoading.set(false);
+        this.itemsLoading.set(false);
         return;
       }
 
@@ -132,6 +167,7 @@ export class Profile implements OnInit {
         this.loadCharacters(id);
         this.loadCampaignsIfAllowed(id);
         this.loadEncountersIfAllowed(id);
+        this.loadCustomItemsIfAllowed(id);
       } else {
         this.loadProfileUser(id);
         this.loadCharacters(id);
@@ -147,6 +183,7 @@ export class Profile implements OnInit {
       this.loadCharacters(currentUser.id);
       this.loadCampaignsIfAllowed(currentUser.id);
       this.loadEncountersIfAllowed(currentUser.id);
+      this.loadCustomItemsIfAllowed(currentUser.id);
     }
   }
 
@@ -162,20 +199,31 @@ export class Profile implements OnInit {
     this.router.navigate(['/create-character']);
   }
 
-  onViewCampaign(id: number): void {
-    this.router.navigate(['/campaign', id]);
+  onViewCampaign(entry: RosterPanelItem): void {
+    this.router.navigate(['/campaign', entry.id]);
   }
 
   onCreateCampaign(): void {
     this.router.navigate(['/campaigns/create']);
   }
 
-  onViewEncounter(id: number): void {
-    this.router.navigate([encounterEditPath(id)]);
+  onViewEncounter(entry: RosterPanelItem): void {
+    this.router.navigate([encounterEditPath(entry.id)]);
   }
 
   onCreateEncounter(): void {
     this.router.navigate([ENCOUNTER_NEW_PATH]);
+  }
+
+  onViewItem(entry: RosterPanelItem): void {
+    const item = this.findOwnedItem(entry);
+    if (item) {
+      this.router.navigate([itemEditPath(item.kind, item.id)]);
+    }
+  }
+
+  onCreateItem(): void {
+    this.router.navigate([ITEMS_NEW_PATH]);
   }
 
   onDeleteCharacter(id: number): void {
@@ -190,10 +238,10 @@ export class Profile implements OnInit {
     });
   }
 
-  onDeleteCampaign(id: number): void {
-    this.campaignService.deleteCampaign(id).subscribe({
+  onDeleteCampaign(entry: RosterPanelItem): void {
+    this.campaignService.deleteCampaign(entry.id).subscribe({
       next: () => {
-        this.campaigns.update(camps => camps.filter(c => c.id !== id));
+        this.campaigns.update(camps => camps.filter(c => c.id !== entry.id));
         this.campaignRoster()?.resetDeleteState();
       },
       error: () => {
@@ -202,16 +250,50 @@ export class Profile implements OnInit {
     });
   }
 
-  onDeleteEncounter(id: number): void {
-    this.encounterService.deleteEncounter(id).subscribe({
+  onDeleteEncounter(entry: RosterPanelItem): void {
+    this.encounterService.deleteEncounter(entry.id).subscribe({
       next: () => {
-        this.encounters.update(encs => encs.filter(e => e.id !== id));
+        this.encounters.update(encs => encs.filter(e => e.id !== entry.id));
         this.encounterRoster()?.resetDeleteState();
       },
       error: () => {
         this.encounterRoster()?.resetDeleteState();
       },
     });
+  }
+
+  onDeleteItem(entry: RosterPanelItem): void {
+    const item = this.findOwnedItem(entry);
+    if (!item) {
+      this.itemRoster()?.resetDeleteState();
+      return;
+    }
+    const key = ownedItemKey(item);
+    this.deleteItemByKind(item.kind, item.id).subscribe({
+      next: () => {
+        this.customItems.update(items => items.filter(i => ownedItemKey(i) !== key));
+        this.itemRoster()?.resetDeleteState();
+      },
+      error: () => {
+        this.itemRoster()?.resetDeleteState();
+      },
+    });
+  }
+
+  /** Resolves a panel row back to the record it came from -- see `RosterPanelItem.key`. */
+  private findOwnedItem(entry: RosterPanelItem): OwnedCustomItem | undefined {
+    return this.customItems().find(item => ownedItemKey(item) === entry.key);
+  }
+
+  private deleteItemByKind(kind: ItemKind, id: number) {
+    switch (kind) {
+      case 'weapon':
+        return this.weaponService.deleteWeapon(id);
+      case 'armor':
+        return this.armorService.deleteArmor(id);
+      case 'loot':
+        return this.lootService.deleteLoot(id);
+    }
   }
 
   private loadProfileUser(id: number): void {
@@ -229,6 +311,7 @@ export class Profile implements OnInit {
         this.profileUser.set(user);
         this.loadCampaignsIfAllowed(id);
         this.loadEncountersIfAllowed(id);
+        this.loadCustomItemsIfAllowed(id);
       }
       this.profileLoading.set(false);
     });
@@ -283,6 +366,41 @@ export class Profile implements OnInit {
     ).subscribe((encounters) => {
       this.encounters.set(encounters);
       this.encountersLoading.set(false);
+    });
+  }
+
+  /**
+   * Homebrew lives in three separate tables with three separate endpoints, so this fans out and
+   * joins rather than hitting one list route. Each leg sorts NEWEST server-side and the results
+   * are concatenated by kind, giving weapons-then-armor-then-loot with the most recent of each
+   * on top; there is no shared timestamp to interleave on, since `LootApiResponse` carries no
+   * `createdAt`. One failing leg fails the panel rather than showing a partial list that reads
+   * as "you made fewer things than you did".
+   */
+  private loadCustomItemsIfAllowed(userId: number): void {
+    if (!this.canViewItems()) {
+      this.itemsLoading.set(false);
+      return;
+    }
+    const options = { createdByUserId: userId, sort: 'NEWEST' as const, size: 100 };
+    forkJoin({
+      weapons: this.weaponService.getWeaponsRaw(options),
+      armors: this.armorService.getArmorsRaw(options),
+      loot: this.lootService.getLootRaw(options),
+    }).pipe(
+      map(({ weapons, armors, loot }) => [
+        ...weapons.items.map(weaponToOwnedItem),
+        ...armors.items.map(armorToOwnedItem),
+        ...loot.items.map(lootToOwnedItem),
+      ]),
+      catchError(() => {
+        this.itemsError.set(true);
+        return of([] as OwnedCustomItem[]);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((items) => {
+      this.customItems.set(items);
+      this.itemsLoading.set(false);
     });
   }
 

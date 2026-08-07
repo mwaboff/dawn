@@ -1,7 +1,16 @@
 .item-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-10);
+}
+
+/* Sections are separated by a rule tinted with the selected kind's accent, so the branch taken at
+   the rack stays legible all the way down the form. `.form-section`'s own bottom margin is zeroed
+   because the flex `gap` above already owns the rhythm; using both double-spaced every section. */
+.item-form__section {
+  margin-bottom: 0;
+  padding-top: var(--space-9);
+  border-top: 1px solid color-mix(in srgb, var(--item-accent, var(--color-accent)) 20%, transparent);
 }
 
 /* The kind subcomponents are `display: contents`, so their fields join this grid directly. */
@@ -11,16 +20,51 @@
   gap: var(--space-8);
 }
 
-.item-form__advice {
-  margin-top: var(--space-6);
-  color: var(--color-parchment);
-  opacity: 0.7;
-  font-size: var(--text-sm);
-  font-style: italic;
+/* Name and tier are one row of two unequal fields rather than equal auto-fit cells -- a name wants
+   the room and a tier picker is four short options. */
+.item-form__grid--basics {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
+@media (max-width: 640px) {
+  .item-form__grid--basics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Power-level notes, sitting inside the section whose fields they are about. Quiet on purpose:
+   these never block a save, so they must not read as errors. */
+.item-form__advice {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-7) 0 0;
+  padding: var(--space-5) var(--space-7);
+  background: rgba(212, 160, 86, 0.05);
+  border-left: 2px solid rgba(212, 160, 86, 0.35);
+  border-radius: 0 4px 4px 0;
+}
+
+.item-form__advice-item {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-parchment-a55);
+}
+
+/* Sticky so the primary action stays reachable: the feature editor below has no height limit, and
+   the buttons used to drift arbitrarily far down the page. Only the routed builder renders this --
+   a modal host sets `showActions=false` and pins its own row in the dialog shell. */
 .item-form__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   justify-content: flex-end;
   gap: var(--space-6);
+  padding: var(--space-7) 0;
+  background: var(--color-bg-darker);
+  border-top: 1px solid color-mix(in srgb, var(--item-accent, var(--color-accent)) 25%, transparent);
 }

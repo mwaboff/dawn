@@ -18,12 +18,18 @@ export class InventoryItemRow {
   readonly canEquipAsPrimary = input<boolean>(false);
   readonly canEquipAsSecondary = input<boolean>(false);
   readonly canEquipArmor = input<boolean>(false);
+  /**
+   * The viewer's user id, or null when signed out. Compared against the item's author to decide
+   * whether to offer the edit shortcut -- official gear has no author and is never editable here.
+   */
+  readonly currentUserId = input<number | null>(null);
 
   readonly removeClicked = output<void>();
   readonly removeConfirmed = output<void>();
   readonly removeCancelled = output<void>();
   readonly equipClicked = output<string>();
   readonly unequipClicked = output<void>();
+  readonly editClicked = output<void>();
 
   readonly weapon = computed<WeaponDisplay | null>(() =>
     this.itemType() === 'weapon' ? (this.item() as WeaponDisplay) : null
@@ -51,6 +57,16 @@ export class InventoryItemRow {
     if (type === 'loot') return true;
     if (type === 'weapon') return this.weaponSlot() === null;
     return !this.isArmorEquipped();
+  });
+
+  /**
+   * Only the author of a piece of homebrew gets the edit shortcut. `createdByUserId` is null on
+   * official content and absent when the sheet response didn't expand the item, so a plain
+   * equality check leaves the button off in both cases without a separate guard.
+   */
+  readonly canEdit = computed<boolean>(() => {
+    const viewer = this.currentUserId();
+    return viewer !== null && this.item().createdByUserId === viewer;
   });
 
   readonly cardName = computed<string>(() => this.item().name);
@@ -144,5 +160,9 @@ export class InventoryItemRow {
 
   onUnequipClick(): void {
     this.unequipClicked.emit();
+  }
+
+  onEditClick(): void {
+    this.editClicked.emit();
   }
 }

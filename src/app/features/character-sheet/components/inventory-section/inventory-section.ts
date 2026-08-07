@@ -25,6 +25,12 @@ export interface InventoryEquipArmorEvent {
   inventoryEntryId: number;
 }
 
+/** A request to open the item builder on a piece of homebrew the viewer wrote. */
+export interface InventoryEditEvent {
+  type: 'weapon' | 'armor' | 'loot';
+  itemId: number;
+}
+
 @Component({
   selector: 'app-inventory-section',
   templateUrl: './inventory-section.html',
@@ -43,11 +49,14 @@ export class InventorySection {
   readonly weaponConstraints = input<{ primarySlotOccupied: boolean; secondarySlotOccupied: boolean; twoHandedEquipped: boolean } | null>(null);
   readonly canEquipArmorSlot = input<boolean>(false);
   readonly errorMessage = input<string | null>(null);
+  /** Passed to each row so it can tell whether the viewer authored the item. */
+  readonly currentUserId = input<number | null>(null);
 
   readonly addItem = output<{ type: 'weapon' | 'armor' | 'loot'; item: unknown }>();
   /** A request to build homebrew of the active tab's kind, rather than pick from the catalogue. */
   readonly createItem = output<'weapon' | 'armor' | 'loot'>();
   readonly removeItem = output<InventoryRemoveEvent>();
+  readonly editItem = output<InventoryEditEvent>();
   readonly equipWeapon = output<InventoryEquipWeaponEvent>();
   readonly unequipWeapon = output<{ slot: 'primary' | 'secondary' }>();
   readonly equipArmor = output<InventoryEquipArmorEvent>();
@@ -155,6 +164,11 @@ export class InventorySection {
   onRemoveConfirmed(type: 'weapon' | 'armor' | 'loot', inventoryEntryId: number): void {
     this.confirmingRemoveEntryId.set(null);
     this.removeItem.emit({ type, inventoryEntryId });
+  }
+
+  /** Note this carries the catalogue id, not the inventory entry id -- the builder edits the item. */
+  onEditClicked(type: 'weapon' | 'armor' | 'loot', itemId: number): void {
+    this.editItem.emit({ type, itemId });
   }
 
   onRemoveCancelled(): void {

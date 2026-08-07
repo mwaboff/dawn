@@ -30,13 +30,13 @@ describe('WeaponFields', () => {
   it('renders every weapon field', () => {
     setup();
     expect(labels()).toEqual([
-      'Primary weapon',
       'Trait',
       'Range',
       'Burden',
       'Damage Die',
       'Damage Modifier',
       'Damage Type',
+      'Primary weapon',
     ]);
   });
 

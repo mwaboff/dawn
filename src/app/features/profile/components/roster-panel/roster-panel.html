@@ -23,10 +23,10 @@
       </div>
     } @else {
       <ol class="roster-list">
-        @for (item of items(); track item.id) {
+        @for (item of items(); track itemKey(item)) {
           <li class="roster-entry" tabindex="0" role="button"
-              (click)="view.emit(item.id)"
-              (keydown.enter)="view.emit(item.id)">
+              (click)="view.emit(item)"
+              (keydown.enter)="view.emit(item)">
             <div class="roster-info">
               <div class="roster-name-row">
                 <span class="roster-character-name">{{ item.name }}</span>
@@ -43,9 +43,9 @@
             @if (canDelete()) {
               <app-inline-delete-confirm
                 [itemLabel]="item.name"
-                [active]="pendingDeleteId() === item.id"
-                (requested)="onDeleteRequest(item.id)"
-                (confirmed)="onDeleteConfirm()"
+                [active]="pendingDeleteKey() === itemKey(item)"
+                (requested)="onDeleteRequest(item)"
+                (confirmed)="onDeleteConfirm(item)"
                 (cancelled)="onDeleteCancel()" />
             }
             <svg class="roster-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -56,19 +56,19 @@
         }
       </ol>
     }
-    @if (showCreateButton()) {
+    @if (showCreateButton() && listPath()) {
       <div class="roster-footer">
         <a [routerLink]="listPath()" class="roster-add-link">View All {{ listLabel() }}</a>
       </div>
     }
   }
-  @if (confirmingDeleteId() !== null) {
+  @if (confirmingDelete() !== null) {
     <app-confirm-dialog
       [title]="'Delete ' + itemTypeLabel()"
       [message]="'This will permanently delete this ' + itemTypeLabel().toLowerCase() + '. This action cannot be undone.'"
       confirmLabel="Delete"
       cancelLabel="Cancel"
-      [processing]="deletingId() !== null"
+      [processing]="deletingKey() !== null"
       (confirmed)="onConfirmDelete()"
       (cancelled)="onCancelDelete()"
     />

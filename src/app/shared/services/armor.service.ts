@@ -18,6 +18,8 @@ export interface ArmorOptions {
   burden?: string;
   isOfficial?: boolean;
   expansionId?: number;
+  /** Narrows to armor authored by one user -- how a profile lists its owner's homebrew. */
+  createdByUserId?: number;
 }
 
 export interface PaginatedArmors {
@@ -33,7 +35,7 @@ export class ArmorService {
   private readonly baseUrl = `${environment.apiUrl}/dh/armors`;
 
   getArmors(options: ArmorOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, name, sort, tier, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, name, sort, tier, burden, isOfficial, expansionId, createdByUserId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -46,6 +48,9 @@ export class ArmorService {
       params = params.set('sort', sort);
     }
 
+    if (createdByUserId !== undefined) {
+      params = params.set('createdByUserId', createdByUserId);
+    }
     if (tier !== undefined) {
       params = params.set('tier', tier);
     }
@@ -70,7 +75,7 @@ export class ArmorService {
   }
 
   getArmorsRaw(options: ArmorOptions = {}): Observable<PaginatedArmors> {
-    const { page = 0, size = 20, name, sort, tier, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, name, sort, tier, burden, isOfficial, expansionId, createdByUserId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -83,6 +88,9 @@ export class ArmorService {
       params = params.set('sort', sort);
     }
 
+    if (createdByUserId !== undefined) {
+      params = params.set('createdByUserId', createdByUserId);
+    }
     if (tier !== undefined) {
       params = params.set('tier', tier);
     }
@@ -137,6 +145,14 @@ export class ArmorService {
    */
   copyArmor(id: number): Observable<ArmorResponse> {
     return this.http.post<ArmorResponse>(`${this.baseUrl}/${id}/copy`, {}, { withCredentials: true });
+  }
+
+  /**
+   * Soft-deletes armor. Same ownership rule as {@link updateArmor}: the author, a moderator,
+   * or an admin. Soft, so an author who deletes by mistake can still be restored server-side.
+   */
+  deleteArmor(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 
 }

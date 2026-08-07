@@ -453,4 +453,58 @@ describe('Navbar', () => {
       expect(component.isMobileMenuOpen()).toBe(false);
     });
   });
+
+  describe('scroll state', () => {
+    afterEach(() => {
+      window.scrollY = 0;
+    });
+
+    function scrollTo(y: number): void {
+      window.scrollY = y;
+      window.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+    }
+
+    it('starts unscrolled', () => {
+      fixture.detectChanges();
+      expect(component.isScrolled()).toBe(false);
+    });
+
+    it('goes opaque once the page moves past the threshold', () => {
+      fixture.detectChanges();
+      scrollTo(50);
+      expect(component.isScrolled()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.nav').classList).toContain('scrolled');
+    });
+
+    it('comes back when the page returns to the top', () => {
+      fixture.detectChanges();
+      scrollTo(50);
+      scrollTo(0);
+      expect(component.isScrolled()).toBe(false);
+    });
+
+    /**
+     * The listener is on `window`, which no host binding reaches, so it is the one thing on this
+     * component that has to be torn down by hand. Without this the closure pins the instance.
+     */
+    it('stops listening once destroyed', () => {
+      fixture.detectChanges();
+      const remove = vi.spyOn(window, 'removeEventListener');
+
+      fixture.destroy();
+
+      expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function));
+    });
+
+    it('does not react to scrolls after destruction', () => {
+      fixture.detectChanges();
+      fixture.destroy();
+
+      window.scrollY = 500;
+      window.dispatchEvent(new Event('scroll'));
+
+      expect(component.isScrolled()).toBe(false);
+    });
+  });
 });

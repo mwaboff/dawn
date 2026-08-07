@@ -20,13 +20,13 @@ import { LookupOption } from '../../../../shared/components/entity-form/entity-f
 import { FeatureEditor } from '../../../../shared/components/feature-editor/feature-editor';
 import { FeatureInput } from '../../../../shared/models/feature-api.model';
 import { ItemKind } from '../../item-routes';
-import { ItemFormValue, toEditorFeatures } from '../../models/item-form-value.model';
+import { ITEM_KIND_ACCENTS, ItemFormValue, toEditorFeatures } from '../../models/item-form-value.model';
 import { itemAdvisories } from '../../utils/item-balance.utils';
+import { ItemKindRack } from '../item-kind-rack/item-kind-rack';
 import { ArmorFields } from './components/armor-fields/armor-fields';
 import { LootFields } from './components/loot-fields/loot-fields';
 import { WeaponFields } from './components/weapon-fields/weapon-fields';
 import {
-  KIND_FIELD,
   NAME_FIELD,
   PUBLIC_FIELD,
   applyKindValidators,
@@ -35,6 +35,13 @@ import {
   seedForm,
   tierField,
 } from './item-form.fields';
+
+/** The kind-specific section reads as what that kind is for, not as a generic "Details". */
+const KIND_SECTION_TITLES: Record<ItemKind, string> = {
+  weapon: 'In Combat',
+  armor: 'Protection',
+  loot: 'Details',
+};
 
 /**
  * The custom item editor, and nothing else: no HTTP, no router, no service that reaches the
@@ -49,6 +56,7 @@ import {
     EntityFormField,
     EntityMultiSelect,
     FeatureEditor,
+    ItemKindRack,
     WeaponFields,
     ArmorFields,
     LootFields,
@@ -56,6 +64,10 @@ import {
   templateUrl: './item-form.html',
   styleUrl: './item-form.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // Publishes the selected kind's accent to the whole subtree, and to whatever hosts this form:
+  // the routed page tints its section rules and submit button from it, and the character sheet's
+  // modal feeds it to `modal-shell` as `--dialog-accent`.
+  host: { '[style.--item-accent]': 'accent()' },
 })
 export class ItemForm {
   private readonly destroyRef = inject(DestroyRef);
@@ -90,7 +102,6 @@ export class ItemForm {
   private readonly featureEditor = viewChild(FeatureEditor);
 
   readonly form = buildItemForm(inject(FormBuilder));
-  readonly kindField = KIND_FIELD;
   readonly nameField = NAME_FIELD;
   readonly publicField = PUBLIC_FIELD;
 
@@ -104,6 +115,15 @@ export class ItemForm {
 
   readonly kind = computed<ItemKind>(() => this.lockedKind() ?? this.rawValue().kind);
   readonly tierField = computed(() => tierField(this.kind() === 'loot'));
+
+  readonly accent = computed(() => ITEM_KIND_ACCENTS[this.kind()]);
+  /** What the kind-specific section is called. Each kind asks for a different sort of thing. */
+  readonly detailsTitle = computed(() => KIND_SECTION_TITLES[this.kind()]);
+  /**
+   * Radio-group name for the kind rack, derived from the form id so two item forms on one page
+   * cannot share a selection -- the same reason `formId` exists.
+   */
+  readonly kindGroupName = computed(() => `${this.formId()}-kind`);
 
   /** Power-level notes. Advisory only: these never disable the save button. */
   readonly advisories = computed(() => itemAdvisories({ ...this.rawValue(), kind: this.kind() }));
@@ -154,6 +174,15 @@ export class ItemForm {
 
   onCancel(): void {
     this.cancelled.emit();
+  }
+
+  /**
+   * The rack is a plain control over the `kind` field rather than a `formControlName`, because it
+   * has to sit outside the field grid and render as a chip when the kind is locked. Writing
+   * through the control keeps `applyKindValidators` on `valueChanges` doing its job.
+   */
+  onKindSelected(kind: ItemKind): void {
+    this.form.controls['kind'].setValue(kind);
   }
 
   private collectFeatures(): FeatureInput[] {

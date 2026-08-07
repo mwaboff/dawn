@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
 import { DecimalPipe, LowerCasePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
@@ -27,7 +27,7 @@ import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/cha
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
 import { ItemCreateModal, ItemCreatedEvent } from './components/item-create-modal/item-create-modal';
-import { ItemKind } from '../items/item-routes';
+import { ItemKind, itemEditPath } from '../items/item-routes';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
@@ -47,6 +47,7 @@ import {
   InventoryRemoveEvent,
   InventoryEquipWeaponEvent,
   InventoryEquipArmorEvent,
+  InventoryEditEvent,
 } from './components/inventory-section/inventory-section';
 
 @Component({
@@ -58,6 +59,7 @@ import {
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
   private readonly diceRollerService = inject(DiceRollerService);
@@ -169,6 +171,13 @@ export class CharacterSheet implements OnInit {
     const user = this.authService.user();
     return sheet !== null && user !== null && sheet.ownerId === user.id;
   });
+
+  /**
+   * Deliberately the signed-in viewer rather than the sheet's owner: the inventory uses this to
+   * decide whose homebrew the edit shortcut appears on, and a GM looking at a player's sheet may
+   * well have written some of the gear on it.
+   */
+  readonly currentUserId = computed(() => this.authService.user()?.id ?? null);
 
   /**
    * Whether notes render at all -- driven entirely by what the backend sent, not a client-side
@@ -806,6 +815,19 @@ export class CharacterSheet implements OnInit {
   onCustomItemCreated(event: ItemCreatedEvent): void {
     this.creatingItemKind.set(null);
     this.onAddInventoryItem(event);
+  }
+
+  /**
+   * Leaves the sheet for the item builder. A full navigation rather than a modal: edits to an
+   * item apply everywhere it is equipped, not just on this sheet, and the routed editor is the
+   * place that already says so.
+   */
+  onEditInventoryItem(event: InventoryEditEvent): void {
+    // Hands the builder this sheet's URL so its back link and Cancel return here rather than
+    // dropping the user in the codex, which is where the builder goes when nobody says otherwise.
+    this.router.navigate([itemEditPath(event.type, event.itemId)], {
+      queryParams: { returnTo: this.router.url },
+    });
   }
 
   onRemoveInventoryItem(event: InventoryRemoveEvent): void {

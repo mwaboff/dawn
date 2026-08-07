@@ -1,3 +1,8 @@
 @for (field of fields; track field.name) {
-  <app-entity-form-field [field]="field" [control]="controlFor(field.name)" [submitted]="submitted()" />
+  <app-entity-form-field
+    [class.form-field--full]="field.column === 'full'"
+    [field]="field"
+    [control]="controlFor(field.name)"
+    [submitted]="submitted()"
+  />
 }

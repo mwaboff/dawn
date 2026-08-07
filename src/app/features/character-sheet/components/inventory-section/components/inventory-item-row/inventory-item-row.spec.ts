@@ -45,6 +45,8 @@ const loot: LootDisplay = {
       [canEquipAsPrimary]="canEquipAsPrimary()"
       [canEquipAsSecondary]="canEquipAsSecondary()"
       [canEquipArmor]="canEquipArmor()"
+      [currentUserId]="currentUserId()"
+      (editClicked)="onEditClicked()"
       (removeClicked)="onRemoveClicked()"
       (removeConfirmed)="onRemoveConfirmed()"
       (removeCancelled)="onRemoveCancelled()"
@@ -62,7 +64,9 @@ class TestHost {
   canEquipAsPrimary = signal(true);
   canEquipAsSecondary = signal(true);
   canEquipArmor = signal(true);
+  currentUserId = signal<number | null>(null);
 
+  onEditClicked = vi.fn();
   onRemoveClicked = vi.fn();
   onRemoveConfirmed = vi.fn();
   onRemoveCancelled = vi.fn();
@@ -81,6 +85,60 @@ describe('InventoryItemRow', () => {
     host = fixture.componentInstance;
     fixture.detectChanges();
     el = fixture.nativeElement;
+  });
+
+  describe('edit affordance', () => {
+    it('is hidden on official gear, which has no author', () => {
+      host.currentUserId.set(42);
+      host.item.set({ ...weapon, createdByUserId: null });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.edit-btn')).toBeFalsy();
+    });
+
+    it('is hidden on homebrew someone else wrote', () => {
+      host.currentUserId.set(42);
+      host.item.set({ ...weapon, createdByUserId: 99 });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.edit-btn')).toBeFalsy();
+    });
+
+    it('is shown on homebrew the viewer wrote', () => {
+      host.currentUserId.set(42);
+      host.item.set({ ...weapon, createdByUserId: 42 });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.edit-btn')).toBeTruthy();
+    });
+
+    it('is hidden when signed out, even though the item has an author', () => {
+      host.currentUserId.set(null);
+      host.item.set({ ...weapon, createdByUserId: 42 });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.edit-btn')).toBeFalsy();
+    });
+
+    it('is shown on the viewer\'s own gear even when it is equipped and cannot be removed', () => {
+      host.currentUserId.set(42);
+      host.item.set({ ...weapon, createdByUserId: 42 });
+      host.equipState.set('primary');
+      fixture.detectChanges();
+
+      expect(el.querySelector('.remove-btn')).toBeFalsy();
+      expect(el.querySelector('.edit-btn')).toBeTruthy();
+    });
+
+    it('emits editClicked when pressed', () => {
+      host.currentUserId.set(42);
+      host.item.set({ ...weapon, createdByUserId: 42 });
+      fixture.detectChanges();
+
+      (el.querySelector('.edit-btn') as HTMLButtonElement).click();
+
+      expect(host.onEditClicked).toHaveBeenCalled();
+    });
   });
 
   describe('weapon rendering', () => {

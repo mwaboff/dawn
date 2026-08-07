@@ -17,12 +17,6 @@ function labelOptions(labels: Record<string, string>): { value: string; label: s
 }
 
 export const WEAPON_FIELDS: FieldDef[] = [
-  {
-    name: 'isPrimary',
-    label: 'Primary weapon',
-    kind: 'checkbox',
-    helpText: 'Secondary weapons are the off-hand slot and hit for less.',
-  },
   { name: 'trait', label: 'Trait', kind: 'enum', options: labelOptions(WEAPON_TRAIT_LABELS) },
   { name: 'range', label: 'Range', kind: 'enum', options: WEAPON_RANGE_OPTIONS },
   { name: 'burden', label: 'Burden', kind: 'enum', options: labelOptions(WEAPON_BURDEN_LABELS) },
@@ -35,6 +29,15 @@ export const WEAPON_FIELDS: FieldDef[] = [
   },
   { name: 'modifier', label: 'Damage Modifier', kind: 'number', min: 0 },
   { name: 'damageType', label: 'Damage Type', kind: 'enum', options: labelOptions(DAMAGE_TYPE_LABELS) },
+  // Last and full-width: it decides the slot rather than the statline, and it sits next to the
+  // damage advisory below, which is the thing that changes when it is toggled.
+  {
+    name: 'isPrimary',
+    label: 'Primary weapon',
+    kind: 'checkbox',
+    column: 'full',
+    helpText: 'Secondary weapons are the off-hand slot and hit for less.',
+  },
 ];
 
 /**

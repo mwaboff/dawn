@@ -452,7 +452,7 @@ describe('FeatureEditor', () => {
         const groups = component.getFeatureGroups();
         expect(groups.length).toBe(1);
         expect(groups[0].label).toBe('Features');
-        expect(groups[0].features.length).toBe(2);
+        expect(groups[0].rows.length).toBe(2);
       });
 
       it('renders one features-section', () => {
@@ -481,9 +481,9 @@ describe('FeatureEditor', () => {
         const groups = component.getFeatureGroups();
         expect(groups.length).toBe(2);
         expect(groups[0].label).toBe('Class Features');
-        expect(groups[0].features.length).toBe(1);
+        expect(groups[0].rows.length).toBe(1);
         expect(groups[1].label).toBe('Hope Features');
-        expect(groups[1].features.length).toBe(1);
+        expect(groups[1].rows.length).toBe(1);
       });
 
       it('renders separate sections with correct headings', () => {
@@ -493,18 +493,29 @@ describe('FeatureEditor', () => {
         expect(titles[1].textContent.trim()).toBe('Hope Features');
       });
 
-      it('getGlobalIndex returns correct indices across groups', () => {
+      /**
+        * Grouping reorders rows for display, so each row has to keep the position it occupies in
+        * the flat list -- that position is what every mutation on the row addresses.
+        */
+      it('carries each row its index in the flat feature list, not its index within the group', () => {
         const groups = component.getFeatureGroups();
-        const classFeature = groups[0].features[0];
-        const hopeFeature = groups[1].features[0];
-        expect(component.getGlobalIndex(classFeature)).toBe(0);
-        expect(component.getGlobalIndex(hopeFeature)).toBe(1);
+        expect(groups[0].rows[0].index).toBe(0);
+        expect(groups[1].rows[0].index).toBe(1);
+      });
+
+      it('matches the index it carries to the feature it belongs to', () => {
+        const groups = component.getFeatureGroups();
+        const all = component.getEditableFeatures();
+        for (const group of groups) {
+          for (const row of group.rows) {
+            expect(all[row.index]).toBe(row.feature);
+          }
+        }
       });
 
       it('toggling a feature in a group uses global index correctly', () => {
         const groups = component.getFeatureGroups();
-        const hopeFeature = groups[1].features[0];
-        const globalIdx = component.getGlobalIndex(hopeFeature);
+        const globalIdx = groups[1].rows[0].index;
         component.toggleFeature(globalIdx);
         const updated = component.getEditableFeatures()[globalIdx];
         expect(updated.expanded).toBe(true);

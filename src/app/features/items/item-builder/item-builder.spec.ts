@@ -56,14 +56,29 @@ interface Harness {
   router: Router;
 }
 
-function setup(params: Record<string, string> = {}, isModerator = false): Harness {
+function setup(
+  params: Record<string, string> = {},
+  isModerator = false,
+  queryParams: Record<string, string> = {},
+): Harness {
   TestBed.configureTestingModule({
     imports: [ItemBuilder],
     providers: [
       provideHttpClient(),
       provideHttpClientTesting(),
       provideRouter([]),
-      { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
+      // `paramMap` as a stream as well as a snapshot: the builder subscribes so that Duplicate,
+      // which navigates from one item's edit URL to another's, reloads the component in place.
+      {
+        provide: ActivatedRoute,
+        useValue: {
+          snapshot: {
+            paramMap: convertToParamMap(params),
+            queryParamMap: convertToParamMap(queryParams),
+          },
+          paramMap: of(convertToParamMap(params)),
+        },
+      },
       { provide: AuthService, useValue: { isModerator: signal(isModerator) } },
     ],
   });
@@ -140,7 +155,10 @@ describe('ItemBuilder', () => {
 
       component.onSubmitted(formValue());
 
-      expect(navigate).toHaveBeenCalledWith(['/items/weapon/42/edit'], { replaceUrl: true });
+      expect(navigate).toHaveBeenCalledWith(['/items/weapon/42/edit'], {
+        replaceUrl: true,
+        queryParamsHandling: 'preserve',
+      });
     });
 
     it('keeps the kind in the redirect URL, because ids collide across the three tables', () => {
@@ -151,7 +169,32 @@ describe('ItemBuilder', () => {
 
       component.onSubmitted(formValue({ kind: 'loot' }));
 
-      expect(navigate).toHaveBeenCalledWith(['/items/loot/42/edit'], { replaceUrl: true });
+      expect(navigate).toHaveBeenCalledWith(['/items/loot/42/edit'], {
+        replaceUrl: true,
+        queryParamsHandling: 'preserve',
+      });
+    });
+
+    it('keeps the features it just saved when the response leaves them out', () => {
+      // The create response is what the form is re-seeded from, and it omits `features` when the
+      // server does not expand them. Blanking the list here would not just hide the feature: the
+      // next save sends the list as the item's complete new set, so an empty one deletes it.
+      const { fixture, component, itemSubmit, router } = setup();
+      vi.spyOn(itemSubmit, 'create').mockReturnValue(of(buildWeapon({ id: 42 })));
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      fixture.detectChanges();
+      const features = [{
+        name: 'Whispers',
+        description: 'It talks.',
+        featureType: 'ITEM' as const,
+        expansionId: null,
+        costTags: [],
+        modifiers: [],
+      }];
+
+      component.onSubmitted(formValue({ features }));
+
+      expect(component.initialValue()?.features).toEqual(features);
     });
 
     it('becomes an edit once the item exists', () => {
@@ -210,7 +253,10 @@ describe('ItemBuilder', () => {
       fixture.detectChanges();
 
       expect(component.submitLabel()).toBe('Save Changes');
-      expect(component.heading()).toBe('Edit Item');
+      // The heading is given over to the item's own name in edit mode; the eyebrow is what says
+      // which job the page is doing.
+      expect(component.heading()).toBe('Hearthblade');
+      expect(component.eyebrow()).toBe('Editing your weapon');
     });
 
     it('PUTs to the loaded id and does not navigate away', () => {
@@ -242,6 +288,76 @@ describe('ItemBuilder', () => {
 
       expect(component.loadError()).toBe(true);
       expect(load).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('duplicate', () => {
+    it('is not offered in create mode, where there is nothing to fork yet', () => {
+      const { fixture } = setup();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.item-builder__duplicate')).toBeFalsy();
+    });
+
+    it('is offered in edit mode', () => {
+      const { fixture, itemSubmit } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.item-builder__duplicate')).toBeTruthy();
+    });
+
+    it('copies the item through the endpoint for its kind', () => {
+      const { fixture, component, itemSubmit } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+      const copy = vi.spyOn(itemSubmit, 'copy').mockReturnValue(of(buildWeapon({ id: 12 })));
+      fixture.detectChanges();
+
+      component.onDuplicate();
+
+      expect(copy).toHaveBeenCalledWith('weapon', 7);
+    });
+
+    it('moves the editor onto the copy, so the next save does not overwrite the original', () => {
+      const { fixture, component, itemSubmit, router } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+      vi.spyOn(itemSubmit, 'copy').mockReturnValue(of(buildWeapon({ id: 12 })));
+      const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      component.onDuplicate();
+
+      expect(navigate).toHaveBeenCalledWith(['/items/weapon/12/edit'], {
+        queryParamsHandling: 'preserve',
+      });
+    });
+
+    it('reports a failed copy instead of silently doing nothing', () => {
+      const { fixture, component, itemSubmit, router } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+      vi.spyOn(itemSubmit, 'copy').mockReturnValue(throwError(() => new Error('nope')));
+      const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      component.onDuplicate();
+      fixture.detectChanges();
+
+      expect(component.duplicateError()).toBe(true);
+      expect(component.duplicating()).toBe(false);
+      expect(navigate).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('.item-builder__duplicate-error')).toBeTruthy();
+    });
+
+    it('does not fire while a save is in flight, which would fork a stale copy', () => {
+      const { fixture, component, itemSubmit } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+      const copy = vi.spyOn(itemSubmit, 'copy');
+      fixture.detectChanges();
+      component.saving.set(true);
+
+      component.onDuplicate();
+
+      expect(copy).not.toHaveBeenCalled();
     });
   });
 
@@ -404,5 +520,72 @@ describe('ItemBuilder', () => {
     fixture.detectChanges();
 
     expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  describe('leaving the builder', () => {
+    it('goes to the codex when nobody said where the user came from', () => {
+      const { fixture, component, router } = setup();
+      const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      component.onCancelled();
+
+      expect(navigate).toHaveBeenCalledWith('/reference');
+    });
+
+    it('returns to the caller that sent the user here, so an edit from a sheet lands back on it', () => {
+      const { fixture, component, router } = setup(
+        { type: 'weapon', id: '7' },
+        false,
+        { returnTo: '/characters/3' },
+      );
+      const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      component.onCancelled();
+
+      expect(navigate).toHaveBeenCalledWith('/characters/3');
+    });
+
+    it('names the destination, so the back link does not claim the wrong one', () => {
+      const { fixture, component } = setup({ type: 'weapon', id: '7' }, false, {
+        returnTo: '/characters/3',
+      });
+      fixture.detectChanges();
+
+      expect(component.backLabel()).toBe('Back to your sheet');
+    });
+
+    it('ignores an off-site returnTo rather than following it', () => {
+      const { fixture, component, router } = setup({}, false, { returnTo: '//evil.test/steal' });
+      const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+      fixture.detectChanges();
+
+      component.onCancelled();
+
+      expect(navigate).toHaveBeenCalledWith('/reference');
+    });
+
+    it('ignores an absolute returnTo, which is the same hazard spelled differently', () => {
+      const { fixture, component } = setup({}, false, { returnTo: 'https://evil.test' });
+      fixture.detectChanges();
+
+      expect(component.backTarget()).toBe('/reference');
+    });
+  });
+
+  it('says that an edit reaches every character carrying the item', () => {
+    const { fixture, itemSubmit } = setup({ type: 'weapon', id: '7' });
+    vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('every character carrying this item');
+  });
+
+  it('keeps that warning off the create page, where there is nothing to affect yet', () => {
+    const { fixture } = setup();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('every character carrying');
   });
 });

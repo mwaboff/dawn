@@ -22,6 +22,8 @@ export interface WeaponOptions {
   burden?: string;
   isOfficial?: boolean;
   expansionId?: number;
+  /** Narrows to weapons authored by one user -- how a profile lists its owner's homebrew. */
+  createdByUserId?: number;
 }
 
 export interface PaginatedWeapons {
@@ -37,7 +39,7 @@ export class WeaponService {
   private readonly baseUrl = `${environment.apiUrl}/dh/weapons`;
 
   getWeapons(options: WeaponOptions = {}): Observable<PaginatedCards> {
-    const { page = 0, size = 20, name, sort, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, name, sort, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId, createdByUserId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -50,6 +52,9 @@ export class WeaponService {
       params = params.set('sort', sort);
     }
 
+    if (createdByUserId !== undefined) {
+      params = params.set('createdByUserId', createdByUserId);
+    }
     if (isPrimary !== undefined) {
       params = params.set('isPrimary', isPrimary);
     }
@@ -86,7 +91,7 @@ export class WeaponService {
   }
 
   getWeaponsRaw(options: WeaponOptions = {}): Observable<PaginatedWeapons> {
-    const { page = 0, size = 20, name, sort, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId } = options;
+    const { page = 0, size = 20, name, sort, isPrimary, tier, damageType, trait, range, burden, isOfficial, expansionId, createdByUserId } = options;
 
     let params = new HttpParams()
       .set('page', page)
@@ -99,6 +104,9 @@ export class WeaponService {
       params = params.set('sort', sort);
     }
 
+    if (createdByUserId !== undefined) {
+      params = params.set('createdByUserId', createdByUserId);
+    }
     if (isPrimary !== undefined) {
       params = params.set('isPrimary', isPrimary);
     }
@@ -165,6 +173,14 @@ export class WeaponService {
    */
   copyWeapon(id: number): Observable<WeaponResponse> {
     return this.http.post<WeaponResponse>(`${this.baseUrl}/${id}/copy`, {}, { withCredentials: true });
+  }
+
+  /**
+   * Soft-deletes a weapon. Same ownership rule as {@link updateWeapon}: the author, a moderator,
+   * or an admin. Soft, so an author who deletes by mistake can still be restored server-side.
+   */
+  deleteWeapon(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 
 }

@@ -177,4 +177,75 @@ describe('AuthService', () => {
       expect(service.isAdmin()).toBe(false);
     });
   });
+
+  describe('loginWithGoogle', () => {
+    let open: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      open = vi.spyOn(window, 'open');
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      open.mockRestore();
+    });
+
+    /**
+     * A blocked popup used to leave a 2 Hz interval and a `message` listener running forever, on a
+     * root-scoped service -- so every further sign-in click stacked another set.
+     */
+    it('rejects immediately when the popup is blocked, rather than polling forever', async () => {
+      open.mockReturnValue(null);
+      const setInterval = vi.spyOn(globalThis, 'setInterval');
+      const addListener = vi.spyOn(window, 'addEventListener');
+
+      await expect(service.loginWithGoogle()).rejects.toThrow('Popup blocked');
+
+      expect(setInterval).not.toHaveBeenCalled();
+      expect(addListener).not.toHaveBeenCalled();
+    });
+
+    it('rejects and stops polling once the user closes the popup', async () => {
+      const popup = { closed: false } as Window;
+      open.mockReturnValue(popup);
+      const clearInterval = vi.spyOn(globalThis, 'clearInterval');
+
+      const pending = service.loginWithGoogle();
+      (popup as { closed: boolean }).closed = true;
+      vi.advanceTimersByTime(500);
+
+      await expect(pending).rejects.toThrow('Popup closed');
+      expect(clearInterval).toHaveBeenCalled();
+    });
+
+    it('gives up on a popup left open, so its timers cannot outlive the attempt', async () => {
+      open.mockReturnValue({ closed: false } as Window);
+      const removeListener = vi.spyOn(window, 'removeEventListener');
+
+      const pending = service.loginWithGoogle();
+      vi.advanceTimersByTime(5 * 60 * 1000);
+
+      await expect(pending).rejects.toThrow('Sign-in timed out');
+      expect(removeListener).toHaveBeenCalledWith('message', expect.any(Function));
+    });
+
+    it('resolves on the callback message and tears everything down', async () => {
+      open.mockReturnValue({ closed: false } as Window);
+      const clearInterval = vi.spyOn(globalThis, 'clearInterval');
+      const clearTimeout = vi.spyOn(globalThis, 'clearTimeout');
+
+      const pending = service.loginWithGoogle();
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { type: 'oauth-callback', params: {} },
+          origin: window.location.origin,
+        }),
+      );
+
+      await expect(pending).resolves.toEqual({});
+      expect(clearInterval).toHaveBeenCalled();
+      expect(clearTimeout).toHaveBeenCalled();
+    });
+  });
 });

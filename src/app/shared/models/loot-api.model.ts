@@ -65,6 +65,8 @@ export interface LootFilters {
   isConsumable?: boolean;
   expansionId?: number;
   isOfficial?: boolean;
+  /** Narrows to loot authored by one user -- how a profile lists its owner's homebrew. */
+  createdByUserId?: number;
   page?: number;
   size?: number;
 }

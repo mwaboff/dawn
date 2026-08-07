@@ -8,7 +8,7 @@ import { ModalShell } from '../../../../shared/components/modal-shell/modal-shel
 import { CampaignService } from '../../../../shared/services/campaign.service';
 import { ItemForm } from '../../../items/components/item-form/item-form';
 import { ItemKind } from '../../../items/item-routes';
-import { ItemFormValue, ITEM_KIND_LABELS } from '../../../items/models/item-form-value.model';
+import { ItemFormValue, ITEM_KIND_ACCENTS, ITEM_KIND_LABELS } from '../../../items/models/item-form-value.model';
 import { ItemResponse, ItemSubmit } from '../../../items/item-submit';
 import { formValueToRequest } from '../../../items/item-builder/item-builder.mapper';
 import { readSaveErrorMessage, shareableCampaignOptions } from '../../../items/utils/item-form-host.utils';
@@ -42,6 +42,11 @@ export interface ItemCreatedEvent {
   templateUrl: './item-create-modal.html',
   styleUrl: './item-create-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // The kind's accent, fed to `ModalShell` the same way `companion-form-modal` feeds it a
+  // companion's. It colours the panel's top stripe and the submit button, so the dialog reads as
+  // being about a weapon or an armor rather than generically gold -- matching the kind chip the
+  // form shows in place of its picker.
+  host: { '[style.--dialog-accent]': 'accent()' },
 })
 export class ItemCreateModal {
   private readonly itemSubmit = inject(ItemSubmit);
@@ -60,6 +65,7 @@ export class ItemCreateModal {
 
   readonly canSetPublic = this.authService.isModerator;
   readonly title = computed(() => `Create Your Own ${ITEM_KIND_LABELS[this.kind()]}`);
+  readonly accent = computed(() => ITEM_KIND_ACCENTS[this.kind()]);
 
   /**
    * Ties the shell's submit button to the form it lives outside of. Fixed rather than uniquified

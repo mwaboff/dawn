@@ -5,6 +5,13 @@
  */
 export interface RosterPanelItem {
   id: number;
+  /**
+   * Identity for tracking and for targeting the delete confirmation, when `id` alone is not
+   * unique within the list. Items are the case that forced this: they come from three tables,
+   * so weapon 7, armor 7, and loot 7 can all sit in one panel. Campaigns and encounters each
+   * come from a single table and leave this unset, falling back to `id`.
+   */
+  key?: string;
   name: string;
   /** e.g. "GM: dungeon_master" or "Tier 3". */
   metaPrimary: string;

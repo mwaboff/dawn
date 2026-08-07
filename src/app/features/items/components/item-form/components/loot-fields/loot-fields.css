@@ -1,9 +1,5 @@
-/* The fields belong to the parent form's grid, not to a box of their own. The description is the
-   one field wide enough to want the full row. */
+/* The fields belong to the parent form's grid, not to a box of their own. Which of them span the
+   full row is declared per field (`column: 'full'`) and applied by `.form-field--full`. */
 :host {
   display: contents;
-}
-
-app-entity-form-field:last-child {
-  grid-column: 1 / -1;
 }

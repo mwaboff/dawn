@@ -6,7 +6,6 @@ import { FeatureInput } from '../../../../shared/models/feature-api.model';
 import { ItemKind } from '../../item-routes';
 import {
   DEFAULT_ITEM_FORM_VALUE,
-  ITEM_KIND_LABELS,
   ITEM_TIERS,
   ItemFormValue,
   LOOT_RARITY_LABELS,
@@ -19,16 +18,6 @@ import {
  */
 
 export const MAX_NAME_LENGTH = 200;
-
-export const KIND_FIELD: FieldDef = {
-  name: 'kind',
-  label: 'Item Type',
-  kind: 'enum',
-  options: (Object.keys(ITEM_KIND_LABELS) as ItemKind[]).map(value => ({
-    value,
-    label: ITEM_KIND_LABELS[value],
-  })),
-};
 
 export const NAME_FIELD: FieldDef = {
   name: 'name',

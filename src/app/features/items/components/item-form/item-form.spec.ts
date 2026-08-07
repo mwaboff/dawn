@@ -39,14 +39,26 @@ describe('ItemForm', () => {
   }
 
   function selectKind(kind: ItemKind): void {
-    const select: HTMLSelectElement = fixture.nativeElement.querySelector('#kind');
-    select.value = kind;
-    select.dispatchEvent(new Event('change'));
+    const radio: HTMLInputElement = fixture.nativeElement.querySelector(
+      `.kind-rack__input[value="${kind}"]`,
+    );
+    radio.click();
     fixture.detectChanges();
   }
 
   function submit(): void {
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+  }
+
+  /** Types into the first drafted feature's fields, which the editor ids `draft-0`. */
+  function fillDraft(values: { name: string; description: string }): void {
+    const name: HTMLInputElement = fixture.nativeElement.querySelector('#fn-draft-0');
+    const description: HTMLTextAreaElement = fixture.nativeElement.querySelector('#fd-draft-0');
+    name.value = values.name;
+    name.dispatchEvent(new Event('input'));
+    description.value = values.description;
+    description.dispatchEvent(new Event('input'));
     fixture.detectChanges();
   }
 
@@ -62,8 +74,8 @@ describe('ItemForm', () => {
   describe('kind picker', () => {
     it('offers all three kinds when no kind is locked', () => {
       setup();
-      const options = Array.from<HTMLOptionElement>(
-        fixture.nativeElement.querySelectorAll('#kind option'),
+      const options = Array.from<HTMLInputElement>(
+        fixture.nativeElement.querySelectorAll('.kind-rack__input'),
       ).map(o => o.value);
 
       expect(options).toEqual(['weapon', 'armor', 'loot']);
@@ -73,7 +85,14 @@ describe('ItemForm', () => {
       setup();
       setInput('lockedKind', 'armor');
 
-      expect(fixture.nativeElement.querySelector('#kind')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.kind-rack__input')).toBeNull();
+    });
+
+    it('names the locked kind rather than leaving the choice unexplained', () => {
+      setup();
+      setInput('lockedKind', 'armor');
+
+      expect(fixture.nativeElement.querySelector('.kind-rack__chip').textContent).toContain('Armor');
     });
 
     it('shows the locked kind\'s fields', () => {
@@ -421,6 +440,27 @@ describe('ItemForm', () => {
       expect(emitted!.features).toEqual([{
         name: 'Whispers',
         description: 'It talks.',
+        featureType: 'ITEM',
+        expansionId: null,
+        costTags: [],
+        modifiers: [],
+      }]);
+    });
+
+    it('emits a feature drafted in the editor, not only the seeded ones', () => {
+      setup();
+      setInput('initialValue', formValue());
+      fixture.nativeElement.querySelector('.btn-add-feature').click();
+      fixture.detectChanges();
+      fillDraft({ name: 'Sharp', description: 'Cuts deeper.' });
+      let emitted: ItemFormValue | undefined;
+      component.submitted.subscribe(v => (emitted = v));
+
+      submit();
+
+      expect(emitted!.features).toEqual([{
+        name: 'Sharp',
+        description: 'Cuts deeper.',
         featureType: 'ITEM',
         expansionId: null,
         costTags: [],

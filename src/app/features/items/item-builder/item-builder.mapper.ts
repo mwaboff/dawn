@@ -106,6 +106,24 @@ export function responseToFormValue(kind: ItemKind, response: ItemResponse): Ite
 }
 
 /**
+ * Reads a just-saved item back into form state.
+ *
+ * A write response omits `features` entirely when the item has none, and a server that does not
+ * expand the relation omits it even when the item has some. Neither can be read as "the features
+ * are gone": the form would blank the list, and because the next save sends the list as the item's
+ * complete new set, that empty list would delete them for real. So an absent array falls back to
+ * what was just submitted -- which is what the server was asked to save.
+ */
+export function savedResponseToFormValue(
+  kind: ItemKind,
+  response: ItemResponse,
+  submitted: FeatureInput[],
+): ItemFormValue {
+  const value = responseToFormValue(kind, response);
+  return response.features === undefined ? { ...value, features: submitted } : value;
+}
+
+/**
  * Builds the payload for both `POST /custom` and `PUT /{id}`: the update endpoint treats a
  * supplied `features` array as the item's complete new set, so the same whole-item body serves
  * either verb.

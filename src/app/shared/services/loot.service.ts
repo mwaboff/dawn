@@ -39,6 +39,9 @@ export class LootService {
     if (filters.isOfficial !== undefined) {
       params = params.set('isOfficial', filters.isOfficial);
     }
+    if (filters.createdByUserId !== undefined) {
+      params = params.set('createdByUserId', filters.createdByUserId);
+    }
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
     }
@@ -74,6 +77,9 @@ export class LootService {
     }
     if (filters.isOfficial !== undefined) {
       params = params.set('isOfficial', filters.isOfficial);
+    }
+    if (filters.createdByUserId !== undefined) {
+      params = params.set('createdByUserId', filters.createdByUserId);
     }
     if (filters.page !== undefined) {
       params = params.set('page', filters.page);
@@ -121,6 +127,14 @@ export class LootService {
    */
   copyLoot(id: number): Observable<LootApiResponse> {
     return this.http.post<LootApiResponse>(`${this.baseUrl}/${id}/copy`, {}, { withCredentials: true });
+  }
+
+  /**
+   * Soft-deletes loot. Same ownership rule as {@link updateLoot}: the author, a moderator,
+   * or an admin. Soft, so an author who deletes by mistake can still be restored server-side.
+   */
+  deleteLoot(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, { withCredentials: true });
   }
 
 }
