@@ -1,8 +1,4 @@
-<div class="card-group">
-  <div class="card-group__heading-row">
-    <h3 class="card-group__heading card-group__heading--transformation">Transformation</h3>
-  </div>
-
+<app-collapsible-card-group heading="Transformation" accent="transformation" sectionId="transformation">
   @if (entityCard(); as data) {
     <app-entity-card [card]="data">
       @if (isVampire()) {
@@ -55,4 +51,4 @@
       />
     </div>
   }
-</div>
+</app-collapsible-card-group>

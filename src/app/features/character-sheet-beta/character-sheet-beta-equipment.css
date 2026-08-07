@@ -1,7 +1,8 @@
 /* Classic's character-sheet-equipment.css, minus its `.card-group__heading--class` /
-   `.expandable-card--class` rules -- the class card group is now an EntityCard grid and gets its
-   accent from character-sheet-beta-cards.css (the `--color-card-class` token, not classic's
-   hard-coded #5e8ed4). The Equipped Weapons/Armor panels below are deliberately staying classic
+   `.expandable-card--class` rules -- the class cards are now an EntityCard grid inside the
+   combined "Class & Subclass" group, whose heading colour belongs to CollapsibleCardGroup (a
+   neutral `--color-accent`, not classic's hard-coded #5e8ed4) and whose cards get their accent
+   from `data-card-type`. The Equipped Weapons/Armor panels below are deliberately staying classic
    (deferred equipment rework), so their look must not drift. */
 .equipment-card { padding: .6rem var(--space-5); background: rgba(212,160,86,.04); border-left: 2px solid var(--cg); border-radius: 0 4px 4px 0; margin-bottom: var(--space-3); }
 .equipment-card:last-child { margin-bottom: 0; }

@@ -1,8 +1,4 @@
-<div class="card-group">
-  <div class="card-group__heading-row">
-    <h3 class="card-group__heading card-group__heading--martialStance">Martial Stances</h3>
-  </div>
-
+<app-collapsible-card-group heading="Martial Stances" accent="martialStance" sectionId="martial-stances">
   <p class="sr-only" role="status">{{ activeStanceAnnouncement() }}</p>
 
   @if (stances().length === 0) {
@@ -37,4 +33,4 @@
       }
     </ul>
   </div>
-</div>
+</app-collapsible-card-group>

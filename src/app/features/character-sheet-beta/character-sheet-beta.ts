@@ -15,6 +15,7 @@ import { InventorySection } from '../character-sheet/components/inventory-sectio
 import { ItemCreateModal } from '../character-sheet/components/item-create-modal/item-create-modal';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
+import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';
 import {
   ancestryCardToEntity,
   classCardToEntity,
@@ -22,6 +23,7 @@ import {
   domainCardToEntity,
   subclassCardToEntity,
 } from './utils/entity-card.mapper';
+import { orderClassGroupCards } from './utils/card-group-order.utils';
 
 /** Pairs a mapped `EntityCardData` with the original numeric id `onVaultCard`/`onEquipCard`
  * (inherited from `CharacterSheet`) need -- `EntityCardData.id` is `string | number` and isn't
@@ -34,8 +36,8 @@ interface DomainCardEntry {
 /**
  * Beta rendering of {@link CharacterSheet}: same inherited data loading, save pipelines, equip
  * constraints and every handler -- a new template and stylesheet only, nothing else. The six
- * hand-inlined `expandable-card` blocks (class/subclass/ancestry/community/equipped domain/vault
- * domain) become `EntityCard` grids; the four Hope & Fear panels swap for their beta siblings;
+ * hand-inlined `expandable-card` blocks become four collapsible `EntityCard` grids -- class and
+ * subclass share a group, as do ancestry and community; the four Hope & Fear panels swap for their beta siblings;
  * equipment display and the inventory manager stay classic, deferred to a later rework.
  */
 @Component({
@@ -66,21 +68,26 @@ interface DomainCardEntry {
     CompanionPanelBeta,
     ItemCreateModal,
     EntityCard,
+    CollapsibleCardGroup,
   ],
 })
 export class CharacterSheetBeta extends CharacterSheet {
-  readonly classCardEntities = computed<EntityCardData[]>(() =>
-    (this.characterSheet()?.classCards ?? []).map(classCardToEntity),
-  );
-  readonly subclassCardEntities = computed<EntityCardData[]>(() =>
-    (this.characterSheet()?.subclassCards ?? []).map(subclassCardToEntity),
-  );
-  readonly ancestryCardEntities = computed<EntityCardData[]>(() =>
-    (this.characterSheet()?.ancestryCards ?? []).map(ancestryCardToEntity),
-  );
-  readonly communityCardEntities = computed<EntityCardData[]>(() =>
-    (this.characterSheet()?.communityCards ?? []).map(communityCardToEntity),
-  );
+  /** Class cards then their subclass cards, one combined "Class & Subclass" group -- ordering
+   * rules and the class-to-subclass linkage live in `orderClassGroupCards`. */
+  readonly classGroupCardEntities = computed<EntityCardData[]>(() => {
+    const sheet = this.characterSheet();
+    return orderClassGroupCards(sheet?.classCards ?? [], sheet?.subclassCards ?? []).map(entry =>
+      entry.kind === 'class' ? classCardToEntity(entry.card) : subclassCardToEntity(entry.card),
+    );
+  });
+  /** Ancestry before community, one combined "Ancestry & Community" group. */
+  readonly heritageCardEntities = computed<EntityCardData[]>(() => {
+    const sheet = this.characterSheet();
+    return [
+      ...(sheet?.ancestryCards ?? []).map(ancestryCardToEntity),
+      ...(sheet?.communityCards ?? []).map(communityCardToEntity),
+    ];
+  });
   readonly equippedDomainCardEntries = computed<DomainCardEntry[]>(() =>
     (this.characterSheet()?.equippedDomainCards ?? []).map(card => ({ cardId: card.id, card: domainCardToEntity(card) })),
   );

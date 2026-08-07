@@ -2,10 +2,9 @@
 :host { display: block; margin-bottom: 1.25rem; }
 :host(:last-child) { margin-bottom: 0; }
 
-/* .card-group chrome and .btn are global; only the transformation accent and the panel's own
-   controls (Feed tokens, Wolf Form, picker, empty state) are specific to this panel. */
-.card-group__heading--transformation { color: var(--color-card-transformationCard); }
-
+/* .card-group chrome and .btn are global and the transformation accent moved to
+   CollapsibleCardGroup with the heading markup; only the panel's own controls (Feed tokens, Wolf
+   Form, picker, empty state) are specific to this panel. */
 .feed-tokens { display: flex; flex-direction: column; gap: var(--space-2); }
 .feed-tokens__stepper { display: flex; align-items: center; gap: var(--space-3); }
 /* Border/hover-wash derive from --color-accent-text (this card's re-bound --eca-deep) rather than a

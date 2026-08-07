@@ -44,12 +44,14 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       [characterSheetId]="5"
       [canManage]="true"
       [canCreate]="true"
+      [saving]="saving()"
     />
   `,
 })
 class TestHost {
   companions = signal<CompanionApiResponse[]>([]);
   proficiency = signal(2);
+  saving = signal(false);
 }
 
 describe('CompanionPanelBeta', () => {
@@ -80,6 +82,27 @@ describe('CompanionPanelBeta', () => {
     expect(instances[0].companion().name).toBe('Forest Wolf');
     expect(instances[1].companion().name).toBe('Shadow Cat');
     expect(instances[0].proficiency()).toBe(2);
+  });
+
+  it('renders its cards inside a collapsible group headed "Companions"', () => {
+    expect(el.querySelector('.card-group__label')?.textContent?.trim()).toBe('Companions');
+  });
+
+  it('hides the companion list when the group heading is collapsed', () => {
+    host.companions.set([buildCompanion()]);
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.card-group__toggle')!.click();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.directive(CompanionCardBeta))).toBeNull();
+  });
+
+  it('projects the saving spinner into the group heading row, not the collapsible body', () => {
+    host.saving.set(true);
+    fixture.detectChanges();
+
+    expect(el.querySelector('.card-group__heading-row app-saving-spinner')).toBeTruthy();
   });
 
   it('opens the create modal via the inherited handler when Add Companion is clicked', () => {

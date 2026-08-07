@@ -114,7 +114,11 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     activeSecondaryWeapon: mapEquippedWeapon(sheet.inventoryWeapons, 'SECONDARY', proficiency),
     activeArmor: mapFirstEquippedArmor(sheet.inventoryArmors),
 
-    classCards: (sheet.classCards ?? (sheet.class ? [sheet.class] : [])).map(c => mapClassCardSummary(c)),
+    // `classes` is the multiclass-aware field (every class, in acquisition order) and arrives
+    // whenever `expand=class` is requested, which the sheet page always does. `class` is its
+    // deprecated singular -- only `classes[0]` -- and is the fallback for older responses and
+    // fixtures that predate the plural.
+    classCards: (sheet.classes ?? (sheet.class ? [sheet.class] : [])).map(c => mapClassCardSummary(c)),
     subclassCards: (sheet.subclassCards ?? []).map(c => mapSubclassCardSummary(c)),
     ancestryCards: (sheet.ancestryCards ?? []).map(c => mapCardSummary(c)),
     communityCards: (sheet.communityCards ?? []).map(c => mapCardSummary(c)),

@@ -338,7 +338,7 @@ describe('collectAllModifiers', () => {
 
   it('does not collect modifiers from class card features', () => {
     const sheet = makeSheet({
-      classCards: [{
+      classes: [{
         id: 5, name: 'Warrior Strike',
         classFeatures: [{ description: 'Bonus attack', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }],
       }],
@@ -406,7 +406,7 @@ describe('collectAllModifiers', () => {
         id: 100, weaponId: 2, equipped: true, slot: 'PRIMARY',
         weapon: { id: 2, name: 'Sword', features: [{ description: 'B', modifiers: [{ target: 'HIT_POINT_MAX', operation: 'ADD', value: 2 }] }] },
       }],
-      classCards: [{ id: 5, name: 'Strike', classFeatures: [{ description: 'C', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] }],
+      classes: [{ id: 5, name: 'Strike', classFeatures: [{ description: 'C', modifiers: [{ target: 'PROFICIENCY', operation: 'ADD', value: 1 }] }] }],
       subclassCards: [{ id: 10, name: 'Path', features: [{ description: 'D', modifiers: [{ target: 'EVASION', operation: 'ADD', value: 1 }] }] }],
       ancestryCards: [{ id: 20, name: 'Elf', features: [{ description: 'E', modifiers: [{ target: 'HOPE_MAX', operation: 'ADD', value: 1 }] }] }],
       communityCards: [{ id: 30, name: 'Guild', features: [{ description: 'F', modifiers: [{ target: 'STRESS_MAX', operation: 'ADD', value: 1 }] }] }],

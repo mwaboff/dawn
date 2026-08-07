@@ -328,22 +328,29 @@ export interface CharacterSheetResponse {
   /** @deprecated Only the first of `classes`. Use `classes`. */
   class?: ClassCardResponse;
   /**
-   * Every class the character has, deduped across all subclass cards, ordered by class id
-   * ascending. The server always sets it (as `[]` when the character has no subclass cards), but
-   * it stays optional here so pre-existing fixtures and older responses still typecheck.
+   * Every class the character has, deduped across all subclass cards, in acquisition order: the
+   * original class first, then each multiclass in the order it was taken at level-up. (It used to
+   * be class id ascending, which put a low-id multiclass ahead of the character's real first
+   * class.) Nothing on the client can reconstruct that order, so consumers must render these in
+   * the order they arrive rather than sorting. Best-effort, not guaranteed: the server derives it
+   * from the advancement log and falls back to class id ascending when that log is missing or
+   * unparseable -- legacy characters and undone level-ups both hit the fallback. The server always
+   * sets it (as `[]` when the character has no subclass cards), but it stays optional here so
+   * pre-existing fixtures and older responses still typecheck.
    */
   classIds?: number[];
   /** Names parallel to `classIds`, same order. */
   classNames?: string[];
   /**
-   * Populated when `expand=class` is requested and the character has at least one class; each
-   * entry carries `classFeatures` when a `features` (or `classFeatures`) expand is also present.
+   * Every class the character has, in the same acquisition order as {@link classIds}. Populated
+   * when `expand=class` is requested and the character has at least one class; each entry carries
+   * `classFeatures` when a `features` (or `classFeatures`) expand is also present. Each `id` is a
+   * class id, so it is what a `SubclassCardResponse.associatedClassId` points at.
    */
   classes?: ClassCardResponse[];
   experiences?: ExperienceResponse[];
   communityCards?: CommunityCardResponse[];
   ancestryCards?: AncestryCardResponse[];
-  classCards?: ClassCardResponse[];
   subclassCards?: SubclassCardResponse[];
   domainCards?: DomainCardResponse[];
   inventoryWeapons?: InventoryWeaponResponse[];

@@ -3,11 +3,10 @@
 :host { display: block; margin-bottom: 1.25rem; }
 :host(:last-child) { margin-bottom: 0; }
 
-/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only
-   the companion accent and this panel's own unique markup live here -- view encapsulation means
-   classic CompanionPanel's copy of these same rules can't reach this component. */
-.card-group__heading--companion { color: var(--color-card-companion); }
-
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css) and the
+   companion accent belongs to CollapsibleCardGroup, which owns the heading markup. Only this
+   panel's own unique markup lives here -- view encapsulation means classic CompanionPanel's copy
+   of these same rules can't reach this component. */
 .companion-panel-error {
   display: flex;
   align-items: center;
