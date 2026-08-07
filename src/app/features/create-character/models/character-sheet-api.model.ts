@@ -192,6 +192,14 @@ export interface DamageRollResponse {
 export interface WeaponResponse {
   id: number;
   name: string;
+  /**
+   * False for player-authored content. Present so the character sheet can badge a custom item
+   * without going through the catalogue types in shared/models -- those are a separate,
+   * richer shape and the two are still bridged by casts in character-sheet.ts.
+   */
+  isOfficial?: boolean;
+  /** Author of custom content; null for official imports. */
+  createdByUserId?: number | null;
   tier?: number;
   isPrimary?: boolean;
   trait?: string;
@@ -205,6 +213,14 @@ export interface WeaponResponse {
 export interface ArmorResponse {
   id: number;
   name: string;
+  /**
+   * False for player-authored content. Present so the character sheet can badge a custom item
+   * without going through the catalogue types in shared/models -- those are a separate,
+   * richer shape and the two are still bridged by casts in character-sheet.ts.
+   */
+  isOfficial?: boolean;
+  /** Author of custom content; null for official imports. */
+  createdByUserId?: number | null;
   tier?: number;
   baseMajorThreshold?: number;
   baseSevereThreshold?: number;

@@ -1,8 +1,12 @@
-import { Component, ChangeDetectionStrategy, ElementRef, signal, computed, inject, viewChild, PLATFORM_ID } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, ElementRef, signal, computed, inject, viewChild, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ENCOUNTER_NEW_PATH } from '../../features/encounters/encounter-routes';
+import { ITEMS_NEW_PATH } from '../../features/items/item-routes';
+
+/** How far the page scrolls before the bar goes from translucent to nearly solid. */
+const SCROLLED_THRESHOLD_PX = 10;
 
 @Component({
   selector: 'app-navbar',
@@ -17,12 +21,20 @@ import { ENCOUNTER_NEW_PATH } from '../../features/encounters/encounter-routes';
 })
 export class Navbar {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly isBrowser: boolean;
   readonly authService = inject(AuthService);
 
-  readonly scrollY = signal(0);
-  readonly isScrolled = computed(() => this.scrollY() > 10);
+  /**
+   * Whether the page has scrolled past the point where the bar goes opaque.
+   *
+   * A boolean rather than the raw `window.scrollY`: this app is zoneless, so every signal write
+   * schedules a change-detection tick, and storing the pixel offset scheduled one per scroll frame
+   * on every page to drive a flag that changes twice per scroll. Writing the comparison instead
+   * means `set()` to the same value, which signals treat as a no-op.
+   */
+  readonly isScrolled = signal(false);
   readonly isDropdownOpen = signal(false);
   readonly isUserMenuOpen = signal(false);
   readonly isMobileMenuOpen = signal(false);
@@ -45,18 +57,22 @@ export class Navbar {
     { label: '+ Character', onSelect: () => this.onCreateCharacter() },
     { label: '+ Campaign', onSelect: () => this.onCreateCampaign() },
     { label: '+ Encounter', onSelect: () => this.onCreateEncounter() },
+    { label: '+ Item', onSelect: () => this.onCreateItem() },
   ];
 
   constructor() {
     this.isBrowser = isPlatformBrowser(this.platformId);
     if (this.isBrowser) {
-      this.scrollY.set(window.scrollY);
-
       const handleScroll = () => {
-        this.scrollY.set(window.scrollY);
+        this.isScrolled.set(window.scrollY > SCROLLED_THRESHOLD_PX);
       };
+      handleScroll();
 
+      // Not a `host` binding like the other two listeners on this component, because `window`
+      // is not reachable from one. Torn down explicitly so the closure stops pinning this
+      // instance -- one navbar per document in production, but one per fixture in tests.
       window.addEventListener('scroll', handleScroll, { passive: true });
+      this.destroyRef.onDestroy(() => window.removeEventListener('scroll', handleScroll));
     }
   }
 
@@ -129,6 +145,12 @@ export class Navbar {
     this.closeDropdown();
     this.closeMobileMenu();
     this.router.navigate([ENCOUNTER_NEW_PATH]);
+  }
+
+  onCreateItem(): void {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate([ITEMS_NEW_PATH]);
   }
 
   onLogout(): void {

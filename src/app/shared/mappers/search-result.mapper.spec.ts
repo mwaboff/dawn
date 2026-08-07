@@ -25,6 +25,7 @@ function buildBase(overrides: Partial<SearchResultResponse> = {}): SearchResultR
 }
 
 const weaponEntity: WeaponResponse = {
+  isPublic: false,
   id: 1,
   name: 'Flame Sword',
   expansionId: 1,
@@ -40,6 +41,7 @@ const weaponEntity: WeaponResponse = {
 };
 
 const armorEntity: ArmorResponse = {
+  isPublic: false,
   id: 2,
   name: 'Iron Shield',
   expansionId: 1,

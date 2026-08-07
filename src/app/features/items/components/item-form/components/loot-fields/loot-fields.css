@@ -1,0 +1,5 @@
+/* The fields belong to the parent form's grid, not to a box of their own. Which of them span the
+   full row is declared per field (`column: 'full'`) and applied by `.form-field--full`. */
+:host {
+  display: contents;
+}

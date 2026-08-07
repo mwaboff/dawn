@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: block;
   min-height: 100vh;
   background:
@@ -7,7 +8,7 @@
 }
 
 .encounters-page { position: relative; max-width: 720px; margin: 0 auto; padding: 8rem 2rem 6rem; }
-.encounters-grain { position: fixed; opacity: 0.15; }
+.encounters-grain { opacity: 0.15; }
 
 .encounters-header {
   position: relative; z-index: 1;

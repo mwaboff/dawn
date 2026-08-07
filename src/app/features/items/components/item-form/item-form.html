@@ -1,0 +1,83 @@
+<form class="item-form" [id]="formId()" [formGroup]="form" (ngSubmit)="onSubmit()">
+  @if (errorMessage(); as message) {
+    <p class="form-error" role="alert">{{ message }}</p>
+  }
+
+  <app-item-kind-rack
+    [kind]="kind()"
+    [locked]="lockedKind() !== null"
+    [name]="kindGroupName()"
+    (kindChange)="onKindSelected($event)"
+  />
+
+  <section class="form-section item-form__section">
+    <h3 class="form-section__title">The Basics</h3>
+    <div class="item-form__grid item-form__grid--basics">
+      <app-entity-form-field [field]="nameField" [control]="controlFor('name')" [submitted]="attempted()" />
+      <app-entity-form-field [field]="tierField()" [control]="controlFor('tier')" [submitted]="attempted()" />
+    </div>
+  </section>
+
+  <section class="form-section item-form__section">
+    <h3 class="form-section__title">{{ detailsTitle() }}</h3>
+    <div class="item-form__grid">
+      @switch (kind()) {
+        @case ('weapon') {
+          <app-weapon-fields [form]="form" [submitted]="attempted()" />
+        }
+        @case ('armor') {
+          <app-armor-fields [form]="form" [submitted]="attempted()" />
+        }
+        @case ('loot') {
+          <app-loot-fields [form]="form" [submitted]="attempted()" />
+        }
+      }
+    </div>
+
+    @if (showThresholdOrderError()) {
+      <p class="field-error">Severe Threshold must be at least the Major Threshold.</p>
+    }
+    @if (advisories().length > 0) {
+      <ul class="item-form__advice">
+        @for (advice of advisories(); track advice) {
+          <li class="item-form__advice-item">{{ advice }}</li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="form-section item-form__section">
+    <h3 class="form-section__title">Features</h3>
+    <app-feature-editor
+      [features]="editorFeatures()"
+      [saving]="submitting()"
+      [cardType]="kind()"
+      [expansionId]="null"
+      (deleteFeature)="onFeatureDeleted($event)"
+    />
+  </section>
+
+  <section class="form-section item-form__section">
+    <h3 class="form-section__title">Sharing</h3>
+    <p class="form-section__hint">Homebrew is private to you until you share it with a campaign.</p>
+    <app-entity-multi-select
+      label="Campaigns"
+      [presetOptions]="campaignOptions()"
+      [control]="campaignIdsControl()"
+    />
+    @if (canSetPublic()) {
+      <app-entity-form-field [field]="publicField" [control]="controlFor('isPublic')" [submitted]="attempted()" />
+    }
+  </section>
+
+  @if (showActions()) {
+    <div class="item-form__actions">
+      <button type="button" class="btn btn--secondary" [disabled]="submitting()" (click)="onCancel()">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+        {{ submitting() ? 'Saving…' : submitLabel() }}
+      </button>
+    </div>
+  }
+</form>

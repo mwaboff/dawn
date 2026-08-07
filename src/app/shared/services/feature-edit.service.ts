@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { FeatureUpdateRequest, RawFeatureResponse } from '../../features/admin/models/admin-api.model';
+import { FeatureUpdateRequest, RawFeatureResponse } from '../models/feature-api.model';
 
 @Injectable({ providedIn: 'root' })
 export class FeatureEditService {

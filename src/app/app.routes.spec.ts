@@ -127,6 +127,22 @@ describe('App Routes', () => {
     expect(activated?.routeConfig?.path).toBe('encounters/:id/run');
   });
 
+  it('should resolve /items/new to the create route, not the edit route', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/items/new');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('items/new');
+  });
+
+  it('should resolve /items/weapon/5/edit to the edit route, carrying the kind', async () => {
+    const router = TestBed.inject(Router);
+    await navigateAndFlushSession(router, '/items/weapon/5/edit');
+    const activated = router.routerState.snapshot.root.firstChild?.firstChild;
+    expect(activated?.routeConfig?.path).toBe('items/:type/:id/edit');
+    expect(activated?.paramMap.get('type')).toBe('weapon');
+    expect(activated?.paramMap.get('id')).toBe('5');
+  });
+
   it('should set a title on every child route except the home route and redirects', () => {
     const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
     const children = guardedRoute?.children ?? [];

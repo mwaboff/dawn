@@ -1,0 +1,49 @@
+<div class="item-builder">
+  <a class="item-builder__back" [routerLink]="backTarget()">&larr; {{ backLabel() }}</a>
+
+  <header class="item-builder__header">
+    <div class="item-builder__identity">
+      <p class="item-builder__eyebrow">{{ eyebrow() }}</p>
+      <h1 class="item-builder__title">{{ heading() }}</h1>
+    </div>
+    @if (isEdit() && !loadError()) {
+      <button
+        type="button"
+        class="item-builder__duplicate"
+        [disabled]="duplicating() || saving()"
+        [attr.aria-label]="'Duplicate this item'"
+        (click)="onDuplicate()"
+      >
+        {{ duplicating() ? 'Duplicating…' : 'Duplicate' }}
+      </button>
+    }
+  </header>
+
+  <div class="item-builder__rule"></div>
+
+  @if (isEdit() && !loadError()) {
+    <p class="item-builder__scope">Changes apply to every character carrying this item.</p>
+  }
+
+  @if (duplicateError()) {
+    <p class="item-builder__duplicate-error" role="alert">Couldn't duplicate this item — try again.</p>
+  }
+
+  @if (loading()) {
+    <p class="item-builder__loading">Loading item&hellip;</p>
+  } @else if (loadError()) {
+    <p class="item-builder__load-error">Something went wrong loading this item.</p>
+  } @else {
+    <app-item-form
+      [initialValue]="initialValue()"
+      [lockedKind]="lockedKind()"
+      [submitting]="saving()"
+      [errorMessage]="saveError()"
+      [submitLabel]="submitLabel()"
+      [campaignOptions]="campaignOptions()"
+      [canSetPublic]="canSetPublic()"
+      (submitted)="onSubmitted($event)"
+      (cancelled)="onCancelled()"
+    />
+  }
+</div>

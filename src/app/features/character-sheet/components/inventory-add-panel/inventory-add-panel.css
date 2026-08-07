@@ -22,6 +22,10 @@
 .add-panel__item-tier { grid-column: 2; justify-self: center; text-align: center; font-family: var(--font-body); font-size: var(--text-xs); color: rgba(212,160,86,.75); text-transform: uppercase; letter-spacing: .05em; padding-block: .4rem; }
 .add-panel__item-stat--center { grid-column: 3; justify-self: center; text-align: center; font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-accent-a75); padding-block: .4rem; }
 .add-panel__item-stat--end { grid-column: 4; justify-self: end; text-align: right; font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-accent-a75); padding: .4rem .6rem .4rem 0; }
+.add-panel__footer { display: flex; justify-content: center; margin-top: .5rem; padding-top: .5rem; border-top: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.add-panel__create-btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--color-accent-a75); background: transparent; border: 1px dashed color-mix(in srgb, var(--color-accent) 35%, transparent); border-radius: 3px; padding: .35rem .8rem; cursor: pointer; }
+.add-panel__create-btn:hover { color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 8%, transparent); border-color: var(--color-accent); }
+.add-panel__create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .add-panel__filters { display: inline-flex; gap: .25rem; margin-bottom: .5rem; border: 1px solid rgba(212,160,86,.25); border-radius: 3px; padding: .15rem; background: rgba(26,20,15,.6); }
 .add-panel__filter-btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; color: var(--color-accent-a75); background: transparent; border: none; padding: .3rem .7rem; cursor: pointer; border-radius: 2px; }
 .add-panel__filter-btn:hover:not(.add-panel__filter-btn--active) { color: var(--color-accent); background: rgba(212,160,86,.08); }

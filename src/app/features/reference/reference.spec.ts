@@ -10,6 +10,7 @@ import { DomainService } from '../../shared/services/domain.service';
 import { ExpansionService } from '../../shared/services/expansion.service';
 import { ClassService } from '../../shared/services/class.service';
 import { CodexBrowseService } from '../../shared/services/codex-browse.service';
+import { AuthService } from '../../core/services/auth.service';
 import { SearchResponse } from '../../shared/models/search.model';
 
 const MOCK_SEARCH_RESPONSE: SearchResponse = {
@@ -669,6 +670,36 @@ describe('Reference', () => {
       fixture.detectChanges();
       const errorSurface = fixture.nativeElement.querySelector('.codex-error-surface');
       expect(errorSurface).toBeTruthy();
+    });
+  });
+
+  describe('customize action (focused views)', () => {
+    it('offers the customize action on focused weapon results', () => {
+      vi.spyOn(TestBed.inject(AuthService), 'isLoggedIn').mockReturnValue(true);
+      component.query.set('sword');
+      component.activeType.set('WEAPON');
+      component.results.set([
+        { type: 'WEAPON', id: 4, name: 'Longsword', relevanceScore: 8, card: { id: 4, name: 'Longsword', description: '', cardType: 'class' } },
+      ]);
+      component.loading.set(false);
+      fixture.detectChanges();
+
+      const actions = fixture.nativeElement.querySelectorAll('app-customize-item-action button');
+      expect(actions.length).toBe(1);
+    });
+
+    it('offers no customize action on focused adversary results', () => {
+      vi.spyOn(TestBed.inject(AuthService), 'isLoggedIn').mockReturnValue(true);
+      component.query.set('goblin');
+      component.activeType.set('ADVERSARY');
+      component.results.set([
+        { type: 'ADVERSARY', id: 4, name: 'Goblin', relevanceScore: 8, adversary: { id: 4, name: 'Goblin', tier: 1, adversaryType: 'STANDARD' } },
+      ]);
+      component.loading.set(false);
+      fixture.detectChanges();
+
+      const actions = fixture.nativeElement.querySelectorAll('app-customize-item-action button');
+      expect(actions.length).toBe(0);
     });
   });
 

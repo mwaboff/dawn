@@ -31,9 +31,9 @@ function makeItem(overrides: Partial<RosterPanelItem> = {}): RosterPanelItem {
       emptyTextSelf="No adventures yet"
       emptyTextOther="No campaigns yet"
       errorText="Something went wrong loading your campaigns."
-      (view)="viewedId = $event"
+      (view)="viewedId = $event.id; viewedKey = $event.key"
       (create)="createCalled = true"
-      (delete)="deletedId = $event"
+      (delete)="deletedId = $event.id"
     />
   `,
   imports: [RosterPanel],
@@ -45,8 +45,30 @@ class TestHost {
   showCreateButton = signal(true);
   canDelete = signal(false);
   viewedId: number | null = null;
+  viewedKey: string | undefined = undefined;
   deletedId: number | null = null;
   createCalled = false;
+}
+
+/** The items panel's shape: no `listPath`, because there is no browse-all-items route. */
+@Component({
+  template: `
+    <app-roster-panel
+      [items]="items()"
+      [loading]="false"
+      [error]="false"
+      itemTypeLabel="Item"
+      listLabel="Items"
+      createButtonLabel="Create Your First Item"
+      emptyTextSelf="No homebrew gear yet"
+      emptyTextOther="No homebrew gear yet"
+      errorText="Something went wrong loading your items."
+    />
+  `,
+  imports: [RosterPanel],
+})
+class NoListPathHost {
+  items = signal<RosterPanelItem[]>([]);
 }
 
 describe('RosterPanel', () => {
@@ -56,7 +78,7 @@ describe('RosterPanel', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHost],
+      imports: [TestHost, NoListPathHost],
       providers: [provideRouter([])],
     }).compileComponents();
 
@@ -159,6 +181,53 @@ describe('RosterPanel', () => {
     expect(el.querySelector('.roster-add-link')?.textContent?.trim()).toBe('View All Campaigns');
   });
 
+  it('should not show "View All {listLabel}" when no listPath is supplied, since items have no browse page', () => {
+    const noPath = TestBed.createComponent(NoListPathHost);
+    noPath.componentInstance.items.set([makeItem()]);
+    noPath.detectChanges();
+
+    expect((noPath.nativeElement as HTMLElement).querySelector('.roster-add-link')).toBeFalsy();
+  });
+
+  describe('composite keys', () => {
+    it('should render every entry when ids repeat across kinds, rather than collapsing them', () => {
+      host.items.set([
+        makeItem({ id: 7, key: 'weapon:7', name: 'Ashfang' }),
+        makeItem({ id: 7, key: 'armor:7', name: 'Emberplate' }),
+      ]);
+      fixture.detectChanges();
+
+      const names = Array.from(el.querySelectorAll('.roster-character-name')).map(n => n.textContent?.trim());
+      expect(names).toEqual(['Ashfang', 'Emberplate']);
+    });
+
+    it('should arm the delete confirm on only the entry that requested it, not its id-twin', () => {
+      host.canDelete.set(true);
+      host.items.set([
+        makeItem({ id: 7, key: 'weapon:7', name: 'Ashfang' }),
+        makeItem({ id: 7, key: 'armor:7', name: 'Emberplate' }),
+      ]);
+      fixture.detectChanges();
+
+      const rosterPanel = fixture.debugElement.query(By.directive(RosterPanel)).componentInstance as RosterPanel;
+      const confirms = fixture.debugElement.queryAll(By.directive(InlineDeleteConfirm));
+      confirms[1].componentInstance.requested.emit();
+      fixture.detectChanges();
+
+      expect(rosterPanel.pendingDeleteKey()).toBe('armor:7');
+      expect(confirms[0].componentInstance.active()).toBe(false);
+      expect(confirms[1].componentInstance.active()).toBe(true);
+    });
+
+    it('should emit the whole item on view, so the host can tell which table it came from', () => {
+      host.items.set([makeItem({ id: 7, key: 'armor:7' })]);
+      fixture.detectChanges();
+      (el.querySelector('.roster-entry') as HTMLElement).click();
+
+      expect(host.viewedKey).toBe('armor:7');
+    });
+  });
+
   it('should not show "View All {listLabel}" when showCreateButton is false, even with items', () => {
     host.showCreateButton.set(false);
     host.items.set([makeItem()]);
@@ -206,7 +275,7 @@ describe('RosterPanel', () => {
       expect(el.querySelector('.dialog-title')?.textContent?.trim()).toBe('Delete Campaign');
     });
 
-    it('should reset pendingDeleteId when child emits cancelled', () => {
+    it('should reset the pending delete key when child emits cancelled', () => {
       host.canDelete.set(true);
       host.items.set([makeItem({ id: 42 })]);
       fixture.detectChanges();
@@ -218,7 +287,7 @@ describe('RosterPanel', () => {
       child.componentInstance.cancelled.emit();
       fixture.detectChanges();
 
-      expect(rosterPanel.pendingDeleteId()).toBeNull();
+      expect(rosterPanel.pendingDeleteKey()).toBeNull();
     });
 
     it('should emit delete on modal confirm', () => {
@@ -262,13 +331,14 @@ describe('RosterPanel', () => {
       fixture.detectChanges();
 
       const rosterPanel = fixture.debugElement.query(By.directive(RosterPanel)).componentInstance as RosterPanel;
-      rosterPanel.onDeleteRequest(42);
-      rosterPanel.onDeleteConfirm();
+      const item = makeItem({ id: 42 });
+      rosterPanel.onDeleteRequest(item);
+      rosterPanel.onDeleteConfirm(item);
       rosterPanel.resetDeleteState();
 
-      expect(rosterPanel.pendingDeleteId()).toBeNull();
-      expect(rosterPanel.confirmingDeleteId()).toBeNull();
-      expect(rosterPanel.deletingId()).toBeNull();
+      expect(rosterPanel.pendingDeleteKey()).toBeNull();
+      expect(rosterPanel.confirmingDelete()).toBeNull();
+      expect(rosterPanel.deletingKey()).toBeNull();
     });
   });
 });

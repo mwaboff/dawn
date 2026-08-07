@@ -1,5 +1,5 @@
+<div class="grain-overlay profile-grain"></div>
 <div class="profile">
-  <div class="grain-overlay profile-grain"></div>
 
   @if (profileLoading()) {
     <header class="profile-header">
@@ -118,6 +118,33 @@
       } @else {
         <p class="roster-empty-text profile-encounters-note">Encounters aren't shown on another adventurer's profile.</p>
       }
+    }
+
+    @if (canViewItems()) {
+      <div class="profile-divider">
+        <div class="profile-divider-line"></div>
+        <span class="profile-divider-label">Items</span>
+        <div class="profile-divider-line"></div>
+      </div>
+
+      <app-roster-panel
+        #itemRosterPanel
+        [items]="itemRosterItems()"
+        [loading]="itemsLoading()"
+        [error]="itemsError()"
+        [showCreateButton]="isOwnProfile()"
+        [canDelete]="canDeleteItems()"
+        itemTypeLabel="Item"
+        listLabel="Items"
+        createButtonLabel="Create Your First Item"
+        emptyTextSelf="No homebrew gear yet"
+        emptyTextOther="No homebrew gear yet"
+        errorText="Something went wrong loading your items."
+        [skeletonCount]="3"
+        (view)="onViewItem($event)"
+        (create)="onCreateItem()"
+        (delete)="onDeleteItem($event)"
+      />
     }
   }
 </div>

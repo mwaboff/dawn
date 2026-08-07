@@ -5,6 +5,8 @@ import {
   output,
   computed,
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { startWith, switchMap } from 'rxjs';
 import { AbstractControl, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { FieldDef, EnumField, EntityField } from '../entity-form.types';
 import { EntitySelect } from '../entity-select/entity-select';
@@ -14,12 +16,13 @@ const FIELD_ERROR_MESSAGES: Record<string, (field: FieldDef, err: unknown) => st
   required: (f) => `${f.label} is required.`,
   maxlength: (f, err) => `${f.label} must be ${(err as { requiredLength: number }).requiredLength} characters or fewer.`,
   min: (f, err) => `${f.label} must be at least ${(err as { min: number }).min}.`,
+  max: (f, err) => `${f.label} must be at most ${(err as { max: number }).max}.`,
   pattern: (f) => `${f.label} must be a valid URL.`,
   positive: (f) => `${f.label} must be greater than 0.`,
   backend: (_f, err) => String(err),
 };
 
-const ERROR_PRIORITY = ['required', 'maxlength', 'min', 'pattern', 'positive', 'backend'];
+const ERROR_PRIORITY = ['required', 'maxlength', 'min', 'max', 'pattern', 'positive', 'backend'];
 
 @Component({
   selector: 'app-entity-form-field',
@@ -44,12 +47,28 @@ export class EntityFormField {
     return '';
   });
 
+  /**
+   * Validity, dirtiness and touched-ness are none of them signal-backed, so a `computed` reading
+   * only `control()` would cache its first answer and never notice a field going bad. `events` is
+   * the one stream that covers all three: `statusChanges` alone misses blur, because marking a
+   * control touched does not change its status, so an already-invalid field that the user blurred
+   * showed no error at all.
+   */
+  private readonly controlEvent = toSignal(
+    toObservable(this.control).pipe(switchMap(ctrl => ctrl.events.pipe(startWith(null)))),
+  );
+
   readonly showError = computed(() => {
+    // Read every signal dependency up front: `&&` would short-circuit past `submitted()` while a
+    // field is still valid, and the computed would then never re-run when it is submitted.
+    const submitted = this.submitted();
+    this.controlEvent();
     const ctrl = this.control();
-    return ctrl.invalid && (ctrl.dirty || ctrl.touched || this.submitted());
+    return ctrl.invalid && (ctrl.dirty || ctrl.touched || submitted);
   });
 
   readonly errorMessage = computed(() => {
+    this.controlEvent();
     const ctrl = this.control();
     const errors = ctrl.errors;
     if (!errors) return '';

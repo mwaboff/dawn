@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: block;
   min-height: 100vh;
   background:
@@ -27,7 +28,7 @@
    once. ~960px comfortably fits name + type + tier + every vital + the attack detail on one line
    at `comfortable` density without the sparse, over-stretched look a full-bleed row would have. */
 .run-page { position: relative; max-width: min(960px, 100%); margin: 0 auto; padding: 6rem 2rem 6rem; }
-.run-page-grain { position: fixed; opacity: 0.15; }
+.run-page-grain { opacity: 0.15; }
 
 /* Mirrors `.gm-screen-back` (shared/styles/gm-screen-shell.css) token-for-token -- same
    font/size/tracking/case/colour treatment, so the two read as one convention -- but declared

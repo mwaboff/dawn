@@ -1,0 +1,125 @@
+/* Flat `--color-bg-darker` rather than the list pages' radial gradient: this is a work surface,
+   and it is the character sheet's background -- which is where the item being built ends up. It
+   also lets the form's sticky action bar sit on the same colour with no visible seam. */
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--color-bg-darker);
+}
+
+.item-builder {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-11) var(--space-8) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.item-builder__back {
+  align-self: flex-start;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.item-builder__back:hover {
+  opacity: 1;
+}
+
+.item-builder__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.item-builder__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Says which of the two jobs this page is doing, which the title alone cannot once the title is
+   the item's own name. */
+.item-builder__eyebrow {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.8;
+}
+
+.item-builder__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--color-parchment);
+  overflow-wrap: anywhere;
+}
+
+.item-builder__rule {
+  height: 1px;
+  margin-top: calc(-1 * var(--space-4));
+  background: linear-gradient(90deg, rgba(212, 160, 86, 0.35), transparent);
+}
+
+/* The one thing an edit does that a create cannot: an item is shared by every sheet that equips
+   it. Stated plainly rather than as a warning -- it is how the feature works, not a hazard. */
+.item-builder__scope {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-parchment-a55);
+}
+
+.item-builder__duplicate {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-parchment);
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  border-radius: 2px;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+
+.item-builder__duplicate:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+.item-builder__duplicate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item-builder__duplicate-error {
+  color: #fca5a5;
+}
+
+.item-builder__loading,
+.item-builder__load-error {
+  color: var(--color-parchment);
+  opacity: 0.8;
+}
+
+.item-builder__load-error {
+  color: #fca5a5;
+  opacity: 1;
+}

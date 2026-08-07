@@ -29,7 +29,12 @@ export class RosterPanel {
   readonly itemTypeLabel = input.required<string>();
   /** e.g. "Campaigns" -- used for the "View All {listLabel}" footer link. */
   readonly listLabel = input.required<string>();
-  readonly listPath = input.required<string>();
+  /**
+   * Destination for the "View All" footer link. Optional: items have no browse-everything page
+   * of their own (the codex mixes official content in), so that panel omits the footer rather
+   * than pointing at a route that doesn't exist.
+   */
+  readonly listPath = input<string | null>(null);
   readonly createButtonLabel = input.required<string>();
   /** Empty-state copy when the viewer can create one (their own profile). */
   readonly emptyTextSelf = input.required<string>();
@@ -38,44 +43,53 @@ export class RosterPanel {
   readonly errorText = input.required<string>();
   readonly skeletonCount = input(2);
 
-  readonly view = output<number>();
+  /**
+   * Emit the whole item rather than its id: an items panel holds three different tables, so the
+   * id alone doesn't tell the host which endpoint to route to or delete against.
+   */
+  readonly view = output<RosterPanelItem>();
   readonly create = output<void>();
-  readonly delete = output<number>();
+  readonly delete = output<RosterPanelItem>();
 
   readonly skeletonIndexes = computed(() => Array.from({ length: this.skeletonCount() }, (_, i) => i));
 
-  readonly pendingDeleteId = signal<number | null>(null);
-  readonly confirmingDeleteId = signal<number | null>(null);
-  readonly deletingId = signal<number | null>(null);
+  readonly pendingDeleteKey = signal<string | null>(null);
+  readonly confirmingDelete = signal<RosterPanelItem | null>(null);
+  readonly deletingKey = signal<string | null>(null);
 
-  onDeleteRequest(id: number): void {
-    this.pendingDeleteId.set(id);
+  /** See `RosterPanelItem.key`: falls back to the id for single-table panels. */
+  itemKey(item: RosterPanelItem): string {
+    return item.key ?? String(item.id);
   }
 
-  onDeleteConfirm(): void {
-    this.confirmingDeleteId.set(this.pendingDeleteId());
+  onDeleteRequest(item: RosterPanelItem): void {
+    this.pendingDeleteKey.set(this.itemKey(item));
+  }
+
+  onDeleteConfirm(item: RosterPanelItem): void {
+    this.confirmingDelete.set(item);
   }
 
   onDeleteCancel(): void {
-    this.pendingDeleteId.set(null);
+    this.pendingDeleteKey.set(null);
   }
 
   onConfirmDelete(): void {
-    const id = this.confirmingDeleteId();
-    if (id !== null) {
-      this.deletingId.set(id);
-      this.delete.emit(id);
+    const item = this.confirmingDelete();
+    if (item !== null) {
+      this.deletingKey.set(this.itemKey(item));
+      this.delete.emit(item);
     }
   }
 
   onCancelDelete(): void {
-    this.confirmingDeleteId.set(null);
-    this.pendingDeleteId.set(null);
+    this.confirmingDelete.set(null);
+    this.pendingDeleteKey.set(null);
   }
 
   resetDeleteState(): void {
-    this.pendingDeleteId.set(null);
-    this.confirmingDeleteId.set(null);
-    this.deletingId.set(null);
+    this.pendingDeleteKey.set(null);
+    this.confirmingDelete.set(null);
+    this.deletingKey.set(null);
   }
 }

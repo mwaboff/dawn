@@ -1,0 +1,26 @@
+<app-modal-shell [title]="title()" [processing]="saving()" surface="sheet" (dismissed)="onDismiss()">
+  <app-item-form
+    modal-body
+    [formId]="formId"
+    [showActions]="false"
+    [lockedKind]="kind()"
+    [submitting]="saving()"
+    [errorMessage]="saveError()"
+    [campaignOptions]="campaignOptions()"
+    [canSetPublic]="canSetPublic()"
+    (submitted)="onSubmitted($event)"
+  />
+
+  <ng-container modal-actions>
+    <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="saving()" (click)="onDismiss()">
+      Cancel
+    </button>
+    <button type="submit" [attr.form]="formId" class="dialog-btn dialog-btn--submit" [disabled]="saving()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Create &amp; Add
+      }
+    </button>
+  </ng-container>
+</app-modal-shell>

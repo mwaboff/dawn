@@ -15,6 +15,7 @@ import { FilterRail, FilterOption } from './components/filter-rail/filter-rail';
 import { RefineSheet } from './components/refine-sheet/refine-sheet';
 import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
 import { ResultSection } from './components/result-section/result-section';
+import { CustomizeItemAction } from './components/customize-item-action/customize-item-action';
 import { PaginationControls } from '../../shared/components/pagination-controls/pagination-controls';
 import { CodexSkeleton } from './components/codex-skeleton/codex-skeleton';
 import { CodexEmptyState } from './components/codex-empty-state/codex-empty-state';
@@ -45,7 +46,7 @@ const MIXED_VIEW_CAP = 5;
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard, SubclassPathSelector],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, CustomizeItemAction, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard, SubclassPathSelector],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);

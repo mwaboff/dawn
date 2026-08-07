@@ -40,6 +40,16 @@
   }
 }
 
+/* Put on an `<app-entity-form-field>` *host* to make it span its grid. The host is the grid item,
+   not the `.form-group` inside it, so `FieldDef.column` -- which lands on that inner div -- cannot
+   place anything on its own. Global rather than component-scoped for the same reason: the host
+   carries the encapsulation attribute of whichever template writes it, so a descendant rule in the
+   parent's stylesheet would never match. Mainly for checkboxes and textareas, which read badly
+   squeezed into one auto-fit column beside a row of selects. */
+.form-field--full {
+  grid-column: 1 / -1;
+}
+
 /* Themed native text/input/textarea -- same dark-parchment chrome as .form-select below. Feature
    stylesheets that hand-roll this same look (background/border/color/padding) should migrate onto
    this and keep only their own size/typography deltas as local overrides, per the "never redeclare

@@ -264,7 +264,17 @@ describe('Navbar', () => {
       expect(component.isDropdownOpen()).toBe(false);
     });
 
-    it('should show + Character, + Campaign, and + Encounter in dropdown when open', () => {
+    it('should navigate to the item builder and close dropdown when onCreateItem is called', () => {
+      const navigateSpy = vi.spyOn(router, 'navigate');
+      component.isDropdownOpen.set(true);
+
+      component.onCreateItem();
+
+      expect(navigateSpy).toHaveBeenCalledWith(['/items/new']);
+      expect(component.isDropdownOpen()).toBe(false);
+    });
+
+    it('should show + Character, + Campaign, + Encounter, and + Item in dropdown when open', () => {
       vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
       fixture.detectChanges();
       component.isDropdownOpen.set(true);
@@ -276,6 +286,17 @@ describe('Navbar', () => {
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('+ Encounter');
+      expect(texts).toContain('+ Item');
+    });
+
+    it('should not render the create menu at all when logged out, so + Item needs no separate gate', () => {
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      fixture.detectChanges();
+      component.isDropdownOpen.set(true);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('.nav-dropdown')).toBeFalsy();
     });
 
     it('should render plus button when logged in', () => {
@@ -369,6 +390,7 @@ describe('Navbar', () => {
       expect(texts).toContain('+ Character');
       expect(texts).toContain('+ Campaign');
       expect(texts).toContain('+ Encounter');
+      expect(texts).toContain('+ Item');
       expect(texts).toContain('Profile');
       expect(texts).toContain('Logout');
     });
@@ -422,6 +444,67 @@ describe('Navbar', () => {
       component.isMobileMenuOpen.set(true);
       component.onCreateEncounter();
       expect(component.isMobileMenuOpen()).toBe(false);
+    });
+
+    it('should close mobile menu when onCreateItem is called', () => {
+      vi.spyOn(router, 'navigate');
+      component.isMobileMenuOpen.set(true);
+      component.onCreateItem();
+      expect(component.isMobileMenuOpen()).toBe(false);
+    });
+  });
+
+  describe('scroll state', () => {
+    afterEach(() => {
+      window.scrollY = 0;
+    });
+
+    function scrollTo(y: number): void {
+      window.scrollY = y;
+      window.dispatchEvent(new Event('scroll'));
+      fixture.detectChanges();
+    }
+
+    it('starts unscrolled', () => {
+      fixture.detectChanges();
+      expect(component.isScrolled()).toBe(false);
+    });
+
+    it('goes opaque once the page moves past the threshold', () => {
+      fixture.detectChanges();
+      scrollTo(50);
+      expect(component.isScrolled()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.nav').classList).toContain('scrolled');
+    });
+
+    it('comes back when the page returns to the top', () => {
+      fixture.detectChanges();
+      scrollTo(50);
+      scrollTo(0);
+      expect(component.isScrolled()).toBe(false);
+    });
+
+    /**
+     * The listener is on `window`, which no host binding reaches, so it is the one thing on this
+     * component that has to be torn down by hand. Without this the closure pins the instance.
+     */
+    it('stops listening once destroyed', () => {
+      fixture.detectChanges();
+      const remove = vi.spyOn(window, 'removeEventListener');
+
+      fixture.destroy();
+
+      expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function));
+    });
+
+    it('does not react to scrolls after destruction', () => {
+      fixture.detectChanges();
+      fixture.destroy();
+
+      window.scrollY = 500;
+      window.dispatchEvent(new Event('scroll'));
+
+      expect(component.isScrolled()).toBe(false);
     });
   });
 });

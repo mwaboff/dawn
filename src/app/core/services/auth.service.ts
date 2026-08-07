@@ -7,6 +7,12 @@ import { isAtLeast } from '../../shared/models/role.model';
 
 export type { UserResponse, ChooseUsernameRequest, DevLoginRequest };
 
+/** How often the sign-in popup is checked for having been closed by the user. */
+const POPUP_POLL_MS = 500;
+
+/** How long a sign-in may stay pending before its timers are released. */
+const POPUP_TIMEOUT_MS = 5 * 60 * 1000;
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly currentUser = signal<UserResponse | null>(null);
@@ -38,23 +44,40 @@ export class AuthService {
 
     const popup = window.open(url, 'google-auth', features);
 
+    // A blocked popup returns null, and the poll below tested `popup?.closed`, which is then
+    // permanently `undefined` -- so the interval ran forever, the listener was never removed, and
+    // the promise never settled. This service is `providedIn: 'root'`, so every further sign-in
+    // click stacked another one. Reject before any of that is set up.
+    if (popup === null) {
+      return Promise.reject(new Error('Popup blocked'));
+    }
+
     return new Promise((resolve, reject) => {
+      const settle = (finish: () => void) => {
+        clearInterval(pollTimer);
+        clearTimeout(giveUpTimer);
+        window.removeEventListener('message', handleMessage);
+        finish();
+      };
+
       const handleMessage = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         if (event.data?.type !== 'oauth-callback') return;
 
-        window.removeEventListener('message', handleMessage);
-        clearInterval(pollTimer);
-        resolve(event.data.params);
+        settle(() => resolve(event.data.params));
       };
 
       const pollTimer = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(pollTimer);
-          window.removeEventListener('message', handleMessage);
-          reject(new Error('Popup closed'));
+        if (popup.closed) {
+          settle(() => reject(new Error('Popup closed')));
         }
-      }, 500);
+      }, POPUP_POLL_MS);
+
+      // A backstop for the cases the poll cannot see: a popup left open and forgotten, or one
+      // whose `closed` never flips. Without it those hold an interval for the tab's lifetime.
+      const giveUpTimer = setTimeout(() => {
+        settle(() => reject(new Error('Sign-in timed out')));
+      }, POPUP_TIMEOUT_MS);
 
       window.addEventListener('message', handleMessage);
     });

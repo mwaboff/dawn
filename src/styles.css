@@ -189,7 +189,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .empty-state { font-family: var(--font-body); color: rgba(245,230,211,.65); font-style: italic; font-size: var(--text-sm); margin: 0; }
 
-/* Shared decorative overlays */
+/* Shared decorative overlays.
+ *
+ * `.grain-overlay` must stay `position: absolute` -- do not override it to `fixed`. A fixed layer
+ * normally gets its own compositor layer, so scrolling is a free GPU offset, but `mix-blend-mode`
+ * cancels that promotion: the layer has to be re-blended against a backdrop that scrolls, which
+ * repaints a viewport-sized region every scroll frame. Eight pages had done exactly that, and it
+ * was the largest single source of scroll jank in the app. Absolute costs nothing, because the
+ * grain then scrolls with the content it sits on. Give the host `position: relative` so `inset: 0`
+ * covers the whole page rather than a centred column. */
 .grain-overlay {
   position: absolute;
   inset: 0;

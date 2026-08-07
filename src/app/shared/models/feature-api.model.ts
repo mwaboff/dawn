@@ -23,7 +23,8 @@ export interface FeatureResponse {
   name: string;
   description: string;
   featureType: FeatureType;
-  expansionId: number;
+  /** Null for homebrew features, which came from no sourcebook. */
+  expansionId: number | null;
   costTagIds: number[];
   costTags?: FeatureCostTag[];
   modifierIds: number[];
@@ -31,3 +32,51 @@ export interface FeatureResponse {
   createdAt: string;
   lastModifiedAt: string;
 }
+
+/**
+ * Editing shapes used by `FeatureEditor` and `FeatureEditService`.
+ *
+ * Separate from the response types above because a feature being edited may not exist yet: a
+ * draft cost tag or modifier has no id until it is saved. They live here rather than under
+ * `features/admin/` because `shared/` must never import from `features/`, and both the admin
+ * editors and the custom item builder need them.
+ */
+
+export interface RawCostTag {
+  id?: number;
+  label: string;
+  category: string;
+}
+
+export interface RawModifier {
+  id?: number;
+  target: string;
+  operation: string;
+  value: number;
+}
+
+export interface RawFeatureResponse {
+  id: number;
+  name: string;
+  description: string;
+  featureType: FeatureType;
+  /** Null for homebrew features, which came from no sourcebook. */
+  expansionId: number | null;
+  costTagIds: number[];
+  modifierIds: number[];
+  costTags?: RawCostTag[];
+  modifiers?: RawModifier[];
+}
+
+export interface FeatureUpdateRequest {
+  name: string;
+  description: string;
+  featureType: FeatureType;
+  /** Null for homebrew features, which came from no sourcebook. */
+  expansionId: number | null;
+  costTags?: { label: string; category: string }[];
+  modifiers?: { target: string; operation: string; value: number }[];
+}
+
+/** Payload for creating a feature inline; identical in shape to an update. */
+export type FeatureInput = FeatureUpdateRequest;

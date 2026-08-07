@@ -21,6 +21,9 @@ export class InventoryAddPanel {
   readonly open = input.required<boolean>();
 
   readonly itemAdded = output<WeaponResponse | ArmorResponse | LootApiResponse>();
+  /** Carries the kind the panel is currently listing, read at emit time so a tab switch can't
+   * leave it stale -- the tabs swap `itemType` on this same panel instance. */
+  readonly createRequested = output<'weapon' | 'armor' | 'loot'>();
   readonly closed = output<void>();
 
   readonly loading = signal(false);
@@ -110,6 +113,10 @@ export class InventoryAddPanel {
 
   onClose(): void {
     this.closed.emit();
+  }
+
+  onCreateRequested(): void {
+    this.createRequested.emit(this.itemType());
   }
 
   onSelectWeapon(weapon: WeaponResponse): void {

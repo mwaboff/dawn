@@ -24,15 +24,17 @@ const TEN_OPTIONS: LookupOption[] = Array.from({ length: 10 }, (_, i) => ({
       [control]="control()"
       [label]="label()"
       [dependsOnControl]="dependsOnControl()"
+      [presetOptions]="presetOptions()"
     />
   `,
   imports: [EntityMultiSelect],
 })
 class HostComponent {
-  lookup = signal<'expansions'>('expansions');
+  lookup = signal<'expansions' | undefined>('expansions');
   control = signal(new FormControl<number[]>([], { nonNullable: true }));
   label = signal<string | undefined>(undefined);
   dependsOnControl = signal<FormControl<number | null> | undefined>(undefined);
+  presetOptions = signal<LookupOption[] | null>(null);
 }
 
 function createMockLookup(opts: LookupOption[] = THREE_OPTIONS) {
@@ -195,6 +197,71 @@ describe('EntityMultiSelect', () => {
     const loadingText = fixture.nativeElement.querySelector('.loading-text');
     expect(loadingText).not.toBeNull();
     expect(loadingText.textContent.trim()).toBe('Loading...');
+  });
+
+  describe('presetOptions', () => {
+    function setupPreset(options: LookupOption[] | null) {
+      mockLookup = createMockLookup();
+      TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers: [{ provide: ENTITY_FORM_LOOKUP, useValue: mockLookup }],
+      });
+      fixture = TestBed.createComponent(HostComponent);
+      host = fixture.componentInstance;
+      host.presetOptions.set(options);
+      host.lookup.set(undefined);
+      fixture.detectChanges();
+    }
+
+    it('renders caller-supplied options without consulting the lookup provider', () => {
+      setupPreset([{ id: 7, label: 'Nightfall' }, { id: 8, label: 'Sundered Coast' }]);
+
+      expect(mockLookup.list).not.toHaveBeenCalled();
+      const labels = fixture.nativeElement.querySelectorAll('.checkbox-row span');
+      expect(labels).toHaveLength(2);
+      expect(labels[0].textContent.trim()).toBe('Nightfall');
+    });
+
+    it('is never in a loading state, because there is nothing to wait for', () => {
+      setupPreset([{ id: 7, label: 'Nightfall' }]);
+      expect(fixture.nativeElement.querySelector('.loading-text')).toBeNull();
+    });
+
+    it('renders an empty list rather than falling back to the lookup', () => {
+      setupPreset([]);
+
+      expect(mockLookup.list).not.toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelectorAll('.checkbox-row')).toHaveLength(0);
+    });
+
+    it('toggles selection the same way fetched options do', () => {
+      setupPreset([{ id: 7, label: 'Nightfall' }]);
+      const ctrl = new FormControl<number[]>([], { nonNullable: true });
+      host.control.set(ctrl);
+      fixture.detectChanges();
+
+      fixture.nativeElement.querySelector('input[type="checkbox"]').click();
+
+      expect(ctrl.value).toEqual([7]);
+    });
+
+    it('does not prune selections that are absent from the supplied options', () => {
+      setupPreset([{ id: 7, label: 'Nightfall' }]);
+      const ctrl = new FormControl<number[]>([99], { nonNullable: true });
+      host.control.set(ctrl);
+      fixture.detectChanges();
+
+      expect(ctrl.value).toEqual([99]);
+    });
+  });
+
+  it('does not fetch when a lookup key is omitted', () => {
+    setup();
+    mockLookup.list.mockClear();
+    host.lookup.set(undefined);
+    fixture.detectChanges();
+
+    expect(mockLookup.list).not.toHaveBeenCalled();
   });
 
   describe('no lookup provider', () => {

@@ -11,14 +11,14 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, FormGroup } from '@angular/forms';
-import { RawFeatureResponse, FeatureUpdateRequest, FeatureInput } from '../../../models/admin-api.model';
-import { CostTagLookupService, CostTagFull } from '../../../../../shared/services/cost-tag-lookup.service';
+import { RawFeatureResponse, FeatureUpdateRequest, FeatureInput } from '../../models/feature-api.model';
+import { CostTagLookupService, CostTagFull } from '../../services/cost-tag-lookup.service';
 import {
   FeatureType,
   FEATURE_TYPE_LABELS,
   defaultFeatureTypeForCard,
-} from '../../../../../shared/models/feature-type.model';
-import { ConfirmDialog } from '../../../../../shared/components/confirm-dialog/confirm-dialog';
+} from '../../models/feature-type.model';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 const MODIFIER_TARGETS = [
   'AGILITY', 'STRENGTH', 'FINESSE', 'INSTINCT', 'PRESENCE', 'KNOWLEDGE',
@@ -31,6 +31,17 @@ const MODIFIER_TARGETS = [
 
 const MODIFIER_OPERATIONS = ['ADD', 'SET', 'MULTIPLY'] as const;
 const COST_TAG_CATEGORIES = ['COST', 'LIMITATION', 'TIMING'] as const;
+
+/** A feature row plus its position in the flat feature list, which is how mutations address it. */
+export interface FeatureRow {
+  feature: EditableFeature;
+  index: number;
+}
+
+export interface FeatureGroup {
+  label: string;
+  rows: FeatureRow[];
+}
 
 export interface EditableFeature {
   id: number;
@@ -49,13 +60,13 @@ export interface EditableFeature {
 }
 
 @Component({
-  selector: 'app-card-edit-features',
-  templateUrl: './card-edit-features.html',
-  styleUrl: './card-edit-features.css',
+  selector: 'app-feature-editor',
+  templateUrl: './feature-editor.html',
+  styleUrl: './feature-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, ConfirmDialog],
 })
-export class CardEditFeatures {
+export class FeatureEditor {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly costTagLookupService = inject(CostTagLookupService);
@@ -64,7 +75,8 @@ export class CardEditFeatures {
   readonly saving = input<boolean>(false);
   readonly groupByType = input<boolean>(false);
   readonly cardType = input<string>('');
-  readonly expansionId = input<number>(0);
+  /** Sourcebook new features inherit from the card being edited; null for homebrew. */
+  readonly expansionId = input<number | null>(null);
 
   readonly featureDirtyChanged = output<void>();
   readonly deleteFeature = output<number>();
@@ -103,23 +115,34 @@ export class CardEditFeatures {
     return this.editableFeatures();
   }
 
-  getFeatureGroups(): { label: string; features: EditableFeature[] }[] {
+  /**
+   * The rows to render, grouped for display but each carrying its position in the flat
+   * `editableFeatures` list.
+   *
+   * The index is bundled here rather than looked up per row because every mutation on a row
+   * addresses it by that position. Doing it the other way round -- an `indexOf` helper called from
+   * the template -- meant seven linear scans per feature per change-detection pass, one of them
+   * inside the `track` expression, so a twenty-feature card ran ~2,800 comparisons per pass.
+   *
+   * Deliberately still a method and not a `computed()`: the grouping key comes from each row's
+   * `featureType` form control, which is not signal-backed, so a computed would cache the first
+   * grouping and never notice a row changing type.
+   */
+  getFeatureGroups(): FeatureGroup[] {
     const all = this.editableFeatures();
-    if (!this.groupByType() || all.length === 0) return [{ label: 'Features', features: all }];
-    const groups = new Map<string, EditableFeature[]>();
-    for (const f of all) {
-      const type = f.form.getRawValue().featureType ?? 'OTHER';
-      if (!groups.has(type)) groups.set(type, []);
-      groups.get(type)!.push(f);
-    }
-    return Array.from(groups.entries()).map(([type, features]) => ({
-      label: this.featureTypeLabels[type] ?? type,
-      features,
-    }));
-  }
+    const rows = all.map((feature, index) => ({ feature, index }));
+    if (!this.groupByType() || all.length === 0) return [{ label: 'Features', rows }];
 
-  getGlobalIndex(feature: EditableFeature): number {
-    return this.editableFeatures().indexOf(feature);
+    const groups = new Map<string, FeatureRow[]>();
+    for (const row of rows) {
+      const type = row.feature.form.getRawValue().featureType ?? 'OTHER';
+      if (!groups.has(type)) groups.set(type, []);
+      groups.get(type)!.push(row);
+    }
+    return Array.from(groups.entries()).map(([type, groupRows]) => ({
+      label: this.featureTypeLabels[type] ?? type,
+      rows: groupRows,
+    }));
   }
 
   getDirtyFeatures(): EditableFeature[] {

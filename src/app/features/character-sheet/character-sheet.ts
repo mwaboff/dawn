@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject, signal, computed } from '@angular/core';
 import { DecimalPipe, LowerCasePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, EMPTY, switchMap, debounceTime, tap, catchError } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
@@ -26,6 +26,8 @@ import { Experience, isExperienceComplete } from '../../shared/models/experience
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
+import { ItemCreateModal, ItemCreatedEvent } from './components/item-create-modal/item-create-modal';
+import { ItemKind, itemEditPath } from '../items/item-routes';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
@@ -45,6 +47,7 @@ import {
   InventoryRemoveEvent,
   InventoryEquipWeaponEvent,
   InventoryEquipArmorEvent,
+  InventoryEditEvent,
 } from './components/inventory-section/inventory-section';
 
 @Component({
@@ -52,10 +55,11 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemCreateModal],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly authService = inject(AuthService);
   private readonly diceRollerService = inject(DiceRollerService);
@@ -66,6 +70,8 @@ export class CharacterSheet implements OnInit {
   readonly error = signal(false);
   readonly characterSheet = signal<CharacterSheetView | null>(null);
   readonly inventoryError = signal<string | null>(null);
+  /** Non-null while the create-item modal is open; the kind it is locked to. */
+  readonly creatingItemKind = signal<ItemKind | null>(null);
   private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   private readonly expandedCardIds = signal<Set<number>>(new Set());
   private nextTempInventoryId = -1;
@@ -165,6 +171,13 @@ export class CharacterSheet implements OnInit {
     const user = this.authService.user();
     return sheet !== null && user !== null && sheet.ownerId === user.id;
   });
+
+  /**
+   * Deliberately the signed-in viewer rather than the sheet's owner: the inventory uses this to
+   * decide whose homebrew the edit shortcut appears on, and a GM looking at a player's sheet may
+   * well have written some of the gear on it.
+   */
+  readonly currentUserId = computed(() => this.authService.user()?.id ?? null);
 
   /**
    * Whether notes render at all -- driven entirely by what the backend sent, not a client-side
@@ -791,6 +804,29 @@ export class CharacterSheet implements OnInit {
       error: () => {
         this.handleInventoryError(`Could not add ${event.type}. Please try again.`, raw);
       },
+    });
+  }
+
+  setCreatingItemKind(kind: ItemKind | null): void {
+    this.creatingItemKind.set(kind);
+  }
+
+  /** Homebrew reaches the inventory the same way a catalogue pick does -- see the handler above. */
+  onCustomItemCreated(event: ItemCreatedEvent): void {
+    this.creatingItemKind.set(null);
+    this.onAddInventoryItem(event);
+  }
+
+  /**
+   * Leaves the sheet for the item builder. A full navigation rather than a modal: edits to an
+   * item apply everywhere it is equipped, not just on this sheet, and the routed editor is the
+   * place that already says so.
+   */
+  onEditInventoryItem(event: InventoryEditEvent): void {
+    // Hands the builder this sheet's URL so its back link and Cancel return here rather than
+    // dropping the user in the codex, which is where the builder goes when nobody says otherwise.
+    this.router.navigate([itemEditPath(event.type, event.itemId)], {
+      queryParams: { returnTo: this.router.url },
     });
   }
 

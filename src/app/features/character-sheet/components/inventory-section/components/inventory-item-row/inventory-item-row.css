@@ -9,7 +9,13 @@
 .remove-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; background: none; border: none; color: rgba(180,60,60,.5); font-size: .9rem; cursor: pointer; padding: .1rem .25rem; border-radius: 2px; line-height: 1; }
 .remove-btn:hover { color: rgba(220,80,80,.9); }
 .remove-btn:focus-visible { outline: 2px solid rgba(220,80,80,.6); outline-offset: 2px; }
-.remove-btn--floating { position: absolute; top: .4rem; right: .4rem; z-index: 1; }
+/* Holds the edit and remove affordances together so the pair stays aligned when only one of
+   them is shown -- remove disappears on equipped gear, edit only appears on your own homebrew. */
+.inventory-row__floating { position: absolute; top: .4rem; right: .4rem; z-index: 1; display: flex; align-items: center; gap: .1rem; }
+
+.edit-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; background: none; border: none; color: rgba(212,160,86,.5); font-size: .9rem; cursor: pointer; padding: .1rem .25rem; border-radius: 2px; line-height: 1; }
+.edit-btn:hover { color: var(--color-accent); }
+.edit-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 
 .confirm-message { font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); }
 .confirm-actions { display: flex; gap: var(--space-3); margin-top: var(--space-1); }

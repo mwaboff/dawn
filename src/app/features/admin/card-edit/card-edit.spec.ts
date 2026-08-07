@@ -8,7 +8,7 @@ import { CardEdit } from './card-edit';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
 import { FeatureEditService } from '../../../shared/services/feature-edit.service';
 import { AdminLookupService } from './services/admin-lookup.service';
-import { RawFeatureResponse } from '../models/admin-api.model';
+import { RawFeatureResponse } from '../../../shared/models/feature-api.model';
 import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
 import { By } from '@angular/platform-browser';
 
@@ -368,7 +368,7 @@ describe('CardEdit — schema-driven orchestrator', () => {
       const updateSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
       vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(DOMAIN_CARD_RAW_WITH_FEATURE));
 
-      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      const featuresComp = fixture.debugElement.query(By.css('app-feature-editor')).componentInstance;
       featuresComp.addDraft();
       const draft = featuresComp.getEditableFeatures()[0];
       draft.form.patchValue({ name: 'Draft Name', description: 'Draft Desc' });
@@ -393,7 +393,7 @@ describe('CardEdit — schema-driven orchestrator', () => {
       const updateFeatureSpy = vi.spyOn(featureEditService, 'updateFeature').mockReturnValue(of({} as RawFeatureResponse));
       vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(DOMAIN_CARD_RAW_WITH_FEATURE));
 
-      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      const featuresComp = fixture.debugElement.query(By.css('app-feature-editor')).componentInstance;
       featuresComp.addDraft();
       const draft = featuresComp.getEditableFeatures()[0];
       draft.form.patchValue({ name: 'Draft', description: 'D' });
@@ -412,7 +412,7 @@ describe('CardEdit — schema-driven orchestrator', () => {
       await setup('domainCard', DOMAIN_CARD_RAW);
       const updateSpy = vi.spyOn(adminCardService, 'updateCard');
 
-      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      const featuresComp = fixture.debugElement.query(By.css('app-feature-editor')).componentInstance;
       featuresComp.addDraft();
       featuresComp.discardDraft(0);
 
@@ -426,7 +426,7 @@ describe('CardEdit — schema-driven orchestrator', () => {
       const updateSpy = vi.spyOn(adminCardService, 'updateCard').mockReturnValue(of({}));
       vi.spyOn(adminCardService, 'getCard').mockReturnValue(of(CLASS_CARD_WITH_SPLIT_FEATURES));
 
-      const featuresComp = fixture.debugElement.query(By.css('app-card-edit-features')).componentInstance;
+      const featuresComp = fixture.debugElement.query(By.css('app-feature-editor')).componentInstance;
       featuresComp.addDraft();
       featuresComp.getEditableFeatures()[0].form.patchValue({ name: 'Class Draft', featureType: 'CLASS' });
       featuresComp.addDraft();

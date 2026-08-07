@@ -1,0 +1,4 @@
+/* The fields belong to the parent form's grid, not to a box of their own. */
+:host {
+  display: contents;
+}

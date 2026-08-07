@@ -5,6 +5,7 @@ import { ArmorResponse } from '../models/armor-api.model';
 function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorResponse {
   return {
     id: 1,
+    isPublic: false,
     name: 'Chainmail',
     expansionId: 1,
     tier: 1,

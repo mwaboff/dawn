@@ -15,9 +15,14 @@
       [stats]="cardStats()"
       [burden]="weaponBurden()"
       [features]="cardFeatures()" />
-    @if (isOwner() && canRemove()) {
-      <button class="remove-btn remove-btn--floating" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
-    }
+    <div class="inventory-row__floating">
+      @if (canEdit()) {
+        <button class="edit-btn" (click)="onEditClick()" [attr.aria-label]="'Edit ' + item().name">&#x270E;</button>
+      }
+      @if (isOwner() && canRemove()) {
+        <button class="remove-btn" (click)="onRemoveClick()" [attr.aria-label]="'Remove ' + item().name">&#x2715;</button>
+      }
+    </div>
     <div class="inventory-row__actions">
       @if (isOwner() && itemType() === 'weapon') {
         @if (weaponSlot()) {

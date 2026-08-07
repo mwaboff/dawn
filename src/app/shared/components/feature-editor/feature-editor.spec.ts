@@ -3,9 +3,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { of } from 'rxjs';
-import { CardEditFeatures } from './card-edit-features';
-import { RawFeatureResponse } from '../../../models/admin-api.model';
-import { CostTagLookupService } from '../../../../../shared/services/cost-tag-lookup.service';
+import { FeatureEditor } from './feature-editor';
+import { RawFeatureResponse } from '../../models/feature-api.model';
+import { CostTagLookupService } from '../../services/cost-tag-lookup.service';
 
 const mockCostTagLookupService = {
   list: () => of([]),
@@ -53,8 +53,8 @@ const mockHopeFeature: RawFeatureResponse = {
 
 function createHostFor(features: RawFeatureResponse[], groupByType = false, cardType = '', expansionId = 1) {
   @Component({
-    template: '<app-card-edit-features [features]="features" [saving]="saving" [groupByType]="groupByType" [cardType]="cardType" [expansionId]="expansionId" (featureDirtyChanged)="onDirtyChanged()" (deleteFeature)="onDeleteFeature($event)" />',
-    imports: [CardEditFeatures],
+    template: '<app-feature-editor [features]="features" [saving]="saving" [groupByType]="groupByType" [cardType]="cardType" [expansionId]="expansionId" (featureDirtyChanged)="onDirtyChanged()" (deleteFeature)="onDeleteFeature($event)" />',
+    imports: [FeatureEditor],
     host: { 'data-testid': Math.random().toString(36) },
   })
   class HostComponent {
@@ -81,12 +81,12 @@ const providers = [
   { provide: CostTagLookupService, useValue: mockCostTagLookupService },
 ];
 
-describe('CardEditFeatures', () => {
+describe('FeatureEditor', () => {
   describe('with one feature', () => {
     const HostComponent = createHostFor([mockFeature]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
     let host: InstanceType<typeof HostComponent>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -97,7 +97,7 @@ describe('CardEditFeatures', () => {
       hostFixture = TestBed.createComponent(HostComponent);
       host = hostFixture.componentInstance;
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('should create', () => {
@@ -231,7 +231,7 @@ describe('CardEditFeatures', () => {
   describe('with feature having cost tags and modifiers', () => {
     const HostComponent = createHostFor([mockFeatureWithTags]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -241,7 +241,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('buildFeaturePayload should include cost tags and modifiers from initial data', () => {
@@ -272,7 +272,7 @@ describe('CardEditFeatures', () => {
     const HostComponent = createHostFor([mockFeature]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
     let host: InstanceType<typeof HostComponent>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -283,7 +283,7 @@ describe('CardEditFeatures', () => {
       hostFixture = TestBed.createComponent(HostComponent);
       host = hostFixture.componentInstance;
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('addCostTag matches existing tag by label and uses its category', () => {
@@ -365,7 +365,7 @@ describe('CardEditFeatures', () => {
     const HostComponent = createHostFor([mockFeature]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
     let host: InstanceType<typeof HostComponent>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -376,7 +376,7 @@ describe('CardEditFeatures', () => {
       hostFixture = TestBed.createComponent(HostComponent);
       host = hostFixture.componentInstance;
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('addModifier adds modifier with selected target, operation, value', () => {
@@ -435,7 +435,7 @@ describe('CardEditFeatures', () => {
     describe('when groupByType is false', () => {
       const HostComponent = createHostFor([mockFeature, mockHopeFeature], false);
       let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-      let component: CardEditFeatures;
+      let component: FeatureEditor;
 
       beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -445,14 +445,14 @@ describe('CardEditFeatures', () => {
 
         hostFixture = TestBed.createComponent(HostComponent);
         hostFixture.detectChanges();
-        component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+        component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
       });
 
       it('returns a single group labeled "Features"', () => {
         const groups = component.getFeatureGroups();
         expect(groups.length).toBe(1);
         expect(groups[0].label).toBe('Features');
-        expect(groups[0].features.length).toBe(2);
+        expect(groups[0].rows.length).toBe(2);
       });
 
       it('renders one features-section', () => {
@@ -464,7 +464,7 @@ describe('CardEditFeatures', () => {
     describe('when groupByType is true', () => {
       const HostComponent = createHostFor([mockFeature, mockHopeFeature], true);
       let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-      let component: CardEditFeatures;
+      let component: FeatureEditor;
 
       beforeEach(async () => {
         await TestBed.configureTestingModule({
@@ -474,16 +474,16 @@ describe('CardEditFeatures', () => {
 
         hostFixture = TestBed.createComponent(HostComponent);
         hostFixture.detectChanges();
-        component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+        component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
       });
 
       it('returns groups by featureType', () => {
         const groups = component.getFeatureGroups();
         expect(groups.length).toBe(2);
         expect(groups[0].label).toBe('Class Features');
-        expect(groups[0].features.length).toBe(1);
+        expect(groups[0].rows.length).toBe(1);
         expect(groups[1].label).toBe('Hope Features');
-        expect(groups[1].features.length).toBe(1);
+        expect(groups[1].rows.length).toBe(1);
       });
 
       it('renders separate sections with correct headings', () => {
@@ -493,18 +493,29 @@ describe('CardEditFeatures', () => {
         expect(titles[1].textContent.trim()).toBe('Hope Features');
       });
 
-      it('getGlobalIndex returns correct indices across groups', () => {
+      /**
+        * Grouping reorders rows for display, so each row has to keep the position it occupies in
+        * the flat list -- that position is what every mutation on the row addresses.
+        */
+      it('carries each row its index in the flat feature list, not its index within the group', () => {
         const groups = component.getFeatureGroups();
-        const classFeature = groups[0].features[0];
-        const hopeFeature = groups[1].features[0];
-        expect(component.getGlobalIndex(classFeature)).toBe(0);
-        expect(component.getGlobalIndex(hopeFeature)).toBe(1);
+        expect(groups[0].rows[0].index).toBe(0);
+        expect(groups[1].rows[0].index).toBe(1);
+      });
+
+      it('matches the index it carries to the feature it belongs to', () => {
+        const groups = component.getFeatureGroups();
+        const all = component.getEditableFeatures();
+        for (const group of groups) {
+          for (const row of group.rows) {
+            expect(all[row.index]).toBe(row.feature);
+          }
+        }
       });
 
       it('toggling a feature in a group uses global index correctly', () => {
         const groups = component.getFeatureGroups();
-        const hopeFeature = groups[1].features[0];
-        const globalIdx = component.getGlobalIndex(hopeFeature);
+        const globalIdx = groups[1].rows[0].index;
         component.toggleFeature(globalIdx);
         const updated = component.getEditableFeatures()[globalIdx];
         expect(updated.expanded).toBe(true);
@@ -515,7 +526,7 @@ describe('CardEditFeatures', () => {
   describe('with multiple features', () => {
     const HostComponent = createHostFor([mockFeature, mockFeatureWithTags]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -525,7 +536,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('getDirtyFeatures should return only dirty features', () => {
@@ -585,7 +596,7 @@ describe('CardEditFeatures', () => {
     const HostComponent = createHostFor([], false, 'domainCard', 7);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
     let host: InstanceType<typeof HostComponent>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -596,7 +607,7 @@ describe('CardEditFeatures', () => {
       hostFixture = TestBed.createComponent(HostComponent);
       host = hostFixture.componentInstance;
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('renders the + New Feature toolbar button even when feature list is empty', () => {
@@ -705,7 +716,7 @@ describe('CardEditFeatures', () => {
   describe('discardDraft on existing features', () => {
     const HostComponent = createHostFor([mockFeature], false, 'domainCard', 1);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -715,7 +726,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('is a no-op on non-draft features', () => {
@@ -728,7 +739,7 @@ describe('CardEditFeatures', () => {
   describe('draft creation with ancestry cardType', () => {
     const HostComponent = createHostFor([], false, 'ancestry', 2);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -738,7 +749,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('defaults draft featureType to ANCESTRY', () => {
@@ -750,7 +761,7 @@ describe('CardEditFeatures', () => {
   describe('draft creation with unknown cardType', () => {
     const HostComponent = createHostFor([], false, 'adversary', 2);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -760,7 +771,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('falls back to OTHER', () => {
@@ -773,7 +784,7 @@ describe('CardEditFeatures', () => {
     const HostComponent = createHostFor([mockFeature, mockFeatureWithTags]);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
     let host: InstanceType<typeof HostComponent>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -784,7 +795,7 @@ describe('CardEditFeatures', () => {
       hostFixture = TestBed.createComponent(HostComponent);
       host = hostFixture.componentInstance;
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('renders a trash delete button for existing features', () => {
@@ -881,7 +892,7 @@ describe('CardEditFeatures', () => {
   describe('getExistingDirtyFeatures', () => {
     const HostComponent = createHostFor([mockFeature], false, 'domainCard', 1);
     let hostFixture: ComponentFixture<InstanceType<typeof HostComponent>>;
-    let component: CardEditFeatures;
+    let component: FeatureEditor;
 
     beforeEach(async () => {
       await TestBed.configureTestingModule({
@@ -891,7 +902,7 @@ describe('CardEditFeatures', () => {
 
       hostFixture = TestBed.createComponent(HostComponent);
       hostFixture.detectChanges();
-      component = hostFixture.debugElement.children[0].componentInstance as CardEditFeatures;
+      component = hostFixture.debugElement.children[0].componentInstance as FeatureEditor;
     });
 
     it('excludes drafts from getExistingDirtyFeatures', () => {

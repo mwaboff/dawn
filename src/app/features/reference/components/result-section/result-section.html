@@ -18,6 +18,7 @@
         } @else if (result.card) {
           <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
         }
+        <app-customize-item-action [result]="result" />
       </li>
     }
   </ul>

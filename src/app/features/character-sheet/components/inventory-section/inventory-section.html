@@ -57,6 +57,7 @@
   [itemType]="activeItemType()"
   [open]="addPanelOpen()"
   (itemAdded)="onItemAdded($event)"
+  (createRequested)="onCreateRequested($event)"
   (closed)="onAddPanelClosed()" />
 
 @switch (activeTab()) {
@@ -73,6 +74,8 @@
               [confirming]="confirmingRemoveEntryId() === weapon.inventoryEntryId"
               [canEquipAsPrimary]="canEquipWeaponAsPrimary(weapon)"
               [canEquipAsSecondary]="canEquipWeaponAsSecondary(weapon)"
+              [currentUserId]="currentUserId()"
+              (editClicked)="onEditClicked('weapon', weapon.id)"
               (removeClicked)="onRemoveClicked(weapon.inventoryEntryId)"
               (removeConfirmed)="onRemoveConfirmed('weapon', weapon.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()"
@@ -97,6 +100,8 @@
               [equipState]="isArmorEntryEquipped(armor)"
               [confirming]="confirmingRemoveEntryId() === armor.inventoryEntryId"
               [canEquipArmor]="canEquipArmorSlot()"
+              [currentUserId]="currentUserId()"
+              (editClicked)="onEditClicked('armor', armor.id)"
               (removeClicked)="onRemoveClicked(armor.inventoryEntryId)"
               (removeConfirmed)="onRemoveConfirmed('armor', armor.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()"
@@ -120,6 +125,8 @@
               [isOwner]="isOwner()"
               [equipState]="null"
               [confirming]="confirmingRemoveEntryId() === item.inventoryEntryId"
+              [currentUserId]="currentUserId()"
+              (editClicked)="onEditClicked('loot', item.id)"
               (removeClicked)="onRemoveClicked(item.inventoryEntryId)"
               (removeConfirmed)="onRemoveConfirmed('loot', item.inventoryEntryId)"
               (removeCancelled)="onRemoveCancelled()" />

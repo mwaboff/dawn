@@ -116,4 +116,25 @@ describe('LootService', () => {
 
     expect(error?.status).toBe(500);
   });
+
+  it('should GET one loot record by id with the relationships an editor needs', () => {
+    service.getLootById(7).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === `${baseUrl}/7`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.params.get('expand')).toBe('expansion,features,costTags');
+    req.flush(buildLootResponse({ id: 7 }));
+  });
+
+  it('should surface errors from getLootById', () => {
+    let error: HttpErrorResponse | undefined;
+    service.getLootById(7).subscribe({ error: e => (error = e) });
+
+    httpTesting
+      .expectOne(r => r.url === `${baseUrl}/7`)
+      .flush('Not found', { status: 404, statusText: 'Not Found' });
+
+    expect(error?.status).toBe(404);
+  });
 });

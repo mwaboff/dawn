@@ -9,6 +9,7 @@ import { PaginatedResponse, PaginatedCards } from '../models/api.model';
 function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorResponse {
   return {
     id: 1,
+    isPublic: false,
     name: 'Leather Armor',
     expansionId: 1,
     tier: 1,
@@ -123,5 +124,26 @@ describe('ArmorService', () => {
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
 
     expect(error?.status).toBe(500);
+  });
+
+  it('should GET one armor by id with the relationships an editor needs', () => {
+    service.getArmorById(7).subscribe();
+
+    const req = httpTesting.expectOne(r => r.url === `${baseUrl}/7`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.params.get('expand')).toBe('expansion,features,costTags,modifiers');
+    req.flush(buildArmorResponse({ id: 7 }));
+  });
+
+  it('should surface errors from getArmorById', () => {
+    let error: HttpErrorResponse | undefined;
+    service.getArmorById(7).subscribe({ error: e => (error = e) });
+
+    httpTesting
+      .expectOne(r => r.url === `${baseUrl}/7`)
+      .flush('Not found', { status: 404, statusText: 'Not Found' });
+
+    expect(error?.status).toBe(404);
   });
 });
