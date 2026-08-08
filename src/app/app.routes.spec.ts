@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { routes } from './app.routes';
 import { authSessionGuard } from './core/guards/auth-session.guard';
+import { classicSheetGuard } from './core/guards/sheet-layout.guard';
 
 describe('App Routes', () => {
   beforeEach(() => {
@@ -68,6 +69,16 @@ describe('App Routes', () => {
     const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
     const preferencesRoute = guardedRoute?.children?.find(r => r.path === 'preferences');
     expect(preferencesRoute).toBeDefined();
+  });
+
+  // Both routes share the same path -- see sheet-layout.guard.ts for why a `canMatch` guard
+  // returning false falls through to the next sibling route rather than blocking navigation.
+  it('should have the classic character/:id route declared before the beta one, guarded by classicSheetGuard', () => {
+    const guardedRoute = routes.find(r => r.path === '' && r.canActivateChild);
+    const children = guardedRoute?.children ?? [];
+    const characterRoutes = children.filter(r => r.path === 'character/:id');
+    expect(characterRoutes.length).toBe(2);
+    expect(characterRoutes[0]?.canMatch).toContain(classicSheetGuard);
   });
 
   it('should have campaign/:id/gm-screen route declared before campaign/:id', () => {

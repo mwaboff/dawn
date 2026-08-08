@@ -6,7 +6,7 @@
         <li class="training-taken__item">
           {{ trainingLabels[training.option] }}
           @if (training.viciousAxis) {
-            ({{ training.viciousAxis === 'DAMAGE_DIE' ? 'Damage Die' : 'Range' }})
+            ({{ axisLabels[training.viciousAxis] }})
           }
         </li>
       }

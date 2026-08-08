@@ -1,0 +1,92 @@
+/* --ca (card-accents.css) is tuned for a dark bg -- several --color-card-* tokens fail WCAG AA as
+   text here. --eca-deep pins every hue to L <= 0.11 against --color-bg-darker (>=6:1 regardless of
+   accent); --eca-tint is the same idea at low mix. Full-strength --ca stays non-text: the rail/edge. */
+:host {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--color-card-face); border: 1px solid var(--color-card-rule);
+  border-top: 2px solid var(--ca); border-left: 3px solid var(--ca); border-radius: 0 8px 8px 0;
+  --eca-deep: color-mix(in srgb, var(--ca) 45%, var(--color-bg-darker));
+  --eca-tint: color-mix(in srgb, var(--ca) 12%, var(--color-card-face));
+}
+:host(.entity-card--muted) .entity-card__header, :host(.entity-card--muted) .entity-card__clip { opacity: .6; }
+
+.entity-card__heading { display: contents; }
+/* flex-wrap: wrap so an accent tab + a full badge row (domain cards can carry three, see
+   entity-card.mapper.ts) drops onto a second line instead of forcing `.entity-card__title` -- the
+   row's only shrinkable child -- to zero width and clipping the chevron toggle past it. Harmless at
+   `compact`: that size renders no badges, so the header's remaining children (tab, title, maybe the
+   chevron) are always narrow enough to fit one line on their own. */
+.entity-card__header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-5); width: 100%; padding: var(--space-4) var(--space-7); background: var(--eca-tint); border: none; border-bottom: 1px solid var(--color-card-rule); font: inherit; text-align: left; color: inherit; }
+.entity-card__header--interactive { cursor: pointer; }
+.entity-card__header--interactive:hover { background: color-mix(in srgb, var(--ca) 18%, var(--color-card-face)); }
+.entity-card__header--interactive:focus-visible { outline: 2px solid var(--eca-deep); outline-offset: -2px; }
+
+.entity-card__tab, .entity-card__badge, .entity-card__feature-name { font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.entity-card__tab { flex-shrink: 0; color: var(--color-text-lighter); background: var(--eca-deep); padding: .2rem .5rem; border-radius: 3px; }
+.entity-card__title { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.entity-card__name, .entity-card__subtitle, .entity-card__headline { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entity-card__name { font-family: var(--font-display); font-weight: 700; font-size: var(--text-base); letter-spacing: .04em; text-transform: uppercase; color: var(--color-card-ink); }
+.entity-card__subtitle, .entity-card__headline { font-family: var(--font-body); font-style: italic; font-size: var(--text-sm); color: var(--color-card-ink-soft); }
+
+.entity-card__badges { display: flex; flex-wrap: wrap; gap: .3rem; flex-shrink: 0; }
+
+.entity-card__badge, .entity-card__tag { border: 1px solid var(--color-card-rule); border-radius: 2px; padding: .1rem .3rem; white-space: nowrap; color: var(--color-card-ink-faint); }
+.entity-card__tag { font-family: var(--font-body); font-size: var(--text-xs); background: var(--color-card-face-lift); }
+
+.entity-card__chevron { flex-shrink: 0; font-size: .8rem; color: var(--color-card-ink-faint); transition: transform .2s; }
+.entity-card__chevron--open { transform: rotate(180deg); }
+
+.entity-card__clip { position: relative; overflow: hidden; max-height: 15rem; }
+.entity-card__clip--expanded { max-height: 32rem; overflow-y: auto; }
+
+.entity-card__body { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-7); color: var(--color-card-ink-soft); font-family: var(--font-body); font-size: var(--text-sm); line-height: 1.55; }
+.entity-card__meta { display: flex; flex-direction: column; gap: .15rem; }
+.entity-card__meta-row, .entity-card__description { margin: 0; }
+.entity-card__meta-row { font-style: italic; }
+
+.entity-card__features { display: flex; flex-direction: column; gap: var(--space-4); }
+.entity-card__feature-name { display: block; color: var(--eca-deep); margin-bottom: .2rem; }
+.entity-card__feature-description { margin: 0; color: var(--color-card-ink); }
+/* User-authored text (a companion's description, say) can carry one long unbroken token. Both
+   `normal` and `expanded` keep `.entity-card__clip`'s overflow-x hidden (only overflow-y opens up),
+   so without this a long token is clipped and, unlike the height cap, there's no scroll or toggle
+   that ever reaches it again. */
+.entity-card__meta-row, .entity-card__description, .entity-card__feature-description { overflow-wrap: anywhere; }
+.entity-card__feature-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .3rem; }
+
+.entity-card__fade { position: absolute; left: 0; right: 0; bottom: 0; height: 2.5rem; background: linear-gradient(to bottom, transparent, var(--color-card-face)); pointer-events: none; }
+
+.entity-card__controls:empty, .entity-card__actions:empty { display: none; }
+/* Projected content ([card-controls]/[card-actions]) is still the caller's own markup, styled by
+   the caller's own dark-theme classes -- it never learns it landed on this card's light face.
+   Angular still lets us reach it here, though: these two elements are entity-card's own template
+   nodes, not projected ones, so this rule can target them without ::ng-deep, and every custom
+   property it sets is inherited straight through the projected subtree regardless of view
+   encapsulation. Re-pointing the purpose-scoped text/ring tokens (src/styles.css) turns any caller
+   markup that already reads them into correctly-inked text with zero per-component patches.
+   --color-accent/--color-parchment themselves stay untouched here on purpose: a marked resource
+   pip's gold fill and a delete-confirm button's own red gradient read those directly and need the
+   real value regardless of the surrounding face. --eca-deep already varies correctly per card type
+   (17 accents, all >=6:1 against both light backgrounds -- verified when this was written), so the
+   accent-family remaps ride it straight through. */
+.entity-card__controls, .entity-card__actions {
+  padding: var(--space-4) var(--space-7); border-top: 1px solid var(--color-card-rule); background: var(--color-card-face-lift);
+  --color-control-text: var(--color-card-ink);
+  --color-accent-text: var(--eca-deep);
+  --color-focus-ring: var(--eca-deep);
+  --color-accent-a75: var(--eca-deep);
+  --color-danger-ghost-text: var(--color-card-danger-ink);
+  --color-danger-ghost-hover-text: var(--color-card-danger-ink);
+  --color-warning-text: var(--color-card-danger-ink);
+  --color-swap-vault-text: var(--color-card-vault-ink);
+  --color-swap-equip-text: var(--color-card-equip-ink);
+  --color-parchment-a85: var(--color-card-ink-soft);
+  --color-parchment-a80: var(--color-card-ink-soft);
+  --color-parchment-a70: var(--color-card-ink-soft);
+  --color-parchment-a65: var(--color-card-ink-soft);
+  --color-parchment-a55: var(--color-card-ink-soft);
+  --color-parchment-a50: var(--color-card-ink-soft);
+  --color-parchment-a25: var(--color-card-ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) { .entity-card__chevron { transition: none; } }

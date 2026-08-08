@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { PreferencesService } from '../../core/services/preferences.service';
-import { Density, MotionPreference } from '../../shared/models/preferences.model';
+import { Density, MotionPreference, SheetLayout } from '../../shared/models/preferences.model';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
@@ -39,6 +39,19 @@ const MOTION_OPTIONS: readonly PreferenceOption<MotionPreference>[] = [
   },
 ];
 
+const SHEET_LAYOUT_OPTIONS: readonly PreferenceOption<SheetLayout>[] = [
+  {
+    value: 'classic',
+    label: 'Classic',
+    description: 'The original character sheet layout — the default.',
+  },
+  {
+    value: 'beta',
+    label: 'Beta',
+    description: 'An early look at the redesigned character sheet layout, still under active development.',
+  },
+];
+
 @Component({
   selector: 'app-preferences',
   templateUrl: './preferences.html',
@@ -50,9 +63,11 @@ export class Preferences {
 
   readonly density = this.preferencesService.density;
   readonly motion = this.preferencesService.motion;
+  readonly sheetLayout = this.preferencesService.sheetLayout;
 
   readonly densityOptions = DENSITY_OPTIONS;
   readonly motionOptions = MOTION_OPTIONS;
+  readonly sheetLayoutOptions = SHEET_LAYOUT_OPTIONS;
 
   onDensityChange(value: Density): void {
     this.preferencesService.setDensity(value);
@@ -60,5 +75,9 @@ export class Preferences {
 
   onMotionChange(value: MotionPreference): void {
     this.preferencesService.setMotion(value);
+  }
+
+  onSheetLayoutChange(value: SheetLayout): void {
+    this.preferencesService.setSheetLayout(value);
   }
 }

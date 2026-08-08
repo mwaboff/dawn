@@ -3,7 +3,10 @@ import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MasonryGridDirective } from './masonry-grid.directive';
 import { MasonryItemDirective } from './masonry-item.directive';
-import { ResizeObserverStubHandle, installResizeObserverStub } from './testing/resize-observer.stub';
+import {
+  ResizeObserverStubHandle,
+  installResizeObserverStub,
+} from '../../../shared/testing/resize-observer.stub';
 
 @Component({
   selector: 'app-masonry-host',

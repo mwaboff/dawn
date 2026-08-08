@@ -1,0 +1,24 @@
+/* The CardType -> accent map, keyed off `data-card-type` so any component can opt in by writing the
+   attribute -- no per-component copy of the 17 type names. Global (imported by src/styles.css)
+   because emulated encapsulation means a map declared inside one component can never reach another;
+   this file replaces the `.card--type-*` class map that used to live in daggerheart-card-variants.css.
+   Accent values themselves stay in styles.css as --color-card-* tokens: one hex, one place.
+
+   Adding a CardType: add the token in styles.css, then one line here. Nothing else. */
+[data-card-type='class'] { --ca: var(--color-card-class); }
+[data-card-type='subclass'] { --ca: var(--color-card-subclass); }
+[data-card-type='subclassPath'] { --ca: var(--color-card-subclassPath); }
+[data-card-type='heritage'] { --ca: var(--color-card-heritage); }
+[data-card-type='ancestry'] { --ca: var(--color-card-ancestry); }
+[data-card-type='community'] { --ca: var(--color-card-community); }
+[data-card-type='domain'] { --ca: var(--color-card-domain); }
+[data-card-type='domainCard'] { --ca: var(--color-card-domainCard); }
+[data-card-type='weapon'] { --ca: var(--color-card-weapon); }
+[data-card-type='armor'] { --ca: var(--color-card-armor); }
+[data-card-type='loot'] { --ca: var(--color-card-loot); }
+[data-card-type='companion'] { --ca: var(--color-card-companion); }
+[data-card-type='beastform'] { --ca: var(--color-card-beastform); }
+[data-card-type='environment'] { --ca: var(--color-card-environment); }
+[data-card-type='feature'] { --ca: var(--color-card-feature); }
+[data-card-type='transformationCard'] { --ca: var(--color-card-transformationCard); }
+[data-card-type='martialStance'] { --ca: var(--color-card-martialStance); }

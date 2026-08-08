@@ -1,0 +1,37 @@
+<span class="sr-only" role="status">{{ outOfSceneAnnouncement() }}</span>
+
+<app-entity-card [card]="cardData()">
+  <div card-controls class="companion-card-beta__controls">
+    <app-resource-tracker
+      [max]="companion().stressMax"
+      [marked]="companion().stressMarked"
+      variant="stress"
+      label="Stress"
+      [idPrefix]="'companion-' + companion().id + '-stress'"
+      [readonly]="!canManage()"
+      (markedChange)="onStressMarkedChange($event)"
+    />
+
+    @if (pendingStressValue() !== null) {
+      <div class="armor-instead-prompt">
+        <span class="armor-instead-prompt__text">Mark {{ companion().name }}'s Stress, or mark an Armor Slot instead?</span>
+        <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkStress()">Mark Stress</button>
+        <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkArmorInstead()">Mark Armor Instead</button>
+        <button type="button" class="armor-instead-prompt__cancel" (click)="cancelPendingStress()">Cancel</button>
+      </div>
+    }
+  </div>
+
+  @if (canManage()) {
+    <div card-actions class="companion-card-beta__actions">
+      <button type="button" class="btn btn--secondary btn--sm" [disabled]="processing()" (click)="onEditClicked()">Edit</button>
+      <app-inline-delete-confirm
+        [itemLabel]="companion().name"
+        [active]="deleteConfirmActive()"
+        (requested)="onDeleteRequested()"
+        (confirmed)="onDeleteConfirmed()"
+        (cancelled)="onDeleteCancelled()"
+      />
+    </div>
+  }
+</app-entity-card>

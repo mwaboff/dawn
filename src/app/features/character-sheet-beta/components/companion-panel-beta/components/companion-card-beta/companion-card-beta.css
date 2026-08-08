@@ -1,0 +1,13 @@
+/* Lets `app-entity-card` participate directly in the parent's `.card-group__list` flex layout,
+   the same way `InlineDeleteConfirm` disappears from layout inside a roster row. */
+:host { display: contents; }
+
+.companion-card-beta__controls { display: flex; flex-direction: column; gap: var(--space-3); }
+.companion-card-beta__actions { display: flex; align-items: center; gap: var(--space-3); }
+
+/* Copied verbatim from companion-card.css -- view encapsulation means that copy can't reach here. */
+.armor-instead-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 4px; background: rgba(212,160,86,.06); border: 1px solid rgba(212,160,86,.2); }
+.armor-instead-prompt__text { flex-basis: 100%; font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a80); }
+.armor-instead-prompt__btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .6rem; border-radius: 2px; border: 1px solid var(--color-accent-text); background: transparent; color: var(--color-accent-text); cursor: pointer; }
+.armor-instead-prompt__btn:hover { background: rgba(212,160,86,.1); }
+.armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: var(--color-parchment-a50); cursor: pointer; text-decoration: underline; }

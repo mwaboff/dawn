@@ -51,7 +51,7 @@ describe('PreferencesService', () => {
       service.setDensity('condensed');
 
       const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
-      expect(stored).toEqual({ density: 'condensed', motion: 'full' });
+      expect(stored).toEqual({ density: 'condensed', motion: 'full', sheetLayout: 'classic' });
     });
 
     it('setMotion persists both preferences to localStorage', () => {
@@ -59,7 +59,24 @@ describe('PreferencesService', () => {
       service.setMotion('reduced');
 
       const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
-      expect(stored).toEqual({ density: 'condensed', motion: 'reduced' });
+      expect(stored).toEqual({ density: 'condensed', motion: 'reduced', sheetLayout: 'classic' });
+    });
+  });
+
+  describe('setSheetLayout', () => {
+    it('updates the sheetLayout signal', () => {
+      service.setSheetLayout('beta');
+
+      expect(service.sheetLayout()).toBe('beta');
+    });
+
+    it('persists all three preferences to localStorage', () => {
+      service.setDensity('condensed');
+      service.setMotion('reduced');
+      service.setSheetLayout('beta');
+
+      const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
+      expect(stored).toEqual({ density: 'condensed', motion: 'reduced', sheetLayout: 'beta' });
     });
   });
 
@@ -128,6 +145,32 @@ describe('PreferencesService', () => {
 
       expect(freshService.density()).toBe('comfortable');
       expect(freshService.motion()).toBe('system');
+    });
+
+    it('falls back to classic when sheetLayout is missing from the stored value', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ density: 'condensed', motion: 'full' }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('classic');
+    });
+
+    it('falls back to classic for an unknown sheetLayout value', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ density: 'condensed', motion: 'full', sheetLayout: 'psychedelic' }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('classic');
     });
   });
 

@@ -1,6 +1,8 @@
 /**
- * jsdom ships no `ResizeObserver`, so any spec that mounts the masonry grid needs one installed
- * before the directive's constructor runs. Shared by every grid spec in this feature.
+ * jsdom ships no `ResizeObserver`, so any spec that mounts a component relying on one needs it
+ * installed before that component's constructor runs. Shared across features -- originally lived
+ * under gm-screen's masonry grid, promoted here once EntityCard needed the same stub and shared
+ * code must not import from `features/`.
  */
 
 export interface StubbedResizeObserver {

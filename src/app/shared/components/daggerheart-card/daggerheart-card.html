@@ -1,9 +1,10 @@
 <div
   class="card"
-  [class]="'card card--type-' + card().cardType + (layout() === 'wide' ? ' card--wide' : '')"
+  [class]="'card' + (layout() === 'wide' ? ' card--wide' : '')"
   [class.card--selected]="selected()"
   [class.card--disabled]="disabled()"
   [class.card--static]="readOnly()"
+  [attr.data-card-type]="card().cardType"
   [attr.aria-label]="card().name + ', ' + typeLabel(card().cardType) + ' card'"
   [attr.aria-pressed]="readOnly() ? null : selected()"
   [attr.aria-disabled]="disabled() || undefined"

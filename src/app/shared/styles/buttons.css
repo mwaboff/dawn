@@ -5,7 +5,7 @@
    width card header, say) still wins without having to fight this. Lives here because the same
    three lines had started being copy-pasted into component stylesheets. */
 :where(button, select, summary, [role='button'], a[href], input, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
@@ -40,7 +40,7 @@
 .btn--secondary {
   background: transparent;
   border: 1px solid rgba(212, 160, 86, 0.4);
-  color: var(--color-parchment);
+  color: var(--color-control-text);
 }
 
 .btn--secondary:hover {
@@ -79,13 +79,13 @@
   transition: all 0.3s ease;
   background: transparent;
   border: 1px solid rgba(139, 37, 37, 0.4);
-  color: #c47a7a;
+  color: var(--color-danger-ghost-text);
 }
 
 .btn--danger-ghost:hover:not(:disabled) {
   background: rgba(139, 37, 37, 0.1);
   border-color: rgba(139, 37, 37, 0.6);
-  color: #d49090;
+  color: var(--color-danger-ghost-hover-text);
 }
 
 .btn--danger-ghost:disabled {

@@ -6,11 +6,14 @@ import {
   MOTION_PREFERENCES,
   MotionPreference,
   PREFERENCES_STORAGE_KEY,
+  SHEET_LAYOUTS,
+  SheetLayout,
   UserPreferences,
 } from '../../shared/models/preferences.model';
 
 const DEFAULT_DENSITY: Density = 'comfortable';
 const DEFAULT_MOTION: MotionPreference = 'system';
+const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
 
 function isDensity(value: unknown): value is Density {
   return (DENSITIES as readonly unknown[]).includes(value);
@@ -18,6 +21,10 @@ function isDensity(value: unknown): value is Density {
 
 function isMotion(value: unknown): value is MotionPreference {
   return (MOTION_PREFERENCES as readonly unknown[]).includes(value);
+}
+
+function isSheetLayout(value: unknown): value is SheetLayout {
+  return (SHEET_LAYOUTS as readonly unknown[]).includes(value);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +37,9 @@ export class PreferencesService {
   // source of truth at startup -- storage is only consulted if the attribute is missing or bad.
   readonly density = signal<Density>(this.initialDensity());
   readonly motion = signal<MotionPreference>(this.initialMotion());
+  // Unlike density/motion there is no pre-paint DOM attribute for sheet layout -- it initializes
+  // from storage only.
+  readonly sheetLayout = signal<SheetLayout>(this.readStorage()?.sheetLayout ?? DEFAULT_SHEET_LAYOUT);
 
   readonly effectiveMotion = computed<Exclude<MotionPreference, 'system'>>(() => {
     const motion = this.motion();
@@ -50,12 +60,17 @@ export class PreferencesService {
 
   setDensity(density: Density): void {
     this.density.set(density);
-    this.persist({ density, motion: this.motion() });
+    this.persist({ density, motion: this.motion(), sheetLayout: this.sheetLayout() });
   }
 
   setMotion(motion: MotionPreference): void {
     this.motion.set(motion);
-    this.persist({ density: this.density(), motion });
+    this.persist({ density: this.density(), motion, sheetLayout: this.sheetLayout() });
+  }
+
+  setSheetLayout(sheetLayout: SheetLayout): void {
+    this.sheetLayout.set(sheetLayout);
+    this.persist({ density: this.density(), motion: this.motion(), sheetLayout });
   }
 
   private initialDensity(): Density {
@@ -90,6 +105,7 @@ export class PreferencesService {
       return {
         density: isDensity(candidate.density) ? candidate.density : DEFAULT_DENSITY,
         motion: isMotion(candidate.motion) ? candidate.motion : DEFAULT_MOTION,
+        sheetLayout: isSheetLayout(candidate.sheetLayout) ? candidate.sheetLayout : DEFAULT_SHEET_LAYOUT,
       };
     } catch {
       return null;
