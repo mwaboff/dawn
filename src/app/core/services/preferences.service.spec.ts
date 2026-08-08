@@ -6,6 +6,7 @@ import { PREFERENCES_STORAGE_KEY } from '../../shared/models/preferences.model';
 function clearDomAttrs(): void {
   document.documentElement.removeAttribute('data-density');
   document.documentElement.removeAttribute('data-motion');
+  document.documentElement.removeAttribute('data-card-theme');
 }
 
 describe('PreferencesService', () => {
@@ -31,6 +32,10 @@ describe('PreferencesService', () => {
     it('defaults motion to system when nothing is stored or stamped', () => {
       expect(service.motion()).toBe('system');
     });
+
+    it('defaults cardTheme to dark when nothing is stored or stamped', () => {
+      expect(service.cardTheme()).toBe('dark');
+    });
   });
 
   describe('setDensity / setMotion', () => {
@@ -46,20 +51,30 @@ describe('PreferencesService', () => {
       expect(service.motion()).toBe('reduced');
     });
 
-    it('setDensity persists both preferences to localStorage', () => {
+    it('setDensity persists all preferences to localStorage', () => {
       service.setMotion('full');
       service.setDensity('condensed');
 
       const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
-      expect(stored).toEqual({ density: 'condensed', motion: 'full', sheetLayout: 'classic' });
+      expect(stored).toEqual({
+        density: 'condensed',
+        motion: 'full',
+        sheetLayout: 'classic',
+        cardTheme: 'dark',
+      });
     });
 
-    it('setMotion persists both preferences to localStorage', () => {
+    it('setMotion persists all preferences to localStorage', () => {
       service.setDensity('condensed');
       service.setMotion('reduced');
 
       const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
-      expect(stored).toEqual({ density: 'condensed', motion: 'reduced', sheetLayout: 'classic' });
+      expect(stored).toEqual({
+        density: 'condensed',
+        motion: 'reduced',
+        sheetLayout: 'classic',
+        cardTheme: 'dark',
+      });
     });
   });
 
@@ -70,13 +85,41 @@ describe('PreferencesService', () => {
       expect(service.sheetLayout()).toBe('beta');
     });
 
-    it('persists all three preferences to localStorage', () => {
+    it('persists all preferences to localStorage', () => {
       service.setDensity('condensed');
       service.setMotion('reduced');
       service.setSheetLayout('beta');
 
       const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
-      expect(stored).toEqual({ density: 'condensed', motion: 'reduced', sheetLayout: 'beta' });
+      expect(stored).toEqual({
+        density: 'condensed',
+        motion: 'reduced',
+        sheetLayout: 'beta',
+        cardTheme: 'dark',
+      });
+    });
+  });
+
+  describe('setCardTheme', () => {
+    it('updates the cardTheme signal', () => {
+      service.setCardTheme('dark');
+
+      expect(service.cardTheme()).toBe('dark');
+    });
+
+    it('persists all preferences to localStorage without clobbering the other three', () => {
+      service.setDensity('condensed');
+      service.setMotion('reduced');
+      service.setSheetLayout('beta');
+      service.setCardTheme('dark');
+
+      const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
+      expect(stored).toEqual({
+        density: 'condensed',
+        motion: 'reduced',
+        sheetLayout: 'beta',
+        cardTheme: 'dark',
+      });
     });
   });
 
@@ -172,6 +215,42 @@ describe('PreferencesService', () => {
 
       expect(freshService.sheetLayout()).toBe('classic');
     });
+
+    /* Pins the upgrade path for a user whose stored blob predates the cardTheme feature entirely
+       (no key at all, not just an unrecognized one) -- they get dark today where they got light
+       before this preference existed, which is the intended behaviour change, not a regression.
+       Must not throw and must leave their other three preferences exactly as stored. */
+    it('migrates a pre-cardTheme stored blob to dark without disturbing the other three preferences', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ density: 'condensed', motion: 'reduced', sheetLayout: 'beta' }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      let freshService!: PreferencesService;
+      expect(() => {
+        freshService = TestBed.inject(PreferencesService);
+      }).not.toThrow();
+
+      expect(freshService.cardTheme()).toBe('dark');
+      expect(freshService.density()).toBe('condensed');
+      expect(freshService.motion()).toBe('reduced');
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('falls back to dark for an unknown cardTheme value', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ density: 'condensed', motion: 'full', cardTheme: 'psychedelic' }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.cardTheme()).toBe('dark');
+    });
   });
 
   describe('DOM attribute is the source of truth at startup', () => {
@@ -204,6 +283,28 @@ describe('PreferencesService', () => {
 
       expect(freshService.density()).toBe('condensed');
     });
+
+    it('initializes cardTheme from a pre-stamped DOM attribute over a different stored value', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'light' }));
+      document.documentElement.setAttribute('data-card-theme', 'dark');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.cardTheme()).toBe('dark');
+    });
+
+    it('ignores an invalid data-card-theme attribute and falls back to storage', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'dark' }));
+      document.documentElement.setAttribute('data-card-theme', 'psychedelic');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.cardTheme()).toBe('dark');
+    });
   });
 
   describe('DOM attribute stamping', () => {
@@ -221,7 +322,14 @@ describe('PreferencesService', () => {
       expect(document.documentElement.getAttribute('data-motion')).toBe('reduced');
     });
 
-    it('stamps both attributes on construction to match the initial signals', () => {
+    it('stamps data-card-theme on <html> when cardTheme changes', () => {
+      service.setCardTheme('dark');
+      TestBed.tick();
+
+      expect(document.documentElement.getAttribute('data-card-theme')).toBe('dark');
+    });
+
+    it('stamps all three attributes on construction to match the initial signals', () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({});
       TestBed.inject(PreferencesService);
@@ -229,6 +337,7 @@ describe('PreferencesService', () => {
 
       expect(document.documentElement.getAttribute('data-density')).toBe('comfortable');
       expect(document.documentElement.getAttribute('data-motion')).toBe('system');
+      expect(document.documentElement.getAttribute('data-card-theme')).toBe('dark');
     });
   });
 

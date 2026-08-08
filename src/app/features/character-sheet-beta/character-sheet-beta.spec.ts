@@ -27,9 +27,11 @@ import { CompanionPanelBeta } from './components/companion-panel-beta/companion-
  * `CharacterSheetBeta` inherits every save pipeline, equip constraint and handler from
  * `CharacterSheet` unchanged (only the template/CSS are new) -- `character-sheet.spec.ts` already
  * covers that logic exhaustively, so per .agents/rules/testing.md this file does not re-test it.
- * It covers only what's actually new: the six card groups render through `EntityCard`, the four
- * Hope & Fear panels are the *beta* siblings (not the classic ones a copy/paste typo could
- * silently reintroduce), and equipment/inventory still render through the reused classic pieces.
+ * It covers only what's actually new: the four collapsible card groups render through `EntityCard`
+ * in the right order, the four Hope & Fear panels are the *beta* siblings (not the classic ones a
+ * copy/paste typo could silently reintroduce), and equipment/inventory still render through the
+ * reused classic pieces. `CollapsibleCardGroup`'s own disclosure mechanics are its spec's job --
+ * what's tested here is which groups exist, what lands in them, and which one starts collapsed.
  */
 const mockResponse: CharacterSheetResponse = {
   id: 1,
@@ -70,8 +72,14 @@ const mockResponse: CharacterSheetResponse = {
   ancestryCardIds: [],
   subclassCardIds: [],
   domainCardIds: [101, 102],
-  classCards: [{ id: 1, name: 'Sorcerer', description: 'Arcane bloodline.', classFeatures: [] }],
-  classes: [{ id: 1, name: 'Sorcerer', classFeatures: [{ id: 1, name: 'Beastform', description: 'Transform.' }] }],
+  // One `classes` entry now serves both the class card and `showBeastforms()`, which reads the
+  // same field -- the fixture used to carry a duplicate `classCards` copy for the card.
+  classes: [{
+    id: 1,
+    name: 'Sorcerer',
+    description: 'Arcane bloodline.',
+    classFeatures: [{ id: 1, name: 'Beastform', description: 'Transform.' }],
+  }],
   subclassCards: [{ id: 2, name: 'Warden of the Elements', level: 'Mastery', domainNames: ['Sage', 'Valor'], features: [{ id: 1, name: 'Stance Fighter', description: 'Choose a stance.' }] }],
   ancestryCards: [{ id: 3, name: 'Elf', description: 'Keen senses.', features: [] }],
   communityCards: [{ id: 4, name: 'Highborne', description: 'Raised in privilege.', features: [] }],
@@ -146,9 +154,32 @@ describe('CharacterSheetBeta', () => {
     return Array.from(root.querySelectorAll('app-entity-card'));
   }
 
-  it('renders one EntityCard per class/subclass/ancestry/community card', () => {
+  /** The `<app-collapsible-card-group>` whose header reads `heading`, or undefined if that group
+   * isn't on the page (an empty group renders nothing at all). */
+  function cardGroup(heading: string): HTMLElement | undefined {
+    const root = fixture.nativeElement as HTMLElement;
+    return Array.from(root.querySelectorAll<HTMLElement>('app-collapsible-card-group')).find(
+      group => group.querySelector('.card-group__label')?.textContent?.trim() === heading,
+    );
+  }
+
+  function cardNamesIn(heading: string): string[] {
+    const group = cardGroup(heading);
+    return Array.from(group?.querySelectorAll<HTMLElement>('.entity-card__name') ?? []).map(
+      el => el.textContent?.trim() ?? '',
+    );
+  }
+
+  /** Clicks a group's header toggle -- the Domain Card Vault needs this before its cards exist. */
+  function toggleGroup(heading: string): void {
+    (cardGroup(heading)?.querySelector('.card-group__toggle') as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
+  it('renders one EntityCard per class/subclass/ancestry/community and equipped domain card', () => {
     createComponent();
-    expect(entityCards().length).toBeGreaterThanOrEqual(1 + 1 + 1 + 1 + 2); // + the two domain cards
+    // The vault group starts collapsed, so its one card is deliberately absent from this count.
+    expect(entityCards().length).toBe(1 + 1 + 1 + 1 + 1);
   });
 
   it('maps a subclass card\'s level onto the EntityCard subtitle text', () => {
@@ -157,12 +188,84 @@ describe('CharacterSheetBeta', () => {
     expect(names.some(t => t?.includes('Warden of the Elements') && t.includes('Mastery'))).toBe(true);
   });
 
+  describe('combined Class & Subclass group', () => {
+    const multiclassResponse: CharacterSheetResponse = {
+      ...mockResponse,
+      classes: [
+        { id: 1, name: 'Sorcerer', classFeatures: [] },
+        { id: 7, name: 'Warrior', classFeatures: [] },
+      ],
+      subclassCards: [
+        { id: 20, name: 'Call of the Brave', associatedClassId: 7, level: 'FOUNDATION', features: [] },
+        { id: 12, name: 'Elemental Fury', associatedClassId: 1, level: 'MASTERY', features: [] },
+        { id: 10, name: 'Elemental Origin', associatedClassId: 1, level: 'FOUNDATION', features: [] },
+      ],
+    };
+
+    it('renders class and subclass cards under one heading instead of two groups', () => {
+      createComponent();
+
+      expect(cardGroup('Class & Subclass')).toBeTruthy();
+      expect(cardGroup('Class')).toBeUndefined();
+      expect(cardGroup('Subclass')).toBeUndefined();
+      expect(cardNamesIn('Class & Subclass')).toEqual(['Sorcerer', 'Warden of the Elements']);
+    });
+
+    it('lists every class in API order, then each class\'s subclasses lowest level first', () => {
+      createComponent(of(multiclassResponse));
+
+      expect(cardNamesIn('Class & Subclass')).toEqual([
+        'Sorcerer',
+        'Warrior',
+        'Elemental Origin',
+        'Elemental Fury',
+        'Call of the Brave',
+      ]);
+    });
+
+    it('renders a class card and a subclass card that share a numeric id without a track collision', () => {
+      expect(() =>
+        createComponent(
+          of({
+            ...mockResponse,
+            classes: [{ id: 3, name: 'Sorcerer', classFeatures: [] }],
+            subclassCards: [{ id: 3, name: 'Elemental Origin', associatedClassId: 3, level: 'FOUNDATION', features: [] }],
+          }),
+        ),
+      ).not.toThrow();
+      expect(cardNamesIn('Class & Subclass')).toEqual(['Sorcerer', 'Elemental Origin']);
+    });
+  });
+
+  describe('combined Ancestry & Community group', () => {
+    it('renders ancestry cards before community cards under one heading', () => {
+      createComponent();
+
+      expect(cardGroup('Ancestry & Community')).toBeTruthy();
+      expect(cardNamesIn('Ancestry & Community')).toEqual(['Elf', 'Highborne']);
+    });
+
+    it('keeps the group when only one of the two card types is present', () => {
+      createComponent(of({ ...mockResponse, ancestryCards: [], ancestryCardIds: [] }));
+
+      expect(cardNamesIn('Ancestry & Community')).toEqual(['Highborne']);
+    });
+  });
+
+  it('collapses a group and hides its cards when its heading is clicked', () => {
+    createComponent();
+
+    toggleGroup('Class & Subclass');
+
+    expect(cardNamesIn('Class & Subclass')).toEqual([]);
+    expect(cardGroup('Class & Subclass')?.querySelector('.card-group__label')?.textContent?.trim())
+      .toBe('Class & Subclass');
+  });
+
   it('shows the equipped/max count on the Equipped Domain Cards heading', () => {
     createComponent();
-    const root: HTMLElement = fixture.nativeElement;
-    const counts = Array.from(root.querySelectorAll<HTMLElement>('.card-group__count'));
-    const heading = counts.find(el => el.textContent?.includes('/'));
-    expect(heading?.textContent?.trim()).toBe('1/5');
+    const count = cardGroup('Equipped Domain Cards')?.querySelector('.card-group__count');
+    expect(count?.textContent?.trim()).toBe('1/5');
   });
 
   it('moves a domain card from equipped to vault when its inherited Vault handler fires', () => {
@@ -177,14 +280,25 @@ describe('CharacterSheetBeta', () => {
     expect(component.vaultDomainCardEntries().length).toBe(2);
   });
 
-  it('renders vault domain cards as muted EntityCards', () => {
+  it('starts the Domain Card Vault collapsed, with its count still visible', () => {
     createComponent();
+
+    expect(entityCards(cardGroup('Domain Card Vault')!).length).toBe(0);
+    expect(cardGroup('Domain Card Vault')?.querySelector('.card-group__count')?.textContent?.trim()).toBe('1');
+  });
+
+  it('renders vault domain cards as muted EntityCards once the vault is expanded', () => {
+    createComponent();
+    toggleGroup('Domain Card Vault');
+
     const vaulted = fixture.debugElement.query(By.css('.vault-section app-entity-card'));
     expect(vaulted.nativeElement.classList.contains('entity-card--muted')).toBe(true);
   });
 
   it('moves a domain card from vault to equipped when its inherited Equip handler fires', () => {
     createComponent();
+    toggleGroup('Domain Card Vault');
+
     const equipBtn = fixture.nativeElement.querySelector('.card-swap-btn--equip') as HTMLButtonElement;
     expect(equipBtn).toBeTruthy();
 
@@ -253,8 +367,11 @@ describe('CharacterSheetBeta', () => {
     expect(fixture.nativeElement.textContent).toContain('Second unnamed feature.');
   });
 
-  it('does not render a card group for an empty card array', () => {
-    createComponent(of({ ...mockResponse, communityCards: [], communityCardIds: [] }));
-    expect(fixture.nativeElement.querySelector('.card-group__heading--community')).toBeNull();
+  it('does not render a card group when both of its card arrays are empty', () => {
+    createComponent(
+      of({ ...mockResponse, ancestryCards: [], ancestryCardIds: [], communityCards: [], communityCardIds: [] }),
+    );
+
+    expect(cardGroup('Ancestry & Community')).toBeUndefined();
   });
 });

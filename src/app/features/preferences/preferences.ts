@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { PreferencesService } from '../../core/services/preferences.service';
-import { Density, MotionPreference, SheetLayout } from '../../shared/models/preferences.model';
+import { CardTheme, Density, MotionPreference, SheetLayout } from '../../shared/models/preferences.model';
 
 interface PreferenceOption<T extends string> {
   readonly value: T;
   readonly label: string;
   readonly description: string;
+  readonly badge?: string;
 }
 
 const DENSITY_OPTIONS: readonly PreferenceOption<Density>[] = [
@@ -52,6 +53,20 @@ const SHEET_LAYOUT_OPTIONS: readonly PreferenceOption<SheetLayout>[] = [
   },
 ];
 
+const CARD_THEME_OPTIONS: readonly PreferenceOption<CardTheme>[] = [
+  {
+    value: 'light',
+    label: 'Light',
+    description: 'Dark ink on a pale card face.',
+    badge: 'Beta',
+  },
+  {
+    value: 'dark',
+    label: 'Dark',
+    description: 'Pale ink on a dark card face, matching the rest of the site — the default.',
+  },
+];
+
 @Component({
   selector: 'app-preferences',
   templateUrl: './preferences.html',
@@ -64,10 +79,12 @@ export class Preferences {
   readonly density = this.preferencesService.density;
   readonly motion = this.preferencesService.motion;
   readonly sheetLayout = this.preferencesService.sheetLayout;
+  readonly cardTheme = this.preferencesService.cardTheme;
 
   readonly densityOptions = DENSITY_OPTIONS;
   readonly motionOptions = MOTION_OPTIONS;
   readonly sheetLayoutOptions = SHEET_LAYOUT_OPTIONS;
+  readonly cardThemeOptions = CARD_THEME_OPTIONS;
 
   onDensityChange(value: Density): void {
     this.preferencesService.setDensity(value);
@@ -79,5 +96,9 @@ export class Preferences {
 
   onSheetLayoutChange(value: SheetLayout): void {
     this.preferencesService.setSheetLayout(value);
+  }
+
+  onCardThemeChange(value: CardTheme): void {
+    this.preferencesService.setCardTheme(value);
   }
 }

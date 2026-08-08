@@ -7,10 +7,14 @@ export type MotionPreference = (typeof MOTION_PREFERENCES)[number];
 export const SHEET_LAYOUTS = ['classic', 'beta'] as const;
 export type SheetLayout = (typeof SHEET_LAYOUTS)[number];
 
+export const CARD_THEMES = ['light', 'dark'] as const;
+export type CardTheme = (typeof CARD_THEMES)[number];
+
 export interface UserPreferences {
   density: Density;
   motion: MotionPreference;
   sheetLayout: SheetLayout;
+  cardTheme: CardTheme;
 }
 
 export const PREFERENCES_STORAGE_KEY = 'oh-sheet:preferences';

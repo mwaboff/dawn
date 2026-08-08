@@ -91,5 +91,38 @@
         }
       </div>
     </fieldset>
+
+    <fieldset class="preferences-fieldset">
+      <legend class="preferences-legend">Card theme</legend>
+      <p class="preferences-hint">
+        Sets the colour of the cards on the beta character sheet. It has no effect on the
+        classic sheet.
+      </p>
+
+      <div class="preferences-options">
+        @for (option of cardThemeOptions; track option.value) {
+          <label
+            class="preferences-option"
+            [class.preferences-option--selected]="cardTheme() === option.value"
+          >
+            <input
+              type="radio"
+              name="cardTheme"
+              class="sr-only"
+              [value]="option.value"
+              [checked]="cardTheme() === option.value"
+              (change)="onCardThemeChange(option.value)"
+            />
+            <span class="preferences-option__label">
+              {{ option.label }}
+              @if (option.badge) {
+                <span class="preferences-option__badge">{{ option.badge }}</span>
+              }
+            </span>
+            <span class="preferences-option__desc">{{ option.description }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
   </form>
 </div>

@@ -484,7 +484,22 @@ describe('mapToCharacterSheetView', () => {
   });
 
   describe('cards', () => {
-    it('maps class card from sheet.class field', () => {
+    it('maps every entry of sheet.classes, preserving the order the server sent them in', () => {
+      const sheet = makeSheet({
+        classes: [
+          { id: 9, name: 'Wizard', description: 'Master of arcane', hopeFeatures: [], classFeatures: [] },
+          { id: 2, name: 'Warrior', description: 'Master of arms', hopeFeatures: [], classFeatures: [] },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.classCards).toHaveLength(2);
+      expect(result.classCards.map(card => card.name)).toEqual(['Wizard', 'Warrior']);
+      expect(result.classCards.map(card => card.id)).toEqual([9, 2]);
+    });
+
+    it('falls back to the deprecated singular sheet.class when classes is absent', () => {
       const sheet = makeSheet({
         class: { id: 9, name: 'Wizard', description: 'Master of arcane', hopeFeatures: [], classFeatures: [] },
       });
@@ -496,7 +511,21 @@ describe('mapToCharacterSheetView', () => {
       expect(result.classCards[0].name).toBe('Wizard');
     });
 
-    it('returns empty classCards when neither class nor classCards provided', () => {
+    it('prefers classes over the deprecated singular class when both are present', () => {
+      const sheet = makeSheet({
+        class: { id: 9, name: 'Wizard', hopeFeatures: [], classFeatures: [] },
+        classes: [
+          { id: 9, name: 'Wizard', hopeFeatures: [], classFeatures: [] },
+          { id: 2, name: 'Warrior', hopeFeatures: [], classFeatures: [] },
+        ],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.classCards.map(card => card.name)).toEqual(['Wizard', 'Warrior']);
+    });
+
+    it('returns empty classCards when neither classes nor class is provided', () => {
       const sheet = makeSheet({});
 
       const result = mapToCharacterSheetView(sheet);

@@ -429,56 +429,26 @@
     </div>
 
     <section class="cards-section" aria-label="Cards">
-      @if (classCardEntities().length > 0) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading card-group__heading--class">Class</h3>
-          </div>
+      <!-- A class card and a subclass card can share a numeric id (separate source tables), so
+           every merged group tracks on the card type as well. -->
+      @if (classGroupCardEntities().length > 0) {
+        <app-collapsible-card-group heading="Class &amp; Subclass" accent="neutral" sectionId="class">
           <div class="entity-card-grid">
-            @for (card of classCardEntities(); track card.id) {
+            @for (card of classGroupCardEntities(); track card.cardType + '-' + card.id) {
               <app-entity-card [card]="card" [headingLevel]="4" />
             }
           </div>
-        </div>
+        </app-collapsible-card-group>
       }
 
-      @if (subclassCardEntities().length > 0) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading card-group__heading--subclass">Subclass</h3>
-          </div>
+      @if (heritageCardEntities().length > 0) {
+        <app-collapsible-card-group heading="Ancestry &amp; Community" accent="neutral" sectionId="heritage">
           <div class="entity-card-grid">
-            @for (card of subclassCardEntities(); track card.id) {
+            @for (card of heritageCardEntities(); track card.cardType + '-' + card.id) {
               <app-entity-card [card]="card" [headingLevel]="4" />
             }
           </div>
-        </div>
-      }
-
-      @if (ancestryCardEntities().length > 0) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading card-group__heading--ancestry">Ancestry</h3>
-          </div>
-          <div class="entity-card-grid">
-            @for (card of ancestryCardEntities(); track card.id) {
-              <app-entity-card [card]="card" [headingLevel]="4" />
-            }
-          </div>
-        </div>
-      }
-
-      @if (communityCardEntities().length > 0) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading card-group__heading--community">Community</h3>
-          </div>
-          <div class="entity-card-grid">
-            @for (card of communityCardEntities(); track card.id) {
-              <app-entity-card [card]="card" [headingLevel]="4" />
-            }
-          </div>
-        </div>
+        </app-collapsible-card-group>
       }
 
       @if (showBeastforms()) {
@@ -535,11 +505,12 @@
       }
 
       @if (equippedDomainCardEntries().length > 0) {
-        <div class="card-group">
-          <div class="card-group__heading-row">
-            <h3 class="card-group__heading card-group__heading--domain">Equipped Domain Cards</h3>
-            <span class="card-group__count card-group__count--domain">{{ sheet.equippedDomainCards.length }}/{{ sheet.maxEquippedDomainCards }}</span>
-          </div>
+        <app-collapsible-card-group
+          heading="Equipped Domain Cards"
+          accent="domain"
+          sectionId="equipped-domain"
+          [count]="sheet.equippedDomainCards.length + '/' + sheet.maxEquippedDomainCards"
+        >
           <div class="entity-card-grid">
             @for (entry of equippedDomainCardEntries(); track entry.cardId) {
               <app-entity-card [card]="entry.card" [headingLevel]="4">
@@ -553,7 +524,7 @@
               </app-entity-card>
             }
           </div>
-        </div>
+        </app-collapsible-card-group>
       }
     </section>
 
@@ -583,29 +554,33 @@
 
     @if (vaultDomainCardEntries().length > 0) {
       <section class="vault-section" aria-label="Domain Card Vault">
-        <div class="vault-header">
-          <h3 class="vault-header__title">Domain Card Vault</h3>
-          <span class="vault-header__count">{{ sheet.vaultDomainCards.length }}</span>
-        </div>
-        <div class="entity-card-grid">
-          @for (entry of vaultDomainCardEntries(); track entry.cardId) {
-            <app-entity-card [card]="entry.card" [headingLevel]="4" [muted]="true">
-              @if (isOwner()) {
-                <div card-actions class="card-swap-action">
-                  <button type="button" class="card-swap-btn card-swap-btn--equip"
-                          [disabled]="!canEquipCard()"
-                          (click)="onEquipCard(entry.cardId)"
-                          [attr.aria-label]="'Equip ' + entry.card.name">
-                    <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
-                  </button>
-                  @if (!canEquipCard()) {
-                    <span class="card-swap-hint">Equipped slots full</span>
-                  }
-                </div>
-              }
-            </app-entity-card>
-          }
-        </div>
+        <app-collapsible-card-group
+          heading="Domain Card Vault"
+          accent="domain"
+          sectionId="vault"
+          [count]="sheet.vaultDomainCards.length"
+          [collapsedByDefault]="true"
+        >
+          <div class="entity-card-grid">
+            @for (entry of vaultDomainCardEntries(); track entry.cardId) {
+              <app-entity-card [card]="entry.card" [headingLevel]="4" [muted]="true">
+                @if (isOwner()) {
+                  <div card-actions class="card-swap-action">
+                    <button type="button" class="card-swap-btn card-swap-btn--equip"
+                            [disabled]="!canEquipCard()"
+                            (click)="onEquipCard(entry.cardId)"
+                            [attr.aria-label]="'Equip ' + entry.card.name">
+                      <span class="card-swap-btn__arrow" aria-hidden="true">&#8593;</span> Equip
+                    </button>
+                    @if (!canEquipCard()) {
+                      <span class="card-swap-hint">Equipped slots full</span>
+                    }
+                  </div>
+                }
+              </app-entity-card>
+            }
+          </div>
+        </app-collapsible-card-group>
       </section>
     }
     @if (canAccessNotes()) {

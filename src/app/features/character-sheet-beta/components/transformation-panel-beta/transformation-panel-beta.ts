@@ -3,6 +3,7 @@ import { TransformationPanel } from '../../../character-sheet/components/transfo
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
 import { EntityCardData } from '../../../../shared/components/entity-card/entity-card.model';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
+import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card-group';
 
 /**
  * Beta redesign of {@link TransformationPanel}: same inherited attach/change/remove, Feed-token
@@ -17,7 +18,7 @@ import { CardSelectionGrid } from '../../../../shared/components/card-selection-
   templateUrl: './transformation-panel-beta.html',
   styleUrl: './transformation-panel-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard, CardSelectionGrid],
+  imports: [EntityCard, CardSelectionGrid, CollapsibleCardGroup],
 })
 export class TransformationPanelBeta extends TransformationPanel {
   readonly entityCard = computed<EntityCardData | null>(() => {

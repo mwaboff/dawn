@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { MartialStancePanel } from '../../../character-sheet/components/martial-stance-panel/martial-stance-panel';
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
+import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card-group';
 import { EntityCardData } from '../../../../shared/components/entity-card/entity-card.model';
 import { MartialStanceResponse } from '../../../../shared/models/martial-stance-api.model';
 
@@ -16,7 +17,7 @@ import { MartialStanceResponse } from '../../../../shared/models/martial-stance-
   templateUrl: './martial-stance-panel-beta.html',
   styleUrl: './martial-stance-panel-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard],
+  imports: [EntityCard, CollapsibleCardGroup],
 })
 export class MartialStancePanelBeta extends MartialStancePanel {
   toCardData(stance: MartialStanceResponse): EntityCardData {

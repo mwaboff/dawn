@@ -13,6 +13,7 @@ describe('Preferences', () => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-density');
     document.documentElement.removeAttribute('data-motion');
+    document.documentElement.removeAttribute('data-card-theme');
 
     await TestBed.configureTestingModule({
       imports: [Preferences],
@@ -29,6 +30,7 @@ describe('Preferences', () => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-density');
     document.documentElement.removeAttribute('data-motion');
+    document.documentElement.removeAttribute('data-card-theme');
   });
 
   it('should create', () => {
@@ -40,9 +42,9 @@ describe('Preferences', () => {
     expect(heading?.textContent).toContain('Display Preferences');
   });
 
-  it('renders three fieldsets: Density, Motion, and Character sheet', () => {
+  it('renders four fieldsets: Density, Motion, Character sheet, and Card theme', () => {
     const legends = Array.from(el.querySelectorAll('legend')).map(l => l.textContent);
-    expect(legends).toEqual(['Density', 'Motion', 'Character sheet']);
+    expect(legends).toEqual(['Density', 'Motion', 'Character sheet', 'Card theme']);
   });
 
   it('renders a note that changes are stored on this device only', () => {
@@ -160,6 +162,69 @@ describe('Preferences', () => {
       expect(fieldset?.querySelector('.preferences-hint')?.textContent).toContain(
         'next time you open a character',
       );
+    });
+  });
+
+  describe('card theme options', () => {
+    it('renders light and dark options', () => {
+      const values = Array.from(el.querySelectorAll('input[name="cardTheme"]')).map(
+        i => (i as HTMLInputElement).value,
+      );
+      expect(values).toEqual(['light', 'dark']);
+    });
+
+    it('marks dark as checked by default', () => {
+      const dark = el.querySelector(
+        'input[name="cardTheme"][value="dark"]',
+      ) as HTMLInputElement;
+      expect(dark.checked).toBe(true);
+    });
+
+    it('clicking light calls setCardTheme on the service', () => {
+      const service = TestBed.inject(PreferencesService);
+
+      const light = el.querySelector(
+        'input[name="cardTheme"][value="light"]',
+      ) as HTMLInputElement;
+      light.checked = true;
+      light.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(service.cardTheme()).toBe('light');
+    });
+
+    it('applies the selected modifier class to the chosen option', () => {
+      component.onCardThemeChange('light');
+      fixture.detectChanges();
+
+      const lightLabel = el.querySelector('input[name="cardTheme"][value="light"]')
+        ?.closest('label');
+      expect(lightLabel?.classList.contains('preferences-option--selected')).toBe(true);
+    });
+
+    it('states in the hint that it has no effect on the classic sheet', () => {
+      const fieldset = Array.from(el.querySelectorAll('fieldset')).find(
+        f => f.querySelector('legend')?.textContent === 'Card theme',
+      );
+      expect(fieldset?.querySelector('.preferences-hint')?.textContent).toContain(
+        'no effect on the classic sheet',
+      );
+    });
+
+    it('labels the Light option with a "Beta" badge as real text, not decoration', () => {
+      const lightLabel = el.querySelector('input[name="cardTheme"][value="light"]')
+        ?.closest('label');
+      expect(lightLabel?.querySelector('.preferences-option__badge')?.textContent?.trim()).toBe('Beta');
+      // The badge lives inside <label>, so it folds into the radio's accessible name naturally --
+      // no separate aria-label is used or needed.
+      expect(lightLabel?.textContent).toContain('Light');
+      expect(lightLabel?.textContent).toContain('Beta');
+    });
+
+    it('does not tag the Dark option with a badge', () => {
+      const darkLabel = el.querySelector('input[name="cardTheme"][value="dark"]')
+        ?.closest('label');
+      expect(darkLabel?.querySelector('.preferences-option__badge')).toBeFalsy();
     });
   });
 });

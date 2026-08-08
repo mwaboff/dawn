@@ -4,10 +4,10 @@
 :host { display: block; margin-bottom: 1.25rem; }
 :host(:last-child) { margin-bottom: 0; }
 
-/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css). Only the
-   teal beastform accent lives here -- view encapsulation means classic BeastformSection's copy of
-   these same modifier rules can't reach this component. */
-.card-group__heading--beastform { color: var(--color-card-beastform); }
+/* The .card-group / .expandable-card chrome is global (shared/styles/expandable-card.css) and the
+   section heading's teal accent belongs to CollapsibleCardGroup, which owns that markup. Only the
+   nested Beastform Options card's accent is left here -- view encapsulation means classic
+   BeastformSection's copy of these same modifier rules can't reach this component. */
 .expandable-card--beastform { border-left-color: var(--color-card-beastform); }
 .expandable-card__meta-badge--beastform { color: var(--color-card-beastform); border-color: color-mix(in srgb, var(--color-card-beastform) 35%, transparent); }
 

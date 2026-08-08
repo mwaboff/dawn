@@ -6,8 +6,10 @@
 .companion-card-beta__actions { display: flex; align-items: center; gap: var(--space-3); }
 
 /* Copied verbatim from companion-card.css -- view encapsulation means that copy can't reach here. */
-.armor-instead-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 4px; background: rgba(212,160,86,.06); border: 1px solid rgba(212,160,86,.2); }
+/* Wash/border derive from --color-accent-text (this card's own re-bound --eca-deep), not a flat
+   gold literal, so the box tracks the card's accent (companion pink) and both card themes. */
+.armor-instead-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 4px; background: color-mix(in srgb, var(--color-accent-text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--color-accent-text) 20%, transparent); }
 .armor-instead-prompt__text { flex-basis: 100%; font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a80); }
 .armor-instead-prompt__btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .6rem; border-radius: 2px; border: 1px solid var(--color-accent-text); background: transparent; color: var(--color-accent-text); cursor: pointer; }
-.armor-instead-prompt__btn:hover { background: rgba(212,160,86,.1); }
+.armor-instead-prompt__btn:hover { background: color-mix(in srgb, var(--color-accent-text) 10%, transparent); }
 .armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: var(--color-parchment-a50); cursor: pointer; text-decoration: underline; }

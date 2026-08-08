@@ -2,10 +2,9 @@
 :host { display: block; margin-bottom: 1.25rem; }
 :host(:last-child) { margin-bottom: 0; }
 
-/* .card-group chrome and .btn/.sr-only/.empty-state are global; only the crimson stance accent and
-   the drop-conditions reminder block are specific to this panel. */
-.card-group__heading--martialStance { color: var(--color-card-martialStance); }
-
+/* .card-group chrome and .btn/.sr-only/.empty-state are global and the crimson stance accent moved
+   to CollapsibleCardGroup with the heading markup; only the stance actions and the drop-conditions
+   reminder block are specific to this panel. */
 .stance-actions { display: flex; gap: var(--space-2); }
 
 .stance-drop-reminder { margin-top: var(--space-5); padding-top: .6rem; border-top: 1px dashed rgba(212,160,86,.15); }

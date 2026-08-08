@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { BeastformSection, BeastformView } from '../../../character-sheet/components/beastform-section/beastform-section';
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
+import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card-group';
 import { EntityCardData, EntityCardFeature } from '../../../../shared/components/entity-card/entity-card.model';
 
 interface BeastformCardEntry {
@@ -41,7 +42,7 @@ function toEntityCard(form: BeastformView): EntityCardData {
   templateUrl: './beastform-section-beta.html',
   styleUrl: './beastform-section-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard],
+  imports: [EntityCard, CollapsibleCardGroup],
 })
 export class BeastformSectionBeta extends BeastformSection {
   /** Per-instance, not a static string -- a hard-coded id collides the moment a second section
