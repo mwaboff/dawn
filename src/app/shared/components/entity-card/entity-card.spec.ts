@@ -320,6 +320,31 @@ describe('EntityCard', () => {
     });
   });
 
+  describe('badge glyph', () => {
+    it('renders a decorative, aria-hidden glyph before a badge that has one', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Custom', glyph: '✦' }] }));
+      fixture.detectChanges();
+
+      const glyph = header().querySelector('.entity-card__badge-glyph')!;
+      expect(glyph.textContent).toBe('✦');
+      expect(glyph.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('still renders the badge label text alongside the glyph', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Custom', glyph: '✦' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge')?.textContent).toContain('Custom');
+    });
+
+    it('renders no glyph element for a badge without one', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Lvl', value: '3' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge-glyph')).toBeFalsy();
+    });
+  });
+
   describe('feature list', () => {
     it('tracks by index so two nameless features do not collide', () => {
       host.card.set(

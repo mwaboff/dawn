@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -14,6 +14,7 @@ import { TransformationCardService } from '../../shared/services/transformation-
 import { CompanionService } from '../../shared/services/companion.service';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from '../character-sheet/components/inventory-section/inventory-section';
+import { InventorySectionBeta } from './components/inventory-section-beta/inventory-section-beta';
 import { BeastformSection } from '../character-sheet/components/beastform-section/beastform-section';
 import { MartialStancePanel } from '../character-sheet/components/martial-stance-panel/martial-stance-panel';
 import { TransformationPanel } from '../character-sheet/components/transformation-panel/transformation-panel';
@@ -333,9 +334,10 @@ describe('CharacterSheetBeta', () => {
     expect(fixture.debugElement.query(By.directive(CompanionPanel))).toBeNull();
   });
 
-  it('reuses the classic InventorySection as-is', () => {
+  it('renders the beta inventory section, not the classic one', () => {
     createComponent();
-    expect(fixture.debugElement.query(By.directive(InventorySection))).toBeTruthy();
+    expect(fixture.debugElement.query(By.directive(InventorySectionBeta))).toBeTruthy();
+    expect(fixture.debugElement.query(By.directive(InventorySection))).toBeNull();
   });
 
   it('keeps the classic equipment-card markup for Equipped Weapons/Armor (deferred rework)', () => {
@@ -373,5 +375,46 @@ describe('CharacterSheetBeta', () => {
     );
 
     expect(cardGroup('Ancestry & Community')).toBeUndefined();
+  });
+
+  describe('in-place item dialog', () => {
+    it('opens the item dialog with the kind and itemId instead of navigating when editing an inventory item', () => {
+      createComponent();
+      const navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate');
+
+      component.onEditInventoryItem({ type: 'weapon', itemId: 42 });
+
+      expect(component.itemModalRequest()).toEqual({ kind: 'weapon', itemId: 42 });
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+
+    it('opens the dialog in create mode with a null itemId', () => {
+      createComponent();
+
+      component.setCreatingItemKind('weapon');
+
+      expect(component.itemModalRequest()).toEqual({ kind: 'weapon', itemId: null });
+    });
+
+    it('closes the dialog when setCreatingItemKind(null) is called', () => {
+      createComponent();
+      component.setCreatingItemKind('weapon');
+
+      component.setCreatingItemKind(null);
+
+      expect(component.itemModalRequest()).toBeNull();
+    });
+
+    it('closes the dialog and re-requests the sheet when the item dialog reports an update', () => {
+      createComponent();
+      component.itemModalRequest.set({ kind: 'weapon', itemId: 42 });
+      const service = TestBed.inject(CharacterSheetService) as unknown as { getCharacterSheet: ReturnType<typeof vi.fn> };
+      service.getCharacterSheet.mockClear();
+
+      component.onItemModalUpdated();
+
+      expect(component.itemModalRequest()).toBeNull();
+      expect(service.getCharacterSheet).toHaveBeenCalledWith(1, expect.any(Array));
+    });
   });
 });

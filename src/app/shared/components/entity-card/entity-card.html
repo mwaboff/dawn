@@ -15,7 +15,12 @@
   @if (displaySize() !== 'compact' && card().badges?.length) {
     <span class="entity-card__badges">
       @for (badge of card().badges; track badge.label) {
-        <span class="entity-card__badge">{{ badge.value ? badge.label + ': ' + badge.value : badge.label }}</span>
+        <span class="entity-card__badge">
+          @if (badge.glyph) {
+            <span class="entity-card__badge-glyph" aria-hidden="true">{{ badge.glyph }}</span>
+          }
+          {{ badge.value ? badge.label + ': ' + badge.value : badge.label }}
+        </span>
       }
     </span>
   }

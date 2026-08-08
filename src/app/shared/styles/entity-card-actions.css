@@ -1,0 +1,44 @@
+/* The grid EntityCards sit in, and the controls callers project into their `[card-controls]` /
+   `[card-actions]` slots. Global rather than component-scoped because projected content is styled
+   by whoever wrote it: the beta sheet projects these buttons from its own template, and
+   `InventorySectionBeta` projects the same ones from a child component's template. View
+   encapsulation would have given the child a second copy of every rule below -- the copy-rename
+   fork dawn/CLAUDE.md rules out.
+
+   Every colour here reads a token EntityCard re-binds on its two slot elements (see the comment on
+   `.entity-card__controls` in entity-card.css), so the same button inks correctly on a light or a
+   dark card face without a per-caller patch. */
+
+.entity-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: var(--space-4); }
+
+/* The 19rem (304px) column floor plus .sheet-page's 1.5rem (24px) side padding stops fitting below a
+   352px viewport -- below that, `body{overflow-x:hidden}` clips the remainder with no scrollbar to
+   reach it. 640px matches the sibling `.beastform-grid` (beastform-section-beta.css) so every card
+   grid on the page collapses to one column together instead of at different widths. */
+@media (max-width: 640px) {
+  .entity-card-grid { grid-template-columns: 1fr; }
+}
+
+ /* `.card-action-row` is the same row with a name that does not claim to be about equipping --
+   the inventory cards put Edit and Remove in one. */
+.card-swap-action, .card-action-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3); }
+/* Border/hover-wash derive from the same re-bound tokens the text already uses (--color-accent-text
+   generally, --color-swap-vault-text/--color-swap-equip-text for the two semantic hovers) so the
+   button's chrome, not just its text, adapts per card theme instead of staying a fixed gold literal. */
+.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 25%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+.card-swap-btn:hover:not(:disabled):not([aria-disabled='true']) { background: color-mix(in srgb, var(--color-accent-text) 8%, transparent); border-color: color-mix(in srgb, var(--color-accent-text) 40%, transparent); color: var(--color-accent-text); }
+.card-swap-btn:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+/* `[aria-disabled]` as well as `:disabled`: a control whose unavailability has a reason worth
+   reading stays focusable and announces that reason, so it is aria-disabled rather than disabled
+   and still has to LOOK unavailable. */
+.card-swap-btn:disabled, .card-swap-btn[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
+.card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
+.card-swap-btn--vault:hover:not(:disabled):not([aria-disabled='true']) { border-color: color-mix(in srgb, var(--color-swap-vault-text) 50%, transparent); color: var(--color-swap-vault-text); background: color-mix(in srgb, var(--color-swap-vault-text) 8%, transparent); }
+.card-swap-btn--equip:hover:not(:disabled):not([aria-disabled='true']) { border-color: color-mix(in srgb, var(--color-swap-equip-text) 50%, transparent); color: var(--color-swap-equip-text); background: color-mix(in srgb, var(--color-swap-equip-text) 8%, transparent); }
+/* Not italic-and-faint like a caption: this is the reason an adjacent button is dead, and it has to
+   survive at the same glance as the button it explains. */
+.card-swap-hint { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-swap-btn { transition: none; }
+}

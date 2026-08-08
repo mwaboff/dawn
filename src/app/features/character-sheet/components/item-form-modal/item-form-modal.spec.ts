@@ -3,7 +3,7 @@ import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { AuthService } from '../../../../core/services/auth.service';
@@ -16,7 +16,7 @@ import { ItemForm } from '../../../items/components/item-form/item-form';
 import { ItemKind } from '../../../items/item-routes';
 import { ItemSubmit } from '../../../items/item-submit';
 import { DEFAULT_ITEM_FORM_VALUE, ItemFormValue } from '../../../items/models/item-form-value.model';
-import { ItemCreateModal, ItemCreatedEvent } from './item-create-modal';
+import { ItemFormModal, ItemCreatedEvent } from './item-form-modal';
 
 function buildWeapon(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
   return {
@@ -50,20 +50,21 @@ function campaignPage(
 }
 
 interface Harness {
-  fixture: ComponentFixture<ItemCreateModal>;
-  component: ItemCreateModal;
+  fixture: ComponentFixture<ItemFormModal>;
+  component: ItemFormModal;
   itemSubmit: ItemSubmit;
   el: HTMLElement;
   created: ItemCreatedEvent[];
+  updated: ItemCreatedEvent[];
   dismissals: number;
 }
 
 function setup(
   kind: ItemKind = 'weapon',
-  options: { isModerator?: boolean; campaigns?: PaginatedResponse<CampaignResponse> } = {},
+  options: { isModerator?: boolean; campaigns?: PaginatedResponse<CampaignResponse>; itemId?: number | null } = {},
 ): Harness {
   TestBed.configureTestingModule({
-    imports: [ItemCreateModal],
+    imports: [ItemFormModal],
     providers: [
       provideHttpClient(),
       provideHttpClientTesting(),
@@ -77,12 +78,15 @@ function setup(
   vi.spyOn(TestBed.inject(CampaignService), 'getMyCampaigns')
     .mockReturnValue(of(options.campaigns ?? campaignPage([])));
 
-  const fixture = TestBed.createComponent(ItemCreateModal);
+  const fixture = TestBed.createComponent(ItemFormModal);
   fixture.componentRef.setInput('kind', kind);
+  if (options.itemId !== undefined) fixture.componentRef.setInput('itemId', options.itemId);
 
   const created: ItemCreatedEvent[] = [];
+  const updated: ItemCreatedEvent[] = [];
   let dismissals = 0;
   fixture.componentInstance.created.subscribe(event => created.push(event));
+  fixture.componentInstance.updated.subscribe(event => updated.push(event));
   fixture.componentInstance.dismissed.subscribe(() => dismissals++);
 
   return {
@@ -91,6 +95,7 @@ function setup(
     itemSubmit: TestBed.inject(ItemSubmit),
     el: fixture.nativeElement,
     created,
+    updated,
     get dismissals() {
       return dismissals;
     },
@@ -101,7 +106,7 @@ function formValue(overrides: Partial<ItemFormValue> = {}): ItemFormValue {
   return { ...DEFAULT_ITEM_FORM_VALUE, name: 'Hearthblade', ...overrides };
 }
 
-describe('ItemCreateModal', () => {
+describe('ItemFormModal', () => {
   it('creates', () => {
     const { fixture, component } = setup();
     fixture.detectChanges();
@@ -297,5 +302,66 @@ describe('ItemCreateModal', () => {
     harness.component.onDismiss();
 
     expect(harness.dismissals).toBe(0);
+  });
+
+  describe('edit mode', () => {
+    it('loads the item through ItemSubmit.load and prefills initialValue when itemId is set', () => {
+      const { fixture, component, itemSubmit } = setup('weapon', { itemId: 12 });
+      const load = vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon({ id: 12, name: 'Hearthblade' })));
+
+      fixture.detectChanges();
+
+      expect(load).toHaveBeenCalledWith('weapon', 12);
+      expect(component.initialValue()?.name).toBe('Hearthblade');
+    });
+
+    it('falls back to "Edit <Kind>" for the title before the item arrives, then the item\'s own name', () => {
+      const { fixture, component, itemSubmit } = setup('weapon', { itemId: 12 });
+      const loaded$ = new Subject<WeaponResponse>();
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(loaded$);
+
+      fixture.detectChanges();
+      expect(component.title()).toBe('Edit Weapon');
+
+      loaded$.next(buildWeapon({ id: 12, name: 'Hearthblade' }));
+      fixture.detectChanges();
+
+      expect(component.title()).toBe('Hearthblade');
+    });
+
+    it('labels the submit button "Save changes" in edit mode', () => {
+      const { fixture, itemSubmit, el } = setup('weapon', { itemId: 12 });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon({ id: 12 })));
+
+      fixture.detectChanges();
+
+      expect(el.querySelector('.dialog-btn--submit')?.textContent?.trim()).toBe('Save changes');
+    });
+
+    it('calls ItemSubmit.update, not create, and emits updated when submitting in edit mode', () => {
+      const { fixture, component, itemSubmit, created, updated } = setup('weapon', { itemId: 12 });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon({ id: 12 })));
+      fixture.detectChanges();
+      const create = vi.spyOn(itemSubmit, 'create');
+      const updatedItem = buildWeapon({ id: 12, name: 'Renamed Blade' });
+      const update = vi.spyOn(itemSubmit, 'update').mockReturnValue(of(updatedItem));
+
+      component.onSubmitted(formValue({ name: 'Renamed Blade' }));
+
+      expect(update).toHaveBeenCalledWith('weapon', 12, expect.objectContaining({ name: 'Renamed Blade' }));
+      expect(create).not.toHaveBeenCalled();
+      expect(updated).toEqual([{ type: 'weapon', item: updatedItem }]);
+      expect(created).toEqual([]);
+    });
+
+    it('renders the load error and hides the submit button when loading fails', () => {
+      const { fixture, itemSubmit, el } = setup('weapon', { itemId: 12 });
+      vi.spyOn(itemSubmit, 'load').mockReturnValue(throwError(() => new Error('not found')));
+
+      fixture.detectChanges();
+
+      expect(el.querySelector('.item-form-modal__status--error')?.textContent).toContain('could not be loaded');
+      expect(el.querySelector('.dialog-btn--submit')).toBeNull();
+    });
   });
 });
