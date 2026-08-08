@@ -869,7 +869,7 @@
     <app-dice-roller />
 
     @if (creatingItemKind(); as kind) {
-      <app-item-create-modal
+      <app-item-form-modal
         [kind]="kind"
         (created)="onCustomItemCreated($event)"
         (dismissed)="setCreatingItemKind(null)" />

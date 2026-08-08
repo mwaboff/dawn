@@ -1,0 +1,126 @@
+<div class="inventory-beta__header">
+  <h2 class="inventory-beta__title">Inventory</h2>
+  @if (isOwner()) {
+    <button
+      type="button"
+      class="inventory-beta__add-btn"
+      [attr.aria-expanded]="addPanelOpen()"
+      [attr.aria-label]="'Add ' + activeItemType() + ' to inventory'"
+      (click)="toggleAddPanel()"
+    >+ Add</button>
+  }
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="inventory-beta__error" role="alert">
+    <span class="inventory-beta__error-text">{{ msg }}</span>
+    <button type="button" class="inventory-beta__error-dismiss" (click)="onDismissError()" aria-label="Dismiss error">&#x2715;</button>
+  </div>
+}
+
+<app-inventory-tabs
+  [activeTab]="activeTab()"
+  [counts]="tabCounts()"
+  panelIdPrefix="beta-inventory-panel"
+  (tabSelected)="selectTab($event)" />
+
+<app-inventory-add-panel
+  [itemType]="activeItemType()"
+  [open]="addPanelOpen()"
+  (itemAdded)="onItemAdded($event)"
+  (createRequested)="onCreateRequested($event)"
+  (closed)="onAddPanelClosed()" />
+
+<div
+  class="inventory-beta__panel"
+  role="tabpanel"
+  [id]="'beta-inventory-panel-' + activeTab()"
+  [attr.aria-labelledby]="'beta-inventory-panel-tab-' + activeTab()"
+>
+  @if (entries().length > 0) {
+    <div class="entity-card-grid">
+      @for (entry of entries(); track entry.type + '-' + entry.inventoryEntryId) {
+        <app-entity-card [card]="entry.card" [headingLevel]="3">
+          @if (isOwner() || entry.canEdit) {
+            <div card-controls class="card-action-row">
+              @if (isOwner() && confirmingRemoveEntryId() === entry.inventoryEntryId) {
+                <div class="inline-confirm">
+                  <span class="inline-confirm__prompt" [id]="promptId(entry)">Remove {{ entry.name }} from inventory?</span>
+                  <div class="inline-confirm__actions">
+                    <button
+                      #confirmButton
+                      type="button"
+                      class="inline-confirm__btn inline-confirm__btn--confirm"
+                      [attr.aria-label]="'Remove ' + entry.name + ' from inventory'"
+                      [attr.aria-describedby]="promptId(entry)"
+                      (click)="onRemoveConfirmed(entry)"
+                    >Remove</button>
+                    <button
+                      type="button"
+                      class="inline-confirm__btn inline-confirm__btn--cancel"
+                      [attr.aria-label]="'Keep ' + entry.name + ' in inventory'"
+                      (click)="onRemoveCancelled(entry)"
+                    >Keep</button>
+                  </div>
+                </div>
+              } @else {
+                @if (entry.canEdit) {
+                  <button
+                    type="button"
+                    class="card-swap-btn"
+                    [attr.aria-label]="'Edit ' + entry.name + ', a custom item you created'"
+                    (click)="onEditClicked(entry)"
+                  >
+                    <span class="card-swap-btn__arrow" aria-hidden="true">&#10022;</span> Edit
+                  </button>
+                }
+                @if (isOwner()) {
+                  <!-- aria-disabled rather than the `disabled` attribute: a blocked Remove carries a
+                       reason ("Unequip to remove") that only reaches a keyboard or screen-reader
+                       user if the button it describes is still focusable. The click no-ops instead. -->
+                  <button
+                    type="button"
+                    class="card-swap-btn card-swap-btn--vault"
+                    [id]="removeButtonId(entry)"
+                    [attr.aria-disabled]="entry.removeBlockedReason !== null"
+                    [attr.aria-describedby]="entry.removeBlockedReason ? hintId(entry) : null"
+                    [attr.aria-label]="'Remove ' + entry.name + ' from inventory'"
+                    (click)="onRemoveClicked(entry)"
+                  >Remove</button>
+                  @if (entry.removeBlockedReason; as reason) {
+                    <span class="card-swap-hint" [id]="hintId(entry)">{{ reason }}</span>
+                  }
+                }
+              }
+            </div>
+          }
+
+          @if (isOwner() && entry.equipActions.length > 0) {
+            <div card-actions class="card-swap-action">
+              @for (action of entry.equipActions; track action.kind) {
+                <button
+                  type="button"
+                  class="card-swap-btn"
+                  [class.card-swap-btn--equip]="action.kind !== 'unequip'"
+                  [class.card-swap-btn--vault]="action.kind === 'unequip'"
+                  [attr.aria-disabled]="action.disabled"
+                  [attr.aria-describedby]="action.hint ? equipHintId(entry, action) : null"
+                  [attr.aria-label]="action.ariaLabel"
+                  (click)="onEquipAction(entry, action)"
+                >
+                  <span class="card-swap-btn__arrow" aria-hidden="true">{{ action.kind === 'unequip' ? '↓' : '↑' }}</span>
+                  {{ action.label }}
+                </button>
+                @if (action.hint; as hint) {
+                  <span class="card-swap-hint" [id]="equipHintId(entry, action)">{{ hint }}</span>
+                }
+              }
+            </div>
+          }
+        </app-entity-card>
+      }
+    </div>
+  } @else {
+    <p class="empty-state">{{ emptyText() }}</p>
+  }
+</div>

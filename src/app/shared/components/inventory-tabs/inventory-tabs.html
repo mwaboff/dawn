@@ -1,0 +1,21 @@
+<div class="inventory-tabs" role="tablist" aria-label="Inventory categories" #tabList>
+  @for (tab of tabs; track tab.id; let i = $index) {
+    <button
+      type="button"
+      class="inventory-tab"
+      role="tab"
+      [class.inventory-tab--active]="activeTab() === tab.id"
+      [attr.aria-selected]="activeTab() === tab.id"
+      [attr.tabindex]="getTabIndex(tab.id)"
+      [id]="tabId(tab.id)"
+      [attr.aria-controls]="activeTab() === tab.id ? panelIdPrefix() + '-' + tab.id : null"
+      (click)="tabSelected.emit(tab.id)"
+      (keydown)="onTabKeydown($event, i)"
+    >
+      {{ tab.label }}
+      @if (counts()[tab.id] > 0) {
+        <span class="inventory-tab__count">{{ counts()[tab.id] }}</span>
+      }
+    </button>
+  }
+</div>

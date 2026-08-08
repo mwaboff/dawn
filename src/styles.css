@@ -15,6 +15,7 @@
 @import "./app/shared/styles/stat-row.css";
 @import "./app/shared/styles/dialog.css";
 @import "./app/shared/styles/card-accents.css";
+@import "./app/shared/styles/entity-card-actions.css";
 
 :root {
   /* Warm Tavern Color Palette */

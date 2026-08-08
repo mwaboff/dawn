@@ -1,0 +1,19 @@
+/* Chrome is `.dialog-panel--sheet` (shared/styles/dialog.css) and the form's own structure is
+   global (shared/styles/forms.css); only this dialog's width lives here, as a custom property so
+   it crosses into ModalShell's encapsulated template -- the item form is a multi-column grid with
+   a feature editor under it, so the 420px default would squeeze every field into one column. */
+:host {
+  --dialog-max-w: 48rem;
+}
+
+.item-form-modal__status { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a80); margin: 0; padding: var(--space-6) 0; text-align: center; }
+/* Not --color-warning-text: that token is rgba(200,110,90,.85), which over this dialog's
+   --color-bg-dark surface measures 3.99:1 -- under the 4.5:1 floor this 14px text owes. The value
+   below is the same hue lifted until it clears with margin (7.73:1 against #1a1412). */
+.item-form-modal__status--error { color: #e0968c; }
+/* Collapsed rather than removed, so the live region survives to announce the next state change. */
+.item-form-modal__status--hidden { display: none; }
+
+/* Editing a shared item is the one thing about this dialog a player can get wrong, so the warning
+   sits above the fields rather than beside the save button. */
+.item-form-modal__scope-note { font-family: var(--font-body); font-size: var(--text-sm); font-style: italic; color: var(--color-parchment-a80); margin: 0 0 var(--space-5); }

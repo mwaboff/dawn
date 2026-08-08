@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay, FeatureDisplay } from '../../../../models/character-sheet-view.model';
 import { EquipmentCard, EquipmentStat } from '../../../equipment-card/equipment-card';
+import { canEditItem } from '../../../../utils/inventory-equip.utils';
 
 @Component({
   selector: 'app-inventory-item-row',
@@ -59,15 +60,8 @@ export class InventoryItemRow {
     return !this.isArmorEquipped();
   });
 
-  /**
-   * Only the author of a piece of homebrew gets the edit shortcut. `createdByUserId` is null on
-   * official content and absent when the sheet response didn't expand the item, so a plain
-   * equality check leaves the button off in both cases without a separate guard.
-   */
-  readonly canEdit = computed<boolean>(() => {
-    const viewer = this.currentUserId();
-    return viewer !== null && this.item().createdByUserId === viewer;
-  });
+  /** Only the author of a piece of homebrew gets the edit shortcut -- see `canEditItem`. */
+  readonly canEdit = computed<boolean>(() => canEditItem(this.item(), this.currentUserId()));
 
   readonly cardName = computed<string>(() => this.item().name);
 

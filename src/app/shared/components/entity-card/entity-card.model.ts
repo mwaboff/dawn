@@ -12,6 +12,12 @@ export type EntityCardSize = 'compact' | 'normal' | 'expanded';
 export interface EntityCardBadge {
   label: string;
   value?: string;
+  /**
+   * Decorative mark shown before the label on a header chip, e.g. the homebrew star. Rendered
+   * `aria-hidden` -- the label alone has to carry the meaning, so a glyph is never the only cue.
+   * Ignored on `meta` rows, which are prose lines rather than chips.
+   */
+  glyph?: string;
 }
 
 export interface EntityCardModifier {

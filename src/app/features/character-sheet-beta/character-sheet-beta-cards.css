@@ -1,33 +1,9 @@
 /* Everything the EntityCard-driven groups need beyond the global `.card-group` chrome
    (shared/styles/expandable-card.css). Group headings, their accent colours and their count chips
    belong to `CollapsibleCardGroup` now -- its template owns that markup, so its stylesheet owns
-   those rules. */
-
-/* The one visual change this pass makes: a single responsive grid, capped at 1440px by
-   character-sheet-beta.css, replacing classic's fixed 2-column `.card-group__list--grid`. */
-.entity-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: var(--space-4); }
-
-/* The 19rem (304px) column floor plus .sheet-page's 1.5rem (24px) side padding stops fitting
-   below a 352px viewport -- below that, `body{overflow-x:hidden}` clips the remainder with no
-   scrollbar to reach it. 640px matches the sibling `.beastform-grid` (beastform-section-beta.css)
-   so every card grid on this page collapses to one column together instead of doing it at
-   different widths. */
-@media (max-width: 640px) {
-  .entity-card-grid { grid-template-columns: 1fr; }
-}
-
-.card-swap-action { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); }
-/* Border/hover-wash derive from the same re-bound tokens the text already uses (--color-accent-text
-   generally, --color-swap-vault-text/--color-swap-equip-text for the two semantic hovers) so the
-   button's chrome, not just its text, adapts per card theme instead of staying a fixed gold literal. */
-.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 25%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
-.card-swap-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent-text) 8%, transparent); border-color: color-mix(in srgb, var(--color-accent-text) 40%, transparent); color: var(--color-accent-text); }
-.card-swap-btn:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
-.card-swap-btn:disabled { opacity: .4; cursor: not-allowed; }
-.card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
-.card-swap-btn--vault:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-swap-vault-text) 50%, transparent); color: var(--color-swap-vault-text); background: color-mix(in srgb, var(--color-swap-vault-text) 8%, transparent); }
-.card-swap-btn--equip:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-swap-equip-text) 50%, transparent); color: var(--color-swap-equip-text); background: color-mix(in srgb, var(--color-swap-equip-text) 8%, transparent); }
-.card-swap-hint { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); font-style: italic; }
+   those rules. The card grid and the `[card-actions]` swap buttons moved out too, to the global
+   shared/styles/entity-card-actions.css: `InventorySectionBeta` projects the same buttons from its
+   own template, which this encapsulated stylesheet cannot reach. */
 
 /* The vault keeps its own separation from the inventory above it; its heading is a plain
    `CollapsibleCardGroup` like every other group's. */
