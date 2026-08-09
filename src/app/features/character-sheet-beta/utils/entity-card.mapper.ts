@@ -106,31 +106,34 @@ function itemBadges(
 }
 
 /**
- * Weapon, armor and loot as cards. The classic inventory row showed a weapon's numbers as bare
- * chips -- "2d8+1 phys", "Melee", "Agility" -- which only reads if you already know the order.
- * Here every number is a labelled `meta` line instead, so the card says what each value is.
+ * Weapon, armor and loot as cards, with their numbers on one line in the order the equipped-weapon
+ * panel already uses -- damage, trait, range, burden. Stacked `Label: value` rows were tried first
+ * and read worse: four lines of prose to answer what one glance at "2d8+1 phys / Presence / Melee"
+ * answers, on the card a player reads mid-roll.
  *
- * `equippedSlot` is the character's state rather than the weapon's, so it arrives as an argument;
- * the eyebrow ("Primary Weapon") is the weapon's own slot eligibility and comes off the item.
+ * The weapon's own slot eligibility is deliberately NOT a type-tab override here. "Primary Weapon"
+ * in the tab beside an "Equipped: Primary" badge is the same fact said twice; the eligibility now
+ * rides on the Equip button, which is where it is actionable (see `inventory-card.mapper.ts`).
+ *
+ * `equippedSlot` is the character's state rather than the weapon's, so it arrives as an argument.
  */
 export function weaponToEntity(weapon: WeaponDisplay, equippedSlot: WeaponSlot | null): EntityCardData {
-  const meta: EntityCardBadge[] = [];
-  if (weapon.damage) meta.push({ label: 'Damage', value: weapon.damage });
-  if (weapon.range) meta.push({ label: 'Range', value: weapon.range });
-  if (weapon.trait) meta.push({ label: 'Trait', value: weapon.trait });
-  if (weapon.burden) meta.push({ label: 'Burden', value: BURDEN_LABELS[weapon.burden] ?? weapon.burden });
+  const stats: string[] = [];
+  if (weapon.damage) stats.push(weapon.damage);
+  if (weapon.trait) stats.push(weapon.trait);
+  if (weapon.range) stats.push(weapon.range);
+  if (weapon.burden) stats.push(BURDEN_LABELS[weapon.burden] ?? weapon.burden);
 
   return {
     id: weapon.inventoryEntryId,
     name: weapon.name,
     cardType: 'weapon',
-    eyebrow: weapon.isPrimary ? 'Primary Weapon' : 'Secondary Weapon',
     headline: weapon.damage || undefined,
     badges: itemBadges(
       weapon,
       equippedSlot ? { label: 'Equipped', value: equippedSlot === 'primary' ? 'Primary' : 'Secondary' } : undefined,
     ),
-    meta: meta.length ? meta : undefined,
+    stats: stats.length ? stats : undefined,
     features: mapFeatures(weapon.features),
   };
 }
@@ -140,11 +143,14 @@ export function armorToEntity(armor: ArmorDisplay, equipped: boolean): EntityCar
     id: armor.inventoryEntryId,
     name: armor.name,
     cardType: 'armor',
-    headline: `Armor Score ${armor.baseScore}`,
+    headline: `Score ${armor.baseScore}`,
     badges: itemBadges(armor, equipped ? { label: 'Equipped' } : undefined),
-    meta: [
-      { label: 'Armor Score', value: String(armor.baseScore) },
-      { label: 'Damage Thresholds', value: `Major ${armor.baseMajorThreshold} / Severe ${armor.baseSevereThreshold}` },
+    // Labelled, unlike a weapon's: three bare numbers would say nothing on their own. Same wording
+    // and order as the Equipped Armor panel.
+    stats: [
+      `Score: ${armor.baseScore}`,
+      `Major: ${armor.baseMajorThreshold}`,
+      `Severe: ${armor.baseSevereThreshold}`,
     ],
     features: mapFeatures(armor.features),
   };
@@ -163,7 +169,7 @@ export function lootToEntity(loot: LootDisplay): EntityCardData {
     eyebrow: loot.isConsumable ? 'Consumable' : undefined,
     headline: loot.costTags[0],
     badges: itemBadges(loot),
-    meta: loot.costTags.length ? [{ label: 'Cost', value: loot.costTags.join(', ') }] : undefined,
+    stats: loot.costTags.length ? [...loot.costTags] : undefined,
     description: loot.description,
   };
 }

@@ -166,31 +166,28 @@ describe('entity-card.mapper', () => {
   });
 
   describe('weaponToEntity', () => {
-    it('labels the eyebrow "Primary Weapon" for a primary-slot weapon', () => {
-      expect(weaponToEntity(buildWeapon({ isPrimary: true }), null).eyebrow).toBe('Primary Weapon');
+    it('emits no eyebrow for a primary-slot weapon', () => {
+      expect(weaponToEntity(buildWeapon({ isPrimary: true }), null).eyebrow).toBeUndefined();
     });
 
-    it('labels the eyebrow "Secondary Weapon" for a secondary-slot weapon', () => {
-      expect(weaponToEntity(buildWeapon({ isPrimary: false }), null).eyebrow).toBe('Secondary Weapon');
+    it('emits no eyebrow for a secondary-slot weapon', () => {
+      expect(weaponToEntity(buildWeapon({ isPrimary: false }), null).eyebrow).toBeUndefined();
     });
 
-    it('builds labelled meta rows for damage, range and trait', () => {
+    it('orders stats as damage, trait, range, then humanised burden', () => {
       const weapon = buildWeapon({ damage: '2d8+1', range: 'Very Far', trait: 'Instinct', burden: 'ONE_HANDED' });
 
-      expect(weaponToEntity(weapon, null).meta).toEqual([
-        { label: 'Damage', value: '2d8+1' },
-        { label: 'Range', value: 'Very Far' },
-        { label: 'Trait', value: 'Instinct' },
-        { label: 'Burden', value: 'One-handed' },
-      ]);
+      expect(weaponToEntity(weapon, null).stats).toEqual(['2d8+1', 'Instinct', 'Very Far', 'One-handed']);
     });
 
     it('humanises a TWO_HANDED burden into "Two-handed"', () => {
       const weapon = buildWeapon({ burden: 'TWO_HANDED' });
 
-      const burdenRow = weaponToEntity(weapon, null).meta?.find(row => row.label === 'Burden');
+      expect(weaponToEntity(weapon, null).stats).toContain('Two-handed');
+    });
 
-      expect(burdenRow?.value).toBe('Two-handed');
+    it('no longer emits meta', () => {
+      expect(weaponToEntity(buildWeapon(), null).meta).toBeUndefined();
     });
 
     it('adds an Equipped/Primary badge only when a slot is passed', () => {
@@ -220,13 +217,14 @@ describe('entity-card.mapper', () => {
   });
 
   describe('armorToEntity', () => {
-    it('builds a Damage Thresholds meta line from the major and severe values', () => {
+    it('builds three labelled stats: Score, Major and Severe', () => {
       const armor = buildArmor({ baseScore: 5, baseMajorThreshold: 3, baseSevereThreshold: 6 });
 
-      expect(armorToEntity(armor, false).meta).toEqual([
-        { label: 'Armor Score', value: '5' },
-        { label: 'Damage Thresholds', value: 'Major 3 / Severe 6' },
-      ]);
+      expect(armorToEntity(armor, false).stats).toEqual(['Score: 5', 'Major: 3', 'Severe: 6']);
+    });
+
+    it('no longer emits meta', () => {
+      expect(armorToEntity(buildArmor(), false).meta).toBeUndefined();
     });
 
     it('adds a bare Equipped badge when worn', () => {
@@ -247,6 +245,16 @@ describe('entity-card.mapper', () => {
 
     it('omits the eyebrow for non-consumable loot', () => {
       expect(lootToEntity(buildLoot({ isConsumable: false })).eyebrow).toBeUndefined();
+    });
+
+    it('emits its cost tags as stats', () => {
+      const loot = buildLoot({ costTags: ['3 gold', 'Common'] });
+
+      expect(lootToEntity(loot).stats).toEqual(['3 gold', 'Common']);
+    });
+
+    it('omits stats when there are no cost tags', () => {
+      expect(lootToEntity(buildLoot({ costTags: [] })).stats).toBeUndefined();
     });
   });
 });

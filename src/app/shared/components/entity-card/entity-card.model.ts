@@ -51,6 +51,12 @@ export interface EntityCardData {
   description?: string;
   /** Chips in the card header: "Lvl 3", "Recall 2". Keep each to a couple of words. */
   badges?: EntityCardBadge[];
+  /**
+   * The card's numbers as one scannable line above everything else -- a weapon's "2d8+1 phys /
+   * Presence / Melee / One-handed". Each entry is already formatted for display; keep them short
+   * enough that four fit on a line, and use `meta` instead when a value needs naming to make sense.
+   */
+  stats?: string[];
   /** `Label: value` lines above the description, for longer metadata like a subclass's domains. */
   meta?: EntityCardBadge[];
   features?: EntityCardFeature[];

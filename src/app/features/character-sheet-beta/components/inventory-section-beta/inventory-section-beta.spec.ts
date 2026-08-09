@@ -159,7 +159,8 @@ describe('InventorySectionBeta', () => {
     fixture.detectChanges();
 
     expect(entityCards().length).toBe(1);
-    expect(el.querySelector('[card-actions]')).toBeNull();
+    expect(el.querySelector('[card-controls] .card-swap-btn--equip')).toBeNull();
+    expect(el.querySelector('[card-controls] > .card-swap-btn--vault')).toBeNull();
   });
 
   it('swaps the rendered list when a different tab is selected', () => {
@@ -178,7 +179,7 @@ describe('InventorySectionBeta', () => {
     function openRemoveConfirm(): void {
       host.isOwner.set(true);
       fixture.detectChanges();
-      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--vault')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!.click();
       fixture.detectChanges();
     }
 
@@ -199,9 +200,9 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--vault')!;
+      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!;
       expect(removeBtn.getAttribute('aria-disabled')).toBe('true');
-      expect(el.querySelector('.card-swap-hint')?.textContent?.trim()).toBe('Unequip to remove');
+      expect(el.querySelector('.card-action-row__manage .card-swap-hint')?.textContent?.trim()).toBe('Unequip to remove');
     });
 
     it('keeps a blocked Remove button focusable rather than natively disabled, and describes the reason', () => {
@@ -211,8 +212,8 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--vault')!;
-      const hint = el.querySelector<HTMLElement>('.card-swap-hint')!;
+      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!;
+      const hint = el.querySelector<HTMLElement>('.card-action-row__manage .card-swap-hint')!;
 
       expect(removeBtn.disabled).toBe(false);
       expect(removeBtn.getAttribute('aria-describedby')).toBe(hint.id);
@@ -225,7 +226,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--vault')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!.click();
       fixture.detectChanges();
 
       expect(el.querySelector('.inline-confirm')).toBeNull();
@@ -239,7 +240,7 @@ describe('InventorySectionBeta', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--vault')!;
+      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!;
       expect(document.activeElement).toBe(removeBtn);
     });
 
@@ -260,7 +261,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      expect(el.querySelector('[card-controls] .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
+      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
     });
 
     it('shows the Edit button for a NON-owner viewer who authored the item, but hides owner-only controls', () => {
@@ -269,8 +270,8 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(false);
       fixture.detectChanges();
 
-      expect(el.querySelector('[card-controls] .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
-      expect(el.querySelector('[card-controls] .card-swap-btn--vault')).toBeNull();
+      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
+      expect(el.querySelector('.card-action-row__manage .card-swap-btn--vault')).toBeNull();
     });
 
     it('hides the Edit button for official gear with no author', () => {
@@ -279,7 +280,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      expect(el.querySelector('[card-controls] .card-swap-btn:not(.card-swap-btn--vault)')).toBeNull();
+      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeNull();
     });
 
     it('emits editItem with the catalogue item id when Edit is clicked', () => {
@@ -288,7 +289,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn:not(.card-swap-btn--vault)')!.click();
+      el.querySelector<HTMLButtonElement>('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')!.click();
 
       expect(host.editEvents).toEqual([{ type: 'weapon', itemId: 42 }]);
     });
@@ -300,7 +301,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-actions] .card-swap-btn--equip')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--equip')!.click();
 
       expect(host.equipWeaponEvents).toEqual([{ weaponId: 3, inventoryEntryId: 9, slot: 'primary' }]);
     });
@@ -310,7 +311,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-actions] .card-swap-btn--equip')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--equip')!.click();
 
       expect(host.equipWeaponEvents).toEqual([{ weaponId: 3, inventoryEntryId: 9, slot: 'secondary' }]);
     });
@@ -322,7 +323,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-actions] .card-swap-btn--vault')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] > .card-swap-btn--vault')!.click();
 
       expect(host.unequipWeaponEvents).toEqual([{ slot: 'secondary' }]);
     });
@@ -334,7 +335,7 @@ describe('InventorySectionBeta', () => {
       tabButtons()[1].click();
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-actions] .card-swap-btn--equip')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-swap-btn--equip')!.click();
 
       expect(host.equipArmorEvents).toEqual([{ armorId: 4, inventoryEntryId: 11 }]);
     });
@@ -348,9 +349,35 @@ describe('InventorySectionBeta', () => {
       tabButtons()[1].click();
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-actions] .card-swap-btn--vault')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] > .card-swap-btn--vault')!.click();
 
       expect(host.unequipArmorCount).toBe(1);
+    });
+  });
+
+  describe('single footer', () => {
+    it('projects equip and manage buttons into one [card-controls] row, and nothing into [card-actions]', () => {
+      host.weapons.set([buildWeapon({ id: 3, inventoryEntryId: 9, isPrimary: true, createdByUserId: 5 })]);
+      host.currentUserId.set(5);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const controlsRows = el.querySelectorAll('[card-controls]');
+      expect(controlsRows.length).toBe(1);
+      expect(controlsRows[0].querySelector('.card-swap-btn--equip')).toBeTruthy();
+      expect(controlsRows[0].querySelector('.card-action-row__manage')).toBeTruthy();
+      expect(el.querySelector('[card-actions]')).toBeNull();
+    });
+
+    it('keeps the Edit/Remove pair inside .card-action-row__manage', () => {
+      host.weapons.set([buildWeapon({ id: 3, inventoryEntryId: 9, isPrimary: true, createdByUserId: 5 })]);
+      host.currentUserId.set(5);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const manage = el.querySelector('.card-action-row__manage')!;
+      expect(manage.querySelector('.card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
+      expect(manage.querySelector('.card-swap-btn--vault')).toBeTruthy();
     });
   });
 

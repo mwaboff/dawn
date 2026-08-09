@@ -63,12 +63,13 @@ function weaponEquipActions(weapon: WeaponDisplay, state: InventoryEquipState): 
   }
 
   // A weapon is eligible for exactly one slot (`isPrimary`), so only that slot's button is offered
-  // -- the classic row showed both and left one permanently dead.
+  // -- the classic row showed both and left one permanently dead. The label names the slot, which
+  // is why the card no longer needs a "Primary Weapon" tag saying the same thing statically.
   if (weapon.isPrimary) {
     const allowed = canEquipWeaponAsPrimary(weapon, state.weaponConstraints);
     return [{
       kind: 'equip-primary',
-      label: 'Equip',
+      label: 'Equip primary',
       ariaLabel: `Equip ${weapon.name} as primary weapon`,
       disabled: !allowed,
       hint: allowed ? null : weaponBlockedHint(weapon, state.weaponConstraints),
@@ -78,7 +79,7 @@ function weaponEquipActions(weapon: WeaponDisplay, state: InventoryEquipState): 
   const allowed = canEquipWeaponAsSecondary(weapon, state.weaponConstraints);
   return [{
     kind: 'equip-secondary',
-    label: 'Equip',
+    label: 'Equip secondary',
     ariaLabel: `Equip ${weapon.name} as secondary weapon`,
     disabled: !allowed,
     hint: allowed ? null : weaponBlockedHint(weapon, state.weaponConstraints),

@@ -345,6 +345,23 @@ describe('EntityCard', () => {
     });
   });
 
+  describe('stats', () => {
+    it('renders one .entity-card__stat per entry, in order', () => {
+      host.card.set(buildCard({ stats: ['2d8+1 phys', 'Presence', 'Melee', 'Two-handed'] }));
+      fixture.detectChanges();
+
+      const stats = Array.from(root.querySelectorAll('.entity-card__stat')).map(el => el.textContent);
+      expect(stats).toEqual(['2d8+1 phys', 'Presence', 'Melee', 'Two-handed']);
+    });
+
+    it('renders no .entity-card__stats element when stats is absent', () => {
+      host.card.set(buildCard({ stats: undefined }));
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__stats')).toBeFalsy();
+    });
+  });
+
   describe('feature list', () => {
     it('tracks by index so two nameless features do not collide', () => {
       host.card.set(
