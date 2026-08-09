@@ -61,6 +61,8 @@ function buildLoot(overrides: Partial<LootDisplay> = {}): LootDisplay {
       [canEquipArmorSlot]="canEquipArmorSlot()"
       [errorMessage]="errorMessage()"
       [currentUserId]="currentUserId()"
+      (addItem)="onAddItem($event)"
+      (createItem)="onCreateItem($event)"
       (removeItem)="onRemoveItem($event)"
       (editItem)="onEditItem($event)"
       (equipWeapon)="onEquipWeapon($event)"
@@ -87,12 +89,22 @@ class TestHost {
   errorMessage = signal<string | null>(null);
   currentUserId = signal<number | null>(null);
 
+  addEvents: { type: string; item: unknown }[] = [];
+  createEvents: string[] = [];
   removeEvents: InventoryRemoveEvent[] = [];
   editEvents: InventoryEditEvent[] = [];
   equipWeaponEvents: InventoryEquipWeaponEvent[] = [];
   unequipWeaponEvents: { slot: 'primary' | 'secondary' }[] = [];
   equipArmorEvents: InventoryEquipArmorEvent[] = [];
   unequipArmorCount = 0;
+
+  onAddItem(ev: { type: string; item: unknown }): void {
+    this.addEvents.push(ev);
+  }
+
+  onCreateItem(kind: string): void {
+    this.createEvents.push(kind);
+  }
 
   onRemoveItem(ev: InventoryRemoveEvent): void {
     this.removeEvents.push(ev);
@@ -403,6 +415,79 @@ describe('InventorySectionBeta', () => {
       fixture.detectChanges();
 
       expect(el.querySelector('.empty-state')?.textContent).toContain('No loot in inventory.');
+    });
+  });
+
+  describe('adding gear', () => {
+    function addButton(): HTMLButtonElement | null {
+      return el.querySelector('.inventory-beta__add-btn');
+    }
+
+    function finder(): HTMLElement | null {
+      return el.querySelector('app-item-finder');
+    }
+
+    it('offers one add control regardless of which tab is open', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelectorAll('.inventory-beta__add-btn').length).toBe(1);
+      expect(addButton()?.textContent).toContain('Add gear');
+    });
+
+    it('offers no add control to someone else looking at the sheet', () => {
+      expect(addButton()).toBeNull();
+    });
+
+    it('opens the finder rather than an inline panel scoped to the active tab', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(finder()).toBeNull();
+      addButton()?.click();
+      fixture.detectChanges();
+
+      expect(finder()).not.toBeNull();
+    });
+
+    it('passes an add straight through to the sheet', () => {
+      const loot = { id: 9, name: 'Rope' };
+      const section = fixture.debugElement.children[0].componentInstance as InventorySectionBeta;
+
+      section.onItemAdded({ type: 'loot', item: loot as never });
+
+      expect(host.addEvents).toEqual([{ type: 'loot', item: loot }]);
+    });
+
+    it('shows the tab the added item landed on, so the add is visible behind the dialog', () => {
+      const section = fixture.debugElement.children[0].componentInstance as InventorySectionBeta;
+
+      section.onItemAdded({ type: 'armor', item: { id: 1, name: 'Gambeson' } as never });
+
+      expect(section.activeTab()).toBe('armor');
+    });
+
+    it('maps a weapon add onto the plural tab id', () => {
+      const section = fixture.debugElement.children[0].componentInstance as InventorySectionBeta;
+      section.selectTab('loot');
+
+      section.onItemAdded({ type: 'weapon', item: { id: 1, name: 'Dagger' } as never });
+
+      expect(section.activeTab()).toBe('weapons');
+    });
+
+    it('closes the finder before handing off to the item form, so two dialogs never overlap', () => {
+      host.isOwner.set(true);
+      fixture.detectChanges();
+      addButton()?.click();
+      fixture.detectChanges();
+
+      const section = fixture.debugElement.children[0].componentInstance as InventorySectionBeta;
+      section.onCreateRequested('weapon');
+      fixture.detectChanges();
+
+      expect(finder()).toBeNull();
+      expect(host.createEvents).toEqual(['weapon']);
     });
   });
 });

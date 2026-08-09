@@ -1,0 +1,69 @@
+/* Focus rings are the app-wide `:where(button…):focus-visible` from shared/styles/buttons.css --
+   these controls want exactly its 2px/2px treatment, and a local copy would be a redeclared global.
+
+   Chips, not the inventory tab strip: these filter one list in place rather than swapping panels,
+   and looking like the tabs above them would promise a behaviour they do not have. Same gold
+   family, different silhouette -- pill, filled when on, no underline.
+   Prefixed `.item-filter__*` rather than the generic `.filter-chip`, which `codex-search-bar.css`
+   already declares with a different treatment -- dawn/CLAUDE.md rules out a second meaning for a
+   class name even where view encapsulation keeps them from colliding at runtime. */
+:host { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-5); }
+
+.item-filter__types { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.item-filter__chip {
+  font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--color-parchment-a65); background: transparent;
+  /* 40%, not the 22% this started at: the outline is the only thing that makes an uppercase word
+     read as a control, and at 22% it measured 1.50:1 against the dialog -- an invisible boundary.
+     Still well short of the checked state's 55%, so the two remain easy to tell apart. */
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent); border-radius: 999px;
+  padding: var(--space-2) var(--space-6); cursor: pointer;
+  transition: color .15s, background-color .15s, border-color .15s;
+}
+.item-filter__chip:hover { color: var(--color-parchment); border-color: color-mix(in srgb, var(--color-accent) 60%, transparent); }
+/* Gold ink on a gold wash rather than a solid gold fill: the fill would out-shout the search field
+   above it, which is the one element in this dialog that should carry the most weight. */
+.item-filter__chip--active {
+  color: var(--color-accent-bright);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+}
+
+/* A checkbox, not a fifth pill. It answers a different question from the four beside it -- which
+   gear vs. whose gear -- and position alone could not carry that: at narrow widths the row wraps and
+   `margin-left: auto` stops separating anything, which is exactly when the two got confused. The
+   square box and square corners survive the wrap. */
+.item-filter__switch {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em;
+  color: var(--color-parchment-a65); background: transparent;
+  border: 1px solid transparent; border-radius: 3px;
+  padding: var(--space-2) var(--space-3); cursor: pointer;
+  transition: color .15s;
+}
+.item-filter__switch:hover { color: var(--color-parchment); }
+.item-filter__switch--on { color: var(--color-accent-bright); }
+
+.item-filter__switch-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1rem; height: 1rem; flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent); border-radius: 2px;
+  font-size: .7rem; line-height: 1;
+}
+.item-filter__switch--on .item-filter__switch-box {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+@media (max-width: 30rem) {
+  /* Once the row wraps, `margin-left: auto` would strand the switch alone on the right of its own
+     line; alignment stops meaning anything when there is nothing beside it. The checkbox mark is
+     what keeps it distinct from the pills at this width. */
+  .item-filter__switch { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item-filter__chip, .item-filter__switch { transition: none; }
+}

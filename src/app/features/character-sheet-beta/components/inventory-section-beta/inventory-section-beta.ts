@@ -15,7 +15,8 @@ import {
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
 import { InventoryTab, InventoryTabs } from '../../../../shared/components/inventory-tabs/inventory-tabs';
 import { ArmorDisplay, LootDisplay, WeaponDisplay } from '../../../character-sheet/models/character-sheet-view.model';
-import { InventoryAddPanel } from '../../../character-sheet/components/inventory-add-panel/inventory-add-panel';
+import { ItemFinder } from '../item-finder/item-finder';
+import { CatalogItem } from '../../utils/catalog-card.mapper';
 import {
   InventoryEditEvent,
   InventoryEquipArmorEvent,
@@ -23,35 +24,38 @@ import {
   InventoryRemoveEvent,
 } from '../../../character-sheet/components/inventory-section/inventory-section';
 import { WeaponEquipConstraints } from '../../../character-sheet/utils/inventory-equip.utils';
-import { ArmorResponse } from '../../../../shared/models/armor-api.model';
-import { LootApiResponse } from '../../../../shared/models/loot-api.model';
-import { WeaponResponse } from '../../../../shared/models/weapon-api.model';
 import {
   InventoryCardEntry,
   InventoryEquipAction,
   InventoryEquipState,
+  InventoryItemType,
   armorCardEntry,
   lootCardEntry,
   weaponCardEntry,
 } from '../../utils/inventory-card.mapper';
 
 /**
- * The beta inventory: the same three tabs, the same add panel and the same events as the classic
- * `InventorySection`, with each item drawn as the shared `EntityCard` the rest of the beta sheet
- * already uses instead of a bespoke equipment row.
+ * The beta inventory: the same three tabs and the same events as the classic `InventorySection`,
+ * with each item drawn as the shared `EntityCard` the rest of the beta sheet already uses instead
+ * of a bespoke equipment row.
  *
  * The template renders one flat list, not a branch per tab -- `inventory-card.mapper.ts` resolves a
  * weapon, an armor and a piece of loot into the same `InventoryCardEntry` shape, so the equip
  * buttons, the edit affordance and the reason a remove is blocked are decided there and this
  * component only wires the clicks back out. Every output matches `InventorySection`'s, so the sheet
  * keeps its existing handlers.
+ *
+ * Adding is where beta diverges: the classic `InventoryAddPanel` searches one type at a time and
+ * takes that type from whichever tab is open, so a player has to file a find before they can look
+ * for it. Beta opens `ItemFinder` instead -- one field over all three types -- and the tabs are
+ * left to do the one job they are good at, which is reading gear you already own.
  */
 @Component({
   selector: 'app-inventory-section-beta',
   templateUrl: './inventory-section-beta.html',
   styleUrl: './inventory-section-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard, InventoryAddPanel, InventoryTabs],
+  imports: [EntityCard, InventoryTabs, ItemFinder],
 })
 export class InventorySectionBeta {
   readonly weapons = input.required<WeaponDisplay[]>();
@@ -66,6 +70,8 @@ export class InventorySectionBeta {
   readonly errorMessage = input<string | null>(null);
   /** The viewer, so a card can tell whether the homebrew on it is theirs to edit. */
   readonly currentUserId = input<number | null>(null);
+  /** This character's proficiency, so the finder shows weapon damage as this character rolls it. */
+  readonly proficiency = input(1);
 
   readonly addItem = output<{ type: 'weapon' | 'armor' | 'loot'; item: unknown }>();
   readonly createItem = output<'weapon' | 'armor' | 'loot'>();
@@ -78,7 +84,7 @@ export class InventorySectionBeta {
   readonly dismissError = output<void>();
 
   readonly activeTab = signal<InventoryTab>('weapons');
-  readonly addPanelOpen = signal(false);
+  readonly finderOpen = signal(false);
   readonly confirmingRemoveEntryId = signal<number | null>(null);
 
   readonly tabCounts = computed<Record<InventoryTab, number>>(() => ({
@@ -86,11 +92,6 @@ export class InventorySectionBeta {
     armor: this.armors().length,
     loot: this.items().length,
   }));
-
-  readonly activeItemType = computed<'weapon' | 'armor' | 'loot'>(() => {
-    const tab = this.activeTab();
-    return tab === 'weapons' ? 'weapon' : tab;
-  });
 
   private readonly equipState = computed<InventoryEquipState>(() => ({
     activePrimaryWeapon: this.activePrimaryWeapon(),
@@ -157,25 +158,29 @@ export class InventorySectionBeta {
   selectTab(tab: InventoryTab): void {
     this.activeTab.set(tab);
     this.confirmingRemoveEntryId.set(null);
-    this.addPanelOpen.set(false);
   }
 
-  toggleAddPanel(): void {
-    this.addPanelOpen.update(open => !open);
+  openFinder(): void {
+    this.finderOpen.set(true);
   }
 
-  onItemAdded(item: WeaponResponse | ArmorResponse | LootApiResponse): void {
-    this.addItem.emit({ type: this.activeItemType(), item });
-    this.addPanelOpen.set(false);
+  /**
+   * The finder stays open so a player can add a handful of things in one visit, but the tab behind
+   * it follows what they picked -- closing the dialog onto the Weapons tab after adding a rope
+   * looks like the add silently failed.
+   */
+  onItemAdded(event: { type: InventoryItemType; item: CatalogItem }): void {
+    this.addItem.emit(event);
+    this.activeTab.set(event.type === 'weapon' ? 'weapons' : event.type);
   }
 
-  onAddPanelClosed(): void {
-    this.addPanelOpen.set(false);
+  onFinderClosed(): void {
+    this.finderOpen.set(false);
   }
 
-  /** Closes the picker behind the modal, the same way choosing a catalogue item does. */
-  onCreateRequested(type: 'weapon' | 'armor' | 'loot'): void {
-    this.addPanelOpen.set(false);
+  /** Closes the finder first: the item form is a modal too, and two at once trap focus in a fight. */
+  onCreateRequested(type: InventoryItemType): void {
+    this.finderOpen.set(false);
     this.createItem.emit(type);
   }
 

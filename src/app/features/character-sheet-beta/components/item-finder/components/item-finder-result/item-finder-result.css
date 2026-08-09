@@ -1,0 +1,30 @@
+/* The row's chrome only. The card is `EntityCard`, and the controls row and its buttons are global
+   (shared/styles/entity-card-actions.css) so a finder row and an inventory card wear the same
+   controls -- the item does not change appearance between choosing it and owning it. */
+:host { display: block; }
+
+/* Add sits at the far edge of every row, at the same x whether or not the item carries chips. A
+   button that shifts left and right down a scanning list is a button you have to look for.
+   Deliberately plain `.card-swap-btn`, not the `--equip` variant: green means *equip* on the
+   inventory cards directly behind this dialog, and teaching it a second meaning two panels apart
+   erodes the vocabulary. */
+.finder-result__add { margin-left: auto; }
+
+/* Reads as an EntityCard badge, because that is what it is -- the same tokens as
+   `.entity-card__badge`, on the controls row instead of the header, since `compact` cards draw no
+   header badges and these are exactly the facts the player needs while the card is collapsed. */
+.finder-result__chip {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--color-card-ink-faint);
+  border: 1px solid var(--color-card-rule); border-radius: 2px;
+  padding: .1rem .3rem; white-space: nowrap;
+}
+/* The one chip that reports something the player just did rather than something the item is, so it
+   borrows the card's own equip green -- the colour this app already uses for "in hand". */
+.finder-result__chip--added {
+  color: var(--color-swap-equip-text);
+  border-color: color-mix(in srgb, var(--color-swap-equip-text) 45%, transparent);
+}
+.finder-result__chip-glyph { font-size: .95em; line-height: 1; }

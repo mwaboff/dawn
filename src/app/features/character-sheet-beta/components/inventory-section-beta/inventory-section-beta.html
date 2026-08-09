@@ -4,10 +4,9 @@
     <button
       type="button"
       class="inventory-beta__add-btn"
-      [attr.aria-expanded]="addPanelOpen()"
-      [attr.aria-label]="'Add ' + activeItemType() + ' to inventory'"
-      (click)="toggleAddPanel()"
-    >+ Add</button>
+      aria-haspopup="dialog"
+      (click)="openFinder()"
+    >Add gear</button>
   }
 </div>
 
@@ -24,12 +23,15 @@
   panelIdPrefix="beta-inventory-panel"
   (tabSelected)="selectTab($event)" />
 
-<app-inventory-add-panel
-  [itemType]="activeItemType()"
-  [open]="addPanelOpen()"
-  (itemAdded)="onItemAdded($event)"
-  (createRequested)="onCreateRequested($event)"
-  (closed)="onAddPanelClosed()" />
+@if (finderOpen()) {
+  <app-item-finder
+    [proficiency]="proficiency()"
+    [currentUserId]="currentUserId()"
+    [addError]="errorMessage()"
+    (itemAdded)="onItemAdded($event)"
+    (createRequested)="onCreateRequested($event)"
+    (closed)="onFinderClosed()" />
+}
 
 <div
   class="inventory-beta__panel"
