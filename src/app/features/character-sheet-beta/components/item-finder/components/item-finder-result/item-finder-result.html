@@ -1,0 +1,25 @@
+<!-- Level 4: the dialog title is an h2 and each type group is an h3, so a result sits inside its
+     group rather than beside it. -->
+<app-entity-card [card]="entry().card" size="compact" [headingLevel]="4">
+  <div card-controls class="card-action-row finder-result__controls">
+    @if (provenanceLabel(); as label) {
+      <span class="finder-result__chip">
+        <span class="finder-result__chip-glyph" aria-hidden="true">&#10022;</span>{{ label }}
+      </span>
+    }
+    @if (added()) {
+      <span class="finder-result__chip finder-result__chip--added">
+        <span class="finder-result__chip-glyph" aria-hidden="true">&#10003;</span>Added
+      </span>
+    }
+    <button
+      type="button"
+      class="card-swap-btn finder-result__add"
+      [attr.aria-label]="addLabel()"
+      (click)="add.emit(entry())"
+    >
+      <span class="card-swap-btn__arrow" aria-hidden="true">+</span>
+      Add
+    </button>
+  </div>
+</app-entity-card>

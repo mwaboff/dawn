@@ -1,0 +1,26 @@
+<div class="item-filter__types" role="radiogroup" aria-label="Gear type" #group>
+  @for (filter of filters; track filter.value; let i = $index) {
+    <button
+      type="button"
+      role="radio"
+      class="item-filter__chip"
+      [class.item-filter__chip--active]="type() === filter.value"
+      [attr.aria-checked]="type() === filter.value"
+      [attr.tabindex]="getTabIndex(filter.value)"
+      (click)="typeChange.emit(filter.value)"
+      (keydown)="onKeydown($event, i)"
+    >{{ filter.label }}</button>
+  }
+</div>
+
+<button
+  type="button"
+  role="switch"
+  class="item-filter__switch"
+  [class.item-filter__switch--on]="customOnly()"
+  [attr.aria-checked]="customOnly()"
+  (click)="customOnlyChange.emit(!customOnly())"
+>
+  <span class="item-filter__switch-box" aria-hidden="true">{{ customOnly() ? '✓' : '' }}</span>
+  Custom only
+</button>

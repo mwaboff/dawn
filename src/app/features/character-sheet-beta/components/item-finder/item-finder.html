@@ -1,0 +1,87 @@
+<app-modal-shell title="Add gear" surface="sheet" (dismissed)="onClose()">
+  <div modal-body class="finder">
+    <div class="finder__head">
+      <div class="finder__search">
+        <svg class="finder__search-glyph" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+          <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+          <line x1="12.7" y1="12.7" x2="17.5" y2="17.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <label class="sr-only" [attr.for]="searchId">Search weapons, armor and loot by name</label>
+        <!-- No `autofocus` attribute: it is the first focusable element in the dialog, so
+             `appModalFocus` (ModalShell) lands on it anyway, and the attribute trips no-autofocus. -->
+        <input
+          #searchInput
+          [id]="searchId"
+          type="search"
+          class="form-input finder__search-input"
+          autocomplete="off"
+          placeholder="Search gear by name"
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)" />
+        @if (searchTerm()) {
+          <button type="button" class="finder__search-clear" aria-label="Clear search" (click)="clearSearch()">&#x2715;</button>
+        }
+      </div>
+
+      <app-item-filter-bar
+        [type]="filterType()"
+        [customOnly]="customOnly()"
+        (typeChange)="filterType.set($event)"
+        (customOnlyChange)="customOnly.set($event)" />
+    </div>
+
+    @if (addError(); as message) {
+      <p class="finder__alert" role="alert">{{ message }}</p>
+    }
+
+    <p class="sr-only" role="status">{{ searchStatus() }}</p>
+    <p class="sr-only" role="status">{{ lastAdded() }}</p>
+
+    @if (loadError()) {
+      <p class="finder__status finder__status--error">
+        Could not load gear.
+        <button type="button" class="btn btn--secondary btn--sm finder__action" (click)="retry()">Try again</button>
+      </p>
+    } @else if (busyMessage(); as busy) {
+      <p class="finder__status">{{ busy }}</p>
+    } @else if (emptyMessage(); as message) {
+      <p class="finder__status">
+        {{ message }}
+        @if (isNarrowed()) {
+          <button type="button" class="btn btn--secondary btn--sm finder__action" (click)="searchEverything()">Search all gear</button>
+        }
+      </p>
+    } @else {
+      <!-- The previous results stay mounted while a new query runs. Blanking the list on every
+           keystroke made the panel collapse to one line, jump in height and lose its scroll. -->
+      <div class="finder__results" [class.finder__results--busy]="loading()" [attr.aria-busy]="loading()">
+        @for (group of groups(); track group.type) {
+          <h3 class="finder__group" [attr.data-card-type]="group.type">
+            <span class="finder__group-label">{{ group.label }}</span>
+            <span class="finder__group-count">{{ group.countLabel }}</span>
+            @if (group.truncated) {
+              <span class="finder__group-note">narrow your search for the rest</span>
+            }
+          </h3>
+          <ul class="finder__list" role="list" [attr.aria-label]="group.label">
+            @for (entry of group.entries; track entry.type + '-' + entry.itemId) {
+              <li>
+                <app-item-finder-result [entry]="entry" [added]="isAdded(entry)" (add)="onAdd($event)" />
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+
+  <div modal-actions class="finder__footer">
+    <p class="finder__create">
+      Not in the books?
+      @for (kind of createKinds; track kind.type) {
+        <button type="button" class="finder__create-link" (click)="onCreate(kind.type)">{{ kind.label }}</button>
+      }
+    </p>
+    <button type="button" class="dialog-btn dialog-btn--cancel" (click)="onClose()">Done</button>
+  </div>
+</app-modal-shell>

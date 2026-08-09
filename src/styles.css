@@ -169,6 +169,10 @@
   --color-danger-ghost-text: #c47a7a;
   --color-danger-ghost-hover-text: #d49090;
   --color-warning-text: rgba(200, 110, 90, .85);
+  /* Error text for a dark panel. --color-warning-text measures 3.99:1 over --color-bg-dark, under
+     the 4.5:1 floor that body-sized text owes; this is the same hue lifted until it clears with
+     margin (7.73:1). Two dialogs had it inlined as a hex literal before it became a token. */
+  --color-error-text-on-dark: #e0968c;
   --color-swap-vault-text: rgba(212, 128, 86, .9);
   --color-swap-equip-text: rgba(86, 200, 120, .9);
 

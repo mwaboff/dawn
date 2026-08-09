@@ -1,0 +1,146 @@
+/* Chrome is `ModalShell` + `.dialog-panel--sheet` (shared/styles/dialog.css); the result rows are
+   `ItemFinderResult`; the chips are `ItemFilterBar`. What is left here is the dialog's width, its
+   search field, the group rules, and the states the list can be in. */
+:host {
+  /* Wider than the 420px confirm default: the rows are cards, and a weapon's stat line ("2d8+1 phys
+     / Presence / Melee / Two-handed") wraps to three lines in a confirmation-sized panel. Narrower
+     than the item form's 48rem -- these rows are one line tall and a longer measure just pushes the
+     Add button further from the name it belongs to. */
+  --dialog-max-w: 40rem;
+}
+
+/* `.dialog-body` scrolls, which computes overflow-x to `auto` and clips anything painted outside a
+   full-width child -- including the search field's 3px focus glow and the outermost chips' focus
+   outlines. Padding alone, with no compensating negative margin: the two would cancel, leaving every
+   descendant at exactly the x it started at (rings still clipped) while widening this block past the
+   scroll container and producing 4px of real horizontal overflow. `.finder__head` below does carry
+   the negative margin, because its background genuinely has to bleed to the panel edge. */
+.finder { padding-inline: 4px; }
+
+/* The dialog body scrolls, so the field and the chips stick to its top: what you are searching
+   should never scroll away from what you found. */
+.finder__head {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; flex-direction: column; gap: var(--space-5);
+  background: var(--color-bg-dark);
+  padding: 0 4px var(--space-6);
+  margin-inline: -4px;
+  /* Not a border -- a hairline under a sticky element reads as a permanent divider even when
+     nothing has scrolled under it yet. The fade only appears once content passes behind. */
+  box-shadow: 0 var(--space-6) var(--space-6) calc(var(--space-6) * -1) var(--color-bg-dark);
+}
+
+.finder__search { position: relative; display: flex; align-items: center; }
+
+/* The one deliberately oversized element in the dialog: this field is the whole point of the
+   redesign, so it gets the weight that three separate add buttons used to spread between them. */
+.finder__search-input {
+  width: 100%;
+  min-height: 2.75rem;
+  /* Derived from the glyph's own left offset and width rather than a round number, so the text
+     start stays aligned with it when --space-6 shrinks under condensed density. */
+  padding-left: calc(var(--space-6) + 1.6rem);
+  padding-right: calc(var(--space-6) + 1.6rem);
+  font-size: var(--text-base);
+}
+/* Native search chrome fights the gold clear button below it, and only one of the two is themeable. */
+.finder__search-input::-webkit-search-cancel-button { display: none; }
+
+/* Drawn rather than typed: U+2315 is in neither Cinzel nor Lora and falls through to whatever the
+   system has, which on some stacks is tofu -- on the one control that has to read as "search". */
+.finder__search-glyph {
+  position: absolute; left: var(--space-6); top: 50%; transform: translateY(-50%);
+  width: 1.1rem; height: 1.1rem;
+  color: var(--color-accent); pointer-events: none;
+}
+
+.finder__search-clear {
+  position: absolute; right: var(--space-3); top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  width: 1.75rem; height: 1.75rem;
+  background: none; border: none; border-radius: 3px;
+  color: var(--color-parchment-a65); font-size: var(--text-sm); cursor: pointer;
+}
+.finder__search-clear:hover { color: var(--color-parchment); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.finder__search-clear:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: -2px; }
+
+.finder__results { display: flex; flex-direction: column; gap: var(--space-3); }
+/* Dimmed, not replaced. The list a player is reading stays on screen while the next query runs. */
+.finder__results--busy { opacity: .55; transition: opacity .15s; }
+
+/* The type rule. Its accent comes from --ca (shared/styles/card-accents.css, keyed off the same
+   `data-card-type` attribute the cards themselves use), carried on the underline rather than on the
+   label -- the label stays parchment at 14:1 and holds the meaning, so the rule is decoration.
+   80%, not the 45% this started at: measured over --color-bg-dark, 45% gives 2.10:1 (weapon),
+   1.89:1 (armor), 2.63:1 (loot) -- under the 3:1 a UI boundary owes even as decoration, and faint
+   enough that the type marker barely registered. At 80% the same three are 4.06:1, 3.37:1, 6.0:1. */
+.finder__group {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-3);
+  margin: var(--space-6) 0 0; padding-bottom: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--ca) 80%, transparent);
+  font-family: var(--font-display); font-size: var(--text-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .14em;
+  color: var(--color-parchment-a85);
+}
+.finder__group:first-child { margin-top: 0; }
+.finder__group-count {
+  font-family: var(--font-body); font-weight: 400; letter-spacing: 0;
+  color: var(--color-parchment-a65);
+}
+/* States the per-type page cap. A truncated list that says nothing reads as "that is everything". */
+.finder__group-note {
+  margin-left: auto;
+  font-family: var(--font-body); font-size: var(--text-xs); font-weight: 400;
+  text-transform: none; letter-spacing: 0; font-style: italic;
+  color: var(--color-parchment-a65);
+}
+
+.finder__list { display: flex; flex-direction: column; gap: var(--space-3); list-style: none; margin: var(--space-3) 0 0; padding: 0; }
+
+.finder__status {
+  font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a70);
+  margin: 0; padding: var(--space-11) 0; text-align: center;
+}
+.finder__status--error { color: var(--color-error-text-on-dark); }
+
+/* A failed add, which the sheet's own banner cannot show while it sits behind the backdrop. */
+.finder__alert {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-6);
+  background: color-mix(in srgb, var(--color-error-text-on-dark) 8%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--color-error-text-on-dark) 55%, transparent);
+  font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-error-text-on-dark);
+}
+
+/* Chrome comes from `.btn.btn--secondary.btn--sm` (shared/styles/buttons.css) -- only the spacing
+   that puts it beside its sentence lives here. */
+.finder__action { margin-left: var(--space-5); }
+
+/* `.dialog-actions` justifies its children to the end, which would strand the create prompt beside
+   the Done button. This is the row instead: full width, prompt at the start, Done at the end. When
+   it wraps, `margin-right: auto` on the prompt keeps Done at the right rather than letting
+   `justify-content` resolve a one-item line to the left, where no other dialog puts its action. */
+.finder__footer {
+  display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap;
+  gap: var(--space-5); flex: 1 1 100%;
+}
+.finder__create {
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-4);
+  margin: 0 auto 0 0;
+  font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a70);
+}
+
+/* Full labels ("Write a weapon"), not bare nouns: each has to stand on its own in a screen reader's
+   links list and as a speech-input target, and vertical padding keeps them above the 24px floor. */
+.finder__create-link {
+  font-family: var(--font-body); font-size: var(--text-sm);
+  color: var(--color-accent); background: none; border: none;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  cursor: pointer;
+}
+.finder__create-link:hover { color: var(--color-accent-bright); border-bottom-color: var(--color-accent-bright); }
+
+@media (prefers-reduced-motion: reduce) {
+  .finder__results--busy { transition: none; }
+}

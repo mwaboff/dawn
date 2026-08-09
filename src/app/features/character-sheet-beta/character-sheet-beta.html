@@ -541,6 +541,7 @@
         [canEquipArmorSlot]="canEquipArmor()"
         [errorMessage]="inventoryError()"
         [currentUserId]="currentUserId()"
+        [proficiency]="sheet.proficiency.modified"
         (addItem)="onAddInventoryItem($event)"
         (createItem)="setCreatingItemKind($event)"
         (editItem)="onEditInventoryItem($event)"
