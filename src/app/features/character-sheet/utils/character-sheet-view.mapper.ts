@@ -148,7 +148,14 @@ function mapTraits(sheet: CharacterSheetResponse, modifiers: SourcedModifier[]):
   ];
 }
 
-function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency: number): WeaponDisplay {
+/**
+ * Exported for the beta sheet's item finder, which draws catalogue gear with the same card mapper
+ * the inventory uses (`character-sheet-beta/utils/catalog-card.mapper.ts`) so a weapon reads
+ * identically before and after it is picked up. A catalogue item sits in no inventory yet, so the
+ * finder passes the item's own id as `entryId`; the resulting display is read for presentation
+ * only and never serialized back into an inventory payload.
+ */
+export function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency: number): WeaponDisplay {
   return {
     id: weapon.id,
     inventoryEntryId: entryId,
@@ -164,7 +171,8 @@ function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency
   };
 }
 
-function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay {
+/** See `buildWeaponDisplay` for why this is exported and what `entryId` means to a catalogue item. */
+export function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay {
   return {
     id: armor.id,
     inventoryEntryId: entryId,
@@ -242,7 +250,8 @@ function mapDomainCardSummary(card: DomainCardResponse): DomainCardSummary {
   };
 }
 
-function buildLootDisplay(entryId: number, loot: LootApiResponse): LootDisplay {
+/** See `buildWeaponDisplay` for why this is exported and what `entryId` means to a catalogue item. */
+export function buildLootDisplay(entryId: number, loot: LootApiResponse): LootDisplay {
   return {
     id: loot.id,
     inventoryEntryId: entryId,

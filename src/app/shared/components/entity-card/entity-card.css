@@ -176,6 +176,12 @@
 
 .entity-card__fade { position: absolute; left: 0; right: 0; bottom: 0; height: 2.5rem; background: linear-gradient(to bottom, transparent, var(--color-card-face)); pointer-events: none; }
 
+/* A `compact` card is one scannable row; a full-height controls bar under it doubles that row and
+   undoes the size. The header keeps its own padding -- it is the part being read. */
+:host(.entity-card--compact) .entity-card__controls, :host(.entity-card--compact) .entity-card__actions {
+  padding: var(--space-2) var(--space-5);
+}
+
 .entity-card__controls:empty, .entity-card__actions:empty { display: none; }
 /* Pins the footer to the bottom of a grid-stretched card. The auto margin must sit on whichever
    footer comes FIRST or the free space splits the two apart; `display: none` above drops an empty

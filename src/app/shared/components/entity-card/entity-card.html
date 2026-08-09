@@ -40,7 +40,7 @@
       class="entity-card__header entity-card__header--interactive"
       [attr.aria-expanded]="displaySize() === 'expanded'"
       [attr.aria-controls]="bodyId()"
-      [attr.aria-label]="toggleLabel() + ' ' + card().name"
+      [attr.aria-label]="headerLabel()"
       (click)="toggle()"
     >
       <ng-container [ngTemplateOutlet]="headerContent" />

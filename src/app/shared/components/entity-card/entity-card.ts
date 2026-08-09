@@ -36,6 +36,9 @@ import { EntityCardData, EntityCardSize } from './entity-card.model';
   host: {
     '[attr.data-card-type]': 'card().cardType',
     '[class.entity-card--muted]': 'muted()',
+    // Lets the stylesheet reach the two slot elements, which are template nodes here rather than
+    // projected ones, and tighten their padding when the card is drawn as a single row.
+    '[class.entity-card--compact]': "displaySize() === 'compact'",
   },
 })
 export class EntityCard {
@@ -87,6 +90,17 @@ export class EntityCard {
   readonly showToggle = computed(() => this.displaySize() !== 'normal' || this.overflows());
 
   readonly toggleLabel = computed(() => (this.isExpanded() ? 'Collapse' : 'Expand'));
+
+  /**
+   * A `compact` card renders no body, so its headline -- the damage line, the armor score -- exists
+   * only in the header, where `aria-label` would otherwise override it away. Folding it into the
+   * label is what lets a screen-reader user compare two collapsed rows without opening both.
+   */
+  readonly headerLabel = computed(() => {
+    const label = `${this.toggleLabel()} ${this.card().name}`;
+    const headline = this.card().headline;
+    return this.displaySize() === 'compact' && headline ? `${label}, ${headline}` : label;
+  });
 
   constructor() {
     effect((onCleanup) => {
