@@ -25,6 +25,9 @@ class TestHost {
   onChipRemove(chip: FilterChip): void { this.lastRemovedChip = chip; }
 }
 
+/** The component's own `debounceTime` window (codex-search-bar.ts). */
+const DEBOUNCE_MS = 250;
+
 describe('CodexSearchBar', () => {
   let fixture: ComponentFixture<TestHost>;
   let host: TestHost;
@@ -37,7 +40,33 @@ describe('CodexSearchBar', () => {
     fixture = TestBed.createComponent(TestHost);
     host = fixture.componentInstance;
     fixture.detectChanges();
+
+    // Installed after `compileComponents()`, which awaits real async work of its own. The debounce
+    // tests drive the clock rather than sleeping on it: they used to race a real 300ms `setTimeout`
+    // against this 250ms debounce, which left 50ms of margin and lost it on a loaded CI runner.
+    vi.useFakeTimers();
   });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function searchInput(): HTMLInputElement {
+    return fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+  }
+
+  function typeInto(value: string): void {
+    const input = searchInput();
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  /** Closes the debounce window, so whatever was typed is emitted. */
+  function settleDebounce(): void {
+    vi.advanceTimersByTime(DEBOUNCE_MS);
+    fixture.detectChanges();
+  }
 
   it('creates the component', () => {
     const el = fixture.nativeElement as HTMLElement;
@@ -61,46 +90,59 @@ describe('CodexSearchBar', () => {
     expect(input.placeholder).toBe('Search within weapons…');
   });
 
-  it('does not emit immediately on input (debounce pending)', () => {
-    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
-    input.value = 'flame';
-    input.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+  it('holds the query until the debounce window closes', () => {
+    typeInto('flame');
+
+    // One tick short of the window: asserting the boundary, not merely "not yet".
+    vi.advanceTimersByTime(DEBOUNCE_MS - 1);
+
     expect(host.lastQuery).toBe('');
   });
 
-  it('emits queryChange after debounce settles', () => {
-    return new Promise<void>(resolve => {
-      const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
-      input.value = 'flame';
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
+  it('emits queryChange once the debounce settles', () => {
+    typeInto('flame');
 
-      setTimeout(() => {
-        expect(host.lastQuery).toBe('flame');
-        resolve();
-      }, 300);
-    });
+    settleDebounce();
+
+    expect(host.lastQuery).toBe('flame');
   });
 
-  it('clears query on ESC key and emits empty string', () => {
-    return new Promise<void>(resolve => {
-      const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
-      input.value = 'flame';
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
+  it('emits only the last keystroke of a burst, which is what the debounce is for', () => {
+    const emitted: string[] = [];
+    host.onQueryChange = (q: string) => emitted.push(q);
 
-      setTimeout(() => {
-        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-        fixture.detectChanges();
+    typeInto('f');
+    vi.advanceTimersByTime(50);
+    typeInto('fl');
+    vi.advanceTimersByTime(50);
+    typeInto('flame');
+    settleDebounce();
 
-        setTimeout(() => {
-          expect(host.lastQuery).toBe('');
-          resolve();
-        }, 300);
-      }, 300);
-    });
-  }, 1000);
+    expect(emitted).toEqual(['flame']);
+  });
+
+  it('clears the query and emits an empty string on Escape', () => {
+    typeInto('flame');
+    settleDebounce();
+    expect(host.lastQuery).toBe('flame');
+
+    searchInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    // Escape emits synchronously rather than through the debounce -- clearing is a decision the
+    // user has already made, so there is nothing to wait for.
+    expect(host.lastQuery).toBe('');
+  });
+
+  it('does not let the debounced value arrive after Escape and undo the clear', () => {
+    typeInto('flame');
+    searchInput().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    settleDebounce();
+
+    expect(host.lastQuery).toBe('');
+  });
 
   it('does not show chip row when no chips', () => {
     host.chips.set([]);
