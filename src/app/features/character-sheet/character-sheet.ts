@@ -26,7 +26,7 @@ import { Experience, isExperienceComplete } from '../../shared/models/experience
 import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
-import { ItemCreateModal, ItemCreatedEvent } from './components/item-create-modal/item-create-modal';
+import { ItemFormModal, ItemCreatedEvent } from './components/item-form-modal/item-form-modal';
 import { ItemKind, itemEditPath } from '../items/item-routes';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
@@ -55,7 +55,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemCreateModal],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemFormModal],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -301,7 +301,7 @@ export class CharacterSheet implements OnInit {
     this.initSavePipelines();
   }
 
-  private loadCharacterSheet(id: number): void {
+  protected loadCharacterSheet(id: number): void {
     const expandFields = [
       'experiences',
       'communityCards',

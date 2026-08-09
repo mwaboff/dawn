@@ -320,6 +320,48 @@ describe('EntityCard', () => {
     });
   });
 
+  describe('badge glyph', () => {
+    it('renders a decorative, aria-hidden glyph before a badge that has one', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Custom', glyph: '✦' }] }));
+      fixture.detectChanges();
+
+      const glyph = header().querySelector('.entity-card__badge-glyph')!;
+      expect(glyph.textContent).toBe('✦');
+      expect(glyph.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('still renders the badge label text alongside the glyph', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Custom', glyph: '✦' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge')?.textContent).toContain('Custom');
+    });
+
+    it('renders no glyph element for a badge without one', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Lvl', value: '3' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge-glyph')).toBeFalsy();
+    });
+  });
+
+  describe('stats', () => {
+    it('renders one .entity-card__stat per entry, in order', () => {
+      host.card.set(buildCard({ stats: ['2d8+1 phys', 'Presence', 'Melee', 'Two-handed'] }));
+      fixture.detectChanges();
+
+      const stats = Array.from(root.querySelectorAll('.entity-card__stat')).map(el => el.textContent);
+      expect(stats).toEqual(['2d8+1 phys', 'Presence', 'Melee', 'Two-handed']);
+    });
+
+    it('renders no .entity-card__stats element when stats is absent', () => {
+      host.card.set(buildCard({ stats: undefined }));
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__stats')).toBeFalsy();
+    });
+  });
+
   describe('feature list', () => {
     it('tracks by index so two nameless features do not collide', () => {
       host.card.set(

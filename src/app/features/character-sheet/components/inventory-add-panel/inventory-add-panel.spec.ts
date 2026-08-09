@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { InventoryAddPanel } from './inventory-add-panel';
 import { WeaponService } from '../../../../shared/services/weapon.service';
 import { ArmorService } from '../../../../shared/services/armor.service';
@@ -35,6 +35,13 @@ describe('InventoryAddPanel', () => {
   let mockLootService: { getLootRaw: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
+    // Fake timers from the moment the component is constructed, so the debounced search pipe
+    // (built with rxjs's real-time `debounceTime` inside the constructor) schedules against the
+    // same clock every test in this file advances -- starting fake timers only inside a later
+    // `it` would leave the component's very first (construction-time) debounce tick pending on
+    // the real clock, invisible to `vi.advanceTimersByTime`.
+    vi.useFakeTimers();
+
     mockWeaponService = { getWeaponsRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
     mockArmorService = { getArmorsRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
     mockLootService = { getLootRaw: vi.fn().mockReturnValue(of({ items: [], currentPage: 0, totalPages: 0, totalElements: 0 })) };
@@ -51,6 +58,10 @@ describe('InventoryAddPanel', () => {
     host = fixture.componentInstance;
     fixture.detectChanges();
     el = fixture.nativeElement;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('creates the component', () => {
@@ -345,7 +356,7 @@ describe('InventoryAddPanel', () => {
     fixture.detectChanges();
 
     expect(el.querySelector('.add-panel__item-name')).toBeNull();
-    expect(el.querySelector('.add-panel__load-btn')?.textContent?.trim()).toBe('Browse Armor');
+    expect(el.querySelector('.add-panel__load-btn')?.textContent?.trim()).toBe('Browse all armor');
   });
 
   describe('create your own', () => {
@@ -385,6 +396,78 @@ describe('InventoryAddPanel', () => {
       el.querySelector<HTMLButtonElement>('.add-panel__create-btn')!.click();
 
       expect(host.createRequests).toEqual(['loot']);
+    });
+  });
+
+  describe('debounced name search', () => {
+    function typeSearch(term: string): void {
+      const input = el.querySelector<HTMLInputElement>('.add-panel__search-input')!;
+      input.value = term;
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    it('passes the typed name through to the service after the 300ms debounce', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      typeSearch('Dagger');
+      vi.advanceTimersByTime(300);
+
+      expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL', name: 'Dagger' });
+    });
+
+    it('does not fire a request for an empty search box on a fresh tab', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      vi.advanceTimersByTime(300);
+
+      expect(mockWeaponService.getWeaponsRaw).not.toHaveBeenCalled();
+    });
+
+    it('refetches when the search box is cleared after a list was already loaded', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+      el.querySelector<HTMLButtonElement>('.add-panel__load-btn')!.click();
+      fixture.detectChanges();
+      mockWeaponService.getWeaponsRaw.mockClear();
+
+      typeSearch('Dagger');
+      vi.advanceTimersByTime(300);
+      mockWeaponService.getWeaponsRaw.mockClear();
+
+      el.querySelector<HTMLButtonElement>('.add-panel__search-clear')!.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(300);
+
+      expect(mockWeaponService.getWeaponsRaw).toHaveBeenCalledWith({ size: 50, damageType: 'PHYSICAL' });
+    });
+
+    it('renders the searched-term wording when a search comes back empty', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+
+      typeSearch('Dagger');
+      vi.advanceTimersByTime(300);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.add-panel__empty')?.textContent?.trim()).toBe('No weapons match “Dagger”.');
+    });
+
+    it('shows the clear button only once a search term is present', () => {
+      host.itemType.set('weapon');
+      host.open.set(true);
+      fixture.detectChanges();
+      expect(el.querySelector('.add-panel__search-clear')).toBeNull();
+
+      typeSearch('D');
+
+      expect(el.querySelector('.add-panel__search-clear')).toBeTruthy();
     });
   });
 });

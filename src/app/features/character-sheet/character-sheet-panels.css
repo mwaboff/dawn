@@ -23,14 +23,12 @@
 .card-group__count--domain { color: rgba(212,128,86,.75); }
 .expandable-card--vaulted { opacity: .7; border-style: dashed; }
 .expandable-card--vaulted:hover { opacity: .85; }
+/* `.card-swap-btn*` now comes from the global shared/styles/entity-card-actions.css -- the local
+   copies here and in inventory-item-row.css were byte-identical to each other and to the global
+   rules once its tokens are resolved, so they are gone. `.card-swap-action` deliberately stays and
+   overrides the global one: this sheet's swap row is a hairline-ruled footer inside an
+   `.expandable-card`, not the padded bar an EntityCard slot needs. */
 .card-swap-action { display: flex; align-items: center; gap: var(--space-3); padding-top: var(--space-2); border-top: 1px solid rgba(212,160,86,.06); margin-top: .2rem; }
-.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid rgba(212,160,86,.25); background: transparent; color: rgba(212,160,86,.75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
-.card-swap-btn:hover:not(:disabled) { background: rgba(212,160,86,.08); border-color: rgba(212,160,86,.4); color: var(--color-accent); }
-.card-swap-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.card-swap-btn:disabled { opacity: .4; cursor: not-allowed; }
-.card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
-.card-swap-btn--vault:hover:not(:disabled) { border-color: rgba(160,100,50,.5); color: rgba(212,128,86,.9); background: rgba(212,128,86,.08); }
-.card-swap-btn--equip:hover:not(:disabled) { border-color: rgba(86,180,120,.5); color: rgba(86,200,120,.9); background: rgba(86,180,120,.08); }
 .card-swap-hint { font-family: var(--font-body); font-size: var(--text-xs); color: var(--color-accent-a75); font-style: italic; }
 .vault-section { margin-top: var(--space-11); padding-top: var(--space-9); border-top: 1px dashed rgba(212,160,86,.15); }
 .vault-header { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-5); }

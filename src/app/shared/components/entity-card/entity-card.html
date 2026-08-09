@@ -15,7 +15,12 @@
   @if (displaySize() !== 'compact' && card().badges?.length) {
     <span class="entity-card__badges">
       @for (badge of card().badges; track badge.label) {
-        <span class="entity-card__badge">{{ badge.value ? badge.label + ': ' + badge.value : badge.label }}</span>
+        <span class="entity-card__badge">
+          @if (badge.glyph) {
+            <span class="entity-card__badge-glyph" aria-hidden="true">{{ badge.glyph }}</span>
+          }
+          {{ badge.value ? badge.label + ': ' + badge.value : badge.label }}
+        </span>
       }
     </span>
   }
@@ -58,6 +63,13 @@
 >
   @if (displaySize() !== 'compact') {
     <div class="entity-card__body">
+      @if (card().stats?.length) {
+        <div class="entity-card__stats">
+          @for (stat of card().stats; track $index) {
+            <span class="entity-card__stat">{{ stat }}</span>
+          }
+        </div>
+      }
       @if (card().meta?.length) {
         <div class="entity-card__meta">
           @for (item of card().meta; track item.label) {

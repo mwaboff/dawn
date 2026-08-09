@@ -1,7 +1,0 @@
-/* Chrome is `.dialog-panel--sheet` (shared/styles/dialog.css) and the form's own structure is
-   global (shared/styles/forms.css); only this dialog's width lives here, as a custom property so
-   it crosses into ModalShell's encapsulated template -- the item form is a multi-column grid with
-   a feature editor under it, so the 420px default would squeeze every field into one column. */
-:host {
-  --dialog-max-w: 48rem;
-}

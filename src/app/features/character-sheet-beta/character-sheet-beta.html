@@ -529,7 +529,7 @@
     </section>
 
     <section class="inventory-section" aria-label="Inventory">
-      <app-inventory-section
+      <app-inventory-section-beta
         [weapons]="sheet.inventoryWeapons"
         [armors]="sheet.inventoryArmors"
         [items]="sheet.inventoryItems"
@@ -632,10 +632,12 @@
     }
     <app-dice-roller />
 
-    @if (creatingItemKind(); as kind) {
-      <app-item-create-modal
-        [kind]="kind"
-        (created)="onCustomItemCreated($event)"
+    @if (itemModalRequest(); as request) {
+      <app-item-form-modal
+        [kind]="request.kind"
+        [itemId]="request.itemId"
+        (created)="onItemModalCreated($event)"
+        (updated)="onItemModalUpdated()"
         (dismissed)="setCreatingItemKind(null)" />
     }
   }

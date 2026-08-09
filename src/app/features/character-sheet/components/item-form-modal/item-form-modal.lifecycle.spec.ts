@@ -8,22 +8,22 @@ import { vi } from 'vitest';
 import { AuthService } from '../../../../core/services/auth.service';
 import { CampaignService } from '../../../../shared/services/campaign.service';
 import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
-import { ItemCreateModal } from './item-create-modal';
+import { ItemFormModal } from './item-form-modal';
 import { ItemSubmit } from '../../../items/item-submit';
 import { ItemKind } from '../../../items/item-routes';
 
 /** Mirrors `character-sheet.html`'s gate exactly: `@if (creatingItemKind(); as kind)`. */
 @Component({
   template: `@if (kind(); as k) {
-    <app-item-create-modal [kind]="k" />
+    <app-item-form-modal [kind]="k" />
   }`,
-  imports: [ItemCreateModal],
+  imports: [ItemFormModal],
 })
 class SheetLikeHost {
   readonly kind = signal<ItemKind | null>(null);
 }
 
-describe('ItemCreateModal lifecycle on the character sheet', () => {
+describe('ItemFormModal lifecycle on the character sheet', () => {
   /**
    * The modal locks body scroll while open, and `document.body` is shared across every spec in the
    * run. A test that leaves it locked fails an unrelated file (`refine-sheet` asserts it restores
@@ -57,7 +57,7 @@ describe('ItemCreateModal lifecycle on the character sheet', () => {
 
   it('renders no modal until the kind signal is set', () => {
     const { el } = setup();
-    expect(el.querySelector('app-item-create-modal')).toBeNull();
+    expect(el.querySelector('app-item-form-modal')).toBeNull();
   });
 
   it('drops a half-typed name when the modal is closed and re-opened', () => {
@@ -73,7 +73,7 @@ describe('ItemCreateModal lifecycle on the character sheet', () => {
 
     host.kind.set(null);
     fixture.detectChanges();
-    expect(el.querySelector('app-item-create-modal')).toBeNull();
+    expect(el.querySelector('app-item-form-modal')).toBeNull();
 
     host.kind.set('weapon');
     fixture.detectChanges();

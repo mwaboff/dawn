@@ -1,0 +1,54 @@
+<app-modal-shell [title]="title()" [processing]="saving()" surface="sheet" (dismissed)="onDismiss()">
+  <div modal-body>
+    <!-- One permanently-mounted status element whose TEXT changes, not a paragraph mounted with its
+         message already in it: a live region inserted and populated in the same paint is commonly
+         not announced at all. -->
+    <p
+      class="item-form-modal__status"
+      [class.item-form-modal__status--error]="loadError()"
+      [class.item-form-modal__status--hidden]="!loading() && !loadError()"
+      [attr.role]="loadError() ? 'alert' : 'status'"
+      aria-live="polite"
+    >
+      @if (loading()) {
+        Loading item…
+      } @else if (loadError()) {
+        This item could not be loaded. Close the dialog and try again.
+      }
+    </p>
+
+    @if (!loading() && !loadError()) {
+      @if (isEditing()) {
+        <p class="item-form-modal__scope-note">
+          Changes apply everywhere this item is used, not just on this sheet.
+        </p>
+      }
+      <app-item-form
+        [formId]="formId"
+        [showActions]="false"
+        [lockedKind]="kind()"
+        [initialValue]="initialValue()"
+        [submitting]="saving()"
+        [errorMessage]="saveError()"
+        [campaignOptions]="campaignOptions()"
+        [canSetPublic]="canSetPublic()"
+        (submitted)="onSubmitted($event)"
+      />
+    }
+  </div>
+
+  <ng-container modal-actions>
+    <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="saving()" (click)="onDismiss()">
+      Cancel
+    </button>
+    @if (!loading() && !loadError()) {
+      <button type="submit" [attr.form]="formId" class="dialog-btn dialog-btn--submit" [disabled]="saving()">
+        @if (saving()) {
+          Saving...
+        } @else {
+          {{ submitLabel() }}
+        }
+      </button>
+    }
+  </ng-container>
+</app-modal-shell>

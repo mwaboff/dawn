@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { DecimalPipe, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CharacterSheet } from '../character-sheet/character-sheet';
@@ -11,8 +11,10 @@ import { BeastformSectionBeta } from './components/beastform-section-beta/beastf
 import { MartialStancePanelBeta } from './components/martial-stance-panel-beta/martial-stance-panel-beta';
 import { TransformationPanelBeta } from './components/transformation-panel-beta/transformation-panel-beta';
 import { CompanionPanelBeta } from './components/companion-panel-beta/companion-panel-beta';
-import { InventorySection } from '../character-sheet/components/inventory-section/inventory-section';
-import { ItemCreateModal } from '../character-sheet/components/item-create-modal/item-create-modal';
+import { InventoryEditEvent } from '../character-sheet/components/inventory-section/inventory-section';
+import { ItemCreatedEvent, ItemFormModal } from '../character-sheet/components/item-form-modal/item-form-modal';
+import { InventorySectionBeta } from './components/inventory-section-beta/inventory-section-beta';
+import { ItemKind } from '../items/item-routes';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';
@@ -56,7 +58,7 @@ interface DomainCardEntry {
     SavingSpinner,
     RouterLink,
     FormatTextPipe,
-    InventorySection,
+    InventorySectionBeta,
     ModifierIndicator,
     DiceRoller,
     DecimalPipe,
@@ -66,7 +68,7 @@ interface DomainCardEntry {
     TransformationPanelBeta,
     ResourceTracker,
     CompanionPanelBeta,
-    ItemCreateModal,
+    ItemFormModal,
     EntityCard,
     CollapsibleCardGroup,
   ],
@@ -94,4 +96,39 @@ export class CharacterSheetBeta extends CharacterSheet {
   readonly vaultDomainCardEntries = computed<DomainCardEntry[]>(() =>
     (this.characterSheet()?.vaultDomainCards ?? []).map(card => ({ cardId: card.id, card: domainCardToEntity(card) })),
   );
+
+  /**
+   * What the item dialog is doing: building a new item of `kind`, or editing the existing `itemId`.
+   * One signal rather than two so the template mounts the dialog once -- two `@if` blocks over the
+   * same component is the duplicated-branch pattern `.agents/rules/component-design.md` rules out.
+   */
+  readonly itemModalRequest = signal<{ kind: ItemKind; itemId: number | null } | null>(null);
+
+  override setCreatingItemKind(kind: ItemKind | null): void {
+    this.itemModalRequest.set(kind ? { kind, itemId: null } : null);
+  }
+
+  /**
+   * Homebrew is edited in place here, where `CharacterSheet` navigates to the routed builder.
+   * Staying on the sheet is the point of the card's Edit button -- the warning the builder page
+   * carries in prose (an edit applies everywhere the item is used) moves into the dialog with it.
+   */
+  override onEditInventoryItem(event: InventoryEditEvent): void {
+    this.itemModalRequest.set({ kind: event.type, itemId: event.itemId });
+  }
+
+  onItemModalCreated(event: ItemCreatedEvent): void {
+    this.itemModalRequest.set(null);
+    this.onAddInventoryItem(event);
+  }
+
+  /**
+   * An edit changes the catalogue item, not the inventory entry pointing at it, so there is nothing
+   * to send -- the sheet just has to re-read what it now says.
+   */
+  onItemModalUpdated(): void {
+    this.itemModalRequest.set(null);
+    const id = this.characterSheet()?.id;
+    if (id !== undefined) this.loadCharacterSheet(id);
+  }
 }

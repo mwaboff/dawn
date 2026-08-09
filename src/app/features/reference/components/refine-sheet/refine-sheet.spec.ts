@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { RefineSheet } from './refine-sheet';
@@ -33,6 +33,14 @@ class HostComponent {
 describe('RefineSheet', () => {
   let hostFixture: ComponentFixture<HostComponent>;
   let host: HostComponent;
+
+  // `document.body.style` is shared global state and this sheet locks it while mounted, so a test
+  // that inherits a still-locked body sees the lock's saved "previous" value become 'hidden' and
+  // the restore-on-destroy assertion fails. Resetting here (after the assertions) makes each test
+  // start unlocked regardless of fixture teardown order.
+  afterEach(() => {
+    document.body.style.overflow = '';
+  });
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

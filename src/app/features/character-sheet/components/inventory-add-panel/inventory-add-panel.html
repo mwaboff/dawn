@@ -2,7 +2,22 @@
   <div class="add-panel">
     <div class="add-panel__header">
       <span class="add-panel__title">Add {{ itemType() === 'weapon' ? 'Weapon' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</span>
-      <button class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
+      <button type="button" class="add-panel__close" (click)="onClose()" aria-label="Close add panel">&#x2715;</button>
+    </div>
+
+    <div class="add-panel__search">
+      <label class="sr-only" [attr.for]="'add-panel-search-' + itemType()">Search {{ typeLabel().plural }} by name</label>
+      <input
+        type="search"
+        class="add-panel__search-input"
+        [id]="'add-panel-search-' + itemType()"
+        [value]="searchTerm()"
+        [attr.placeholder]="'Search ' + typeLabel().plural + ' by name'"
+        autocomplete="off"
+        (input)="onSearchInput($event)" />
+      @if (searchTerm()) {
+        <button type="button" class="add-panel__search-clear" (click)="clearSearch()" aria-label="Clear search">&#x2715;</button>
+      }
     </div>
 
     @if (itemType() === 'weapon') {
@@ -28,13 +43,17 @@
 
     @if (!loading() && !loadError() && shouldShowBrowsePrompt()) {
       <div class="add-panel__prompt">
-        <button class="add-panel__load-btn" (click)="loadItems()">Browse {{ itemType() === 'weapon' ? 'Weapons' : itemType() === 'armor' ? 'Armor' : 'Loot' }}</button>
+        <button type="button" class="add-panel__load-btn" (click)="loadItems()">Browse all {{ typeLabel().plural }}</button>
       </div>
     }
 
-    @if (itemType() === 'weapon' && weaponItemsLoaded() && !loading() && !loadError() && weaponItems().length === 0) {
-      <p class="add-panel__loading">No weapons match this filter.</p>
+    @if (!loading() && !loadError() && noResultsMessage(); as message) {
+      <p class="add-panel__empty">{{ message }}</p>
     }
+
+    <p class="sr-only" role="status" aria-live="polite">
+      @if (loading()) { Searching {{ typeLabel().plural }}… } @else if (listLoaded()) { {{ resultCount() }} {{ typeLabel().plural }} found }
+    </p>
 
     @if (loading()) {
       <p class="add-panel__loading">Loading...</p>

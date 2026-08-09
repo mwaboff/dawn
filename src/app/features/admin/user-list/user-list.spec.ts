@@ -64,14 +64,24 @@ describe('UserList', () => {
     expect(navSpy).toHaveBeenCalledWith(['/admin/users', 42]);
   });
 
-  it('resets page to 0 when filters change', async () => {
+  it('resets page to 0 when filters change', () => {
     listSpy.mockReturnValue(of(makeResponse({ totalPages: 3, currentPage: 0 })));
     fixture.detectChanges();
     component.page.set(2);
     listSpy.mockClear();
 
-    component.filtersForm.patchValue({ username: 'al' });
-    await new Promise(r => setTimeout(r, 350));
+    // Drives the component's 300ms filter debounce on a fake clock. This used to sleep 350ms of
+    // real time -- a 50ms margin that a loaded CI runner missed often enough to fail a PR build,
+    // since the whole suite's timers compete for the same event loop. Timers are faked only around
+    // the debounce so the rest of the file keeps the real clock.
+    vi.useFakeTimers();
+    try {
+      component.filtersForm.patchValue({ username: 'al' });
+      vi.advanceTimersByTime(300);
+    } finally {
+      vi.useRealTimers();
+    }
+
     expect(listSpy).toHaveBeenCalled();
     const lastCallArg = listSpy.mock.calls.at(-1)?.[0] as { page: number };
     expect(lastCallArg.page).toBe(0);

@@ -14,44 +14,7 @@
   </div>
 }
 
-<div class="inventory-tabs" role="tablist" aria-label="Inventory categories" #tabList>
-  <button class="inventory-tab" role="tab"
-          [class.inventory-tab--active]="activeTab() === 'weapons'"
-          [attr.aria-selected]="activeTab() === 'weapons'"
-          [attr.tabindex]="getTabIndex('weapons')"
-          aria-controls="inventory-panel-weapons"
-          (click)="selectTab('weapons')"
-          (keydown)="onTabKeydown($event, 0)">
-    Weapons
-    @if (weapons().length > 0) {
-      <span class="inventory-tab__count">{{ weapons().length }}</span>
-    }
-  </button>
-  <button class="inventory-tab" role="tab"
-          [class.inventory-tab--active]="activeTab() === 'armor'"
-          [attr.aria-selected]="activeTab() === 'armor'"
-          [attr.tabindex]="getTabIndex('armor')"
-          aria-controls="inventory-panel-armor"
-          (click)="selectTab('armor')"
-          (keydown)="onTabKeydown($event, 1)">
-    Armor
-    @if (armors().length > 0) {
-      <span class="inventory-tab__count">{{ armors().length }}</span>
-    }
-  </button>
-  <button class="inventory-tab" role="tab"
-          [class.inventory-tab--active]="activeTab() === 'loot'"
-          [attr.aria-selected]="activeTab() === 'loot'"
-          [attr.tabindex]="getTabIndex('loot')"
-          aria-controls="inventory-panel-loot"
-          (click)="selectTab('loot')"
-          (keydown)="onTabKeydown($event, 2)">
-    Loot
-    @if (items().length > 0) {
-      <span class="inventory-tab__count">{{ items().length }}</span>
-    }
-  </button>
-</div>
+<app-inventory-tabs [activeTab]="activeTab()" [counts]="tabCounts()" (tabSelected)="selectTab($event)" />
 
 <app-inventory-add-panel
   [itemType]="activeItemType()"
@@ -62,7 +25,7 @@
 
 @switch (activeTab()) {
   @case ('weapons') {
-    <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel">
+    <div class="inventory-panel" id="inventory-panel-weapons" role="tabpanel" aria-labelledby="inventory-panel-tab-weapons">
       @if (weapons().length > 0) {
         <div class="inventory-group__list">
           @for (weapon of weapons(); track weapon.inventoryEntryId) {
@@ -89,7 +52,7 @@
     </div>
   }
   @case ('armor') {
-    <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel">
+    <div class="inventory-panel" id="inventory-panel-armor" role="tabpanel" aria-labelledby="inventory-panel-tab-armor">
       @if (armors().length > 0) {
         <div class="inventory-group__list">
           @for (armor of armors(); track armor.inventoryEntryId) {
@@ -115,7 +78,7 @@
     </div>
   }
   @case ('loot') {
-    <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel">
+    <div class="inventory-panel" id="inventory-panel-loot" role="tabpanel" aria-labelledby="inventory-panel-tab-loot">
       @if (items().length > 0) {
         <div class="inventory-group__list">
           @for (item of items(); track item.inventoryEntryId) {
