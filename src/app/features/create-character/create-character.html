@@ -25,22 +25,44 @@
       >
         @switch (activeTab()) {
           @case ('class') {
-            <app-card-selection-grid
-              [cards]="classCards()"
-              [loading]="classCardsLoading()"
-              [error]="classCardsError()"
-              [selectedCard]="selectedClassCard()"
-              [skeletonCount]="9"
-              [collapsibleFeatures]="true"
-              layout="wide"
-              (cardSelected)="onCardClicked($event)"
-            />
+            @if (sheetLayout() === 'beta') {
+              <app-entity-selection-grid
+                appCardSurface="light-only"
+                [cards]="classCards()"
+                [loading]="classCardsLoading()"
+                [error]="classCardsError()"
+                [selectedCard]="selectedClassCard()"
+                [skeletonCount]="9"
+                layout="wide"
+                ariaLabel="Choose a class"
+                (cardSelected)="onCardClicked($event)"
+              />
+            } @else {
+              <app-card-selection-grid
+                [cards]="classCards()"
+                [loading]="classCardsLoading()"
+                [error]="classCardsError()"
+                [selectedCard]="selectedClassCard()"
+                [skeletonCount]="9"
+                [collapsibleFeatures]="true"
+                layout="wide"
+                (cardSelected)="onCardClicked($event)"
+              />
+            }
           }
           @case ('subclass') {
             @if (subclassCardsLoading()) {
               <app-card-skeleton [count]="4" />
             } @else if (subclassCardsError()) {
               <app-card-error />
+            } @else if (sheetLayout() === 'beta') {
+              <app-subclass-path-selector
+                appCardSurface="light-only"
+                cardFormat="beta"
+                [cards]="subclassCards()"
+                [selectedCard]="selectedSubclassCard()"
+                (cardSelected)="onCardClicked($event)"
+              />
             } @else {
               <app-subclass-path-selector
                 [cards]="subclassCards()"
@@ -57,6 +79,7 @@
           }
           @case ('martial-stances') {
             <app-martial-stance-selector
+              [cardFormat]="sheetLayout()"
               [cards]="martialStanceCards()"
               [loading]="martialStanceCardsLoading()"
               [error]="martialStanceCardsError()"
@@ -66,6 +89,7 @@
           }
           @case ('ancestry') {
             <app-ancestry-selector
+              [cardFormat]="sheetLayout()"
               [cards]="ancestryCards()"
               [loading]="ancestryCardsLoading()"
               [error]="ancestryCardsError()"
@@ -76,16 +100,30 @@
             />
           }
           @case ('community') {
-            <app-card-selection-grid
-              [cards]="communityCards()"
-              [loading]="communityCardsLoading()"
-              [error]="communityCardsError()"
-              [selectedCard]="selectedCommunityCard()"
-              [skeletonCount]="6"
-              [collapsibleFeatures]="true"
-              layout="wide"
-              (cardSelected)="onCardClicked($event)"
-            />
+            @if (sheetLayout() === 'beta') {
+              <app-entity-selection-grid
+                appCardSurface="light-only"
+                [cards]="communityCards()"
+                [loading]="communityCardsLoading()"
+                [error]="communityCardsError()"
+                [selectedCard]="selectedCommunityCard()"
+                [skeletonCount]="6"
+                layout="wide"
+                ariaLabel="Choose a community"
+                (cardSelected)="onCardClicked($event)"
+              />
+            } @else {
+              <app-card-selection-grid
+                [cards]="communityCards()"
+                [loading]="communityCardsLoading()"
+                [error]="communityCardsError()"
+                [selectedCard]="selectedCommunityCard()"
+                [skeletonCount]="6"
+                [collapsibleFeatures]="true"
+                layout="wide"
+                (cardSelected)="onCardClicked($event)"
+              />
+            }
           }
           @case ('traits') {
             <app-trait-selector
@@ -96,6 +134,7 @@
           @case ('starting-weapon') {
             <div class="equipment-vault">
               <app-weapon-section
+                [cardFormat]="sheetLayout()"
                 [hasMagicAccess]="subclassHasMagicAccess()"
                 [initialPrimary]="selectedPrimaryWeapon()"
                 [initialSecondary]="selectedSecondaryWeapon()"
@@ -106,6 +145,7 @@
           @case ('starting-armor') {
             <div class="equipment-vault">
               <app-armor-section
+                [cardFormat]="sheetLayout()"
                 [initialArmor]="selectedArmor()"
                 (armorSelected)="onArmorSelected($event)"
               />
@@ -121,17 +161,33 @@
             @if (bonusDomainCardSlots() > 0) {
               <p class="bonus-card-hint">Includes {{ bonusDomainCardSlots() }} bonus card(s) from your subclass feature.</p>
             }
-            <app-card-selection-grid
-              [cards]="domainCards()"
-              [loading]="domainCardsLoading()"
-              [error]="domainCardsError()"
-              [selectedCards]="selectedDomainCards()"
-              [maxSelections]="domainCardMaxSelections()"
-              [skeletonCount]="6"
-              [collapsibleFeatures]="true"
-              layout="wide"
-              (cardsSelected)="onDomainCardsSelected($event)"
-            />
+            @if (sheetLayout() === 'beta') {
+              <app-entity-selection-grid
+                appCardSurface="light-only"
+                [cards]="domainCards()"
+                [loading]="domainCardsLoading()"
+                [error]="domainCardsError()"
+                [selectedCards]="selectedDomainCards()"
+                [maxSelections]="domainCardMaxSelections()"
+                [skeletonCount]="6"
+                layout="wide"
+                [columns]="2"
+                [ariaLabel]="domainCardsAriaLabel()"
+                (cardsSelected)="onDomainCardsSelected($event)"
+              />
+            } @else {
+              <app-card-selection-grid
+                [cards]="domainCards()"
+                [loading]="domainCardsLoading()"
+                [error]="domainCardsError()"
+                [selectedCards]="selectedDomainCards()"
+                [maxSelections]="domainCardMaxSelections()"
+                [skeletonCount]="6"
+                [collapsibleFeatures]="true"
+                layout="wide"
+                (cardsSelected)="onDomainCardsSelected($event)"
+              />
+            }
           }
           @case ('bonuses') {
             <app-experience-bonus-allocator

@@ -6,7 +6,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 
 import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
-import { ItemKind } from '../../item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { DEFAULT_ITEM_FORM_VALUE, ItemFormValue } from '../../models/item-form-value.model';
 import { ItemForm } from './item-form';
 

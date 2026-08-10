@@ -1,11 +1,13 @@
 /* --ca (card-accents.css) is tuned for a dark bg. On the light face (`data-card-theme='light'` --
    see the --eca-* tokens in src/styles.css; note dark is the DEFAULT, light is the opt-in), several
    --color-card-* hues fail WCAG AA as text, so --eca-deep mixes each one 45% toward
-   --color-bg-darker (worst case across all 17:
+   --color-bg-darker (worst case across all 18 accents, 17 originals plus --color-card-adversary:
    5.69:1 against --color-card-face, ancestry). On the dark face that would be backwards -- the
    hues already read fine on dark -- so --eca-mix/--eca-anchor flip to 75% raw accent toward a
    LIGHT anchor instead (worst case: 5.25:1, heritage). Either way --eca-deep stays >=4.5:1 as text
-   against --color-card-face. --eca-tint is the same color-mix() idea at a low, theme-specific
+   against --color-card-face -- --color-card-adversary itself lands at 5.57:1 light / 9.72:1 dark via
+   this same formula, well clear of both documented worst cases.
+   --eca-tint is the same color-mix() idea at a low, theme-specific
    percentage for the header wash. Full-strength --ca stays non-text where it appears at all: the
    light-theme rail (dark drops the rail entirely -- see --eca-rail-color below) and the tab chip
    fill (dark only) -- see --eca-chip-bg below.

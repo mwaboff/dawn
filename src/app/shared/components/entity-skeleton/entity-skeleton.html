@@ -1,0 +1,31 @@
+<div
+  class="entity-skeleton-grid"
+  [class.entity-skeleton-grid--wide]="layout() === 'wide'"
+  [class.entity-skeleton-grid--columns-2]="isColumnCapped()"
+  aria-busy="true"
+  aria-label="Loading cards"
+>
+  @for (i of Array.from({ length: count() }); track $index) {
+    <div class="entity-skeleton-card" [style.animation-delay]="($index * 0.12) + 's'" aria-hidden="true">
+      <div class="entity-skeleton-header">
+        <div class="entity-skeleton-bar entity-skeleton-bar--tab"></div>
+        <div class="entity-skeleton-bar entity-skeleton-bar--name"></div>
+        <div class="entity-skeleton-bar entity-skeleton-bar--subtitle"></div>
+      </div>
+      <div class="entity-skeleton-body">
+        <div class="entity-skeleton-stats">
+          <div class="entity-skeleton-bar entity-skeleton-bar--stat"></div>
+          <div class="entity-skeleton-bar entity-skeleton-bar--stat"></div>
+        </div>
+        <div class="entity-skeleton-bar entity-skeleton-bar--line"></div>
+        <div class="entity-skeleton-bar entity-skeleton-bar--line entity-skeleton-bar--line-medium"></div>
+        <div class="entity-skeleton-bar entity-skeleton-bar--line entity-skeleton-bar--line-short"></div>
+        <div class="entity-skeleton-feature">
+          <div class="entity-skeleton-bar entity-skeleton-bar--feature-name"></div>
+          <div class="entity-skeleton-bar entity-skeleton-bar--line"></div>
+        </div>
+      </div>
+      <div class="entity-skeleton-shimmer"></div>
+    </div>
+  }
+</div>

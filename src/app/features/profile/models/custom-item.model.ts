@@ -1,4 +1,4 @@
-import { ItemKind } from '../../items/item-routes';
+import { ItemKind } from '../../../shared/utils/item-routes.utils';
 import { WeaponResponse } from '../../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../../shared/models/loot-api.model';

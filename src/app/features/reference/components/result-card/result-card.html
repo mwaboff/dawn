@@ -1,0 +1,26 @@
+@if (result().adversary; as adversary) {
+  @if (sheetLayout() === 'beta') {
+    <!-- Read-everything browse surface, same reasoning as the card branch's size="expanded"
+         below: no click needed to see the body, no Select/choose affordance (reference is
+         read-only browse). Adversaries route through the shared `app-entity-card` face via
+         `adversaryToEntityCard`, the same mapper/component pair the encounter manager uses. -->
+    <div [appCardSurface]="'dark-capable'">
+      <app-entity-card [card]="adversaryEntityCard(adversary)" size="expanded" />
+    </div>
+  } @else {
+    <app-adversary-card [adversary]="adversary" layout="wide" [collapsibleFeatures]="true" />
+  }
+} @else if (result().card; as card) {
+  @if (sheetLayout() === 'beta') {
+    <div [appCardSurface]="'dark-capable'">
+      <app-entity-card [card]="entityCard(card)" size="expanded">
+        <div card-controls class="card-action-row">
+          <app-customize-item-action variant="beta" [result]="result()" />
+        </div>
+      </app-entity-card>
+    </div>
+  } @else {
+    <app-daggerheart-card [card]="card" layout="wide" [collapsibleFeatures]="true" />
+    <app-customize-item-action [result]="result()" />
+  }
+}

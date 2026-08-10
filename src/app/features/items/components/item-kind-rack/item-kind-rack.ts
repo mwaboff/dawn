@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
-import { ItemKind } from '../../item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { ITEM_KIND_LABELS } from '../../models/item-form-value.model';
 
 /**

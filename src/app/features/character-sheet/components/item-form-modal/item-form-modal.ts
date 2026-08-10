@@ -7,7 +7,7 @@ import { LookupOption } from '../../../../shared/components/entity-form/entity-f
 import { ModalShell } from '../../../../shared/components/modal-shell/modal-shell';
 import { CampaignService } from '../../../../shared/services/campaign.service';
 import { ItemForm } from '../../../items/components/item-form/item-form';
-import { ItemKind } from '../../../items/item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { ItemFormValue, ITEM_KIND_ACCENTS, ITEM_KIND_LABELS } from '../../../items/models/item-form-value.model';
 import { ItemResponse, ItemSubmit } from '../../../items/item-submit';
 import { formValueToRequest, responseToFormValue } from '../../../items/item-builder/item-builder.mapper';

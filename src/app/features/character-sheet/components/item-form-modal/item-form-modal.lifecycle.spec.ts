@@ -10,7 +10,7 @@ import { CampaignService } from '../../../../shared/services/campaign.service';
 import { CostTagLookupService } from '../../../../shared/services/cost-tag-lookup.service';
 import { ItemFormModal } from './item-form-modal';
 import { ItemSubmit } from '../../../items/item-submit';
-import { ItemKind } from '../../../items/item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 
 /** Mirrors `character-sheet.html`'s gate exactly: `@if (creatingItemKind(); as kind)`. */
 @Component({

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Component, signal } from '@angular/core';
 import { of } from 'rxjs';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
@@ -9,6 +10,9 @@ import { CharacterSheetView } from '../../../character-sheet/models/character-sh
 import { DomainService } from '../../../../shared/services/domain.service';
 import { SubclassService } from '../../../../shared/services/subclass.service';
 import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
+import { PreferencesService } from '../../../../core/services/preferences.service';
+import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 
 const mockCharacterSheet: CharacterSheetView = {
   id: 1,
@@ -488,6 +492,11 @@ describe('AdvancementConfig', () => {
       const grid = compiled.querySelector('app-card-selection-grid');
       expect(grid).toBeTruthy();
     });
+
+    it('keeps the classic grid at layout="wide"', () => {
+      const grid = hostFixture.debugElement.query(By.directive(CardSelectionGrid));
+      expect((grid.componentInstance as CardSelectionGrid).layout()).toBe('wide');
+    });
   });
 
   describe('MULTICLASS', () => {
@@ -697,6 +706,152 @@ describe('AdvancementConfig', () => {
 
       expect(labels[0].classList.contains('selected')).toBe(false);
       expect(labels[0].classList.contains('excluded')).toBe(true);
+    });
+  });
+
+  describe('beta layout', () => {
+    afterEach(() => {
+      localStorage.clear();
+      document.documentElement.removeAttribute('data-card-theme');
+    });
+
+    function enableBeta(): void {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+    }
+
+    describe('GAIN_DOMAIN_CARD', () => {
+      beforeEach(() => {
+        enableBeta();
+        mockDomainService.getDomainCards.mockReturnValue(of([
+          { id: 500, name: 'Test Domain Card', description: 'd', cardType: 'domain' },
+        ]));
+        host.advancement.set({
+          type: 'GAIN_DOMAIN_CARD',
+          description: 'Gain a domain card',
+          limitPerTier: 1,
+          usedInTier: 0,
+          remaining: 1,
+          mutuallyExclusiveWith: null,
+        });
+        host.levelUpOptions.set({ ...mockLevelUpOptions, accessibleDomainIds: [1, 2], domainCardLevelCap: 3 });
+        hostFixture.detectChanges();
+      });
+
+      it('renders an entity selection grid instead of the classic card selection grid', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+        expect(compiled.querySelector('app-card-selection-grid')).toBeNull();
+      });
+
+      it('scopes the beta grid to a light-only card surface', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        const surface = compiled.querySelector('[data-card-theme]');
+        expect(surface).toBeTruthy();
+        expect(surface?.querySelector('app-entity-selection-grid')).toBeTruthy();
+      });
+
+      it('still emits configChanged when a card is selected in beta', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        const control = compiled.querySelector('app-entity-selection-grid [role="radio"]') as HTMLElement;
+        control.click();
+        hostFixture.detectChanges();
+
+        expect(host.lastEmittedChoice?.type).toBe('GAIN_DOMAIN_CARD');
+        expect(host.lastEmittedChoice?.domainCardId).toBe(500);
+      });
+
+      it('caps the beta grid at 2 columns', () => {
+        const grid = hostFixture.debugElement.query(By.directive(EntitySelectionGrid));
+        expect((grid.componentInstance as EntitySelectionGrid).columns()).toBe(2);
+      });
+
+      it('does not set layout="wide" on the beta grid (columns would lose to it)', () => {
+        const grid = hostFixture.debugElement.query(By.directive(EntitySelectionGrid));
+        expect((grid.componentInstance as EntitySelectionGrid).layout()).toBe('default');
+      });
+    });
+
+    describe('UPGRADE_SUBCLASS', () => {
+      beforeEach(() => {
+        enableBeta();
+        host.advancement.set({
+          type: 'UPGRADE_SUBCLASS',
+          description: 'Upgrade subclass',
+          limitPerTier: 1,
+          usedInTier: 0,
+          remaining: 1,
+          mutuallyExclusiveWith: 'MULTICLASS',
+        });
+        host.characterSheet.set({
+          ...mockCharacterSheet,
+          subclassCards: [
+            { id: 100, name: 'Troubadour', description: '', features: [], associatedClassId: 1, associatedClassName: 'Bard', subclassPathName: 'Troubadour', level: 'FOUNDATION' },
+          ],
+        });
+        mockSubclassService.getSubclasses.mockReturnValue(of([
+          { id: 200, name: 'Troubadour Spec', description: '', cardType: 'subclass', metadata: { subclassPathId: 1, level: 'FOUNDATION', subclassPathName: 'Troubadour', associatedClassName: 'Bard' } },
+        ]));
+        hostFixture.detectChanges();
+      });
+
+      it('renders the subclass path selector as entity cards in beta', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-subclass-path-selector')).toBeTruthy();
+        expect(compiled.querySelector('app-entity-card')).toBeTruthy();
+      });
+
+      it('scopes the selector to a light-only card surface', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        const surface = compiled.querySelector('[data-card-theme]');
+        expect(surface).toBeTruthy();
+        expect(surface?.querySelector('app-subclass-path-selector')).toBeTruthy();
+      });
+    });
+
+    describe('MULTICLASS', () => {
+      const mockSubclassPathCards: CardData[] = [
+        { id: 10, name: 'Troubadour', description: '', cardType: 'subclassPath' as never, metadata: { associatedClassId: 1, associatedClass: { id: 1, name: 'Bard' } } },
+        { id: 20, name: 'Berserker', description: '', cardType: 'subclassPath' as never, metadata: { associatedClassId: 2, associatedClass: { id: 2, name: 'Warrior' } } },
+      ];
+      const mockWarriorSubclassCards: CardData[] = [
+        { id: 200, name: 'Berserker', description: '', cardType: 'subclass', metadata: { subclassPathId: 20, level: 'FOUNDATION', associatedClassName: 'Warrior' } },
+      ];
+
+      beforeEach(() => {
+        enableBeta();
+        host.advancement.set({
+          type: 'MULTICLASS',
+          description: 'Multiclass',
+          limitPerTier: 1,
+          usedInTier: 0,
+          remaining: 1,
+          mutuallyExclusiveWith: 'UPGRADE_SUBCLASS',
+        });
+        host.characterSheet.set({
+          ...mockCharacterSheet,
+          subclassCards: [
+            { id: 100, name: 'Troubadour', description: '', features: [], associatedClassId: 1, associatedClassName: 'Bard', subclassPathName: 'Troubadour', level: 'FOUNDATION' },
+          ],
+        });
+        mockSubclassPathService.getSubclassPaths.mockReturnValue(of(mockSubclassPathCards));
+        mockSubclassService.getSubclasses.mockImplementation((classId: number) =>
+          classId === 2 ? of(mockWarriorSubclassCards) : of([])
+        );
+        hostFixture.detectChanges();
+      });
+
+      it('renders the subclass path selector as entity cards in beta', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-subclass-path-selector')).toBeTruthy();
+        expect(compiled.querySelector('app-entity-card')).toBeTruthy();
+      });
+
+      it('scopes the selector to a light-only card surface', () => {
+        const compiled = hostFixture.nativeElement as HTMLElement;
+        const surface = compiled.querySelector('[data-card-theme]');
+        expect(surface).toBeTruthy();
+        expect(surface?.querySelector('app-subclass-path-selector')).toBeTruthy();
+      });
     });
   });
 });

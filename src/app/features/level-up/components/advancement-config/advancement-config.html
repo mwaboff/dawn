@@ -63,14 +63,27 @@
   @case ('GAIN_DOMAIN_CARD') {
     <div class="config-section">
       <p class="config-hint">Select a domain card to gain</p>
-      <app-card-selection-grid
-        [cards]="domainCards()"
-        [loading]="domainCardsLoading()"
-        [selectedCard]="selectedDomainCard()"
-        [collapsibleFeatures]="true"
-        layout="wide"
-        (cardSelected)="onDomainCardSelected($event)"
-      />
+      @if (sheetLayout() === 'beta') {
+        <div [appCardSurface]="'light-only'">
+          <app-entity-selection-grid
+            [cards]="domainCards()"
+            [loading]="domainCardsLoading()"
+            [selectedCard]="selectedDomainCard()"
+            [columns]="2"
+            ariaLabel="Choose a domain card to gain"
+            (cardSelected)="onDomainCardSelected($event)"
+          />
+        </div>
+      } @else {
+        <app-card-selection-grid
+          [cards]="domainCards()"
+          [loading]="domainCardsLoading()"
+          [selectedCard]="selectedDomainCard()"
+          [collapsibleFeatures]="true"
+          layout="wide"
+          (cardSelected)="onDomainCardSelected($event)"
+        />
+      }
       @if (selectedDomainCard()) {
         <label class="equip-toggle">
           <input type="checkbox" [checked]="equipDomainCard()" (change)="onEquipDomainCardToggle()" />
@@ -84,6 +97,16 @@
       <p class="config-hint">Select the next upgrade for your subclass path</p>
       @if (subclassCardsLoading()) {
         <app-card-selection-grid [cards]="[]" [loading]="true" [skeletonCount]="3" />
+      } @else if (sheetLayout() === 'beta') {
+        <div [appCardSurface]="'light-only'">
+          <app-subclass-path-selector
+            [cards]="subclassCards()"
+            [selectedCard]="selectedSubclassCard()"
+            [ownedCardIds]="ownedSubclassCardIds()"
+            cardFormat="beta"
+            (cardSelected)="onSubclassCardSelected($event)"
+          />
+        </div>
       } @else {
         <app-subclass-path-selector
           [cards]="subclassCards()"
@@ -112,14 +135,27 @@
             </div>
           </div>
         }
-        <app-subclass-path-selector
-          [cards]="filteredMulticlassCards()"
-          [selectedCard]="selectedMulticlassCard()"
-          [ownedCardIds]="[]"
-          [foundationOnly]="true"
-          [collapsibleFeatures]="true"
-          (cardSelected)="onMulticlassCardSelected($event)"
-        />
+        @if (sheetLayout() === 'beta') {
+          <div [appCardSurface]="'light-only'">
+            <app-subclass-path-selector
+              [cards]="filteredMulticlassCards()"
+              [selectedCard]="selectedMulticlassCard()"
+              [ownedCardIds]="[]"
+              [foundationOnly]="true"
+              cardFormat="beta"
+              (cardSelected)="onMulticlassCardSelected($event)"
+            />
+          </div>
+        } @else {
+          <app-subclass-path-selector
+            [cards]="filteredMulticlassCards()"
+            [selectedCard]="selectedMulticlassCard()"
+            [ownedCardIds]="[]"
+            [foundationOnly]="true"
+            [collapsibleFeatures]="true"
+            (cardSelected)="onMulticlassCardSelected($event)"
+          />
+        }
       }
     </div>
   }

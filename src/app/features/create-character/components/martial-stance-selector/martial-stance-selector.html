@@ -14,17 +14,41 @@
         @if (group.tier !== 1) {
           <p class="stance-tier-group__hint">Unlocked as you level up</p>
         }
-        <div class="card-grid card-grid--wide">
-          @for (card of group.stances; track card.id) {
-            <app-daggerheart-card
-              [card]="card"
-              [selected]="isSelected(card)"
-              [disabled]="!isSelectable(card)"
+        @if (cardFormat() === 'beta') {
+          @if (group.tier === selectableTier) {
+            <app-entity-selection-grid
+              appCardSurface="light-only"
+              [cards]="group.stances"
+              [selectedCards]="selectedCards()"
+              [maxSelections]="requiredCount"
               layout="wide"
-              (cardClicked)="onCardClicked($event)"
+              [ariaLabel]="stanceAriaLabel()"
+              (cardsSelected)="stancesSelected.emit($event)"
             />
+          } @else {
+            <div class="card-grid card-grid--wide">
+              @for (card of group.stances; track card.id) {
+                <app-entity-card appCardSurface="light-only" [card]="entityCard(card)" [muted]="true">
+                  <div card-controls class="card-action-row">
+                    <span class="card-select-status">Locked</span>
+                  </div>
+                </app-entity-card>
+              }
+            </div>
           }
-        </div>
+        } @else {
+          <div class="card-grid card-grid--wide">
+            @for (card of group.stances; track card.id) {
+              <app-daggerheart-card
+                [card]="card"
+                [selected]="isSelected(card)"
+                [disabled]="!isSelectable(card)"
+                layout="wide"
+                (cardClicked)="onCardClicked($event)"
+              />
+            }
+          </div>
+        }
       </div>
     }
   }

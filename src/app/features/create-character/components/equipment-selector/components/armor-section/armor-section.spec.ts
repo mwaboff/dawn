@@ -94,4 +94,23 @@ describe('ArmorSection', () => {
     component.onPageChanged(2);
     expect(armorServiceMock.getArmors).toHaveBeenCalledWith({ page: 2, tier: 1 });
   });
+
+  describe('beta mode (cardFormat="beta")', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('cardFormat', 'beta');
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('still selects armor via onCardClicked in beta mode', () => {
+      fixture.detectChanges();
+      component.onCardClicked(armorCards[0]);
+      expect(component.selectedArmor()?.id).toBe(1);
+    });
+  });
 });

@@ -40,6 +40,7 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
       baseSevereThreshold: response.baseSevereThreshold,
       tier: response.tier,
       modifiers,
+      createdByUserId: response.createdByUserId ?? null,
     },
   };
 }

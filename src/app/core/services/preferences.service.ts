@@ -8,6 +8,7 @@ import {
   MOTION_PREFERENCES,
   MotionPreference,
   PREFERENCES_STORAGE_KEY,
+  resolveCardFace,
   SHEET_LAYOUTS,
   SheetLayout,
   UserPreferences,
@@ -16,7 +17,7 @@ import {
 const DEFAULT_DENSITY: Density = 'comfortable';
 const DEFAULT_MOTION: MotionPreference = 'system';
 const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
-const DEFAULT_CARD_THEME: CardTheme = 'dark';
+const DEFAULT_CARD_THEME: CardTheme = 'default';
 
 function isDensity(value: unknown): value is Density {
   return (DENSITIES as readonly unknown[]).includes(value);
@@ -47,7 +48,18 @@ export class PreferencesService {
   // Unlike density/motion there is no pre-paint DOM attribute for sheet layout -- it initializes
   // from storage only.
   readonly sheetLayout = signal<SheetLayout>(this.readStorage()?.sheetLayout ?? DEFAULT_SHEET_LAYOUT);
-  readonly cardTheme = signal<CardTheme>(this.initialCardTheme());
+  // data-card-theme IS still pre-painted (see index.html), but as the *resolved* dark-capable
+  // face ('light'/'dark') rather than the raw preference -- 'default' never appears there -- so
+  // it can't be read back into this signal the same way density/motion are. cardTheme
+  // initializes from storage only, same as sheetLayout.
+  readonly cardTheme = signal<CardTheme>(this.readStorage()?.cardTheme ?? DEFAULT_CARD_THEME);
+
+  // The two surfaces this app currently has: dark-capable ones (beta sheet, resources/reference,
+  // the app root) resolve 'default' to dark; light-only ones (create-character, level-up -- a
+  // dark background for those is planned later) resolve it to light. Explicit 'light'/'dark'
+  // preferences are absolute and ignore the surface either way -- see resolveCardFace.
+  readonly darkCapableCardFace = computed(() => resolveCardFace(this.cardTheme(), true));
+  readonly lightOnlyCardFace = computed(() => resolveCardFace(this.cardTheme(), false));
 
   readonly effectiveMotion = computed<Exclude<MotionPreference, 'system'>>(() => {
     const motion = this.motion();
@@ -60,11 +72,11 @@ export class PreferencesService {
     effect(() => {
       const density = this.density();
       const motion = this.motion();
-      const cardTheme = this.cardTheme();
+      const cardFace = this.darkCapableCardFace();
       if (!this.isBrowser) return;
       document.documentElement.setAttribute('data-density', density);
       document.documentElement.setAttribute('data-motion', motion);
-      document.documentElement.setAttribute('data-card-theme', cardTheme);
+      document.documentElement.setAttribute('data-card-theme', cardFace);
     });
   }
 
@@ -118,12 +130,6 @@ export class PreferencesService {
     const fromDom = this.readDomAttr('data-motion');
     if (isMotion(fromDom)) return fromDom;
     return this.readStorage()?.motion ?? DEFAULT_MOTION;
-  }
-
-  private initialCardTheme(): CardTheme {
-    const fromDom = this.readDomAttr('data-card-theme');
-    if (isCardTheme(fromDom)) return fromDom;
-    return this.readStorage()?.cardTheme ?? DEFAULT_CARD_THEME;
   }
 
   private readDomAttr(name: string): string | null {

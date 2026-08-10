@@ -19,7 +19,7 @@ import {
   UpdateWeaponRequest,
   WeaponResponse,
 } from '../../shared/models/weapon-api.model';
-import { ItemKind } from './item-routes';
+import { ItemKind } from '../../shared/utils/item-routes.utils';
 
 export type ItemResponse = WeaponResponse | ArmorResponse | LootApiResponse;
 

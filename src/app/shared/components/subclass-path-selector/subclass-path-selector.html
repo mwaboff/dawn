@@ -56,22 +56,54 @@
       @let activeCard = getPathCardForLevel(path, getPathLevelTab(path.pathId));
       @if (activeCard) {
         @let state = getCardState(activeCard.id);
-        <div class="card-state-wrapper"
-          [class.card-state--owned]="state === 'owned'"
-          [class.card-state--next]="state === 'next'"
-          [class.card-state--locked]="state === 'locked'"
-        >
-          @if (state === 'owned') {
-            <div class="card-state-badge card-state-badge--owned">Owned</div>
-          }
-          <app-daggerheart-card
-            [card]="activeCard"
-            [selected]="isActiveCardSelected(path, activeCard)"
-            [collapsibleFeatures]="collapsibleFeatures()"
-            layout="wide"
-            (cardClicked)="onCardClicked(path, activeCard)"
-          />
-        </div>
+        @if (cardFormat() === 'beta') {
+          <app-entity-card [card]="entityCard(activeCard)" [muted]="state === 'owned' || state === 'locked'">
+            @if (showControls(path, activeCard)) {
+              <div card-controls class="card-action-row">
+                @if (state === 'owned') {
+                  <span class="card-select-status">Owned</span>
+                } @else if (!readOnly() && isCardSelectable(path, activeCard)) {
+                  <button
+                    type="button"
+                    class="entity-select"
+                    [class.entity-select--selected]="isActiveCardSelected(path, activeCard)"
+                    [attr.aria-pressed]="isActiveCardSelected(path, activeCard)"
+                    [attr.aria-label]="selectLabel(path, activeCard)"
+                    (click)="onCardClicked(path, activeCard)"
+                  >
+                    <span class="entity-select__box" aria-hidden="true">
+                      @if (isActiveCardSelected(path, activeCard)) {
+                        <span class="entity-select__mark">&#10003;</span>
+                      }
+                    </span>
+                    <span class="entity-select__text">
+                      {{ isActiveCardSelected(path, activeCard) ? 'Selected' : 'Select' }}
+                    </span>
+                  </button>
+                } @else if (state === 'locked') {
+                  <span class="card-select-status">Locked</span>
+                }
+              </div>
+            }
+          </app-entity-card>
+        } @else {
+          <div class="card-state-wrapper"
+            [class.card-state--owned]="state === 'owned'"
+            [class.card-state--next]="state === 'next'"
+            [class.card-state--locked]="state === 'locked'"
+          >
+            @if (state === 'owned') {
+              <div class="card-state-badge card-state-badge--owned">Owned</div>
+            }
+            <app-daggerheart-card
+              [card]="activeCard"
+              [selected]="isActiveCardSelected(path, activeCard)"
+              [collapsibleFeatures]="collapsibleFeatures()"
+              layout="wide"
+              (cardClicked)="onCardClicked(path, activeCard)"
+            />
+          </div>
+        }
       }
     </div>
   }

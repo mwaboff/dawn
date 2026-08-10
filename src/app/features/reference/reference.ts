@@ -15,14 +15,13 @@ import { FilterRail, FilterOption } from './components/filter-rail/filter-rail';
 import { RefineSheet } from './components/refine-sheet/refine-sheet';
 import { LandingTypeGrid } from './components/landing-type-grid/landing-type-grid';
 import { ResultSection } from './components/result-section/result-section';
-import { CustomizeItemAction } from './components/customize-item-action/customize-item-action';
 import { PaginationControls } from '../../shared/components/pagination-controls/pagination-controls';
 import { CodexSkeleton } from './components/codex-skeleton/codex-skeleton';
 import { CodexEmptyState } from './components/codex-empty-state/codex-empty-state';
-import { DaggerheartCard } from '../../shared/components/daggerheart-card/daggerheart-card';
-import { AdversaryCard } from '../../shared/components/adversary-card/adversary-card';
+import { ResultCard } from './components/result-card/result-card';
 import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
+import { PreferencesService } from '../../core/services/preferences.service';
 
 export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
 
@@ -46,7 +45,7 @@ const MIXED_VIEW_CAP = 5;
   templateUrl: './reference.html',
   styleUrl: './reference.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, CustomizeItemAction, PaginationControls, CodexSkeleton, CodexEmptyState, DaggerheartCard, AdversaryCard, SubclassPathSelector],
+  imports: [CodexSearchBar, TypeFacetTabs, FilterRail, RefineSheet, LandingTypeGrid, ResultSection, PaginationControls, CodexSkeleton, CodexEmptyState, ResultCard, SubclassPathSelector],
 })
 export class Reference implements OnInit {
   private readonly router = inject(Router);
@@ -57,6 +56,9 @@ export class Reference implements OnInit {
   private readonly expansionService = inject(ExpansionService);
   private readonly classService = inject(ClassService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly preferencesService = inject(PreferencesService);
+
+  readonly sheetLayout = this.preferencesService.sheetLayout;
 
   readonly query = signal('');
   readonly activeType = signal<SearchableEntityType | null>(null);

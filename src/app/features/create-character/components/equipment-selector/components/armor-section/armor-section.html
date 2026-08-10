@@ -1,13 +1,26 @@
 <div class="armor-section">
-  <app-card-selection-grid
-    [cards]="armorCards()"
-    [loading]="loading()"
-    [error]="error()"
-    [selectedCard]="selectedArmor() ?? undefined"
-    [skeletonCount]="4"
-    [collapsibleFeatures]="true"
-    (cardSelected)="onCardClicked($event)"
-  />
+  @if (cardFormat() === 'beta') {
+    <app-entity-selection-grid
+      appCardSurface="light-only"
+      [cards]="armorCards()"
+      [loading]="loading()"
+      [error]="error()"
+      [selectedCard]="selectedArmor() ?? undefined"
+      [skeletonCount]="4"
+      ariaLabel="Choose your starting armor"
+      (cardSelected)="onCardClicked($event)"
+    />
+  } @else {
+    <app-card-selection-grid
+      [cards]="armorCards()"
+      [loading]="loading()"
+      [error]="error()"
+      [selectedCard]="selectedArmor() ?? undefined"
+      [skeletonCount]="4"
+      [collapsibleFeatures]="true"
+      (cardSelected)="onCardClicked($event)"
+    />
+  }
 
   <app-equipment-pagination
     [currentPage]="pagination().currentPage"

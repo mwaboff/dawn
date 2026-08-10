@@ -4,7 +4,7 @@ import { FeatureType } from '../../../shared/models/feature-type.model';
 import { LootApiResponse, LootFeature } from '../../../shared/models/loot-api.model';
 import { WeaponResponse } from '../../../shared/models/weapon-api.model';
 import { CreateItemRequest, ItemResponse } from '../item-submit';
-import { ItemKind } from '../item-routes';
+import { ItemKind } from '../../../shared/utils/item-routes.utils';
 import { DEFAULT_ITEM_FORM_VALUE, ItemFormValue } from '../models/item-form-value.model';
 
 /** Features on a custom item are always inline, so every one of them is an ITEM feature. */

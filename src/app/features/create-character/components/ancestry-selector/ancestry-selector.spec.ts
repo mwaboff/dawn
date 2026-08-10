@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AncestrySelector, MixedAncestrySelection } from './ancestry-selector';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
@@ -26,6 +26,7 @@ function makeAncestryCard(overrides: Partial<CardData> = {}): CardData {
       [loading]="loading"
       [error]="error"
       [selectedCard]="selectedCard"
+      [cardFormat]="cardFormat()"
       (ancestrySelected)="onAncestrySelected($event)"
       (mixedAncestrySelected)="onMixedSelected($event)"
       (ancestryDeselected)="onDeselected()"
@@ -34,6 +35,7 @@ function makeAncestryCard(overrides: Partial<CardData> = {}): CardData {
   imports: [AncestrySelector],
 })
 class TestHost {
+  cardFormat = signal<'classic' | 'beta'>('classic');
   cards: CardData[] = [
     makeAncestryCard(),
     makeAncestryCard({
@@ -242,6 +244,47 @@ describe('AncestrySelector', () => {
       backLink.click();
       fixture.detectChanges();
       expect(fixture.nativeElement.textContent).toContain('Choose two ancestries to blend');
+    });
+  });
+
+  describe('beta mode (cardFormat="beta")', () => {
+    beforeEach(() => {
+      host.cardFormat.set('beta');
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid in single mode', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('emits ancestrySelected when a card is picked in beta single mode', () => {
+      fixture.detectChanges();
+      const component = fixture.debugElement.children[0].componentInstance as AncestrySelector;
+      component.onSingleAncestrySelected(host.cards[0]);
+      expect(host.selectedAncestry?.id).toBe(host.cards[0].id);
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid in mixed mode', () => {
+      fixture.detectChanges();
+      const banners = fixture.nativeElement.querySelectorAll('.bloodline-banner');
+      banners[1].click();
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('still supports picking two ancestries and proceeding to the feature forge in beta mode', () => {
+      fixture.detectChanges();
+      const component = fixture.debugElement.children[0].componentInstance as AncestrySelector;
+      component.setMode('mixed');
+      component.onAncestriesSelected([host.cards[0], host.cards[1]]);
+      fixture.detectChanges();
+
+      expect(component.canProceedToFeatures()).toBe(true);
     });
   });
 });

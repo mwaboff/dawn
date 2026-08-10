@@ -3,6 +3,7 @@ import { EncounterRoster } from './encounter-roster';
 import { EncounterRosterInstance } from '../../models/encounter-roster-instance.model';
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { PreferencesService } from '../../../../../core/services/preferences.service';
 
 function buildInstance(overrides: Partial<EncounterRosterInstance> = {}): EncounterRosterInstance {
   return {
@@ -22,6 +23,12 @@ describe('EncounterRoster', () => {
     TestBed.configureTestingModule({ imports: [EncounterRoster] });
     fixture = TestBed.createComponent(EncounterRoster);
     component = fixture.componentInstance;
+  });
+
+  // PreferencesService persists sheetLayout to localStorage, which jsdom keeps across tests in
+  // this file -- without this, a 'beta' test bleeds into the next test's "default" PreferencesService.
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('shows the empty state when there are no instances', () => {
@@ -119,7 +126,7 @@ describe('EncounterRoster', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.adversary-card__name').textContent.trim()).toBe('Goblin Scout');
-    expect(fixture.nativeElement.querySelector('.adversary-card__type-badge').textContent.trim()).toBe('MINION');
+    expect(fixture.nativeElement.querySelector('.adversary-card__type-badge').textContent.trim()).toBe('Minion');
     expect(fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary').textContent.trim()).toBe('Tier 1');
   });
 
@@ -189,6 +196,86 @@ describe('EncounterRoster', () => {
 
       const card = fixture.nativeElement.querySelector('app-adversary-card');
       expect(card.classList.contains('roster-panel__item--added')).toBe(false);
+    });
+  });
+
+  describe('beta sheet layout', () => {
+    it('keeps adversary rows as classic AdversaryCard by default', () => {
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-adversary-card')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeNull();
+    });
+
+    it('switches adversary rows to compact, expand-on-click EntityCard when the sheet layout preference is beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('app-entity-card');
+      expect(card).toBeTruthy();
+      expect(card.classList.contains('entity-card--compact')).toBe(true);
+      expect(fixture.nativeElement.querySelector('app-adversary-card')).toBeNull();
+    });
+
+    it('keeps the nickname, retier, and remove controls reachable on a compact beta row without expanding it first', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.roster-panel__remove-btn')).toBeTruthy();
+    });
+
+    it('still shows a "Retiered from Tier N" badge on a beta row once expanded', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a', tierOverride: 3 })]);
+      fixture.detectChanges();
+
+      fixture.nativeElement.querySelector('.entity-card__header--interactive')?.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-entity-card').textContent).toContain('Retiered from Tier 1');
+    });
+
+    it('shows the "Retiered from Tier N" marker on a beta row while still collapsed, where EntityCard hides badges', () => {
+      // `EntityCard` gates `badges` behind `displaySize() !== 'compact'`, and roster rows start
+      // compact -- a GM scanning an unexpanded roster still needs to see which adversaries were
+      // retiered for Battle Point math, so the mapper folds the marker into `headline`, which
+      // survives compact. This locks in that it renders WITHOUT the click the test above performs.
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a', tierOverride: 3 })]);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('app-entity-card');
+      expect(card.classList.contains('entity-card--compact')).toBe(true);
+      expect(card.textContent).toContain('Retiered from Tier 1');
+    });
+
+    it('renders the selected environment as a DaggerheartCard in classic', () => {
+      const environment: CardData = { id: 9, name: 'Collapsing Bridge', description: '', cardType: 'environment' };
+      fixture.componentRef.setInput('instances', []);
+      fixture.componentRef.setInput('selectedEnvironment', environment);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-daggerheart-card')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeNull();
+    });
+
+    it('renders the selected environment as a compact EntityCard in beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      const environment: CardData = { id: 9, name: 'Collapsing Bridge', description: '', cardType: 'environment' };
+      fixture.componentRef.setInput('instances', []);
+      fixture.componentRef.setInput('selectedEnvironment', environment);
+      fixture.detectChanges();
+
+      const entityCard = fixture.nativeElement.querySelector('app-entity-card');
+      expect(entityCard).toBeTruthy();
+      expect(entityCard.classList.contains('entity-card--compact')).toBe(true);
+      expect(entityCard.textContent).toContain('Collapsing Bridge');
+      expect(fixture.nativeElement.querySelector('app-daggerheart-card')).toBeNull();
     });
   });
 });

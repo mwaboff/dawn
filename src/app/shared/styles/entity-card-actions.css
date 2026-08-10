@@ -33,6 +33,13 @@
    and still has to LOOK unavailable. */
 .card-swap-btn:disabled, .card-swap-btn[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
 .card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
+/* Icon-only compact form -- no visible label, so the wide horizontal padding a text button needs
+   is dropped in favour of a roughly-square hit area centred on the one glyph (Edit's pencil,
+   Customize's copy icon). 44px is the WCAG 2.5.5/2.5.8-adjacent "comfortably tappable" target,
+   well past the 26px this used to be -- the icon itself stays small (20px) so the row doesn't
+   read as oversized, the extra space is padding around it. */
+.card-swap-btn--icon { padding: var(--space-1); min-width: 44px; min-height: 44px; justify-content: center; gap: 0; }
+.card-swap-btn--icon svg { width: 20px; height: 20px; }
 /* Equip/unequip and manage (Edit / Remove) sit in one row, adjacent rather than pushed to opposite
    edges -- they are one set of things you can do to this item. A hairline keeps the two intents
    legible without splitting them across two bars; it drops when the group starts its own line,

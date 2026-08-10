@@ -27,7 +27,7 @@ import { CharacterSheetView, TRAIT_SUBSKILLS, WeaponDisplay } from './models/cha
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from './components/inventory-section/inventory-section';
 import { ItemFormModal, ItemCreatedEvent } from './components/item-form-modal/item-form-modal';
-import { ItemKind, itemEditPath } from '../items/item-routes';
+import { ItemKind, itemEditPath } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';

@@ -1,0 +1,7 @@
+/* No box of its own -- the classic branch must slot `app-daggerheart-card`/`app-adversary-card`
+   and the classic `app-customize-item-action` into the parent list item exactly as when they were
+   inlined there, with no extra layout participant between them and `.focused-card-item` /
+   `.section-card-item`. */
+:host {
+  display: contents;
+}

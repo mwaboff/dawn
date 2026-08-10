@@ -17,8 +17,11 @@ const MOCK_ADVERSARY: AdversaryData = {
   severeThreshold: 10,
   attackModifier: 3,
   weaponName: 'Short Bow',
-  attackRange: 'Far',
-  damage: { notation: '1d6+1', damageType: 'phy' },
+  attackRange: 'VERY_CLOSE',
+  // Real adversary `notation` is the backend's already-formatted printed line and already ends in
+  // the abbreviated type (verified against the Core Rulebook's printed stat blocks) -- this mock
+  // matches that shape so the damage-dedup fix is actually exercised, not just coincidentally passing.
+  damage: { notation: '1d6+1 phy', damageType: 'PHYSICAL' },
   motivesAndTactics: 'Flee when outnumbered.',
   features: [
     { name: 'Sneak Attack', description: 'Deal extra damage from hiding.' },
@@ -88,14 +91,14 @@ describe('AdversaryCard', () => {
     expect(name.textContent.trim()).toBe('Goblin Scout');
   });
 
-  it('should render the adversary type as the primary subtitle', () => {
+  it('should render the adversary type as the primary subtitle, title-cased rather than the raw enum', () => {
     const subtitle = fixture.nativeElement.querySelector('.adversary-card__subtitle:not(.adversary-card__subtitle--secondary)');
-    expect(subtitle.textContent.trim()).toBe('MINION');
+    expect(subtitle.textContent.trim()).toBe('Minion');
   });
 
-  it('should render the adversary type as a visible badge', () => {
+  it('should render the adversary type as a visible badge, title-cased rather than the raw enum', () => {
     const badge = fixture.nativeElement.querySelector('.adversary-card__type-badge');
-    expect(badge.textContent.trim()).toBe('MINION');
+    expect(badge.textContent.trim()).toBe('Minion');
   });
 
   it('should set a per-type glyph on the badge for CSS-generated content', () => {
@@ -167,9 +170,9 @@ describe('AdversaryCard', () => {
     expect(tier.textContent.trim()).toBe('Tier 2');
   });
 
-  it('should have aria-label with name and type', () => {
+  it('should have aria-label with name and title-cased type', () => {
     const card = fixture.nativeElement.querySelector('.adversary-card');
-    expect(card.getAttribute('aria-label')).toBe('Goblin Scout, MINION adversary');
+    expect(card.getAttribute('aria-label')).toBe('Goblin Scout, Minion adversary');
   });
 
   describe('Stat Blocks', () => {
@@ -260,15 +263,14 @@ describe('AdversaryCard', () => {
       expect(weapon.textContent.trim()).toBe('Short Bow');
     });
 
-    it('should render attack range when provided', () => {
+    it('should render the attack range as its printed title-cased term, not the raw enum', () => {
       const range = fixture.nativeElement.querySelector('.adversary-card__attack-range');
-      expect(range.textContent.trim()).toBe('Far');
+      expect(range.textContent.trim()).toBe('Very Close');
     });
 
-    it('should render damage notation when provided', () => {
+    it('should render the damage notation once, not with the damage type appended a second time', () => {
       const damage = fixture.nativeElement.querySelector('.adversary-card__damage');
-      expect(damage.textContent.trim()).toContain('1d6+1');
-      expect(damage.textContent.trim()).toContain('phy');
+      expect(damage.textContent.trim()).toBe('1d6+1 phy');
     });
 
     it('should not render attack section when no weaponName', () => {
@@ -578,7 +580,7 @@ describe('AdversaryCard', () => {
 
     it('still shows the name, type badge, and tier while collapsed', () => {
       expect(fixture.nativeElement.querySelector('.adversary-card__name').textContent.trim()).toBe('Goblin Scout');
-      expect(fixture.nativeElement.querySelector('.adversary-card__type-badge').textContent.trim()).toBe('MINION');
+      expect(fixture.nativeElement.querySelector('.adversary-card__type-badge').textContent.trim()).toBe('Minion');
       expect(fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary').textContent.trim()).toBe('Tier 1');
     });
 

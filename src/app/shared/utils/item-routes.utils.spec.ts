@@ -1,4 +1,4 @@
-import { ITEMS_NEW_PATH, ITEM_KINDS, isItemKind, itemEditPath } from './item-routes';
+import { ITEMS_NEW_PATH, ITEM_KINDS, isItemKind, itemEditPath } from './item-routes.utils';
 
 describe('ITEMS_NEW_PATH', () => {
   it('is absolute, so router.navigate and routerLink agree on it', () => {

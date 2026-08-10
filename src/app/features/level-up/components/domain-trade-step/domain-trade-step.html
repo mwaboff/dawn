@@ -28,15 +28,29 @@
 
       <div class="trade-section">
         <h5 class="trade-section__label">Cards to receive ({{ trade().tradedOut.length }} needed)</h5>
-        <app-card-selection-grid
-          [cards]="filteredTradableCards()"
-          [loading]="tradableCardsLoading()"
-          [selectedCards]="trade().tradedIn"
-          [maxSelections]="trade().tradedOut.length || 1"
-          [collapsibleFeatures]="true"
-          layout="wide"
-          (cardsSelected)="onTradeInSelected($event)"
-        />
+        @if (sheetLayout() === 'beta') {
+          <div [appCardSurface]="'light-only'">
+            <app-entity-selection-grid
+              [cards]="filteredTradableCards()"
+              [loading]="tradableCardsLoading()"
+              [selectedCards]="trade().tradedIn"
+              [maxSelections]="trade().tradedOut.length || 1"
+              [columns]="2"
+              ariaLabel="Choose a domain card to receive"
+              (cardsSelected)="onTradeInSelected($event)"
+            />
+          </div>
+        } @else {
+          <app-card-selection-grid
+            [cards]="filteredTradableCards()"
+            [loading]="tradableCardsLoading()"
+            [selectedCards]="trade().tradedIn"
+            [maxSelections]="trade().tradedOut.length || 1"
+            [collapsibleFeatures]="true"
+            layout="wide"
+            (cardsSelected)="onTradeInSelected($event)"
+          />
+        }
       </div>
 
       @if (trade().tradedIn.length > 0) {

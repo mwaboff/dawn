@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
@@ -12,6 +13,13 @@ import { CommunityCardResponse } from '../../shared/models/community-api.model';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CharacterSheetResponse } from './models/character-sheet-api.model';
 import { Experience } from '../../shared/models/experience.model';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
+import { AncestrySelector } from './components/ancestry-selector/ancestry-selector';
+import { MartialStanceSelector } from './components/martial-stance-selector/martial-stance-selector';
+import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
+import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
+import { EntitySelectionGrid } from '../../shared/components/entity-selection-grid/entity-selection-grid';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -1438,6 +1446,174 @@ describe('CreateCharacter', () => {
       httpTesting.expectNone(r => r.url.includes('/dh/character-sheets') && r.method === 'POST');
       httpTesting.expectNone(r => r.url.includes('/dh/companions') && r.method === 'POST');
       httpTesting.expectNone(r => r.url.includes('/dh/experiences') && r.method === 'POST');
+    });
+  });
+
+  describe('Beta layout (sheetLayout "beta")', () => {
+    function setBetaLayout(): void {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+    }
+
+    it('classic layout (default) is unaffected -- CardSelectionGrid still renders on the class tab', () => {
+      fixture.detectChanges();
+      flushClassCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-card-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeFalsy();
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid on the class tab', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid on the community tab', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('passes cardFormat="beta" to SubclassPathSelector on the subclass tab', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards();
+
+      const selector = fixture.debugElement.query(By.directive(SubclassPathSelector));
+      expect(selector.componentInstance.cardFormat()).toBe('beta');
+    });
+
+    it('passes cardFormat="beta" to AncestrySelector on the ancestry tab', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToAncestryTab();
+      flushAncestryCards();
+
+      const selector = fixture.debugElement.query(By.directive(AncestrySelector));
+      expect(selector.componentInstance.cardFormat()).toBe('beta');
+    });
+
+    it('passes cardFormat="beta" to MartialStanceSelector and renders tier 1 stances through EntitySelectionGrid', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToSubclassTab();
+      flushSubclassCards([
+        ...MOCK_SUBCLASSES,
+        buildSubclassCardResponse({
+          id: 700,
+          name: 'Brawler',
+          subclassPathId: 70,
+          level: 'FOUNDATION',
+          features: [{
+            id: 9,
+            name: 'Stance Fighter',
+            description: 'Choose two martial stances from Tier 1.',
+            featureType: 'PASSIVE',
+            expansionId: 1,
+            costTagIds: [],
+            costTags: [],
+          }],
+        }),
+      ]);
+      const stanceFighterCard = component.subclassCards().find(c => c.name === 'Brawler')!;
+      component.onCardClicked(stanceFighterCard);
+      component.onTabSelected('martial-stances');
+
+      const req = httpTesting.expectOne(r => r.url.includes('/dh/martial-stances'));
+      req.flush({
+        content: [{ id: 1, name: 'Aggressive Stance', tier: 1, expansionId: 1, isOfficial: true, createdAt: '', lastModifiedAt: '' }],
+        currentPage: 0,
+        pageSize: 100,
+        totalElements: 1,
+        totalPages: 1,
+      });
+      fixture.detectChanges();
+
+      const selector = fixture.debugElement.query(By.directive(MartialStanceSelector));
+      expect(selector.componentInstance.cardFormat()).toBe('beta');
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+    });
+
+    it('passes cardFormat="beta" to WeaponSection and ArmorSection', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+      navigateToCommunityTab();
+      flushCommunityCards();
+      const communityCard = component.communityCards()[0];
+      component.onCardClicked(communityCard);
+
+      component.onTabSelected('traits');
+      fixture.detectChanges();
+      component.onTraitsChanged({
+        agility: 2, strength: 1, finesse: 1, instinct: 0, presence: 0, knowledge: -1,
+      });
+
+      component.onTabSelected('starting-weapon');
+      fixture.detectChanges();
+      httpTesting.match(r => r.url.includes('/dh/weapons')).forEach(r =>
+        r.flush({ content: [], currentPage: 0, pageSize: 20, totalElements: 0, totalPages: 1 }),
+      );
+
+      const weaponSection = fixture.debugElement.query(By.directive(WeaponSection));
+      expect(weaponSection.componentInstance.cardFormat()).toBe('beta');
+
+      component.onTabSelected('starting-armor');
+      fixture.detectChanges();
+      httpTesting.match(r => r.url.includes('/dh/armors')).forEach(r =>
+        r.flush({ content: [], currentPage: 0, pageSize: 20, totalElements: 0, totalPages: 1 }),
+      );
+
+      const armorSection = fixture.debugElement.query(By.directive(ArmorSection));
+      expect(armorSection.componentInstance.cardFormat()).toBe('beta');
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid on the domain-cards tab', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+
+      // Direct signal manipulation, mirroring this file's other tests that reach into
+      // `completedStepsSignal` -- domain-cards sits behind several gated tabs this test doesn't
+      // otherwise care about, and only the beta/classic template branch is under test here.
+      component.activeTab.set('domain-cards');
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('caps the domain-cards beta grid at 2 columns, but leaves the class tab\'s grid at "auto"', () => {
+      setBetaLayout();
+      fixture.detectChanges();
+      flushClassCards();
+
+      const classGrid = fixture.debugElement.query(By.directive(EntitySelectionGrid));
+      expect(classGrid.componentInstance.columns()).toBe('auto');
+
+      component.activeTab.set('domain-cards');
+      fixture.detectChanges();
+
+      const domainGrid = fixture.debugElement.query(By.directive(EntitySelectionGrid));
+      expect(domainGrid.componentInstance.columns()).toBe(2);
     });
   });
 });

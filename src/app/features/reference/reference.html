@@ -119,6 +119,8 @@
             <app-subclass-path-selector
               [cards]="subclassCards()"
               [collapsibleFeatures]="true"
+              [cardFormat]="sheetLayout() === 'beta' ? 'beta' : 'classic'"
+              [readOnly]="true"
             />
             <app-pagination-controls
               [currentPage]="currentPage()"
@@ -129,12 +131,7 @@
             <ul class="focused-cards" role="list">
               @for (result of focusedResults(); track result.id) {
                 <li class="focused-card-item">
-                  @if (result.adversary) {
-                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
-                  } @else if (result.card) {
-                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
-                  }
-                  <app-customize-item-action [result]="result" />
+                  <app-result-card [result]="result" />
                 </li>
               }
             </ul>
@@ -192,6 +189,8 @@
             <app-subclass-path-selector
               [cards]="subclassCards()"
               [collapsibleFeatures]="true"
+              [cardFormat]="sheetLayout() === 'beta' ? 'beta' : 'classic'"
+              [readOnly]="true"
             />
             <app-pagination-controls
               [currentPage]="currentPage()"
@@ -202,12 +201,7 @@
             <ul class="focused-cards" role="list">
               @for (result of focusedResults(); track result.id) {
                 <li class="focused-card-item">
-                  @if (result.adversary) {
-                    <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
-                  } @else if (result.card) {
-                    <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
-                  }
-                  <app-customize-item-action [result]="result" />
+                  <app-result-card [result]="result" />
                 </li>
               }
             </ul>

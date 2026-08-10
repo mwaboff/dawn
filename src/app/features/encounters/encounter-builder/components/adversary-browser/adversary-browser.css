@@ -97,8 +97,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  border: 1px solid rgba(212, 160, 86, .5);
-  background: rgba(212, 160, 86, .12);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--color-accent-bright);
   font-family: var(--font-display);
   font-size: 1.1rem;

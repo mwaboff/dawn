@@ -19,7 +19,7 @@ import { EntityMultiSelect } from '../../../../shared/components/entity-form/ent
 import { LookupOption } from '../../../../shared/components/entity-form/entity-form.types';
 import { FeatureEditor } from '../../../../shared/components/feature-editor/feature-editor';
 import { FeatureInput } from '../../../../shared/models/feature-api.model';
-import { ItemKind } from '../../item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { ITEM_KIND_ACCENTS, ItemFormValue, toEditorFeatures } from '../../models/item-form-value.model';
 import { itemAdvisories } from '../../utils/item-balance.utils';
 import { ItemKindRack } from '../item-kind-rack/item-kind-rack';

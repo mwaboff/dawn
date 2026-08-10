@@ -19,6 +19,19 @@
     </select>
   </div>
 
+  <!-- Shared between the two Add-button copies below -- the icon-swap is the one part of the
+       button worth not repeating. The button ELEMENT itself still has to appear once per branch:
+       app-adversary-card's slot is [card-actions], app-entity-card's is [card-controls], and a
+       projected node's slot is resolved from a static attribute on that literal element, so the
+       two can't share one <button>. -->
+  <ng-template #addIcon let-adversary="adversary">
+    @if (justAddedId() === adversary.id) {
+      <span aria-hidden="true">&#10003;</span>
+    } @else {
+      <span aria-hidden="true">+</span>
+    }
+  </ng-template>
+
   @if (loading()) {
     <app-card-skeleton [count]="6" />
   } @else if (error()) {
@@ -28,22 +41,44 @@
   } @else {
     <div class="browser__grid">
       @for (adversary of adversaries(); track adversary.id) {
-        <app-adversary-card [adversary]="adversary" [collapsible]="true">
-          <button
-            card-actions
-            type="button"
-            class="browser__add-btn"
-            [class.browser__add-btn--added]="justAddedId() === adversary.id"
-            [attr.aria-label]="'Add ' + adversary.name + ' to the encounter'"
-            (click)="onAdd(adversary)"
+        <!-- The encounter manager is dark-capable: encounters.css/encounter-builder.css/encounter-
+             run-page.css all share the same #1a1412 -> #0d0806 dark background. -->
+        @if (sheetLayout() === 'beta') {
+          <!-- Ultra-minimized, expand-on-click row -- the same app-entity-card size="compact"
+               pattern the character sheet's item finder uses (item-finder-result.html). No new
+               expand machinery: EntityCard's own header button already toggles it. -->
+          <app-entity-card
+            [card]="entityCard(adversary)"
+            size="compact"
+            [headingLevel]="4"
+            [appCardSurface]="'dark-capable'"
           >
-            @if (justAddedId() === adversary.id) {
-              <span aria-hidden="true">&#10003;</span>
-            } @else {
-              <span aria-hidden="true">+</span>
-            }
-          </button>
-        </app-adversary-card>
+            <div card-controls class="card-action-row">
+              <button
+                type="button"
+                class="browser__add-btn"
+                [class.browser__add-btn--added]="justAddedId() === adversary.id"
+                [attr.aria-label]="'Add ' + adversary.name + ' to the encounter'"
+                (click)="onAdd(adversary)"
+              >
+                <ng-container [ngTemplateOutlet]="addIcon" [ngTemplateOutletContext]="{ adversary }" />
+              </button>
+            </div>
+          </app-entity-card>
+        } @else {
+          <app-adversary-card [adversary]="adversary" [collapsible]="true">
+            <button
+              card-actions
+              type="button"
+              class="browser__add-btn"
+              [class.browser__add-btn--added]="justAddedId() === adversary.id"
+              [attr.aria-label]="'Add ' + adversary.name + ' to the encounter'"
+              (click)="onAdd(adversary)"
+            >
+              <ng-container [ngTemplateOutlet]="addIcon" [ngTemplateOutletContext]="{ adversary }" />
+            </button>
+          </app-adversary-card>
+        }
       }
     </div>
     <app-pagination-controls [currentPage]="page()" [totalPages]="totalPages()" (pageChanged)="onPageChange($event)" />

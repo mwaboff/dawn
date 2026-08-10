@@ -30,6 +30,8 @@ const MOCK_SUBCLASS_CARDS: CardData[] = [
     [collapsibleFeatures]="collapsibleFeatures()"
     [ownedCardIds]="ownedCardIds()"
     [foundationOnly]="foundationOnly()"
+    [cardFormat]="cardFormat()"
+    [readOnly]="readOnly()"
     (cardSelected)="onCardSelected($event)"
   />`,
   imports: [SubclassPathSelector],
@@ -40,6 +42,8 @@ class TestHost {
   collapsibleFeatures = signal(false);
   ownedCardIds = signal<number[]>([]);
   foundationOnly = signal(false);
+  cardFormat = signal<'classic' | 'beta'>('classic');
+  readOnly = signal(false);
   lastSelectedCard: CardData | undefined;
 
   onCardSelected(card: CardData): void {
@@ -377,6 +381,211 @@ describe('SubclassPathSelector', () => {
       expect(firstPathTabs[2].classList.contains('tabbed-path__tab--active')).toBe(true);
       const card = compiled.querySelector('app-daggerheart-card');
       expect(card).toBeTruthy();
+    });
+  });
+
+  describe('beta mode (cardFormat="beta")', () => {
+    beforeEach(() => {
+      host.cardFormat.set('beta');
+    });
+
+    it('renders EntityCard instead of DaggerheartCard', () => {
+      host.cards.set(MOCK_SUBCLASS_CARDS);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-card')).toBeTruthy();
+      expect(compiled.querySelector('app-daggerheart-card')).toBeFalsy();
+    });
+
+    it('renders a Select control that emits the foundation card when clicked', () => {
+      host.cards.set(MOCK_SUBCLASS_CARDS);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const select = compiled.querySelector('app-entity-card .entity-select') as HTMLButtonElement;
+      expect(select).toBeTruthy();
+      expect(select.textContent).toContain('Select');
+
+      select.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCard?.id).toBe(100);
+    });
+
+    it('reflects the current selection as text and aria-pressed, not colour alone', () => {
+      host.cards.set(MOCK_SUBCLASS_CARDS);
+      host.selectedCard.set(MOCK_SUBCLASS_CARDS[0]);
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      const select = compiled.querySelector('app-entity-card .entity-select') as HTMLButtonElement;
+      expect(select.getAttribute('aria-pressed')).toBe('true');
+      expect(select.textContent).toContain('Selected');
+    });
+
+    describe('readOnly (defaults false, does not affect selection surfaces)', () => {
+      it('defaults to false -- the Select control still renders untouched', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-entity-card .entity-select')).toBeTruthy();
+      });
+
+      it('suppresses the Select control in a plain browse context (no ownedCardIds, no foundationOnly)', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        expect(compiled.querySelector('app-entity-card .entity-select')).toBeFalsy();
+      });
+
+      it('leaves nothing focusable and no empty [card-controls] box when there is nothing to show', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('[card-controls]')).toBeFalsy();
+        expect(card?.querySelector('.card-action-row')).toBeFalsy();
+        expect(card?.querySelectorAll('button').length).toBe(0);
+      });
+
+      it('still shows Owned status text once ownedCardIds is actually passed', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.ownedCardIds.set([100, 200]);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+        (firstPathTabs[0] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        expect(card?.querySelector('.card-select-status')?.textContent).toContain('Owned');
+      });
+
+      it('still shows Locked status text once ownedCardIds is actually passed, with no Select control', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.ownedCardIds.set([100, 200]);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+        (firstPathTabs[2] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        expect(card?.querySelector('.card-select-status')?.textContent).toContain('Locked');
+      });
+
+      it('suppresses Locked status text for foundationOnly-only locking with no ownedCardIds', () => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.foundationOnly.set(true);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+        (tabs[1] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.card-select-status')).toBeFalsy();
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        // EntityCard's own muted dimming still marks it, even with no status text.
+        expect(card?.classList.contains('entity-card--muted')).toBe(true);
+      });
+
+      it('has no effect on the classic path -- the DaggerheartCard stays clickable', () => {
+        host.cardFormat.set('classic');
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.readOnly.set(true);
+        fixture.detectChanges();
+
+        const compiled = fixture.nativeElement as HTMLElement;
+        const cardInner = compiled.querySelector('app-daggerheart-card .card') as HTMLElement;
+        cardInner.click();
+        fixture.detectChanges();
+
+        expect(host.lastSelectedCard?.id).toBe(100);
+      });
+    });
+
+    describe('foundationOnly mode', () => {
+      beforeEach(() => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.foundationOnly.set(true);
+        fixture.detectChanges();
+      });
+
+      it('shows a Locked status with no Select control for a locked Specialization card', () => {
+        const compiled = fixture.nativeElement as HTMLElement;
+        const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+        (tabs[1] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        expect(card?.querySelector('.card-select-status')?.textContent).toContain('Locked');
+        expect(card?.getAttribute('data-card-type')).toBeTruthy();
+      });
+
+      it('mutes the locked card', () => {
+        const compiled = fixture.nativeElement as HTMLElement;
+        const tabs = compiled.querySelectorAll('.tabbed-path__tab');
+        (tabs[1] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.classList.contains('entity-card--muted')).toBe(true);
+      });
+    });
+
+    describe('upgrade mode (ownedCardIds provided)', () => {
+      beforeEach(() => {
+        host.cards.set(MOCK_SUBCLASS_CARDS);
+        host.ownedCardIds.set([100, 200]);
+        fixture.detectChanges();
+      });
+
+      it('shows an Owned status with no Select control for an owned Foundation card', () => {
+        const compiled = fixture.nativeElement as HTMLElement;
+        const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+        (firstPathTabs[0] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        expect(card?.querySelector('.card-select-status')?.textContent).toContain('Owned');
+      });
+
+      it('emits the next upgrade card when its Select control is clicked', () => {
+        const compiled = fixture.nativeElement as HTMLElement;
+        const select = compiled.querySelector('app-entity-card .entity-select') as HTMLButtonElement;
+        select.click();
+        fixture.detectChanges();
+
+        expect(host.lastSelectedCard?.id).toBe(101);
+      });
+
+      it('shows a Locked status with no Select control beyond the next upgrade', () => {
+        const compiled = fixture.nativeElement as HTMLElement;
+        const firstPathTabs = compiled.querySelectorAll('.tabbed-path__tabs')[0].querySelectorAll('.tabbed-path__tab');
+        (firstPathTabs[2] as HTMLButtonElement).click();
+        fixture.detectChanges();
+
+        const card = compiled.querySelector('app-entity-card');
+        expect(card?.querySelector('.entity-select')).toBeFalsy();
+        expect(card?.querySelector('.card-select-status')?.textContent).toContain('Locked');
+      });
     });
   });
 });

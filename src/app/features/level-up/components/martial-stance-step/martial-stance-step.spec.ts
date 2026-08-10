@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MartialStanceStep } from './martial-stance-step';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { PreferencesService } from '../../../../core/services/preferences.service';
 
 function makeStance(id: number, tier: number, name = `Stance ${id}`): CardData {
   return {
@@ -188,6 +189,124 @@ describe('MartialStanceStep', () => {
     it('leaves stances enabled while below the cap', () => {
       setUp({ maxTier: 1, requiredCount: 2, selectedStanceIds: [1] });
       expect(component.isDisabled(TIER1[1])).toBe(false);
+    });
+  });
+
+  describe('beta layout', () => {
+    beforeEach(() => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+    });
+
+    afterEach(() => {
+      localStorage.clear();
+      document.documentElement.removeAttribute('data-card-theme');
+    });
+
+    it('renders entity cards instead of DaggerheartCards', () => {
+      setUp({ maxTier: 2 });
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-daggerheart-card')).toBeNull();
+    });
+
+    it('scopes the tier groups to a light-only card surface', () => {
+      setUp({ maxTier: 2 });
+      const surface = fixture.nativeElement.querySelector('[data-card-theme]');
+      expect(surface).toBeTruthy();
+      expect(surface.querySelector('app-entity-card')).toBeTruthy();
+    });
+
+    it('shows "Known" status text, not a Select control, for an already-known stance', () => {
+      setUp({ maxTier: 2, knownStanceIds: [1] });
+      const status = fixture.nativeElement.querySelector('button[aria-label="Select Aggressive"]');
+      expect(status).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Known');
+    });
+
+    it('shows "Locked" status text, not a Select control, for a stance above maxTier', () => {
+      setUp({ maxTier: 2 });
+      const status = fixture.nativeElement.querySelector('button[aria-label="Select Unbreakable"]');
+      expect(status).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Locked');
+    });
+
+    it('renders a Select control for a selectable, unknown stance', () => {
+      setUp({ maxTier: 2 });
+      const button = fixture.nativeElement.querySelector('button[aria-label="Select Relentless"]');
+      expect(button).toBeTruthy();
+    });
+
+    it('emits stancesSelected when a beta Select control is clicked', () => {
+      setUp({ maxTier: 2 });
+      let emitted: number[] | undefined;
+      component.stancesSelected.subscribe(v => (emitted = v));
+
+      const button = fixture.nativeElement.querySelector('button[aria-label="Select Relentless"]') as HTMLButtonElement;
+      button.click();
+
+      expect(emitted).toEqual([5]);
+    });
+
+    it('marks a surplus, unselected control aria-disabled once the cap is reached', () => {
+      setUp({ maxTier: 1, requiredCount: 2, selectedStanceIds: [1, 2] });
+      const surplus = makeStance(3, 1, 'Guarded');
+      fixture.componentRef.setInput('cards', [...TIER1, surplus]);
+      fixture.detectChanges();
+
+      const button = fixture.nativeElement.querySelector('button[aria-label="Guarded, selection limit reached"]');
+      expect(button?.getAttribute('aria-disabled')).toBe('true');
+      expect(button?.textContent).toContain('Limit reached');
+    });
+
+    describe('ARIA checkbox vocabulary (matches EntitySelectionGrid, not a toggle button)', () => {
+      it('uses role="checkbox" and aria-checked, not aria-pressed, for a selectable stance', () => {
+        setUp({ maxTier: 2 });
+        const button = fixture.nativeElement.querySelector('button[aria-label="Select Relentless"]');
+        expect(button.getAttribute('role')).toBe('checkbox');
+        expect(button.getAttribute('aria-checked')).toBe('false');
+        expect(button.hasAttribute('aria-pressed')).toBe(false);
+      });
+
+      it('checks the control once selected', () => {
+        setUp({ maxTier: 2, selectedStanceIds: [5] });
+        const button = fixture.nativeElement.querySelector('button[aria-label="Relentless selected"]');
+        expect(button.getAttribute('role')).toBe('checkbox');
+        expect(button.getAttribute('aria-checked')).toBe('true');
+      });
+
+      it('renders a Known stance as a permanently-checked, aria-disabled checkbox rather than inert text', () => {
+        setUp({ maxTier: 2, knownStanceIds: [1] });
+        const button = fixture.nativeElement.querySelector('button[aria-label="Aggressive, known"]');
+        expect(button).toBeTruthy();
+        expect(button.getAttribute('role')).toBe('checkbox');
+        expect(button.getAttribute('aria-checked')).toBe('true');
+        expect(button.getAttribute('aria-disabled')).toBe('true');
+        expect(button.textContent).toContain('Known');
+      });
+
+      it('renders a Locked stance as an unchecked, aria-disabled checkbox rather than inert text', () => {
+        setUp({ maxTier: 2 });
+        const button = fixture.nativeElement.querySelector('button[aria-label="Unbreakable, locked"]');
+        expect(button).toBeTruthy();
+        expect(button.getAttribute('role')).toBe('checkbox');
+        expect(button.getAttribute('aria-checked')).toBe('false');
+        expect(button.getAttribute('aria-disabled')).toBe('true');
+        expect(button.textContent).toContain('Locked');
+      });
+
+      it('keeps Known and Locked controls focusable (aria-disabled, never the disabled attribute)', () => {
+        setUp({ maxTier: 2, knownStanceIds: [1] });
+        const known = fixture.nativeElement.querySelector('button[aria-label="Aggressive, known"]');
+        const locked = fixture.nativeElement.querySelector('button[aria-label="Unbreakable, locked"]');
+        expect(known.hasAttribute('disabled')).toBe(false);
+        expect(locked.hasAttribute('disabled')).toBe(false);
+      });
+    });
+
+    it('leaves classic rendering untouched when sheetLayout is classic', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('classic');
+      setUp({ maxTier: 2 });
+      expect(fixture.nativeElement.querySelector('app-daggerheart-card')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeNull();
     });
   });
 });

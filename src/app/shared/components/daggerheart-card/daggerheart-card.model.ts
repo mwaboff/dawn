@@ -20,7 +20,8 @@ export type CardType =
   | 'environment'
   | 'beastform'
   | 'transformationCard'
-  | 'martialStance';
+  | 'martialStance'
+  | 'adversary';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   class: 'Class',
@@ -40,6 +41,7 @@ export const CARD_TYPE_LABELS: Record<CardType, string> = {
   beastform: 'Beastform',
   transformationCard: 'Transformation Card',
   martialStance: 'Martial Stance',
+  adversary: 'Adversary',
 };
 
 export interface CardFeature {

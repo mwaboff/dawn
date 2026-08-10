@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.selection-counter {
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--color-muted, #9ca3af);
+  font-style: italic;
+}
+
+/* 19rem, not CardSelectionGrid's 300px -- matches the EntityCard grid floor used elsewhere
+   (entity-card-actions.css's `.entity-card-grid`), so a beta page mixing this grid with a plain
+   EntityCard grid gets identical column widths. */
+.entity-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: var(--space-9);
+}
+
+.entity-selection-grid--wide {
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+/* Fixed 2 columns, not another auto-fill floor -- text-dense cards (domain cards) need a real cap,
+   not "however many happen to fit" (see the `columns` input's doc comment for the actual character
+   counts that drove this). 768px, not this file's own 640px: that breakpoint exists so a single
+   auto-fill column never drops below its own floor width; this one exists purely for reading
+   comfort, so it collapses to 1 column earlier, before two columns get uncomfortably narrow. 768px
+   is the codebase's own established "tablet" breakpoint (create-character.css, character-sheet
+   -layout.css, home.css, ...), not an invented value. */
+.entity-selection-grid--columns-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 768px) {
+  .entity-selection-grid--columns-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .entity-selection-grid {
+    grid-template-columns: 1fr;
+  }
+}

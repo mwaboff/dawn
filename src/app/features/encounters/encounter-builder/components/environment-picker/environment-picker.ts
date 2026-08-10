@@ -2,8 +2,12 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, ou
 import { catchError, of } from 'rxjs';
 
 import { CardSelectionGrid } from '../../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../../../../shared/directives/card-surface.directive';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { environmentCardToEntityCard } from '../../../../../shared/mappers/environment-card-to-entity-card.mapper';
 import { EnvironmentService } from '../../../../../shared/services/environment.service';
+import { PreferencesService } from '../../../../../core/services/preferences.service';
 
 /**
  * Attaches an optional scene stat block to the encounter. Environments cost no Battle Points --
@@ -13,11 +17,17 @@ import { EnvironmentService } from '../../../../../shared/services/environment.s
   selector: 'app-environment-picker',
   templateUrl: './environment-picker.html',
   styleUrl: './environment-picker.css',
-  imports: [CardSelectionGrid],
+  imports: [CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnvironmentPicker implements OnInit {
   private readonly environmentService = inject(EnvironmentService);
+  private readonly preferencesService = inject(PreferencesService);
+
+  readonly sheetLayout = this.preferencesService.sheetLayout;
+  /** Bound to `app-entity-selection-grid`'s `cardMapper` -- adds the `headline` (Difficulty)
+   * `cardDataToEntityCard` deliberately leaves unset, for the compact glance. */
+  readonly cardMapper = environmentCardToEntityCard;
 
   readonly selectedEnvironmentId = input<number | undefined>(undefined);
   /** Emits the full card, not just its id, so the parent can show it (name/type/tier) in the

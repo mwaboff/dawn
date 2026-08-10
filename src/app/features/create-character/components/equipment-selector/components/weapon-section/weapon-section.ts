@@ -2,13 +2,15 @@ import { Component, input, output, signal, computed, inject, ChangeDetectionStra
 
 import { CardData } from '../../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CardSelectionGrid } from '../../../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../../../../../shared/directives/card-surface.directive';
 import { EquipmentPagination } from '../equipment-pagination/equipment-pagination';
 import { WeaponService } from '../../../../../../shared/services/weapon.service';
 import { PaginationState } from '../../../../models/equipment.model';
 
 @Component({
   selector: 'app-weapon-section',
-  imports: [CardSelectionGrid, EquipmentPagination],
+  imports: [CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective, EquipmentPagination],
   templateUrl: './weapon-section.html',
   styleUrl: './weapon-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,6 +19,10 @@ export class WeaponSection implements OnInit {
   readonly hasMagicAccess = input<boolean>(false);
   readonly initialPrimary = input<CardData | null>(null);
   readonly initialSecondary = input<CardData | null>(null);
+  /** `'classic'` (default) keeps today's `CardSelectionGrid` rendering unchanged; `'beta'` swaps
+   * to `EntitySelectionGrid`. The active slot's accessible name is dynamic (`weaponAriaLabel`)
+   * because the same grid renders whichever of Primary/Secondary is currently selected. */
+  readonly cardFormat = input<'classic' | 'beta'>('classic');
 
   readonly weaponSelected = output<{ primary: CardData | null; secondary: CardData | null }>();
 
@@ -54,6 +60,9 @@ export class WeaponSection implements OnInit {
   );
   readonly activeSelected = computed(() =>
     this.weaponSlot() === 'PRIMARY' ? this.selectedPrimary() : this.selectedSecondary(),
+  );
+  readonly weaponAriaLabel = computed(() =>
+    this.weaponSlot() === 'PRIMARY' ? 'Choose your primary weapon' : 'Choose your secondary weapon',
   );
 
   ngOnInit(): void {

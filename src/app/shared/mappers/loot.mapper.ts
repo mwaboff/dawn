@@ -38,6 +38,7 @@ export function mapLootToCardData(response: LootApiResponse): CardData {
       isConsumable: response.isConsumable,
       expansionId: response.expansionId,
       isOfficial: response.isOfficial,
+      createdByUserId: response.createdByUserId ?? null,
     },
   };
 }

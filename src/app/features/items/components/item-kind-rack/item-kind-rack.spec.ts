@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ItemKind } from '../../item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { ItemKindRack } from './item-kind-rack';
 
 describe('ItemKindRack', () => {

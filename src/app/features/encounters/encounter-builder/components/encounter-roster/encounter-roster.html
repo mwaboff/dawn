@@ -2,52 +2,81 @@
   <div class="roster-panel__environment-group">
     <span class="roster-panel__environment-label">Environment</span>
     <div class="roster-panel__environment">
-      <app-daggerheart-card [card]="environment" [readOnly]="true" />
+      @if (sheetLayout() === 'beta') {
+        <!-- Ultra-minimized, expand-on-click -- the same app-entity-card size="compact" pattern
+             the character sheet's item finder uses (item-finder-result.html). -->
+        <app-entity-card [card]="environmentEntityCard(environment)" size="compact" [appCardSurface]="'dark-capable'" />
+      } @else {
+        <app-daggerheart-card [card]="environment" [readOnly]="true" />
+      }
     </div>
   </div>
 }
+
+<!-- Shared between the classic/beta branches below -- the nickname/retier/remove controls are
+     identical either way, just projected into a different slot ([card-actions] vs [card-controls],
+     app-adversary-card vs app-entity-card). The projected element itself still needs one copy per
+     branch: a slot is resolved from a static attribute on that literal node, so the two can't share
+     one wrapping <div>. -->
+<ng-template #rosterActions let-instance="instance">
+  <input
+    type="text"
+    class="form-input roster-panel__label-input"
+    placeholder="Nickname"
+    [attr.aria-label]="'Nickname for ' + instance.adversary.name"
+    [value]="instance.label ?? ''"
+    (change)="onLabelInput(instance.localId, $event)"
+  />
+  <select
+    class="form-select roster-panel__retier-select"
+    [attr.aria-label]="'Retier ' + instance.adversary.name"
+    [value]="instance.tierOverride ?? ''"
+    (change)="onRetierChange(instance.localId, $event)"
+  >
+    <option value="">Tier {{ instance.adversary.tier }}</option>
+    @for (tier of tierOptions; track tier) {
+      @if (tier !== instance.adversary.tier) {
+        <option [value]="tier">Retier to {{ tier }}</option>
+      }
+    }
+  </select>
+  <button
+    type="button"
+    class="roster-panel__remove-btn"
+    [attr.aria-label]="'Remove ' + instance.adversary.name"
+    (click)="removeInstance.emit(instance.localId)"
+  >&times;</button>
+</ng-template>
+
 @if (instances().length === 0) {
   <p class="roster-panel__empty">No adversaries yet — add some from the browser below.</p>
 } @else {
   <div class="roster-panel__grid">
     @for (instance of instances(); track instance.localId) {
-      <app-adversary-card
-        [adversary]="instance.adversary"
-        [effectiveTier]="instance.tierOverride"
-        [collapsible]="true"
-        [compact]="true"
-        [class.roster-panel__item--added]="instance.localId === justAddedId()"
-      >
-        <div card-actions class="roster-panel__actions">
-          <input
-            type="text"
-            class="form-input roster-panel__label-input"
-            placeholder="Nickname"
-            [attr.aria-label]="'Nickname for ' + instance.adversary.name"
-            [value]="instance.label ?? ''"
-            (change)="onLabelInput(instance.localId, $event)"
-          />
-          <select
-            class="form-select roster-panel__retier-select"
-            [attr.aria-label]="'Retier ' + instance.adversary.name"
-            [value]="instance.tierOverride ?? ''"
-            (change)="onRetierChange(instance.localId, $event)"
-          >
-            <option value="">Tier {{ instance.adversary.tier }}</option>
-            @for (tier of tierOptions; track tier) {
-              @if (tier !== instance.adversary.tier) {
-                <option [value]="tier">Retier to {{ tier }}</option>
-              }
-            }
-          </select>
-          <button
-            type="button"
-            class="roster-panel__remove-btn"
-            [attr.aria-label]="'Remove ' + instance.adversary.name"
-            (click)="removeInstance.emit(instance.localId)"
-          >&times;</button>
-        </div>
-      </app-adversary-card>
+      @if (sheetLayout() === 'beta') {
+        <app-entity-card
+          [card]="adversaryEntityCard(instance.adversary, instance.tierOverride)"
+          size="compact"
+          [appCardSurface]="'dark-capable'"
+          [class.roster-panel__item--added]="instance.localId === justAddedId()"
+        >
+          <div card-controls class="roster-panel__actions">
+            <ng-container [ngTemplateOutlet]="rosterActions" [ngTemplateOutletContext]="{ instance }" />
+          </div>
+        </app-entity-card>
+      } @else {
+        <app-adversary-card
+          [adversary]="instance.adversary"
+          [effectiveTier]="instance.tierOverride"
+          [collapsible]="true"
+          [compact]="true"
+          [class.roster-panel__item--added]="instance.localId === justAddedId()"
+        >
+          <div card-actions class="roster-panel__actions">
+            <ng-container [ngTemplateOutlet]="rosterActions" [ngTemplateOutletContext]="{ instance }" />
+          </div>
+        </app-adversary-card>
+      }
     }
   </div>
 }

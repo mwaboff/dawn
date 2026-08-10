@@ -13,12 +13,7 @@
         @if (showBadges()) {
           <span class="wax-seal" aria-hidden="true">{{ typeGlyph() }}</span>
         }
-        @if (result.adversary) {
-          <app-adversary-card [adversary]="result.adversary" layout="wide" [collapsibleFeatures]="true" />
-        } @else if (result.card) {
-          <app-daggerheart-card [card]="result.card" layout="wide" [collapsibleFeatures]="true" />
-        }
-        <app-customize-item-action [result]="result" />
+        <app-result-card [result]="result" />
       </li>
     }
   </ul>

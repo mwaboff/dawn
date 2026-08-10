@@ -7,6 +7,7 @@ import { AdversaryBrowser } from './adversary-browser';
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { AdversaryService } from '../../../../../shared/services/adversary.service';
 import { AdversaryData } from '../../../../../shared/components/adversary-card/adversary-card.model';
+import { PreferencesService } from '../../../../../core/services/preferences.service';
 import { of, throwError } from 'rxjs';
 
 function buildAdversary(overrides: Partial<AdversaryData> = {}): AdversaryData {
@@ -30,6 +31,9 @@ describe('AdversaryBrowser', () => {
 
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
+    // PreferencesService persists sheetLayout to localStorage, which jsdom keeps across tests in
+    // this file -- without this, a 'beta' test bleeds into the next test's default PreferencesService.
+    localStorage.clear();
   });
 
   it('loads adversaries on init', () => {
@@ -203,6 +207,49 @@ describe('AdversaryBrowser', () => {
       fixture.detectChanges();
 
       expect(addBtn.classList.contains('browser__add-btn--added')).toBe(false);
+    });
+  });
+
+  describe('beta sheet layout', () => {
+    it('renders classic AdversaryCard rows by default', () => {
+      vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+        of({ adversaries: [buildAdversary()], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-adversary-card')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeNull();
+    });
+
+    it('switches to compact, expand-on-click EntityCard rows when the sheet layout preference is beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+        of({ adversaries: [buildAdversary({ name: 'Orc Warrior' })], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('app-entity-card');
+      expect(card).toBeTruthy();
+      expect(card.classList.contains('entity-card--compact')).toBe(true);
+      expect(card.textContent).toContain('Orc Warrior');
+      expect(fixture.nativeElement.querySelector('app-adversary-card')).toBeNull();
+    });
+
+    it('keeps the Add button reachable and working on a compact beta row without expanding it first', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
+        of({ adversaries: [buildAdversary({ name: 'Orc Warrior' })], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+      const emitted: AdversaryData[] = [];
+      component.adversaryAdded.subscribe(a => emitted.push(a));
+
+      fixture.detectChanges();
+      const addBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.browser__add-btn');
+      addBtn.click();
+
+      expect(emitted.map(a => a.name)).toEqual(['Orc Warrior']);
     });
   });
 });

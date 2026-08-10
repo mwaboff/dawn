@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../../../shared/directives/card-surface.directive';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { CardData, CardFeature } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { AncestryFeatureResponse } from '../../../../shared/models/ancestry-api.model';
@@ -16,7 +18,7 @@ export interface MixedAncestrySelection {
 
 @Component({
   selector: 'app-ancestry-selector',
-  imports: [CardSelectionGrid, FormatTextPipe],
+  imports: [CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective, FormatTextPipe],
   templateUrl: './ancestry-selector.html',
   styleUrl: './ancestry-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,9 @@ export class AncestrySelector {
   readonly loading = input<boolean>(false);
   readonly error = input<boolean>(false);
   readonly selectedCard = input<CardData>();
+  /** `'classic'` (default) keeps today's `CardSelectionGrid` rendering unchanged in both the
+   * single-ancestry and mixed-heritage steps below; `'beta'` swaps each to `EntitySelectionGrid`. */
+  readonly cardFormat = input<'classic' | 'beta'>('classic');
 
   readonly ancestrySelected = output<CardData>();
   readonly mixedAncestrySelected = output<MixedAncestrySelection>();
