@@ -1,6 +1,7 @@
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
 import { TransformationCardResponse } from '../../../shared/models/transformation-card-api.model';
 import { MartialStanceResponse } from '../../../shared/models/martial-stance-api.model';
+import { SpellcastingTraitResponse } from '../../../shared/models/subclass-api.model';
 
 /** Dice size for the Brawler's stored Combo Die, serialized uppercase by the backend's `DiceType` enum. */
 export type ComboDieType = 'D4' | 'D6' | 'D8' | 'D10' | 'D12' | 'D20';
@@ -264,6 +265,10 @@ export interface SubclassCardResponse {
   level?: string;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** The subclass path's Spellcast trait, as a trait enum name such as `PRESENCE`. The backend
+   * always includes it (null when the path has no spellcasting). Shares its type with the
+   * catalogue's `SubclassCardResponse` in `shared/models/subclass-api.model.ts`. */
+  spellcastingTrait?: SpellcastingTraitResponse | null;
 }
 
 export interface DomainCardResponse {
