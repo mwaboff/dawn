@@ -40,7 +40,7 @@ describe('RestTypeStep', () => {
   });
 
   it('should print the character’s real tier on the short rest plate', () => {
-    expect(plates()[0].textContent).toContain('1d4 + your tier of 2');
+    expect(plates()[0].textContent).toContain('1d4 + your tier (2)');
   });
 
   it('should say the long rest needs no roll', () => {

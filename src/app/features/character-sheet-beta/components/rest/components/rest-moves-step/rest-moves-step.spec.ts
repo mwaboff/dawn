@@ -75,11 +75,24 @@ describe('RestMovesStep', () => {
     expect(added?.id).toBe('tendToWounds');
   });
 
-  it('should disable adding once every slot is filled', () => {
+  /* aria-disabled, not the disabled attribute, so the button keeps its focus when the slot it
+     just filled turns it off. */
+  it('should mark adding unavailable once every slot is filled', () => {
     fixture.componentRef.setInput('selections', [selection('tendToWounds'), selection('prepare', 'k2')]);
     fixture.detectChanges();
 
-    expect(addButtons().every(button => button.disabled)).toBe(true);
+    expect(addButtons().every(b => b.getAttribute('aria-disabled') === 'true')).toBe(true);
+  });
+
+  it('should not emit an add once every slot is filled', () => {
+    fixture.componentRef.setInput('selections', [selection('tendToWounds'), selection('prepare', 'k2')]);
+    fixture.detectChanges();
+    let emissions = 0;
+    fixture.componentInstance.moveAdded.subscribe(() => (emissions += 1));
+
+    addButtons()[0].click();
+
+    expect(emissions).toBe(0);
   });
 
   it('should emit the removed selection’s key', () => {
@@ -119,20 +132,32 @@ describe('RestMovesStep', () => {
     let delta: number | undefined;
     fixture.componentInstance.slotsChanged.subscribe(value => (delta = value));
 
-    fixture.nativeElement.querySelector('[aria-label="One more move"]').click();
+    fixture.nativeElement.querySelector('[aria-label="One more slot"]').click();
 
     expect(delta).toBe(1);
   });
 
   it('should not allow the budget below the base two moves', () => {
-    expect(fixture.nativeElement.querySelector('[aria-label="One fewer move"]').disabled).toBe(true);
+    const button = fixture.nativeElement.querySelector('[aria-label="One fewer slot"]');
+
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should not emit a shrink at the base two moves', () => {
+    let emissions = 0;
+    fixture.componentInstance.slotsChanged.subscribe(() => (emissions += 1));
+
+    fixture.nativeElement.querySelector('[aria-label="One fewer slot"]').click();
+
+    expect(emissions).toBe(0);
   });
 
   it('should not allow the budget above the ceiling', () => {
     fixture.componentRef.setInput('slots', 6);
     fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('[aria-label="One more slot"]');
 
-    expect(fixture.nativeElement.querySelector('[aria-label="One more move"]').disabled).toBe(true);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('should title the step by rest type', () => {

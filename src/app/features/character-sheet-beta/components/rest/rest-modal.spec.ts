@@ -172,12 +172,33 @@ describe('RestModal', () => {
     );
   });
 
-  it('should disable submitting while a save is in flight', () => {
+  /* aria-disabled, not the disabled attribute: a submit that disables itself mid-request would be
+     blurred by the browser, dropping focus to <body> outside the dialog's trap. */
+  it('should mark submitting unavailable while a save is in flight', () => {
     chooseShortRest();
     fixture.componentRef.setInput('processing', true);
     fixture.detectChanges();
 
-    expect(actionButton('Resting')!.disabled).toBe(true);
+    expect(actionButton('Resting')!.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should keep the submit button focusable while a save is in flight', () => {
+    chooseShortRest();
+    fixture.componentRef.setInput('processing', true);
+    fixture.detectChanges();
+
+    expect(actionButton('Resting')!.hasAttribute('disabled')).toBe(false);
+  });
+
+  it('should ignore Back while a save is in flight', () => {
+    chooseShortRest();
+    fixture.componentRef.setInput('processing', true);
+    fixture.detectChanges();
+
+    actionButton('Back')!.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-rest-moves-step')).not.toBeNull();
   });
 
   it('should not re-submit while a save is in flight', () => {
@@ -205,7 +226,7 @@ describe('RestModal', () => {
   it('should raise the move budget', () => {
     chooseShortRest();
 
-    fixture.nativeElement.querySelector('[aria-label="One more move"]').click();
+    fixture.nativeElement.querySelector('[aria-label="One more slot"]').click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.rest-tray__count').textContent).toContain('0 of 3');
@@ -215,10 +236,10 @@ describe('RestModal', () => {
     chooseShortRest();
     addFirstMove();
     addFirstMove();
-    fixture.nativeElement.querySelector('[aria-label="One more move"]').click();
+    fixture.nativeElement.querySelector('[aria-label="One more slot"]').click();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[aria-label="One fewer move"]').click();
+    fixture.nativeElement.querySelector('[aria-label="One fewer slot"]').click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.rest-tray__count').textContent).toContain('2 of 2');
@@ -246,7 +267,31 @@ describe('RestModal', () => {
     expect(dismissed).toBe(true);
   });
 
-  it('should announce the current step to assistive technology', () => {
-    expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent).toContain('Step 1 of 3');
+  /* The step itself is announced by the heading taking focus; the live region carries what the
+     tray did, which has no other carrier. */
+  it('should announce an added move and the new count', () => {
+    chooseShortRest();
+
+    addFirstMove();
+
+    expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent).toContain(
+      'Tend to Wounds added. 1 of 2 chosen.',
+    );
+  });
+
+  it('should announce a removed move and the new count', () => {
+    chooseShortRest();
+    addFirstMove();
+
+    fixture.nativeElement.querySelector('.rest-chip__remove').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent).toContain(
+      'Tend to Wounds removed. 0 of 2 chosen.',
+    );
+  });
+
+  it('should say nothing before anything has happened', () => {
+    expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent.trim()).toBe('');
   });
 });

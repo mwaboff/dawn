@@ -7,7 +7,21 @@
 .sheet-header__aside {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  /* Right-aligned rather than stretched: spanning the full shield row would make a secondary
+     action the widest single control in the header. */
+  align-items: flex-end;
   gap: var(--space-5);
   flex-shrink: 0;
+}
+
+.sheet-header__aside app-rest-control {
+  min-width: 12rem;
+}
+
+/* The header stacks below this, so the control goes full width with everything else. */
+@media (max-width: 768px) {
+  .sheet-header__aside {
+    align-items: stretch;
+    width: 100%;
+  }
 }

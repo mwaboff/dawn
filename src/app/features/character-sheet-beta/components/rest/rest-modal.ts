@@ -26,7 +26,7 @@ import {
   RestSelection,
   RestType,
 } from './models/rest.model';
-import { movesForRest } from './utils/rest-catalog';
+import { movesForRest, REST_MOVES_BY_ID } from './utils/rest-catalog';
 import { applyRestMoves, RestDiceRoller } from './utils/rest.utils';
 import {
   addSelection,
@@ -41,12 +41,6 @@ import { RestMovesStep, RestPartyChange, RestTargetChange } from './components/r
 import { RestSummaryStep } from './components/rest-summary-step/rest-summary-step';
 
 export type RestStep = 'type' | 'moves' | 'summary';
-
-const STEP_ANNOUNCEMENTS: Readonly<Record<RestStep, string>> = {
-  type: 'Step 1 of 3: choose short rest or long rest.',
-  moves: 'Step 2 of 3: choose your downtime moves.',
-  summary: 'Step 3 of 3: your rest is saved.',
-};
 
 /**
  * The rest flow. The step is DERIVED from what has been chosen and what the host has confirmed --
@@ -105,33 +99,56 @@ export class RestModal {
     }
   });
 
-  protected readonly stepAnnouncement = computed(() => STEP_ANNOUNCEMENTS[this.step()]);
+  /**
+   * Announces what just happened in the tray. The step itself is NOT announced here -- the step
+   * heading takes focus on every change and announces it, and racing a polite message against a
+   * focus move only ever loses. Adding and removing moves has no other carrier, so this is it.
+   */
+  protected readonly status = signal('');
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 
   constructor() {
     // Each step swaps the whole body out, so focus has to follow or it falls back to the document.
-    // `ModalShell` owns the trap and the initial focus; this only moves focus onto the heading of
-    // whichever step just rendered. Deferred to `afterNextRender` because the effect runs before
-    // the new step's DOM exists -- the same pattern `inventory-section-beta` uses.
+    // `ModalShell` focuses first, then this takes over and puts focus on the heading of whichever
+    // step just rendered -- the heading carries the step number, so it announces where you are.
+    // Deferred to `afterNextRender` because the effect runs before the new step's DOM exists; the
+    // same pattern `inventory-section-beta` uses.
     effect(() => {
       this.step();
-      untracked(() =>
-        afterNextRender(
-          () => this.host.nativeElement.querySelector<HTMLElement>('.rest-step__heading')?.focus(),
-          { injector: this.injector },
-        ),
-      );
+      untracked(() => this.focusAfterRender('.rest-step__heading'));
     });
+
+    // A failed save leaves the step unchanged, so nothing else would move focus onto the alert.
+    effect(() => {
+      if (!this.saveFailed()) return;
+      untracked(() => this.focusAfterRender('.rest-body__error'));
+    });
+  }
+
+  private focusAfterRender(selector: string): void {
+    afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus(), {
+      injector: this.injector,
+    });
+  }
+
+  private announce(moveName: string, verb: 'added' | 'removed'): void {
+    this.status.set(`${moveName} ${verb}. ${this.selections().length} of ${this.slots()} chosen.`);
   }
 
   protected chooseType(type: RestType): void {
     this.restType.set(type);
   }
 
-  /** Back to step one. The rest is not half-chosen -- it starts over. */
+  /**
+   * Back to step one. The rest is not half-chosen -- it starts over.
+   *
+   * Guarded on `processing` because the button is `aria-disabled`, not `disabled`: the click still
+   * fires, which is the price of keeping the tab stop and the focus.
+   */
   protected back(): void {
+    if (this.processing()) return;
     this.restType.set(null);
     this.selections.set([]);
     this.useLongRestMove.set(false);
@@ -141,10 +158,14 @@ export class RestModal {
   protected addMove(move: RestMoveDefinition): void {
     if (this.selections().length >= this.slots()) return;
     this.selections.update(list => addSelection(list, move));
+    this.announce(move.name, 'added');
   }
 
   protected removeMove(key: string): void {
+    const removed = this.selections().find(selection => selection.key === key);
+    if (!removed) return;
     this.selections.update(list => removeSelection(list, key));
+    this.announce(REST_MOVES_BY_ID[removed.moveId].name, 'removed');
   }
 
   protected setTarget(change: RestTargetChange): void {

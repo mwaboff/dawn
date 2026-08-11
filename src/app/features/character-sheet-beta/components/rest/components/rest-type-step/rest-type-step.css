@@ -13,8 +13,11 @@
   padding: var(--space-8) var(--space-5);
   /* The inverse of the header shields' radius, matching the Rest control that opened this. */
   border-radius: 16px 16px 6px 6px;
-  border: 2px solid var(--color-accent-a30);
-  background: rgba(26, 20, 15, 0.8);
+  border: 2px solid var(--color-secondary-border);
+  /* A real lift off the panel. The `rgba(26,20,15,.8)` copied from `.shield` composites to within
+     2/255 of `--color-bg-dark` -- on the page's gradient it reads, on this flat dark panel it is
+     literally invisible. */
+  background: color-mix(in srgb, var(--color-parchment) 4%, transparent);
   color: var(--color-accent);
   cursor: pointer;
   font-family: var(--font-body);
@@ -23,7 +26,7 @@
 
 .rest-plate:hover {
   border-color: var(--color-accent);
-  background: rgba(26, 20, 15, 0.95);
+  background: color-mix(in srgb, var(--color-parchment) 9%, transparent);
 }
 
 .rest-plate__glyph {

@@ -1,11 +1,11 @@
-<h3 class="rest-step__heading" tabindex="-1">{{ heading() }}</h3>
+<h3 class="rest-step__heading" tabindex="-1">Step 2 of 3 · {{ heading() }}</h3>
 <p class="rest-step__lede">
-  Choose {{ slots() }} {{ slots() === 1 ? 'move' : 'moves' }}. You can take the same one twice.
+  Choose {{ slots() }} {{ slots() === 1 ? 'move' : 'moves' }}. You can repeat a move.
 </p>
 
-<section class="rest-tray" aria-label="Your downtime">
+<section class="rest-tray" aria-labelledby="rest-tray-title">
   <div class="rest-tray__head">
-    <span class="rest-tray__title">Your downtime</span>
+    <span class="rest-tray__title" id="rest-tray-title">Your downtime</span>
     <span class="rest-tray__count">{{ selections().length }} of {{ slots() }} chosen</span>
   </div>
 
@@ -20,7 +20,7 @@
   }
 
   @for (slot of emptySlots(); track slot) {
-    <p class="rest-tray__hollow">Choose a move</p>
+    <p class="rest-tray__hollow" aria-hidden="true">Choose a move</p>
   }
 </section>
 
@@ -34,28 +34,46 @@
       <button
         type="button"
         class="rest-catalogue__add"
-        [disabled]="full()"
+        [attr.aria-disabled]="full() || null"
         [attr.aria-label]="'Add ' + move.name"
-        (click)="moveAdded.emit(move)"
+        (click)="onAdd(move)"
       >+</button>
     </li>
   }
 </ul>
 
 <div class="rest-extras">
-  <div class="rest-stepper">
-    <span class="rest-stepper__label" id="rest-slot-label">Moves</span>
-    <button type="button" [disabled]="!canRemoveSlot()" aria-label="One fewer move" (click)="slotsChanged.emit(-1)">&minus;</button>
-    <span class="rest-stepper__value" aria-live="polite">{{ slots() }}</span>
-    <button type="button" [disabled]="!canAddSlot()" aria-label="One more move" (click)="slotsChanged.emit(1)">+</button>
+  <div class="rest-stepper" role="group" [attr.aria-labelledby]="slotLabelId">
+    <span class="rest-stepper__label" [id]="slotLabelId">Move slots</span>
+    <button
+      type="button"
+      [attr.aria-disabled]="!canRemoveSlot() || null"
+      aria-label="One fewer slot"
+      (click)="onChangeSlots(-1)"
+    >&minus;</button>
+    <span class="rest-stepper__value">{{ slots() }}</span>
+    <button
+      type="button"
+      [attr.aria-disabled]="!canAddSlot() || null"
+      aria-label="One more slot"
+      (click)="onChangeSlots(1)"
+    >+</button>
     <span class="rest-stepper__help">A feature or item may grant you more.</span>
   </div>
 
   @if (restType() === 'short') {
-    <label class="rest-toggle">
-      <input type="checkbox" [checked]="useLongRestMove()" (change)="longRestMoveToggled.emit(!useLongRestMove())" />
-      <span class="rest-toggle__label">Use a long-rest move</span>
-      <span class="rest-toggle__help">Clank’s Efficient, the Recovery card, and the like.</span>
-    </label>
+    <div class="rest-toggle">
+      <label class="rest-toggle__control">
+        <input
+          type="checkbox"
+          class="form-checkbox"
+          [checked]="useLongRestMove()"
+          [attr.aria-describedby]="longRestHelpId"
+          (change)="longRestMoveToggled.emit(!useLongRestMove())"
+        />
+        <span class="rest-toggle__label">Use a long-rest move</span>
+      </label>
+      <span class="rest-toggle__help" [id]="longRestHelpId">Clank’s Efficient, the Recovery card.</span>
+    </div>
   }
 </div>

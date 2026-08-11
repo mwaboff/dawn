@@ -91,13 +91,17 @@
   cursor: pointer;
 }
 
-.rest-catalogue__add:hover:not(:disabled) {
+.rest-catalogue__add:hover:not([aria-disabled='true']) {
   border-color: var(--color-accent);
   background: var(--color-secondary-hover-wash);
 }
 
-.rest-catalogue__add:disabled {
-  opacity: 0.4;
+/* aria-disabled rather than the disabled attribute -- see `onAdd` for why. 0.55 rather than the
+   0.4 first written here: an inactive control is exempt from the contrast minimums, but 0.4 put
+   the glyph at 2.27:1, which is closer to absent than to inactive. */
+.rest-catalogue__add[aria-disabled='true'],
+.rest-stepper button[aria-disabled='true'] {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -137,11 +141,6 @@
   cursor: pointer;
 }
 
-.rest-stepper button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 .rest-stepper__value {
   min-width: 1.25rem;
   text-align: center;
@@ -157,8 +156,15 @@
 
 .rest-toggle {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Only the control and its label are inside the <label>; the help text sits outside and is
+   referenced with aria-describedby, so it doesn't get swallowed into the accessible name. */
+.rest-toggle__control {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  flex-wrap: wrap;
   cursor: pointer;
 }

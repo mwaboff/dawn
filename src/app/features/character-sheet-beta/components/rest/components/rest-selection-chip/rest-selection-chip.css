@@ -5,8 +5,8 @@
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
   border-radius: 16px 16px 6px 6px;
-  border: 2px solid var(--color-accent-a30);
-  background: rgba(26, 20, 15, 0.8);
+  border: 2px solid var(--color-secondary-border);
+  background: color-mix(in srgb, var(--color-parchment) 4%, transparent);
 }
 
 .rest-chip__name {
@@ -36,9 +36,14 @@
   cursor: pointer;
 }
 
+/* Solid accent with dark ink, the same treatment `.dialog-btn--submit` uses on this surface.
+   The a30 tint first written here sat at 1.80:1 against the chip and 1.92:1 against the inactive
+   label -- under the 3:1 that WCAG 1.4.11 requires of a state indicator, and the only cue a
+   sighted user has for which side is chosen. */
 .rest-chip__choice--active {
-  background: var(--color-accent-a30);
-  color: var(--color-parchment);
+  background: var(--color-accent);
+  color: var(--color-text-darker);
+  font-weight: 600;
 }
 
 .rest-chip__remove {

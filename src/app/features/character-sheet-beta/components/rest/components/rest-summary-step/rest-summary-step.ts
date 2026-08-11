@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RestOutcome } from '../../models/rest.model';
 
 @Component({
@@ -9,8 +9,4 @@ import { RestOutcome } from '../../models/rest.model';
 })
 export class RestSummaryStep {
   readonly outcome = input.required<RestOutcome>();
-
-  protected readonly heading = computed(() =>
-    this.outcome().restType === 'short' ? 'Short rest' : 'Long rest',
-  );
 }

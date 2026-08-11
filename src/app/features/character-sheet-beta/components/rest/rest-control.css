@@ -1,3 +1,9 @@
+/* A component host is inline by default, so the width the sheet header gives this would not apply
+   and `width: 100%` below would have nothing to resolve against. */
+:host {
+  display: block;
+}
+
 .rest-btn {
   display: flex;
   align-items: center;
@@ -25,6 +31,12 @@
   background: color-mix(in srgb, var(--color-accent) 16%, transparent);
   border-color: var(--color-accent);
   color: var(--color-accent-bright);
+}
+
+/* The glyph sizes at 1.15em, and the button's label is --text-xs (12px), which would render the
+   seal at 13.8px -- rays under a pixel wide. Size it off the label instead of inheriting it. */
+.rest-btn app-sun-moon-glyph {
+  font-size: var(--text-lg);
 }
 
 @media (prefers-reduced-motion: reduce) {

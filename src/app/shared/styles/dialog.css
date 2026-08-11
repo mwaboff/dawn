@@ -84,7 +84,7 @@
   border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
   color: var(--color-parchment);
 }
-.dialog-panel--sheet .dialog-btn--cancel:hover:not(:disabled) {
+.dialog-panel--sheet .dialog-btn--cancel:hover:not(:disabled):not([aria-disabled='true']) {
   background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   border-color: var(--color-accent);
 }
@@ -120,7 +120,14 @@
   transition: all .2s ease;
 }
 
-.dialog-btn:disabled {
+/* `aria-disabled` is the right form for a button that disables ITSELF -- a submit that goes
+   inert while its request is in flight. The `disabled` attribute makes the UA blur the element,
+   which drops focus to `<body>`, outside the dialog and outside the host-scoped Escape and Tab
+   handlers; `aria-disabled` keeps the tab stop and the focus while still announcing "unavailable".
+   The consumer must guard the handler, since the click still fires. Styled identically so the two
+   forms are indistinguishable on screen. */
+.dialog-btn:disabled,
+.dialog-btn[aria-disabled='true'] {
   opacity: .5;
   cursor: not-allowed;
 }
@@ -130,7 +137,7 @@
   border: 1px solid #c9a87c;
   color: #5a4230;
 }
-.dialog-btn--cancel:hover:not(:disabled) { background: rgba(139,94,52,.08); }
+.dialog-btn--cancel:hover:not(:disabled):not([aria-disabled='true']) { background: rgba(139,94,52,.08); }
 
 /* Affirmative action, tinted by the consumer's --dialog-accent. */
 .dialog-btn--submit {
@@ -138,7 +145,7 @@
   border: 1px solid color-mix(in srgb, var(--dialog-accent, var(--color-accent)) 70%, black);
   color: #fff;
 }
-.dialog-btn--submit:hover:not(:disabled) { filter: brightness(.9); }
+.dialog-btn--submit:hover:not(:disabled):not([aria-disabled='true']) { filter: brightness(.9); }
 .dialog-btn--submit:focus-visible {
   outline: 2px solid var(--dialog-accent, var(--color-accent));
   outline-offset: 2px;

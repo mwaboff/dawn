@@ -71,6 +71,16 @@ export class ModalFocusDirective implements OnInit, AfterViewInit, OnDestroy {
     target?.focus();
   }
 
+  /**
+   * Wraps Tab at both ends of the dialog.
+   *
+   * The active element is not always one of the tab stops: a dialog may focus a heading or another
+   * `tabindex="-1"` element to announce a step, and the browser drops focus to `<body>` when the
+   * control that had it disables itself mid-interaction. Both cases used to fall through this
+   * check and let the very next Tab walk out of the dialog and into the page behind the backdrop --
+   * with `aria-modal="true"` set, onto content assistive technology treats as hidden. Anything not
+   * in the list is therefore steered back to the near end rather than ignored.
+   */
   private trapTab(event: KeyboardEvent): void {
     const focusable = Array.from(
       this.hostEl.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS),
@@ -78,15 +88,12 @@ export class ModalFocusDirective implements OnInit, AfterViewInit, OnDestroy {
     if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    const atBoundary = event.shiftKey ? active === first : active === last;
 
-    if (event.shiftKey) {
-      if (document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      }
-    } else if (document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+    if (!atBoundary && focusable.includes(active as HTMLElement)) return;
+
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
   }
 }

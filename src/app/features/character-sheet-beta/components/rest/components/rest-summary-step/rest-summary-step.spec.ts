@@ -57,11 +57,8 @@ describe('RestSummaryStep', () => {
     expect(lines()[0].classList).not.toContain('rest-summary__line--no-change');
   });
 
-  it('should title the summary by rest type', () => {
-    fixture.componentRef.setInput('outcome', outcome([CLEARED], 'long'));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.rest-step__heading').textContent).toContain('Long rest');
+  it('should mark itself as the third step', () => {
+    expect(fixture.nativeElement.querySelector('.rest-step__heading').textContent).toContain('Step 3 of 3');
   });
 
   it('should explain an empty rest rather than showing a bare list', () => {

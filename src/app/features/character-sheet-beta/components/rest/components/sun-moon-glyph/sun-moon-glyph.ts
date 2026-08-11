@@ -29,10 +29,50 @@ const RAY_LINES: readonly RayLine[] = Array.from({ length: 8 }, (_, index) => {
 });
 
 /** How far right of centre the moon sits, per phase. Larger means more of the sun is clear. */
-const MOON_OFFSET: Readonly<Record<SunMoonPhase, number>> = { eclipse: 17, sun: 20.5, moon: 14 };
+const MOON_OFFSET: Readonly<Record<SunMoonPhase, number>> = { eclipse: 17, sun: 19, moon: 14 };
 
-/** The sun shrinks to a corona when the moon leads. */
-const SUN_RADIUS: Readonly<Record<SunMoonPhase, number>> = { eclipse: 7, sun: 7, moon: 5.4 };
+/**
+ * At the moon phase the sun is small enough to sit entirely inside the moon's disc (2.83 + 3.2 <
+ * 6.2), so the mask swallows it and the mark becomes a clean crescent. A partly-eclipsed sun here
+ * left a 2-unit corona that was a 1.5px hairline at small sizes -- an accent nobody could see.
+ */
+const SUN_RADIUS: Readonly<Record<SunMoonPhase, number>> = { eclipse: 7, sun: 7, moon: 3.2 };
+
+/**
+ * The moon shrinks when the sun leads, so 'sun' reads as the sun leading rather than as two bodies
+ * of equal weight. Also keeps the crescent's far horn inside the 24-unit box.
+ */
+const MOON_RADIUS: Readonly<Record<SunMoonPhase, number>> = { eclipse: 6.2, sun: 4.6, moon: 6.2 };
+
+const moonCutCx = (cx: number, r: number): number => cx + r * 0.52;
+const moonCutR = (r: number): number => r * 0.935;
+
+function within(x: number, y: number, cx: number, cy: number, r: number): boolean {
+  return Math.hypot(x - cx, y - cy) < r;
+}
+
+/**
+ * Rays are painted around the sun's full circle, but the moon's bite removes the sun wherever the
+ * moon's disc covers it. A ray rooted inside that bite but outside the crescent filling it has
+ * nothing to attach to and hangs in the notch as a detached dash. Derived rather than hardcoded so
+ * it stays correct if the offsets above are ever retuned.
+ */
+function visibleRays(phase: SunMoonPhase): readonly RayLine[] {
+  const cx = MOON_OFFSET[phase];
+  const r = MOON_RADIUS[phase];
+  const cutCx = moonCutCx(cx, r);
+  const cutR = moonCutR(r);
+  return RAY_LINES.filter(
+    ray => !(within(ray.x1, ray.y1, cx, 10, r) && within(ray.x1, ray.y1, cutCx, 8.6, cutR)),
+  );
+}
+
+const RAYS_BY_PHASE: Readonly<Record<SunMoonPhase, readonly RayLine[]>> = {
+  eclipse: visibleRays('eclipse'),
+  sun: visibleRays('sun'),
+  /* No rays at all once the moon leads -- it is night. */
+  moon: [],
+};
 
 let nextGlyphId = 0;
 
@@ -49,7 +89,6 @@ let nextGlyphId = 0;
   templateUrl: './sun-moon-glyph.html',
   styleUrl: './sun-moon-glyph.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[class]': '"sun-moon sun-moon--" + phase()' },
 })
 export class SunMoonGlyph {
   readonly phase = input<SunMoonPhase>('eclipse');
@@ -59,10 +98,12 @@ export class SunMoonGlyph {
   protected readonly sunMaskId = `sun-mask-${this.uid}`;
   protected readonly moonMaskId = `moon-mask-${this.uid}`;
 
-  protected readonly rays = RAY_LINES;
+  protected readonly rays = computed(() => RAYS_BY_PHASE[this.phase()]);
   protected readonly moonCx = computed(() => MOON_OFFSET[this.phase()]);
+  protected readonly moonR = computed(() => MOON_RADIUS[this.phase()]);
   protected readonly sunRadius = computed(() => SUN_RADIUS[this.phase()]);
 
   /** The cut-out that turns the moon's disc into a crescent, offset up and to the right of it. */
-  protected readonly moonCutCx = computed(() => this.moonCx() + 3.2);
+  protected readonly moonCutCx = computed(() => moonCutCx(this.moonCx(), this.moonR()));
+  protected readonly moonCutR = computed(() => moonCutR(this.moonR()));
 }

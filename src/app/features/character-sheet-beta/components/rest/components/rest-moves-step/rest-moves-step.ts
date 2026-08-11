@@ -26,6 +26,9 @@ export interface RestPartyChange {
   readonly withParty: boolean;
 }
 
+/** Ids must be document-unique; two instances of this step would otherwise collide. */
+let nextStepId = 0;
+
 @Component({
   selector: 'app-rest-moves-step',
   imports: [RestSelectionChip],
@@ -66,4 +69,25 @@ export class RestMovesStep {
   protected readonly full = computed(() => this.selections().length >= this.slots());
   protected readonly canRemoveSlot = computed(() => this.slots() > BASE_REST_MOVES);
   protected readonly canAddSlot = computed(() => this.slots() < MAX_REST_MOVES);
+
+  private readonly uid = nextStepId++;
+  protected readonly slotLabelId = `rest-slot-label-${this.uid}`;
+  protected readonly longRestHelpId = `rest-long-move-help-${this.uid}`;
+
+  /**
+   * These controls are `aria-disabled`, not `disabled`, so they keep their tab stop and their
+   * focus when they turn themselves off mid-interaction -- filling the last slot would otherwise
+   * disable the very button just pressed and drop focus to `<body>`, outside the dialog's trap.
+   * The trade is that the click still fires, so the guard lives here.
+   */
+  protected onAdd(move: RestMoveDefinition): void {
+    if (this.full()) return;
+    this.moveAdded.emit(move);
+  }
+
+  protected onChangeSlots(delta: number): void {
+    if (delta < 0 && !this.canRemoveSlot()) return;
+    if (delta > 0 && !this.canAddSlot()) return;
+    this.slotsChanged.emit(delta);
+  }
 }
