@@ -91,13 +91,21 @@
     <section class="traits-section" aria-label="Traits">
       <div class="traits-row">
         @for (trait of sheet.traits; track trait.name) {
-          <div class="trait-badge"
-               [attr.aria-label]="trait.name + ': ' + formatModifier(trait.modifier.modified) + (trait.marked ? ', marked' : '')">
+          <div class="trait-badge">
             <span class="trait-badge__indicator">
               <app-modifier-indicator [stat]="trait.modifier" [statLabel]="trait.name" />
             </span>
-            <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
-            <span class="trait-badge__modifier" [class.trait-badge__modifier--modified]="trait.modifier.hasModifier" aria-hidden="true">{{ formatModifier(trait.modifier.modified) }}</span>
+            <button
+              type="button"
+              class="trait-badge__roll"
+              appRollOptions
+              [attr.aria-label]="'Roll ' + trait.name + ', ' + formatModifier(trait.modifier.modified) + (trait.marked ? ', marked' : '')"
+              (click)="onRollTrait(trait)"
+              (rollOptionSelected)="onRollTrait(trait, $event)"
+            >
+              <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
+              <span class="trait-badge__modifier" [class.trait-badge__modifier--modified]="trait.modifier.hasModifier" aria-hidden="true">{{ formatModifier(trait.modifier.modified) }}</span>
+            </button>
             @if (trait.marked) {
               <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
             }
@@ -246,7 +254,14 @@
                 <span class="equipment-card__badge">Primary</span>
               </div>
               <div class="equipment-card__stats">
-                @if (sheet.activePrimaryWeapon.damage) {
+                @if (primaryWeaponDamageRequest(); as primaryDamageRequest) {
+                  <button
+                    type="button"
+                    class="equip-stat equip-stat--roll"
+                    [attr.aria-label]="'Roll ' + sheet.activePrimaryWeapon.name + ' damage, ' + sheet.activePrimaryWeapon.damage"
+                    (click)="onRollWeaponDamage(primaryDamageRequest)"
+                  >{{ sheet.activePrimaryWeapon.damage }}</button>
+                } @else if (sheet.activePrimaryWeapon.damage) {
                   <span class="equip-stat">{{ sheet.activePrimaryWeapon.damage }}</span>
                 }
                 @if (sheet.activePrimaryWeapon.trait) {
@@ -316,7 +331,14 @@
                 <span class="equipment-card__badge">Secondary</span>
               </div>
               <div class="equipment-card__stats">
-                @if (sheet.activeSecondaryWeapon.damage) {
+                @if (secondaryWeaponDamageRequest(); as secondaryDamageRequest) {
+                  <button
+                    type="button"
+                    class="equip-stat equip-stat--roll"
+                    [attr.aria-label]="'Roll ' + sheet.activeSecondaryWeapon.name + ' damage, ' + sheet.activeSecondaryWeapon.damage"
+                    (click)="onRollWeaponDamage(secondaryDamageRequest)"
+                  >{{ sheet.activeSecondaryWeapon.damage }}</button>
+                } @else if (sheet.activeSecondaryWeapon.damage) {
                   <span class="equip-stat">{{ sheet.activeSecondaryWeapon.damage }}</span>
                 }
                 @if (sheet.activeSecondaryWeapon.trait) {

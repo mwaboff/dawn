@@ -8,6 +8,10 @@
   --i2: #5a3a14;
   --ru: #8a6a30;
   --go: #d4a056;
+  /* Darkened gold for text/borders on the cream panel background — #d4a056 (--go) itself
+     fails WCAG 1.4.3 there (as low as 1.24:1); this matches the existing
+     .ts-outcome--hope value, which measures 4.61-5.37:1. */
+  --go-text: #7a5320;
   --wx: #7a1818;
   --fd: 'Cinzel', 'Times New Roman', serif;
   --fb: 'Lora', Georgia, serif;
@@ -183,7 +187,7 @@
 .ts-result-empty { font-size: var(--text-xl); color: var(--i2); }
 .ts-history-empty { font-family: var(--fb); font-style: italic; font-size: var(--text-sm); color: var(--i2); text-align: center; }
 
-.ts-outcome--hope { color: #7a5320; font-weight: 600; }
+.ts-outcome--hope { color: var(--go-text); font-weight: 600; }
 .ts-outcome--fear { color: var(--fear-color); font-weight: 600; }
 .ts-outcome--crit {
   display: inline-block;
@@ -247,10 +251,59 @@
   flex-direction: column;
   gap: 3px;
 }
-.ts-history-row { display: flex; justify-content: space-between; font-family: var(--fb); font-size: var(--text-sm); color: var(--ink); }
+.ts-history-row { display: flex; flex-direction: column; gap: 1px; }
+.ts-history-label {
+  font-family: var(--fb);
+  font-style: italic;
+  font-size: var(--text-xs);
+  color: var(--i2);
+}
+.ts-history-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--fb);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
 .ts-history-dice { flex: 1; }
-.ts-history-outcome { font-style: italic; margin-left: 6px; }
-.ts-history-outcome.ts-outcome--hope { color: #7a5320; font-weight: 600; }
+.ts-history-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; }
+.ts-badge { display: inline-flex; align-items: center; line-height: 1; white-space: nowrap; }
+.ts-badge--mod {
+  padding: 1px 5px;
+  border: 1px solid var(--ru);
+  border-radius: 8px;
+  font-family: var(--fb);
+  font-style: italic;
+  font-size: var(--text-xs);
+  color: var(--i2);
+}
+.ts-badge--adv {
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  /* --go-text (#7a5320) reads fine against the top of the panel gradient but drops to
+     3.60:1 at the gradient's darker lower stop, where the chronicle list normally sits —
+     --i2 (#5a3a14) clears all three stops (5.42-7.41:1). Kept separate from --go-text so
+     .ts-outcome--hope, which only ever renders against the lighter top of the gradient,
+     is untouched. */
+  border: 1.5px solid var(--i2);
+  background: color-mix(in srgb, var(--go) 15%, transparent);
+  color: var(--i2);
+  font-family: var(--fd);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+.ts-badge--disadv {
+  border-color: var(--fear-color);
+  background: color-mix(in srgb, var(--fear-color) 15%, transparent);
+  color: var(--fear-color);
+}
+.ts-history-outcome { font-style: italic; }
+.ts-history-outcome.ts-outcome--hope { color: var(--go-text); font-weight: 600; }
 .ts-history-outcome.ts-outcome--fear { color: var(--fear-color); font-weight: 600; }
 .ts-history-outcome.ts-outcome--crit {
   background: var(--ink);

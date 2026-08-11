@@ -17,6 +17,7 @@ import {
 import {
   CharacterSheetView,
   WeaponDisplay,
+  WeaponDamageDice,
   ArmorDisplay,
   LootDisplay,
   CardSummary,
@@ -30,6 +31,7 @@ import {
 } from '../models/character-sheet-view.model';
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
 import { applyModifiers, collectAllModifiers, SourcedModifier } from './modifier-calculator.utils';
+import { DiceType, DICE_TYPES } from '../../../shared/models/dice-roller.model';
 
 function formatEnumLabel(s: string): string {
   return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
@@ -60,6 +62,22 @@ function formatDamage(damage: DamageRollResponse | undefined | null, proficiency
   const type = formatDamageTypeAbbreviation(damage.damageType);
   const modStr = mod && mod > 0 ? `+${mod}` : mod && mod < 0 ? `${mod}` : '';
   return `${count}${die}${modStr} ${type}`;
+}
+
+/**
+ * `DamageRollResponse.diceType` is typed `string` and real API/fixture data mixes casing
+ * (`'d8'`, `'D10'`) — hence the lowercase before comparing against the known `DiceType` union.
+ */
+function normalizeDiceType(diceType: string): DiceType | null {
+  const normalized = diceType.toLowerCase();
+  return (DICE_TYPES as readonly string[]).includes(normalized) ? (normalized as DiceType) : null;
+}
+
+function buildDamageDice(damage: DamageRollResponse | undefined | null): WeaponDamageDice | null {
+  if (!damage) return null;
+  const type = normalizeDiceType(damage.diceType);
+  if (!type) return null;
+  return { type, diceCount: damage.diceCount ?? null, modifier: damage.modifier ?? 0 };
 }
 
 function formatModifierLabel(target: string, operation: string, value: number): string {
@@ -164,6 +182,7 @@ export function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, prof
     tier: weapon.tier,
     isPrimary: weapon.isPrimary ?? true,
     damage: formatDamage(weapon.damage, proficiency),
+    damageDice: buildDamageDice(weapon.damage),
     trait: weapon.trait ? formatEnumLabel(weapon.trait) : '',
     range: weapon.range ? formatEnumLabel(weapon.range) : '',
     burden: weapon.burden ?? '',

@@ -1,4 +1,5 @@
 import { ComboDieType } from '../../create-character/models/character-sheet-api.model';
+import { DiceType } from '../../../shared/models/dice-roller.model';
 
 export interface CharacterSheetView {
   id: number;
@@ -94,10 +95,24 @@ export interface WeaponDisplay {
   tier?: number;
   isPrimary: boolean;
   damage: string;
+  /**
+   * Structured counterpart of `damage`, alongside it (not a replacement — the classic sheet
+   * still reads the formatted string). Null when the weapon has no damage roll, or its
+   * `diceType` doesn't normalize to a known `DiceType`. `diceCount` stays `null` when the API
+   * omitted it, so a roll-request builder can fall back to the wielder's current Proficiency
+   * instead of baking in the value that was current at mapping time.
+   */
+  damageDice?: WeaponDamageDice | null;
   trait: string;
   range: string;
   burden: string;
   features: FeatureDisplay[];
+}
+
+export interface WeaponDamageDice {
+  type: DiceType;
+  diceCount: number | null;
+  modifier: number;
 }
 
 export interface ArmorDisplay {

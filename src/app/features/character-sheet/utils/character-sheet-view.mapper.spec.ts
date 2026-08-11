@@ -261,6 +261,7 @@ describe('mapToCharacterSheetView', () => {
       expect(result.activePrimaryWeapon?.id).toBe(10);
       expect(result.activePrimaryWeapon?.name).toBe('Longsword');
       expect(result.activePrimaryWeapon?.damage).toBe('1d8 Phy');
+      expect(result.activePrimaryWeapon?.damageDice).toEqual({ type: 'd8', diceCount: 1, modifier: 0 });
     });
 
     it('maps weapon damage to empty string when damage is missing', () => {
@@ -274,6 +275,56 @@ describe('mapToCharacterSheetView', () => {
       const result = mapToCharacterSheetView(sheet);
 
       expect(result.activePrimaryWeapon?.damage).toBe('');
+      expect(result.activePrimaryWeapon?.damageDice).toBeNull();
+    });
+
+    it('normalizes an uppercase diceType (e.g. D10) in damageDice', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Greatbow', features: [],
+            damage: { diceCount: 1, diceType: 'D10', modifier: 2, damageType: 'PHYSICAL', notation: 'ignored' },
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.damageDice).toEqual({ type: 'd10', diceCount: 1, modifier: 2 });
+    });
+
+    it('returns null damageDice for an unparseable diceType so the roll affordance can be hidden', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Mystery Weapon', features: [],
+            damage: { diceCount: 1, diceType: 'd7', modifier: 0, damageType: 'PHYSICAL', notation: 'ignored' },
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.damageDice).toBeNull();
+    });
+
+    it('keeps diceCount null in damageDice when the API omits it, for the builder to resolve against Proficiency', () => {
+      const sheet = makeSheet({
+        proficiency: 4,
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          weapon: {
+            id: 10, name: 'Greatbow', features: [],
+            damage: { diceCount: null, diceType: 'd10', modifier: 3, damageType: 'PHYSICAL', notation: 'ignored' },
+          },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon?.damageDice).toEqual({ type: 'd10', diceCount: null, modifier: 3 });
     });
 
     it('maps weapon features', () => {

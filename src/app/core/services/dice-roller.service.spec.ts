@@ -105,6 +105,75 @@ describe('DiceRollerService', () => {
     });
   });
 
+  describe('modifiers', () => {
+    it('defaults to an empty array when omitted', () => {
+      const result = service.roll({ dice: [], includeDuality: false });
+
+      expect(result.modifiers).toEqual([]);
+      expect(result.modifierTotal).toBe(0);
+    });
+
+    it('folds modifier values into modifierTotal', () => {
+      const result = service.roll({
+        dice: [],
+        includeDuality: false,
+        modifiers: [{ label: 'Agility', value: 2 }, { label: 'Bonus', value: 1 }],
+      });
+
+      expect(result.modifierTotal).toBe(3);
+    });
+
+    it('adds modifierTotal into the roll total', () => {
+      vi.spyOn(service as unknown as { rollOne: (n: number) => number }, 'rollOne')
+        .mockReturnValueOnce(4);
+
+      const result = service.roll({
+        dice: [{ type: 'd6', count: 1 }],
+        includeDuality: false,
+        modifiers: [{ label: 'Agility', value: 3 }],
+      });
+
+      expect(result.total).toBe(7);
+    });
+
+    it('preserves the modifiers array on the result', () => {
+      const modifiers = [{ label: 'Agility', value: 2 }];
+      const result = service.roll({ dice: [], includeDuality: false, modifiers });
+
+      expect(result.modifiers).toEqual(modifiers);
+    });
+  });
+
+  describe('advantage', () => {
+    it('defaults advantage to null when omitted', () => {
+      const result = service.roll({ dice: [], includeDuality: false });
+
+      expect(result.advantage).toBeNull();
+    });
+
+    it('advantage adds a positive d6 to diceResults and total', () => {
+      vi.spyOn(service as unknown as { rollOne: (n: number) => number }, 'rollOne')
+        .mockReturnValueOnce(5);
+
+      const result = service.roll({ dice: [], includeDuality: false, advantage: 'advantage' });
+
+      expect(result.advantage).toBe('advantage');
+      expect(result.diceResults).toContainEqual({ type: 'd6', value: 5 });
+      expect(result.total).toBe(5);
+    });
+
+    it('disadvantage adds a negative d6 to diceResults and total', () => {
+      vi.spyOn(service as unknown as { rollOne: (n: number) => number }, 'rollOne')
+        .mockReturnValueOnce(5);
+
+      const result = service.roll({ dice: [], includeDuality: false, advantage: 'disadvantage' });
+
+      expect(result.advantage).toBe('disadvantage');
+      expect(result.diceResults).toContainEqual({ type: 'd6', value: -5 });
+      expect(result.total).toBe(-5);
+    });
+  });
+
   describe('duality rolling', () => {
     it('returns null duality when includeDuality is false', () => {
       const result = service.roll({ dice: [], includeDuality: false });

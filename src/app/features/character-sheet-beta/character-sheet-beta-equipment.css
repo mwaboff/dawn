@@ -9,8 +9,18 @@
 .equipment-card__header { display: flex; align-items: center; gap: var(--space-5); margin-bottom: var(--space-1); }
 .equipment-card__name { font-family: var(--fb); font-weight: 700; color: var(--cp); font-size: .9rem; }
 .equipment-card__badge { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; color: rgba(212,160,86,.8); border: 1px solid var(--cb); border-radius: 2px; padding: .1rem .3rem; }
-.equipment-card__stats { display: flex; gap: var(--space-5); flex-wrap: wrap; }
+.equipment-card__stats { display: flex; align-items: center; gap: var(--space-5); flex-wrap: wrap; }
 .equip-stat { font-family: var(--fb); font-size: var(--text-sm); color: rgba(245,230,211,.7); }
+/* A rollable damage stat gets the same hairline-pill treatment `.equipment-card__badge`/
+   `.feature-tag` already use in this file -- the border alone is what sets it apart from the plain
+   `.equip-stat` text (trait/range/burden) sitting right next to it. `--color-accent-a75`, not the
+   fainter `--cb` those two use for a decorative hairline: WCAG 1.4.11 needs 3:1 for a non-text UI
+   boundary and `--cb` only measures ~1.46:1 here, which would make the "always visible" affordance
+   from the discoverability fix effectively invisible again. `min-height` clears the WCAG 2.5.8
+   24px touch-target floor -- at `--text-sm` with this padding the chip was only ~18px tall. */
+.equip-stat--roll { display: inline-flex; align-items: center; min-height: 1.5rem; border: 1px solid var(--color-accent-a75); border-radius: 2px; padding: .05rem .3rem; margin: -.05rem 0; background: transparent; font: inherit; color: inherit; cursor: pointer; transition: background-color .12s, border-color .12s; }
+.equip-stat--roll:hover { background: var(--color-secondary-hover-wash); border-color: var(--color-accent); }
+.equip-stat--roll:active { background: var(--cb); }
 .equipment-card__features { margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid rgba(212,160,86,.1); display: flex; flex-direction: column; gap: var(--space-5); }
 
 .burden-hand {

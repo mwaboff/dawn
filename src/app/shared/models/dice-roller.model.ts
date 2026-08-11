@@ -12,10 +12,22 @@ export interface DiceSelection {
   count: number;
 }
 
+export interface RollModifier {
+  label: string;
+  value: number;
+}
+
+export type AdvantageState = 'advantage' | 'disadvantage';
+
 export interface RollRequest {
   dice: DiceSelection[];
   includeDuality: boolean;
   label?: string;
+  modifiers?: RollModifier[];
+  /** Action and reaction rolls only — never set for damage rolls. */
+  advantage?: AdvantageState;
+  /** Roll immediately on consumption instead of only pre-filling the tray. */
+  autoRoll?: boolean;
 }
 
 export interface DieResult {
@@ -34,6 +46,9 @@ export interface RollResult {
   timestamp: number;
   diceResults: DieResult[];
   duality: DualityResult | null;
+  modifiers: RollModifier[];
+  modifierTotal: number;
+  advantage: AdvantageState | null;
   total: number;
   label?: string;
 }
