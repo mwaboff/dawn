@@ -1,24 +1,24 @@
 /* Same shell as classic's character-sheet.css -- view encapsulation means that stylesheet can't
    reach this component's own template, so the header/level-badge/shield chrome is copied rather
    than shared (classic's own copy of this content already warns at 4.95kB, for the same reason:
-   it's genuinely this much CSS, not padding). The one deliberate difference is `.sheet-page`'s
-   width: this page's wider `EntityCard` grids need more room than classic's single-column card
-   list ever did. The traits row lives in character-sheet-beta-traits.css -- split out once this
-   file was confirmed to have no dead rules left to cut, purely to clear the budget. */
+   it's genuinely this much CSS, not padding). Page width and padding come from `.page-shell`
+   (shared/styles/page-shell.css) on the board measure -- this page's wide `EntityCard` grids want
+   the full frame interior. The traits row lives in character-sheet-beta-traits.css -- split out
+   once this file was confirmed to have no dead rules left to cut, purely to clear the budget. */
 :host {
   --ca: var(--color-accent);
   --cp: var(--color-parchment);
   --cb: rgba(212,160,86,.2);
   --cg: rgba(212,160,86,.3);
-  --cl: rgba(212,160,86,.65);
+  /* .8, not .65. This is gold body text sitting directly on the page surface (.sheet-class,
+     .shield__label, .trait-badge__abbr), and .65 measures 3.78:1 against that surface at the wash
+     maximum -- under the 4.5:1 floor. .8 measures 5.01:1. See the wash-budget note in styles.css. */
+  --cl: rgba(212,160,86,.8);
   --fb: var(--font-body);
   display: block;
-  min-height: 100vh;
-  background: var(--color-bg-darker);
   font-family: var(--font-display);
 }
 
-.sheet-page { max-width: 1440px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 .sheet-loading,.sheet-error { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; }
 .loading-text { color: var(--ca); font-size: 1.1rem; letter-spacing: .1em; }
 .error-title { color: var(--ca); font-size: 1.75rem; margin-bottom: .5rem; }
@@ -33,12 +33,12 @@
 .sheet-class { margin: 0; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; color: var(--cl); }
 .sheet-class__subclass { font-style: italic; text-transform: none; letter-spacing: .02em; color: rgba(245,230,211,.75); }
 .sheet-class__sep,.sheet-class__divider { color: rgba(212,160,86,.5); }
-.sheet-owner { align-self: flex-start; width: fit-content; font-family: var(--fb); font-size: .9rem; color: rgba(245,230,211,.5); text-decoration: none; font-style: italic; transition: color .2s ease; }
+.sheet-owner { align-self: flex-start; width: fit-content; font-family: var(--fb); font-size: .9rem; color: var(--color-parchment-a55); text-decoration: none; font-style: italic; transition: color .2s ease; }
 .sheet-owner:hover { color: var(--ca); }
 
 .level-badge { width: 56px; border-radius: 8px 8px 10px 10px; border: 2px solid var(--cg); background: rgba(212,160,86,.06); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; padding: .35rem 0 .25rem; gap: 0; }
 .level-badge--can-level { padding-bottom: 0; }
-.level-badge__label { font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.7); line-height: 1; }
+.level-badge__label { font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.8); line-height: 1; }
 .level-badge__value { font-size: 1.4rem; font-weight: 900; color: var(--ca); line-height: 1.1; }
 
 .shield { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 72px; min-height: 72px; background: rgba(26,20,15,.8); border: 2px solid var(--cg); border-radius: 6px 6px 16px 16px; padding: var(--space-3) var(--space-1); position: relative; flex-shrink: 0; }

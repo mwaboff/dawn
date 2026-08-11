@@ -149,6 +149,12 @@ describe('CreateCharacter', () => {
 
   afterEach(() => {
     httpTesting.verify();
+    // The beta-layout block below calls `setSheetLayout('beta')`, which PERSISTS to localStorage.
+    // PreferencesService reads that store once, at construction, so a leaked 'beta' silently
+    // reconfigures every later spec that renders a layout-sensitive component in the same worker --
+    // `domain-card-step.spec.ts` renders zero `app-daggerheart-card` and fails ten assertions.
+    // That is order- and worker-count-dependent, which is why it only ever failed in CI.
+    localStorage.clear();
   });
 
   function flushClassCards(classes: ClassResponse[] = MOCK_CLASSES): void {

@@ -1,5 +1,8 @@
-<div class="grain-overlay run-page-grain"></div>
-<div class="run-page">
+<div class="run-page page-shell page-shell--page">
+  <!-- The visible name of the encounter is rendered as an h2 inside the run view, which left this
+       document opening at h2 with no h1. Visually hidden rather than shown, because the run view's
+       own header is already the page's title and a second one would just be chrome above a fight. -->
+  <h1 class="sr-only">Running an encounter</h1>
 
   @if (loading()) {
     <div class="run-page-loading" role="status" aria-live="polite">

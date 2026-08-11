@@ -48,7 +48,7 @@ describe('Preferences', () => {
   });
 
   it('renders a note that changes are stored on this device only', () => {
-    expect(el.querySelector('.preferences-intro')?.textContent).toContain('this browser');
+    expect(el.querySelector('.page-header__intro')?.textContent).toContain('this browser');
   });
 
   describe('density options', () => {

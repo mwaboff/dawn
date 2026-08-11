@@ -1,0 +1,147 @@
+/* The page frame. One shell, one left edge, one vertical rhythm, for every routed page.
+ *
+ * Before this existed, nine different max-widths and five different top paddings were spread across
+ * the feature folders, so a heading landed anywhere between 96px and 200px from the top depending
+ * on the route, and no two pages' content shared a left edge. The frame below is the navbar's own
+ * container measure (`--shell-max` / `--shell-pad-inline`), which is why page content lines up with
+ * the logo above it and the brand mark below it.
+ *
+ * Width is chosen per page by a measure modifier. There are three, and every page uses one of them.
+ * All three are centred on the same axis the navbar and footer centre on, and all three share the
+ * frame's inline padding, so the only thing that varies between pages is how far the content column
+ * extends before it stops. Board-measure pages are the frame itself, so their content starts at
+ * exactly the logo's x; narrower pages centre inside it rather than stranding a column against one
+ * edge with a screen of void beside it.
+ *
+ * The measure is set on the shell rather than on its children on purpose. Capping children instead
+ * (`.page-shell > *`) looks tidier and is a trap: several of these pages are flex columns, where the
+ * `margin-inline: auto` needed to centre a capped child also centres every back-link and left-
+ * aligned control inside it.
+ *
+ * Usage:
+ *   <div class="page-shell">                       board:  ~1336px, the full frame interior
+ *   <div class="page-shell page-shell--page">      page:   960px
+ *   <div class="page-shell page-shell--column">    column: 640px
+ *
+ * Choose by what the widest ROW on the page has to hold, not by how important the page feels:
+ *   board  -- tables, multi-column boards, card grids. Content fills the width. admin, reference,
+ *             dashboard, the beta sheet, the encounter builder.
+ *   page   -- a work surface whose rows are full of things: stats, controls, meters. The classic
+ *             character sheet (whose 960px measure this is), the encounter run page, item builder.
+ *   column -- one column of content, where a row is a label at one end and maybe a control at the
+ *             other. Rosters, detail pages, forms, prose. Widening these is the trap: a campaign
+ *             row is a name and a chevron, and every pixel added to the page goes into the gap
+ *             between them.
+ *
+ * Do NOT re-declare max-width/margin/padding on the element carrying `.page-shell`. Component
+ * styles load after this file, so a local copy wins silently and the page drifts back out of line.
+ */
+
+.page-shell {
+  position: relative;
+  max-width: var(--shell-max);
+  margin-inline: auto;
+  padding: var(--shell-pad-top) var(--shell-pad-inline) var(--shell-pad-bottom);
+}
+
+/* The modifiers add the frame's padding back onto the measure, so `--measure-page: 960px` means a
+   960px content column -- the number you can check against a design -- not a 960px border box that
+   silently reads 896px once padding is taken. */
+.page-shell--page {
+  max-width: calc(var(--measure-page) + 2 * var(--shell-pad-inline));
+}
+
+.page-shell--column {
+  max-width: calc(var(--measure-column) + 2 * var(--shell-pad-inline));
+}
+
+/* The mobile step-down for `--shell-pad-*` is NOT here -- it lives in `styles.css`, in the same
+   `@media (max-width: 768px) { :root { … } }` block as `--nav-height`.
+   It has to. This file is `@import`ed at the top of `styles.css`, before the `:root` block that
+   sets the desktop values, and a media query adds no specificity -- so a `:root` override written
+   here loses to the later `:root` and the step-down silently never applies at any width. It was
+   written here first and did exactly that. Keeping both halves of a sticky offset in one block is
+   the other reason. */
+
+/* Shared page header: eyebrow, title, optional trailing action, closed by the accent hairline.
+   Six pages use it. admin, dashboard and reference do NOT yet -- admin runs a tab nav under its
+   title, dashboard a single large greeting, reference a centred title over a subtitle -- and they
+   are unconverted, not exempt. Converting them means adding a modifier and projecting their extra
+   content, never copying these declarations into their stylesheets. */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-11);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-10);
+  margin-bottom: var(--space-11);
+  border-bottom: 1px solid var(--color-accent-a30);
+}
+
+/* `1 1 auto`, not `1`. `flex: 1` expands to `1 1 0%`, which gives the identity a hypothetical main
+   size of zero -- so it can never be what pushes the line over and the `flex-wrap` above never
+   fires. At 320px that left the title ~88px for a word that needs ~150px, and it overflowed. With
+   an `auto` basis the title's own max-content takes part in line-breaking and the action drops to a
+   second row on its own, with no media query. */
+.page-header__identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.page-header__eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  opacity: 0.8;
+  margin-bottom: var(--space-5);
+}
+
+/* Parchment, not accent: gold should mark exactly one thing in a header. A page with an eyebrow
+   spends its gold there, so the title is parchment -- two stacked gold elements read as neither
+   one being marked, and parchment is the higher-contrast half of the pair anyway.
+   The three pages that still set a gold title (admin, dashboard, reference) happen to be exactly
+   the three with no eyebrow, so nothing currently looks wrong. That is a coincidence of them being
+   unconverted, not a second sanctioned pattern -- when they adopt this block they get an eyebrow
+   and a parchment title like everything else. Do not preserve the gold title as if it were a rule. */
+.page-header__title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.1;
+  color: var(--color-parchment);
+  margin: 0;
+  /* Some of these titles ARE user-entered names -- the item builder renders the item's own name
+     here -- and no measure is wide enough for every homebrew name someone types without a space.
+     Breaking mid-word is ugly; overflowing the frame is worse. */
+  overflow-wrap: anywhere;
+}
+
+/* Standfirst under the title, inside `__identity`. Capped at a reading measure of its own because
+   the page measure is set by the widest row, which is usually not prose. */
+.page-header__intro {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--color-parchment-a65);
+  max-width: 46ch;
+  margin: var(--space-7) 0 0;
+}
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-shrink: 0;
+}
+
+/* For a page that follows its header with its own labelled divider. Without this the page draws a
+   plain rule, 2rem of air, and then a second rule carrying a label -- which is what happened when
+   the shared border arrived under the three pages that already had one. The labelled rule is the
+   more useful of the two, so the header yields. */
+.page-header--flush {
+  padding-bottom: 0;
+  margin-bottom: var(--space-10);
+  border-bottom: none;
+}

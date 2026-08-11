@@ -3,6 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
 @import "tailwindcss";
 
+@import "./app/shared/styles/page-shell.css";
 @import "./app/shared/styles/buttons.css";
 @import "./app/shared/styles/forms.css";
 @import "./app/shared/styles/roster.css";
@@ -126,14 +127,67 @@
   --font-body: 'Lora', serif;
 
   /* Height of the fixed navbar. `app.css` pads the page by it and anything `position: sticky`
-     must offset by it too, or it scrolls underneath. */
+     must offset by it too, or it scrolls underneath. A sticky rail inside a page should pin at
+     `calc(var(--nav-height) + var(--shell-pad-top))` -- where the page's own content starts -- not
+     at a literal. Five rails had baked in `6rem`/`96px`, which was that sum under the old padding
+     and silently became wrong the moment the padding changed. */
   --nav-height: 4.5rem;
+
+  /* Page frame. `--shell-max` and `--shell-pad-inline` are deliberately identical to the values on
+     `.nav-container` and `.footer-container`. A board-measure page therefore starts at exactly the
+     same x as the "Oh Sheet" logo and ends level with the footer -- that alignment is what made the
+     admin page look like it belonged to its own header, and it is the thing being standardised.
+     Narrower measures centre on the same axis the navbar and footer centre on, so what every page
+     shares is the frame, the axis and the rhythm; only how far the content column extends varies.
+     See `shared/styles/page-shell.css`. */
+  --shell-max: 1400px;
+  --shell-pad-inline: 2rem;
+  /* 3.5rem, not 3rem: several of these pages open with an 11px gold uppercase eyebrow, and at 48px
+     below a 72px fixed gold-on-dark navbar that eyebrow reads as another row of navbar chrome
+     rather than as the start of the page. 56px separates them. The pages lost far more height than
+     this when the old 6-8rem top paddings went, so it costs nothing. */
+  --shell-pad-top: 3.5rem;
+  --shell-pad-bottom: 5rem;
+
+  /* Content measures, centred inside the frame. Three, not nine, and none of them invented -- each
+     is a width already tuned in this codebase:
+       board  -- the full frame interior (1336px): tables, multi-column boards, card grids
+       page   -- 960px, the classic character sheet's measure: work surfaces whose rows are full of
+                 controls -- the sheet, the encounter run page, the item builder
+       column -- 640px, the preferences measure: one column of content, where a row is a label at
+                 one end and maybe a control at the other -- rosters, detail pages, forms, prose
+     Pick by what the widest ROW must hold, not by how important the page feels. Widening a `column`
+     page is the standing trap: a campaign row is a name and a chevron, so every pixel added to the
+     page goes into the gap between them. Four pages were briefly cut to 960px and had to come back. */
+  --measure-page: 960px;
+  --measure-column: 640px;
+
+  /* Reading measure for the wide card layout, which is a fixed-width header column beside a body of
+     prose. The body is the only part that grows, so on a `1fr` grid it tracked the page: 120ch in
+     the character creator at the board measure and 94ch in the codex, against a 45-75ch comfortable
+     range. The cap is on the CARD rather than on the text so the card narrows as a whole and there
+     is no stranded card face beside the prose. 900px puts the daggerheart card's body at ~75ch
+     (900 - 240 header - 1 rule - 56 padding) and the adversary card's at ~79ch (220/48). */
+  --card-wide-max: 900px;
+
+  /* The "arrival" surface, for the three full-bleed centred pages that are a moment rather than a
+     workspace: the logged-out hero, the auth card, and the error page. It is warmer and deeper than
+     the application surface on purpose -- these pages have no navigation to sit under and no data to
+     compete with, so the room can be lit harder.
+     Each of the three previously carried its own copy, and the copies had already drifted apart
+     (.1 / .08 / .1 on the same radial). They are meant to be indistinguishable, so they now read one
+     declaration. Do not add a fourth caller without asking whether the page is really an arrival. */
+  --surface-hero:
+    radial-gradient(ellipse at 30% 40%, rgba(180, 120, 50, .09) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 60%, rgba(150, 100, 40, .055) 0%, transparent 50%),
+    linear-gradient(175deg, #201710 0%, #150f0a 50%, #0d0806 100%);
 
   /* Gold text read directly on parchment (not on the dark background) needs a darker ink or it
      washes out -- this is that ink, added as a real token rather than a one-off hex per rule. */
   --color-accent-ink: #8b5e34;
   /* Alpha-variant tokens for the floors below, reused across several rules each. */
   --color-accent-a75: rgba(212, 160, 86, .75);
+  --color-accent-a30: rgba(212, 160, 86, .3);
   --color-parchment-a55: rgba(245, 230, 211, .55);
   --color-accent-ring: rgba(212, 160, 86, .5);
   --color-parchment-a80: rgba(245, 230, 211, .8);
@@ -383,9 +437,16 @@
   --eca-muted-rail-mix: 100%;
 }
 
+/* Must stay AFTER the `:root` block above: `page-shell.css` is imported before it, so a `:root`
+   override written there loses the cascade tie and never applies. Both halves of the sticky-rail
+   offset -- `--nav-height` and `--shell-pad-top` -- step at the same breakpoint, and keeping them
+   in one block is what makes `calc(var(--nav-height) + var(--shell-pad-top))` correct on a phone. */
 @media (max-width: 768px) {
   :root {
     --nav-height: 4rem;
+    --shell-pad-inline: 1.25rem;
+    --shell-pad-top: 2rem;
+    --shell-pad-bottom: 3rem;
   }
 }
 
@@ -414,11 +475,97 @@
   box-sizing: border-box;
 }
 
+/* The application surface.
+ *
+ * Seven feature folders each carried their own copy of a `linear-gradient(175deg, #1a1412, #0d0806)`
+ * page background, and the rest were flat. The gradients were the worse half of that split, but not
+ * because gradients are wrong here -- because a gradient sized to the ELEMENT resolves over the
+ * page's own height. The same declaration finished its falloff within one screen on an empty
+ * campaigns list and stretched it over 4000px of the reference codex, so the "same" background
+ * rendered differently on every route and drifted as content grew. That is the inconsistency, and
+ * no amount of copying the declaration around fixes it.
+ *
+ * So the base is flat -- `--color-bg-dark`, the admin and dashboard colour -- and the atmosphere
+ * moves to a single VIEWPORT-anchored layer. Being fixed, it resolves against the screen instead of
+ * the document: identical on a one-line page and a fifty-screen one, stable while scrolling, and
+ * declared once. Content moves over a room that stays put.
+ *
+ * The wash is deliberately near the threshold of perception (a ~2% luminance lift at the top, a
+ * slight settling toward the bottom). Read as a still, it is the flat page; read in motion, it is
+ * the candlelight the rest of the palette is named for.
+ *
+ * CONTRAST MUST BE BUDGETED AT THE WASH MAXIMUM, not at where an element happens to sit. Because
+ * the wash is fixed, every element passes through the lightest part of it -- the top of the
+ * viewport -- at some scroll position, and that is the worst case for light text on this surface.
+ * Composited there the page reads (39,29,22) rather than the flat (26,20,18). That is only a ~2%
+ * luminance lift, but it is enough to sink any foreground that was already scraping the 4.5:1 floor:
+ * `rgba(245,230,211,.5)` measured 4.50-4.55:1 on the old flat surfaces, passing on a rounding
+ * artefact with no margin at all, and six rules using it fell to 4.37-4.47:1 here. They are now on
+ * `--color-parchment-a55` (5.00:1), which has real margin. Treat 50% parchment as not a legal
+ * body-text colour on the page surface, and check new muted colours against (39,29,22).
+ *
+ * `html` carries the base colour rather than `body` so that `body::before` can sit at `z-index: -1`
+ * behind every descendant without also falling behind the canvas background. */
+html {
+  background-color: var(--color-bg-dark);
+}
+
 body {
   font-family: var(--font-body);
-  background-color: var(--color-bg-dark);
   color: var(--color-text-light);
   overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(180, 120, 50, .07) 0%, transparent 60%),
+    linear-gradient(180deg, transparent 45%, rgba(10, 7, 5, .38) 100%);
+}
+
+/* On the settle's strength, because this was got wrong once and the wrong answer is tempting:
+   an element pinned to a viewport edge and painted an opaque `--color-bg-dark` cannot see the fixed
+   wash behind it, so it shows the flat base while the page around it shows base + wash. The first
+   attempt capped the settle at .18 to shrink that seam to 3/256 -- which was incoherent, since the
+   top radial shifts the surface by 11/256 and no cap was applied there. Capping the wash to hide
+   one element's bug also hands that element a veto over the whole page's depth.
+   The fix belongs on the element: the one page-surface case, the item form's sticky action bar,
+   now uses the translucent + `backdrop-filter` treatment `.run-view__header` already used, so the
+   wash shows through and there is no seam at any scroll position. Dialogs are not affected -- they
+   sit over a scrim, not over this layer. Add a new opaque viewport-pinned surface and it needs the
+   same treatment; do not reach for the settle. */
+
+/* The grain that sixteen pages each carried as their own `<div class="grain-overlay">`.
+ *
+ * This layer may be `position: fixed` where `.grain-overlay` may not (see the note on that class):
+ * the prohibition is on `fixed` COMBINED WITH `mix-blend-mode`, which cancels compositor promotion
+ * and forces a viewport-sized re-blend every scroll frame. With plain alpha compositing there is
+ * nothing to re-blend, the layer is promoted, and scrolling costs a GPU offset. Over a near-uniform
+ * dark base, alpha and `overlay` are visually indistinguishable at this opacity anyway. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Footer sits at the bottom of short pages instead of floating mid-screen. This replaces the
+   `min-height: 100vh` that every page component used to declare on its own `:host` -- which, added
+   to `.page-content`'s `--nav-height` padding, guaranteed a scrollbar on every route even when the
+   page had nothing to scroll. */
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -466,6 +613,12 @@ h1, h2, h3, h4, h5, h6 {
 .empty-state { font-family: var(--font-body); color: rgba(245,230,211,.65); font-style: italic; font-size: var(--text-sm); margin: 0; }
 
 /* Shared decorative overlays.
+ *
+ * Application pages no longer use `.grain-overlay`: `body::after` above grains the whole app in one
+ * fixed, non-blending layer. What is left here serves the pages that paint their own opaque surface
+ * over that layer and so need their own grain -- the hero/auth/error arrivals, which want it much
+ * stronger, and the light parchment wizards, which need `multiply` rather than `overlay`. Reach for
+ * this class only if your page is one of those; otherwise the global layer already covers you.
  *
  * `.grain-overlay` must stay `position: absolute` -- do not override it to `fixed`. A fixed layer
  * normally gets its own compositor layer, so scrolling is a free GPU offset, but `mix-blend-mode`

@@ -64,7 +64,7 @@
 
 .meter__sep { color: rgba(245, 230, 211, .4); font-size: 1.1rem; }
 .meter__suggested { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--color-parchment); opacity: .8; }
-.meter__unit { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(245, 230, 211, .5); margin-left: .25rem; }
+.meter__unit { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--color-parchment-a55); margin-left: .25rem; }
 
 .meter__status {
   font-family: var(--font-display);

@@ -82,6 +82,10 @@ describe('DomainCardStep', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
+    // These tests assert on the classic layout, which PreferencesService resolves from localStorage
+    // at construction. Clear it so the file cannot inherit a 'beta' left behind by whatever ran
+    // before it in this worker, rather than relying on every other spec to clean up after itself.
+    localStorage.clear();
     mockDomainService.getDomainCards.mockClear();
     mockDomainService.getDomainCards.mockReturnValue(of(MOCK_DOMAIN_CARDS));
 

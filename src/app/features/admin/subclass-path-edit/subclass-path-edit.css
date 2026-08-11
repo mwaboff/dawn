@@ -189,7 +189,7 @@
 
 .path-edit__preview {
   position: sticky;
-  top: 6rem;
+  top: calc(var(--nav-height) + var(--shell-pad-top));
 }
 
 .level-section {

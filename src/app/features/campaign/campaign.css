@@ -1,26 +1,8 @@
 :host {
-  position: relative;
   display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
-    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
-}
-
-.campaign {
-  position: relative;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 8rem 2rem 6rem;
-}
-
-.campaign-grain {
-  opacity: 0.15;
 }
 
 .campaign-divider {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-9);
@@ -46,8 +28,6 @@
 }
 
 .campaign-section {
-  position: relative;
-  z-index: 1;
   opacity: 0;
   animation: fadeInUp 0.6s ease-out 0.4s forwards;
 }
@@ -70,8 +50,6 @@
 .campaign-skeleton-body { height: 120px; animation-delay: 0.3s; }
 
 .campaign-error {
-  position: relative;
-  z-index: 1;
   text-align: center;
   padding: 4rem 2rem;
 }
@@ -89,8 +67,6 @@
 }
 
 .campaign-action-row {
-  position: relative;
-  z-index: 1;
   display: flex;
   justify-content: center;
   margin: var(--space-9) 0;
@@ -131,7 +107,6 @@
 }
 
 @media (max-width: 640px) {
-  .campaign { padding: 7rem 1.25rem 4rem; }
   .campaign-divider { margin: 2rem 0 1rem; }
   .campaign-error { padding: 3rem 1rem; }
 }

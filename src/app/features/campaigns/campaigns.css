@@ -1,31 +1,10 @@
 :host {
-  position: relative;
   display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
-    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
 }
 
-.campaigns { position: relative; max-width: 720px; margin: 0 auto; padding: 8rem 2rem 6rem; }
-.campaigns-grain { opacity: 0.15; }
-
-.campaigns-header {
-  position: relative; z-index: 1;
-  display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-11);
-  margin-bottom: 3.5rem; opacity: 0;
-  animation: fadeInUp 0.6s ease-out 0.1s forwards;
-}
-
-.campaigns-identity { flex: 1; min-width: 0; }
-
-.campaigns-eyebrow {
-  display: inline-block; font-family: var(--font-display);
-  font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.3em;
-  text-transform: uppercase; color: var(--color-accent); margin-bottom: var(--space-5); opacity: 0.8;
-}
-
-.campaigns-title { font-size: clamp(2.25rem, 6vw, 3.5rem); line-height: 1.1; color: var(--color-parchment); margin-bottom: 0; }
+/* Layout and typography come from `.page-header` (shared/styles/page-shell.css); this only carries
+   the staggered entrance the roster shares with its divider and list. */
+.campaigns-header { opacity: 0; animation: fadeInUp 0.6s ease-out 0.1s forwards; }
 
 .campaigns-create-btn {
   flex-shrink: 0; font-family: var(--font-display); font-size: 0.8125rem; font-weight: 600;
@@ -36,17 +15,7 @@
 .campaigns-create-btn:hover { background: rgba(212, 160, 86, 0.08); border-color: var(--color-accent); }
 .campaigns-create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
 
-.campaigns-divider {
-  position: relative; z-index: 1; display: flex; align-items: center; gap: var(--space-9);
-  margin-bottom: var(--space-11); opacity: 0; animation: fadeInUp 0.6s ease-out 0.25s forwards;
-}
-.campaigns-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 160, 86, 0.25), transparent); }
-.campaigns-divider-label {
-  font-family: var(--font-display); font-size: 0.75rem; font-weight: 600;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-accent); opacity: 0.7;
-}
-
-.campaigns-list-section { position: relative; z-index: 1; opacity: 0; animation: fadeInUp 0.6s ease-out 0.4s forwards; }
+.campaigns-list-section { opacity: 0; animation: fadeInUp 0.6s ease-out 0.4s forwards; }
 .campaigns-roster { list-style: none; display: flex; flex-direction: column; gap: 2px; }
 
 .campaigns-entry {
@@ -92,8 +61,6 @@
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 640px) {
-  .campaigns { padding: 7rem 1.25rem 4rem; }
-  .campaigns-header { flex-direction: column; gap: 1rem; margin-bottom: 2.5rem; }
   .campaigns-entry { padding: var(--space-7); gap: var(--space-7); }
   .campaigns-empty { padding: 3rem 1rem; }
 }

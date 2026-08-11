@@ -1,7 +1,7 @@
 .filter-rail {
   width: 260px;
   position: sticky;
-  top: 96px;
+  top: calc(var(--nav-height) + var(--shell-pad-top));
   display: flex;
   flex-direction: column;
   gap: 1rem;

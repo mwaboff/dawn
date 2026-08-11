@@ -1,4 +1,5 @@
 /* Single source of truth for the navbar offset is `--nav-height` in styles.css. */
 .page-content {
+  flex: 1;
   padding-top: var(--nav-height);
 }

@@ -1,4 +1,6 @@
-.adversary-card--wide { flex-flow: row; }
+/* Capped and centred for the same reason as `.card--wide` -- the 220px header column is fixed, so
+   all page width goes into the body's line length. See `--card-wide-max`. */
+.adversary-card--wide { flex-flow: row; max-width: var(--card-wide-max); margin-inline: auto; }
 
 .adversary-card__features-toggle { background: none; border: none; cursor: pointer; color: #c74040; font-weight: 600; padding: 0; display: flex; align-items: center; gap: .35rem; }
 .adversary-card__features-toggle:hover { opacity: .85; }

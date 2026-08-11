@@ -11,7 +11,11 @@
    showing through as they scroll underneath. */
 .run-view__header {
   position: sticky;
-  top: 0;
+  /* Where this pins depends on who is hosting it, so the host decides. Inside a GM screen panel the
+     panel is the scroll container and 0 is right; on the routed run page the page scrolls under the
+     fixed navbar, so 0 puts the GM's Complete/Discard controls behind it mid-fight. The run page
+     overrides this to clear the navbar. A flat `--nav-height` here would be wrong in the panel. */
+  top: var(--run-view-sticky-top, 0);
   z-index: 3;
   display: flex;
   flex-wrap: wrap;
@@ -67,14 +71,14 @@
   padding: .25rem;
   font-style: italic;
   font-size: var(--text-sm);
-  color: rgba(245, 230, 211, .45);
+  color: var(--color-parchment-a55);
 }
 
 .run-view__empty {
   padding: 2.5rem 1rem;
   text-align: center;
   font-style: italic;
-  color: rgba(245, 230, 211, .45);
+  color: var(--color-parchment-a55);
   border: 1px dashed rgba(212, 160, 86, .25);
   border-radius: 8px;
 }

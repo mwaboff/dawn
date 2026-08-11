@@ -1,9 +1,8 @@
-<div class="grain-overlay profile-grain"></div>
-<div class="profile">
+<div class="profile page-shell page-shell--column">
 
   @if (profileLoading()) {
-    <header class="profile-header">
-      <div class="profile-identity">
+    <header class="page-header page-header--flush profile-header">
+      <div class="page-header__identity">
         <div class="profile-skeleton-eyebrow"></div>
         <div class="profile-skeleton-name"></div>
         <div class="profile-skeleton-joined"></div>
@@ -22,10 +21,10 @@
       <a routerLink="/" class="profile-error-link">Back to Home</a>
     </div>
   } @else if (profileUser(); as user) {
-    <header class="profile-header">
-      <div class="profile-identity">
-        <span class="profile-eyebrow">Adventurer</span>
-        <h1 class="profile-name">{{ user.username }}</h1>
+    <header class="page-header page-header--flush profile-header">
+      <div class="page-header__identity">
+        <span class="page-header__eyebrow">Adventurer</span>
+        <h1 class="page-header__title profile-name">{{ user.username }}</h1>
         <p class="profile-joined">Member since {{ joinDate() }}</p>
       </div>
       <div class="profile-sigil">

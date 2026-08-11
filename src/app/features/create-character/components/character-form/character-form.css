@@ -4,10 +4,15 @@
   border-bottom: 1px solid #c9a87c;
 }
 
+/* Capped because an input's width is a claim about how much you are expected to type, and these two
+   fields are a name and a pronoun set. Uncapped, the row tracks the page: it was already ~545px per
+   field at the wizard's old 1200px and went to ~615px when the page adopted the board measure, which
+   is several times any real answer. The cap is on the row, not the fields, so they stay equal. */
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  max-width: 42rem;
 }
 
 @media (min-width: 640px) {
