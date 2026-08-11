@@ -11,8 +11,7 @@
   gap: var(--space-3);
   text-align: center;
   padding: var(--space-8) var(--space-5);
-  /* The inverse of the header shields' radius, matching the Rest control that opened this. */
-  border-radius: 16px 16px 6px 6px;
+  border-radius: 4px;
   border: 2px solid var(--color-secondary-border);
   /* A real lift off the panel. The `rgba(26,20,15,.8)` copied from `.shield` composites to within
      2/255 of `--color-bg-dark` -- on the page's gradient it reads, on this flat dark panel it is

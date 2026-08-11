@@ -32,7 +32,7 @@
   margin: 0;
   padding: var(--space-3) var(--space-5);
   border: 2px dashed var(--color-accent-a30);
-  border-radius: 16px 16px 6px 6px;
+  border-radius: 4px;
   color: var(--color-parchment-a55);
   font-size: var(--text-sm);
   font-style: italic;

@@ -12,9 +12,7 @@
   width: 100%;
   min-height: 40px;
   padding: var(--space-2) var(--space-7);
-  /* The exact inverse of `.shield`'s 6px 6px 16px 16px: the shields stand on this lintel, and it
-     reads as an action rather than a fifth statistic in their row. */
-  border-radius: 16px 16px 6px 6px;
+  border-radius: 4px;
   border: 2px solid var(--color-accent-a30);
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   color: var(--color-accent);
