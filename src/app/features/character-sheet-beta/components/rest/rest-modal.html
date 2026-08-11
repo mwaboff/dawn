@@ -1,0 +1,58 @@
+<app-modal-shell
+  [title]="dialogTitle()"
+  surface="sheet"
+  [processing]="processing()"
+  (dismissed)="dismissed.emit()"
+>
+  <div modal-body class="rest-body">
+    <p class="rest-body__announcement" aria-live="polite">{{ stepAnnouncement() }}</p>
+
+    @switch (step()) {
+      @case ('type') {
+        <app-rest-type-step [tier]="state().tier" (chosen)="chooseType($event)" />
+      }
+      @case ('moves') {
+        @if (saveFailed()) {
+          <p class="rest-body__error" role="alert">
+            The rest didn’t save. Nothing on your sheet changed — try again.
+          </p>
+        }
+        <app-rest-moves-step
+          [restType]="chosenType()!"
+          [moves]="availableMoves()"
+          [selections]="selections()"
+          [slots]="slots()"
+          [useLongRestMove]="useLongRestMove()"
+          (moveAdded)="addMove($event)"
+          (moveRemoved)="removeMove($event)"
+          (targetChanged)="setTarget($event)"
+          (withPartyChanged)="setWithParty($event)"
+          (slotsChanged)="changeSlots($event)"
+          (longRestMoveToggled)="toggleLongRestMove($event)"
+        />
+      }
+      @case ('summary') {
+        <app-rest-summary-step [outcome]="savedOutcome()!" />
+      }
+    }
+  </div>
+
+  <div modal-actions>
+    @switch (step()) {
+      @case ('type') {
+        <button type="button" class="dialog-btn dialog-btn--cancel" (click)="dismissed.emit()">Cancel</button>
+      }
+      @case ('moves') {
+        <button type="button" class="dialog-btn dialog-btn--cancel" [disabled]="processing()" (click)="back()">
+          Back
+        </button>
+        <button type="button" class="dialog-btn dialog-btn--submit" [disabled]="processing()" (click)="submit()">
+          {{ processing() ? 'Resting…' : 'Take the rest' }}
+        </button>
+      }
+      @case ('summary') {
+        <button type="button" class="dialog-btn dialog-btn--submit" (click)="dismissed.emit()">Done</button>
+      }
+    }
+  </div>
+</app-modal-shell>
