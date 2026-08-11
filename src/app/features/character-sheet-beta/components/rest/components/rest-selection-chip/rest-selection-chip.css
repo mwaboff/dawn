@@ -1,0 +1,61 @@
+.rest-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border-radius: 16px 16px 6px 6px;
+  border: 2px solid var(--color-secondary-border);
+  background: color-mix(in srgb, var(--color-parchment) 4%, transparent);
+}
+
+.rest-chip__name {
+  flex: 1 1 auto;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+}
+
+.rest-chip__segmented {
+  display: inline-flex;
+  border: 1px solid var(--color-accent-a30);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rest-chip__choice {
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-parchment-a70);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+/* Solid accent with dark ink, the same treatment `.dialog-btn--submit` uses on this surface.
+   The a30 tint first written here sat at 1.80:1 against the chip and 1.92:1 against the inactive
+   label -- under the 3:1 that WCAG 1.4.11 requires of a state indicator, and the only cue a
+   sighted user has for which side is chosen. */
+.rest-chip__choice--active {
+  background: var(--color-accent);
+  color: var(--color-text-darker);
+  font-weight: 600;
+}
+
+.rest-chip__remove {
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-parchment-a55);
+  font-size: var(--text-md);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rest-chip__remove:hover {
+  color: var(--color-danger-ghost-hover-text);
+}

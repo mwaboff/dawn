@@ -1,0 +1,24 @@
+<div class="rest-chip">
+  <span class="rest-chip__name">{{ definition().name }}</span>
+
+  @if (choices().length > 0) {
+    <span class="rest-chip__segmented" role="group" [attr.aria-label]="definition().name + ' option'">
+      @for (choice of choices(); track choice.label) {
+        <button
+          type="button"
+          class="rest-chip__choice"
+          [class.rest-chip__choice--active]="choice.active"
+          [attr.aria-pressed]="choice.active"
+          (click)="onChoose(choice.value)"
+        >{{ choice.label }}</button>
+      }
+    </span>
+  }
+
+  <button
+    type="button"
+    class="rest-chip__remove"
+    [attr.aria-label]="'Remove ' + definition().name"
+    (click)="removed.emit()"
+  >&times;</button>
+</div>

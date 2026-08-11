@@ -1,0 +1,24 @@
+/* The status announcement uses the global `.sr-only` from src/styles.css -- no local copy. */
+
+/* Wide enough for the two rest plates to sit side by side: the shared 420px default leaves a
+   354px content box, and two 11rem tracks plus their gap need 364px, so step 1 would silently
+   collapse to one column at every viewport. Precedent: item-finder (40rem), item-form-modal
+   (48rem). */
+:host {
+  --dialog-max-w: 30rem;
+}
+
+.rest-body__error {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  border-left: 2px solid var(--color-error-text-on-dark);
+  color: var(--color-error-text-on-dark);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* Focused programmatically when a save fails, so the ring has to be visible. */
+.rest-body__error:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}

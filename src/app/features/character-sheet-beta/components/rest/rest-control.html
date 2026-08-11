@@ -1,0 +1,17 @@
+@if (state(); as restState) {
+  <button type="button" class="rest-btn" (click)="onOpen()">
+    <app-sun-moon-glyph phase="eclipse" />
+    <span>Rest</span>
+  </button>
+
+  @if (open()) {
+    <app-rest-modal
+      [state]="restState"
+      [access]="access()"
+      [processing]="processing()"
+      [applyResult]="applyResult()"
+      (submitted)="submitted.emit($event)"
+      (dismissed)="onClose()"
+    />
+  }
+}

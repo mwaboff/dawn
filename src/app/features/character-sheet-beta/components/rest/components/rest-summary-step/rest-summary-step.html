@@ -1,0 +1,19 @@
+<h3 class="rest-step__heading" tabindex="-1">Step 3 of 3 · What changed</h3>
+
+@if (outcome().summary.length === 0) {
+  <p class="rest-step__lede">You rested and took no downtime moves.</p>
+} @else {
+  <ul class="rest-summary">
+    @for (line of outcome().summary; track $index) {
+      <li class="rest-summary__line" [class.rest-summary__line--no-change]="line.noChange">
+        <span class="rest-summary__title">{{ line.title }}</span>
+        <span class="rest-summary__detail">{{ line.detail }}</span>
+      </li>
+    }
+  </ul>
+}
+
+<p class="rest-step__note">
+  You can swap cards between your loadout and your vault during a rest — do it before you take any
+  downtime moves.
+</p>

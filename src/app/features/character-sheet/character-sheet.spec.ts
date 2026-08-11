@@ -1968,6 +1968,18 @@ describe('CharacterSheet', () => {
     });
   });
 
+  /**
+   * Rest is a beta-only feature. The two share this class, so the only thing stopping the control
+   * appearing on classic is that classic's template never mounts it -- worth a tripwire, since a
+   * stray copy of the header block into `character-sheet.html` would otherwise ship silently.
+   */
+  it('does not render the beta rest control', () => {
+    createComponent('1');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-rest-control')).toBeNull();
+  });
+
   describe('beastform section gating', () => {
     function druidClass(id = 3): ClassCardResponse {
       return {

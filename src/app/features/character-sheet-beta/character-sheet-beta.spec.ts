@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { describe, it, expect, vi } from 'vitest';
@@ -12,6 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { DiceRollerService } from '../../core/services/dice-roller.service';
 import { TransformationCardService } from '../../shared/services/transformation-card.service';
 import { CompanionService } from '../../shared/services/companion.service';
+import { RestOutcome } from './components/rest/models/rest.model';
 import { CharacterSheetResponse } from '../create-character/models/character-sheet-api.model';
 import { InventorySection } from '../character-sheet/components/inventory-section/inventory-section';
 import { InventorySectionBeta } from './components/inventory-section-beta/inventory-section-beta';
@@ -508,6 +509,156 @@ describe('CharacterSheetBeta', () => {
       expect(fixture.nativeElement.querySelector('.equip-stat--roll')).toBeNull();
       const stats = fixture.nativeElement.querySelector('.equipment-card__stats') as HTMLElement;
       expect(stats.textContent).toContain('Phy');
+    });
+  });
+
+  /**
+   * The rest flow itself is covered by the `rest/` specs. What is beta's job -- and only beta's --
+   * is that the control is mounted where it belongs, gated on ownership, and that submitting
+   * produces exactly one PUT with a clean rollback.
+   */
+  describe('rest', () => {
+    /** A rest whose only effect is clearing the two marked Hit Points the fixture starts with. */
+    const OUTCOME: RestOutcome = {
+      restType: 'long',
+      nextState: {} as RestOutcome['nextState'],
+      changes: {
+        hitPointMarked: 0,
+        stressMarked: 0,
+        armorMarked: 0,
+        hopeHeld: 2,
+        focusHeld: 0,
+        favor: 0,
+        wolfFormActive: false,
+      },
+      summary: [],
+      unchanged: false,
+    };
+
+    function sheetService() {
+      return TestBed.inject(CharacterSheetService) as unknown as {
+        updateCharacterSheet: ReturnType<typeof vi.fn>;
+      };
+    }
+
+    it('mounts the rest control in the header, below the shields', () => {
+      createComponent();
+
+      const aside = fixture.nativeElement.querySelector('.sheet-header__aside');
+      expect(aside.querySelector('.sheet-header__stats + app-rest-control')).not.toBeNull();
+    });
+
+    it('hides the rest control from someone else’s sheet', () => {
+      configure('1', of(mockResponse), { id: 999 });
+      fixture = TestBed.createComponent(CharacterSheetBeta);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-rest-control')).toBeNull();
+    });
+
+    it('sends exactly one update for a submitted rest', () => {
+      createComponent();
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(sheetService().updateCharacterSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends the outcome’s changes as the update body', () => {
+      createComponent();
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(sheetService().updateCharacterSheet).toHaveBeenCalledWith(1, {
+        hitPointMarked: 0,
+        stressMarked: 0,
+        armorMarked: 0,
+        hopeMarked: 2,
+        focusMarked: 0,
+        favor: 0,
+        wolfFormActive: false,
+      });
+    });
+
+    it('reports the save so the modal can show its summary', () => {
+      createComponent();
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(component.restApply()).toEqual({ status: 'saved' });
+    });
+
+    it('sends nothing for a rest that moved nothing', () => {
+      createComponent();
+
+      component.onRestSubmitted({ ...OUTCOME, unchanged: true });
+
+      expect(sheetService().updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('still reaches the summary for a rest that moved nothing', () => {
+      createComponent();
+
+      component.onRestSubmitted({ ...OUTCOME, unchanged: true });
+
+      expect(component.restApply()).toEqual({ status: 'saved' });
+    });
+
+    /** The default fixture is undamaged, which would make a "cleared the HP" assertion vacuous. */
+    function createDamagedComponent() {
+      createComponent(of({ ...mockResponse, hitPointMarked: 4 }));
+    }
+
+    it('applies the rest optimistically before the save returns', () => {
+      createDamagedComponent();
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(component.markedHp()).toBe(0);
+    });
+
+    it('restores the previous values when the save fails', () => {
+      createDamagedComponent();
+      sheetService().updateCharacterSheet.mockReturnValue(throwError(() => new Error('nope')));
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(component.markedHp()).toBe(4);
+    });
+
+    it('reports a failed save so the modal can offer a retry', () => {
+      createDamagedComponent();
+      sheetService().updateCharacterSheet.mockReturnValue(throwError(() => new Error('nope')));
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(component.restApply()).toEqual({ status: 'error' });
+    });
+
+    it('clears a pending pip override so the debounced save cannot revert the rest', () => {
+      createDamagedComponent();
+      component.setResourceMarked('hp', 3);
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(component.markedHp()).toBe(0);
+    });
+
+    it('ignores a rest submitted by someone who does not own the sheet', () => {
+      configure('1', of(mockResponse), { id: 999 });
+      fixture = TestBed.createComponent(CharacterSheetBeta);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.onRestSubmitted(OUTCOME);
+
+      expect(sheetService().updateCharacterSheet).not.toHaveBeenCalled();
+    });
+
+    it('derives the rest tier from the character level', () => {
+      createComponent();
+
+      expect(component.restState()?.tier).toBe(3);
     });
   });
 });

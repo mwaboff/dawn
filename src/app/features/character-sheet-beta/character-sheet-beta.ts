@@ -31,6 +31,15 @@ import {
   subclassCardToEntity,
 } from './utils/entity-card.mapper';
 import { orderClassGroupCards } from './utils/card-group-order.utils';
+import { CharacterSheetService } from '../../core/services/character-sheet.service';
+import { RestControl } from './components/rest/rest-control';
+import { RestApplyResult, RestMoveAccess, RestOutcome } from './components/rest/models/rest.model';
+import {
+  applyRestToRaw,
+  applyRestToView,
+  restUpdateRequest,
+  toRestCharacterState,
+} from './components/rest/utils/rest-state.mapper';
 
 /** Pairs a mapped `EntityCardData` with the original numeric id `onVaultCard`/`onEquipCard`
  * (inherited from `CharacterSheet`) need -- `EntityCardData.id` is `string | number` and isn't
@@ -60,6 +69,7 @@ interface DomainCardEntry {
     './character-sheet-beta-cards.css',
     './character-sheet-beta-equipment.css',
     './character-sheet-beta-notes.css',
+    './character-sheet-beta-rest.css',
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -80,6 +90,7 @@ interface DomainCardEntry {
     EntityCard,
     CollapsibleCardGroup,
     RollOptionsDirective,
+    RestControl,
   ],
 })
 export class CharacterSheetBeta extends CharacterSheet {
@@ -90,6 +101,9 @@ export class CharacterSheetBeta extends CharacterSheet {
    * into classic.
    */
   private readonly diceRoller = inject(DiceRollerService);
+
+  /** Same story as `diceRoller`: the base class holds this singleton privately. */
+  private readonly sheets = inject(CharacterSheetService);
 
   /** Class cards then their subclass cards, one combined "Class & Subclass" group -- ordering
    * rules and the class-to-subclass linkage live in `orderClassGroupCards`. */
@@ -185,5 +199,78 @@ export class CharacterSheetBeta extends CharacterSheet {
     this.itemModalRequest.set(null);
     const id = this.characterSheet()?.id;
     if (id !== undefined) this.loadCharacterSheet(id);
+  }
+
+  /** Null while the modal is closed or a rest is in flight; drives its summary-or-retry step. */
+  readonly restApply = signal<RestApplyResult | null>(null);
+
+  /** The two gated downtime moves, reusing the predicates the header shields already run on. */
+  readonly restAccess = computed<RestMoveAccess>(() => ({
+    warlockResources: this.showWarlockResources(),
+    martialStances: this.showMartialStances(),
+  }));
+
+  /**
+   * Read from the optimistic computeds rather than the raw response, so a pip toggled within the
+   * last 800ms is what the rest clears.
+   */
+  readonly restState = computed(() =>
+    toRestCharacterState({
+      view: this.characterSheet(),
+      raw: this.rawSheet(),
+      hitPointMarked: this.markedHp(),
+      stressMarked: this.markedStress(),
+      armorMarked: this.markedArmor(),
+      hopeHeld: this.markedHope(),
+      hopeCap: (this.characterSheet()?.hopeMax.modified ?? 0) + this.companionGrantedHopeSlots(),
+      focusHeld: this.markedFocus(),
+      focusMax: this.focusMax(),
+      favor: this.currentFavor(),
+    }),
+  );
+
+  /**
+   * The rest's one write. Follows `onActivateMartialStance`'s immediate-write shape: guard on
+   * owner and in-flight, set both state signals optimistically, PUT, roll both back on error.
+   *
+   * Nulling the six overrides is not optional. A pip toggled in the last 800ms leaves an override
+   * that `markedHp()` and friends still read and that the pending debounced pipeline will PUT when
+   * it fires -- silently reverting the whole rest. Cleared, any pipeline that fires afterwards
+   * re-sends the post-rest values instead, which is a no-op.
+   */
+  onRestSubmitted(outcome: RestOutcome): void {
+    const raw = this.rawSheet();
+    const view = this.characterSheet();
+    if (!raw || !view || !this.isOwner() || this.hfActionInFlight()) return;
+
+    // Nothing moved, so there is nothing to save -- go straight to an honest summary.
+    if (outcome.unchanged) {
+      this.restApply.set({ status: 'saved' });
+      return;
+    }
+
+    this.rawSheet.set(applyRestToRaw(raw, outcome.changes));
+    this.characterSheet.set(applyRestToView(view, outcome.changes));
+    this.localHpMarked.set(null);
+    this.localStressMarked.set(null);
+    this.localHopeMarked.set(null);
+    this.localArmorMarked.set(null);
+    this.localFocusMarked.set(null);
+    this.localFavor.set(null);
+    this.hfActionInFlight.set(true);
+    this.restApply.set(null);
+
+    this.sheets.updateCharacterSheet(raw.id, restUpdateRequest(outcome.changes)).subscribe({
+      next: () => {
+        this.hfActionInFlight.set(false);
+        this.restApply.set({ status: 'saved' });
+      },
+      error: () => {
+        this.rawSheet.set(raw);
+        this.characterSheet.set(view);
+        this.hfActionInFlight.set(false);
+        this.restApply.set({ status: 'error' });
+      },
+    });
   }
 }

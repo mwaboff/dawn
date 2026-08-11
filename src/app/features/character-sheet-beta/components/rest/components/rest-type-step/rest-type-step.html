@@ -1,0 +1,22 @@
+<h3 class="rest-step__heading" tabindex="-1">Step 1 of 3 · Which rest?</h3>
+<p class="rest-step__lede">Two downtime moves either way. The difference is how much clears.</p>
+
+<div class="rest-plates">
+  @for (plate of plates; track plate.type) {
+    <button type="button" class="rest-plate" (click)="chosen.emit(plate.type)">
+      <app-sun-moon-glyph class="rest-plate__glyph" [phase]="plate.phase" />
+      <span class="rest-plate__name">{{ plate.name }}</span>
+      <span class="rest-plate__desc">{{ plate.description }}</span>
+      @if (plate.type === 'short') {
+        <span class="rest-plate__meta">Each clear rolls 1d4 + your tier ({{ tier() }})</span>
+      } @else {
+        <span class="rest-plate__meta">Each clear takes everything, no roll</span>
+      }
+    </button>
+  }
+</div>
+
+<p class="rest-step__note">
+  You can swap cards between your loadout and your vault during a rest — do it before you take any
+  downtime moves.
+</p>

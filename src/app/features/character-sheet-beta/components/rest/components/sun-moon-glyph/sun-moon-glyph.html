@@ -1,0 +1,35 @@
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <defs>
+    <mask [attr.id]="sunMaskId">
+      <rect x="0" y="0" width="24" height="24" fill="#fff" />
+      <circle [attr.cx]="moonCx()" cy="10" [attr.r]="moonR()" fill="#000" />
+    </mask>
+    <mask [attr.id]="moonMaskId">
+      <circle [attr.cx]="moonCx()" cy="10" [attr.r]="moonR()" fill="#fff" />
+      <circle [attr.cx]="moonCutCx()" cy="8.6" [attr.r]="moonCutR()" fill="#000" />
+    </mask>
+  </defs>
+
+  @if (rays().length > 0) {
+    <g class="sun-moon__rays">
+      @for (ray of rays(); track ray.id) {
+        <line [attr.x1]="ray.x1" [attr.y1]="ray.y1" [attr.x2]="ray.x2" [attr.y2]="ray.y2" />
+      }
+    </g>
+  }
+
+  <circle
+    class="sun-moon__disc"
+    cx="12"
+    cy="12"
+    [attr.r]="sunRadius()"
+    [attr.mask]="'url(#' + sunMaskId + ')'"
+  />
+  <circle
+    class="sun-moon__moon"
+    [attr.cx]="moonCx()"
+    cy="10"
+    [attr.r]="moonR()"
+    [attr.mask]="'url(#' + moonMaskId + ')'"
+  />
+</svg>

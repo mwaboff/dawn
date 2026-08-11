@@ -31,7 +31,7 @@ import { MartialStanceService } from '../../shared/services/martial-stance.servi
 import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
 import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
 import { hasCompanionFeature } from '../character-sheet/utils/companion-access.utils';
-import { tierForLevel } from '../character-sheet/utils/beastform-access.utils';
+import { tierForLevel } from '../../shared/utils/tier.utils';
 import { CompanionApiResponse } from '../../shared/models/companion-api.model';
 import { isExperienceComplete } from '../../shared/models/experience.model';
 import { COMPANION_TRAINING_LABELS } from '../character-sheet/components/companion-panel/components/companion-training-list/companion-training-list.model';

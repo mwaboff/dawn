@@ -1,0 +1,46 @@
+/* A component host is inline by default, so the width the sheet header gives this would not apply
+   and `width: 100%` below would have nothing to resolve against. */
+:host {
+  display: block;
+}
+
+.rest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-7);
+  /* The exact inverse of `.shield`'s 6px 6px 16px 16px: the shields stand on this lintel, and it
+     reads as an action rather than a fifth statistic in their row. */
+  border-radius: 16px 16px 6px 6px;
+  border: 2px solid var(--color-accent-a30);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  transition: background 0.24s ease, border-color 0.24s ease, color 0.24s ease;
+}
+
+.rest-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-bright);
+}
+
+/* The glyph sizes at 1.15em, and the button's label is --text-xs (12px), which would render the
+   seal at 13.8px -- rays under a pixel wide. Size it off the label instead of inheriting it. */
+.rest-btn app-sun-moon-glyph {
+  font-size: var(--text-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-btn {
+    transition: none;
+  }
+}

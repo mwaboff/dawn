@@ -8,6 +8,7 @@ import { ModalFocusDirective } from './modal-focus.directive';
     <button class="opener-btn" (click)="open.set(true)">Open</button>
     @if (open()) {
       <div class="host-panel" appModalFocus (escape)="onEscape()">
+        <h2 class="heading" tabindex="-1">Title</h2>
         <button class="first-btn">First</button>
         <input class="middle-input" />
         <button class="last-btn">Last</button>
@@ -153,6 +154,37 @@ describe('ModalFocusDirective', () => {
     panel.dispatchEvent(event);
 
     expect(document.activeElement).toBe(lastBtn);
+  });
+
+  /**
+   * A dialog that focuses a heading to announce a step (as the rest modal does) puts focus on an
+   * element that is in no tab stop. The trap used to ignore those, so one Shift+Tab walked out of
+   * the dialog and onto the page behind the backdrop.
+   */
+  it('wraps Shift+Tab to the last element when focus is on a tabindex="-1" element', () => {
+    host.open.set(true);
+    fixture.detectChanges();
+    const panel: HTMLElement = fixture.nativeElement.querySelector('.host-panel');
+    const heading: HTMLElement = fixture.nativeElement.querySelector('.heading');
+    heading.focus();
+
+    panel.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }),
+    );
+
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.last-btn'));
+  });
+
+  it('sends Tab from a tabindex="-1" element to the first tab stop', () => {
+    host.open.set(true);
+    fixture.detectChanges();
+    const panel: HTMLElement = fixture.nativeElement.querySelector('.host-panel');
+    const heading: HTMLElement = fixture.nativeElement.querySelector('.heading');
+    heading.focus();
+
+    panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.first-btn'));
   });
 
   it('does not move focus on Tab from a middle element', () => {
