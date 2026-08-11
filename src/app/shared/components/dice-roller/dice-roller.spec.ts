@@ -11,6 +11,9 @@ function makeResult(overrides: Partial<RollResult> = {}): RollResult {
     timestamp: Date.now(),
     diceResults: [],
     duality: null,
+    modifiers: [],
+    modifierTotal: 0,
+    advantage: null,
     total: 0,
     ...overrides,
   };
@@ -519,17 +522,305 @@ describe('DiceRoller', () => {
     });
   });
 
-  it('pre-fills dice counts from consumePendingRequest on init', () => {
-    service.pendingRequest.set({
-      dice: [{ type: 'd8', count: 3 }],
-      includeDuality: true,
+  describe('external trigger (production sequence: mount, then trigger)', () => {
+    it('pre-fills dice counts and duality when externalTrigger fires after mount', () => {
+      // `fixture` is already mounted via beforeEach's detectChanges(), matching how
+      // <app-dice-roller/> mounts once at page load, before any trigger exists.
+      service.externalTrigger({ dice: [{ type: 'd8', count: 3 }], includeDuality: true });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.getCount('d8')).toBe(3);
+      expect(fixture.componentInstance.isDualityChecked()).toBe(true);
+      expect(service.pendingRequest()).toBeNull();
     });
 
-    const newFixture = TestBed.createComponent(DiceRoller);
-    newFixture.detectChanges();
+    it('does not auto-roll when autoRoll is not set', () => {
+      const spy = vi.spyOn(service, 'roll');
 
-    expect(newFixture.componentInstance.getCount('d8')).toBe(3);
-    expect(newFixture.componentInstance.isDualityChecked()).toBe(true);
-    expect(service.pendingRequest()).toBeNull();
+      service.externalTrigger({ dice: [{ type: 'd6', count: 1 }], includeDuality: false });
+      fixture.detectChanges();
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('auto-rolls immediately when autoRoll is true', () => {
+      const spy = vi.spyOn(service, 'roll');
+
+      service.externalTrigger({
+        dice: [{ type: 'd8', count: 1 }],
+        includeDuality: false,
+        autoRoll: true,
+      });
+      fixture.detectChanges();
+
+      expect(spy).toHaveBeenCalledOnce();
+    });
+
+    it('carries modifiers, advantage and label from the pending request into service.roll() and the resulting history entry', () => {
+      const spy = vi.spyOn(service, 'roll');
+
+      service.externalTrigger({
+        dice: [],
+        includeDuality: true,
+        modifiers: [{ label: 'Agility', value: 2 }],
+        advantage: 'advantage',
+        label: 'Agility Roll',
+        autoRoll: true,
+      });
+      fixture.detectChanges();
+
+      expect(spy).toHaveBeenCalledOnce();
+      const request = spy.mock.calls[0][0];
+      expect(request.modifiers).toEqual([{ label: 'Agility', value: 2 }]);
+      expect(request.advantage).toBe('advantage');
+      expect(request.label).toBe('Agility Roll');
+
+      const entry = service.history()[0];
+      expect(entry.modifiers).toEqual([{ label: 'Agility', value: 2 }]);
+      expect(entry.advantage).toBe('advantage');
+      expect(entry.label).toBe('Agility Roll');
+    });
+
+    it('a second externalTrigger after the first was consumed pre-fills again (re-trigger works)', () => {
+      service.externalTrigger({ dice: [{ type: 'd6', count: 1 }], includeDuality: false });
+      fixture.detectChanges();
+      expect(fixture.componentInstance.getCount('d6')).toBe(1);
+
+      service.externalTrigger({ dice: [{ type: 'd12', count: 2 }], includeDuality: false });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.getCount('d12')).toBe(2);
+    });
+  });
+
+  describe('pending modifiers/advantage lifetime', () => {
+    it('a manual dice count adjustment clears a pre-filled advantage before the next Roll click', () => {
+      service.externalTrigger({
+        dice: [],
+        includeDuality: true,
+        modifiers: [{ label: 'Agility', value: 2 }],
+        advantage: 'advantage',
+        label: 'Agility Roll',
+      });
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+
+      const spy = vi.spyOn(service, 'roll');
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      const request = spy.mock.calls[0][0];
+      expect(request.modifiers).toEqual([]);
+      expect(request.advantage).toBeUndefined();
+      expect(request.label).toBeUndefined();
+    });
+
+    it('resetCounts clears a pre-filled advantage', () => {
+      service.externalTrigger({
+        dice: [{ type: 'd6', count: 1 }],
+        includeDuality: false,
+        advantage: 'disadvantage',
+      });
+      fixture.detectChanges();
+
+      const resetBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-reset-btn');
+      resetBtn.click();
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+
+      const spy = vi.spyOn(service, 'roll');
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      expect(spy.mock.calls[0][0].advantage).toBeUndefined();
+    });
+
+    it('a manual roll (no external trigger) carries no modifiers/advantage/label', () => {
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+
+      const spy = vi.spyOn(service, 'roll');
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      const request = spy.mock.calls[0][0];
+      expect(request.modifiers).toEqual([]);
+      expect(request.advantage).toBeUndefined();
+      expect(request.label).toBeUndefined();
+    });
+  });
+
+  describe('history rendering: label, modifier badges, advantage badge', () => {
+    it('renders the roll label when present', () => {
+      service.history.set([makeResult({ id: 'r1', total: 9, label: 'Agility Roll' })]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const label = fixture.nativeElement.querySelector('.ts-history-label');
+      expect(label?.textContent?.trim()).toBe('Agility Roll');
+    });
+
+    it('does not render a label element when absent', () => {
+      service.history.set([makeResult({ id: 'r1', total: 9 })]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.ts-history-label')).toBeNull();
+    });
+
+    it('renders a badge for each non-zero modifier', () => {
+      service.history.set([
+        makeResult({
+          id: 'r1',
+          total: 9,
+          modifiers: [{ label: 'Agility', value: 2 }, { label: 'Bonus', value: -1 }],
+        }),
+      ]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const badges: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.ts-badge--mod');
+      expect(badges.length).toBe(2);
+      expect(badges[0].textContent?.trim()).toBe('Agility +2');
+      expect(badges[1].textContent?.trim()).toBe('Bonus -1');
+    });
+
+    it('suppresses a zero-value modifier badge', () => {
+      service.history.set([
+        makeResult({ id: 'r1', total: 9, modifiers: [{ label: 'Agility', value: 0 }] }),
+      ]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.ts-badge--mod')).toBeNull();
+    });
+
+    it('renders an advantage badge with an accessible name of "Advantage"', () => {
+      service.history.set([makeResult({ id: 'r1', total: 9, advantage: 'advantage' })]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const badge: HTMLElement = fixture.nativeElement.querySelector('.ts-badge--adv');
+      expect(badge.textContent?.trim()).toBe('A');
+      expect(badge.getAttribute('aria-label')).toBe('Advantage');
+    });
+
+    it('renders a disadvantage badge with an accessible name of "Disadvantage"', () => {
+      service.history.set([makeResult({ id: 'r1', total: 9, advantage: 'disadvantage' })]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const badge: HTMLElement = fixture.nativeElement.querySelector('.ts-badge--adv');
+      expect(badge.textContent?.trim()).toBe('D');
+      expect(badge.getAttribute('aria-label')).toBe('Disadvantage');
+    });
+
+    it('does not render an advantage badge when advantage is null', () => {
+      service.history.set([makeResult({ id: 'r1', total: 9, advantage: null })]);
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.ts-badge--adv')).toBeNull();
+    });
+  });
+
+  describe('result panel aria-live suppression during animation', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('sets aria-live to "off" while rolling', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+      fixture.detectChanges();
+
+      const panel = fixture.nativeElement.querySelector('.ts-result-panel');
+      expect(panel.getAttribute('aria-live')).toBe('off');
+    });
+
+    it('sets aria-live back to "polite" once rolling settles', () => {
+      vi.useFakeTimers();
+      service.isOpen.set(true);
+      fixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.ts-roll-btn');
+      const increaseD6: HTMLButtonElement = fixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      fixture.detectChanges();
+      rollBtn.click();
+      vi.advanceTimersByTime(250);
+      fixture.detectChanges();
+
+      const panel = fixture.nativeElement.querySelector('.ts-result-panel');
+      expect(panel.getAttribute('aria-live')).toBe('polite');
+    });
+  });
+
+  describe('prefers-reduced-motion', () => {
+    // PreferencesService reads the `data-motion` attribute on <html> once, at construction,
+    // so it must be set before a fresh TestBed root injector builds the service -- same
+    // pattern dice-roller.service.spec.ts uses for its theme/localStorage tests.
+    function mountWithMotion(motion: 'reduced' | 'full'): {
+      fixture: ComponentFixture<DiceRoller>;
+      service: DiceRollerService;
+    } {
+      document.documentElement.setAttribute('data-motion', motion);
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [DiceRoller] });
+      const rmFixture = TestBed.createComponent(DiceRoller);
+      const rmService = TestBed.inject(DiceRollerService);
+      rmService.isOpen.set(true);
+      rmFixture.detectChanges();
+      return { fixture: rmFixture, service: rmService };
+    }
+
+    it('skips the spinning readout and lands directly on the settled total', () => {
+      const { fixture: rmFixture } = mountWithMotion('reduced');
+
+      const increaseD6: HTMLButtonElement = rmFixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      rmFixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = rmFixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+      rmFixture.detectChanges();
+
+      expect(rmFixture.componentInstance.isRolling()).toBe(false);
+      const panel = rmFixture.nativeElement.querySelector('.ts-result-total');
+      expect(panel.textContent?.trim()).not.toBe('');
+    });
+
+    it('still animates when motion is full', () => {
+      vi.useFakeTimers();
+      const { fixture: rmFixture } = mountWithMotion('full');
+
+      const increaseD6: HTMLButtonElement = rmFixture.nativeElement.querySelector('[aria-label="Increase d6"]');
+      increaseD6.click();
+      rmFixture.detectChanges();
+
+      const rollBtn: HTMLButtonElement = rmFixture.nativeElement.querySelector('.ts-roll-btn');
+      rollBtn.click();
+
+      expect(rmFixture.componentInstance.isRolling()).toBe(true);
+      vi.useRealTimers();
+    });
   });
 });

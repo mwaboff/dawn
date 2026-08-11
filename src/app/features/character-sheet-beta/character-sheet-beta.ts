@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe, LowerCasePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CharacterSheet } from '../character-sheet/character-sheet';
@@ -18,6 +18,11 @@ import { ItemKind } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';
+import { DiceRollerService } from '../../core/services/dice-roller.service';
+import { RollOptionsDirective, RollOption } from '../../shared/components/roll-options/roll-options.directive';
+import { buildTraitRollRequest, buildWeaponDamageRollRequest } from '../character-sheet/utils/roll-request.utils';
+import { TraitDisplay } from '../character-sheet/models/character-sheet-view.model';
+import { RollRequest } from '../../shared/models/dice-roller.model';
 import {
   ancestryCardToEntity,
   classCardToEntity,
@@ -40,7 +45,10 @@ interface DomainCardEntry {
  * constraints and every handler -- a new template and stylesheet only, nothing else. The six
  * hand-inlined `expandable-card` blocks become four collapsible `EntityCard` grids -- class and
  * subclass share a group, as do ancestry and community; the four Hope & Fear panels swap for their beta siblings;
- * equipment display and the inventory manager stay classic, deferred to a later rework.
+ * the inventory manager and the Equipped Armor panel stay classic, deferred to a later rework.
+ * Equipped Weapons keeps its classic card markup too, except the damage stat, which is now a
+ * click-to-roll button (see `onRollTrait`/`onRollWeaponDamage` below) -- attack rolls and
+ * inventory/catalogue weapon rows are still deferred.
  */
 @Component({
   selector: 'app-character-sheet-beta',
@@ -71,9 +79,18 @@ interface DomainCardEntry {
     ItemFormModal,
     EntityCard,
     CollapsibleCardGroup,
+    RollOptionsDirective,
   ],
 })
 export class CharacterSheetBeta extends CharacterSheet {
+  /**
+   * A second reference to the same `providedIn: 'root'` singleton `CharacterSheet` already
+   * injects -- that one is `private` on the base class, so it isn't reachable from here, and
+   * roll handlers must live on `CharacterSheetBeta` only (never the base) or they would leak
+   * into classic.
+   */
+  private readonly diceRoller = inject(DiceRollerService);
+
   /** Class cards then their subclass cards, one combined "Class & Subclass" group -- ordering
    * rules and the class-to-subclass linkage live in `orderClassGroupCards`. */
   readonly classGroupCardEntities = computed<EntityCardData[]>(() => {
@@ -98,6 +115,24 @@ export class CharacterSheetBeta extends CharacterSheet {
   );
 
   /**
+   * Null hides the damage-roll affordance instead of wiring up a roll that would do nothing --
+   * see `buildWeaponDamageRollRequest` for the cases that return null (no damage data, an
+   * unparseable `diceType`, or a resolved dice count of zero). Two dedicated `computed()`s rather
+   * than a per-weapon method, since only these two weapon slots ever feed a roll button here
+   * (inventory/catalogue weapon rows are out of scope this phase -- see the class doc comment).
+   */
+  readonly primaryWeaponDamageRequest = computed<RollRequest | null>(() => {
+    const sheet = this.characterSheet();
+    const weapon = sheet?.activePrimaryWeapon;
+    return weapon ? buildWeaponDamageRollRequest(weapon, sheet!.proficiency.modified) : null;
+  });
+  readonly secondaryWeaponDamageRequest = computed<RollRequest | null>(() => {
+    const sheet = this.characterSheet();
+    const weapon = sheet?.activeSecondaryWeapon;
+    return weapon ? buildWeaponDamageRollRequest(weapon, sheet!.proficiency.modified) : null;
+  });
+
+  /**
    * What the item dialog is doing: building a new item of `kind`, or editing the existing `itemId`.
    * One signal rather than two so the template mounts the dialog once -- two `@if` blocks over the
    * same component is the duplicated-branch pattern `.agents/rules/component-design.md` rules out.
@@ -120,6 +155,26 @@ export class CharacterSheetBeta extends CharacterSheet {
   onItemModalCreated(event: ItemCreatedEvent): void {
     this.itemModalRequest.set(null);
     this.onAddInventoryItem(event);
+  }
+
+  /**
+   * Rolls a trait: a plain click (the default `'normal'`) rolls with no advantage state, and the
+   * `appRollOptions` menu's `rollOptionSelected` output calls this again with the picked option.
+   * Anyone viewing the sheet can trigger a roll -- rolling is read-only, so this is deliberately
+   * not gated on `isOwner()`.
+   */
+  onRollTrait(trait: TraitDisplay, option: RollOption = 'normal'): void {
+    const advantage = option === 'normal' ? undefined : option;
+    this.diceRoller.externalTrigger(buildTraitRollRequest(trait, advantage));
+  }
+
+  /**
+   * The template only ever renders a damage-roll button once `primaryWeaponDamageRequest`/
+   * `secondaryWeaponDamageRequest` has already returned non-null (see `character-sheet-beta.html`),
+   * so the request is built once there and handed back here rather than rebuilt a second time.
+   */
+  onRollWeaponDamage(request: RollRequest): void {
+    this.diceRoller.externalTrigger(request);
   }
 
   /**

@@ -140,7 +140,7 @@
           <button type="button" class="ts-reset-btn" (click)="resetCounts()">reset dice</button>
         </div>
 
-        <output class="ts-result-panel" aria-live="polite" aria-atomic="true">
+        <output class="ts-result-panel" [attr.aria-live]="isRolling() ? 'off' : 'polite'" aria-atomic="true">
           @if (recent()) {
             <div class="ts-result-total">{{ isRolling() ? displayTotal() : recent()!.total }}</div>
             @if (!isRolling() && recent()!.duality) {
@@ -171,16 +171,38 @@
             @if (service.history().length === 0) {
               <li class="ts-history-empty">no rolls recorded</li>
             } @else {
-              @for (entry of service.history(); track entry.id) {
+              @for (entry of service.history(); track entry.id; let i = $index) {
+                @let masked = i === 0 && isRolling();
                 <li class="ts-history-row">
-                  <span class="ts-history-dice">{{ historyDiceStr(entry) }} = <strong>{{ entry.total }}</strong></span>
-                  @if (entry.duality) {
-                    <span class="ts-history-outcome"
-                      [class.ts-outcome--hope]="entry.duality.outcome === 'hope'"
-                      [class.ts-outcome--fear]="entry.duality.outcome === 'fear'"
-                      [class.ts-outcome--crit]="entry.duality.outcome === 'crit'"
-                    >{{ entry.duality.outcome === 'crit' ? 'CRIT!' : entry.duality.outcome === 'hope' ? 'Hope' : 'Fear' }}</span>
+                  @if (entry.label) {
+                    <span class="ts-history-label">{{ entry.label }}</span>
                   }
+                  <div class="ts-history-main">
+                    <span class="ts-history-dice">
+                      {{ historyDiceStr(entry) }} = <strong>{{ masked ? displayTotal() : entry.total }}</strong>
+                    </span>
+                    <span class="ts-history-badges">
+                      @for (mod of entry.modifiers; track mod.label) {
+                        @if (mod.value !== 0) {
+                          <span class="ts-badge ts-badge--mod">{{ mod.label }} {{ formatModifier(mod.value) }}</span>
+                        }
+                      }
+                      @if (entry.advantage) {
+                        <span
+                          class="ts-badge ts-badge--adv"
+                          [class.ts-badge--disadv]="entry.advantage === 'disadvantage'"
+                          [attr.aria-label]="entry.advantage === 'advantage' ? 'Advantage' : 'Disadvantage'"
+                        >{{ entry.advantage === 'advantage' ? 'A' : 'D' }}</span>
+                      }
+                      @if (entry.duality && !masked) {
+                        <span class="ts-history-outcome"
+                          [class.ts-outcome--hope]="entry.duality.outcome === 'hope'"
+                          [class.ts-outcome--fear]="entry.duality.outcome === 'fear'"
+                          [class.ts-outcome--crit]="entry.duality.outcome === 'crit'"
+                        >{{ entry.duality.outcome === 'crit' ? 'CRIT!' : entry.duality.outcome === 'hope' ? 'Hope' : 'Fear' }}</span>
+                      }
+                    </span>
+                  </div>
                 </li>
               }
             }

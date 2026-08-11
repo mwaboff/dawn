@@ -50,15 +50,28 @@ export class DiceRollerService {
         outcome: hope === fear ? 'crit' : hope > fear ? 'hope' : 'fear',
       };
     }
+    const advantage = request.advantage ?? null;
+    if (advantage) {
+      const raw = this.rollOne(6);
+      diceResults.push({ type: 'd6', value: advantage === 'advantage' ? raw : -raw });
+    }
+
+    const modifiers = request.modifiers ?? [];
+    const modifierTotal = modifiers.reduce((s, m) => s + m.value, 0);
+
     const total =
       diceResults.reduce((s, d) => s + d.value, 0) +
-      (duality ? duality.hope + duality.fear : 0);
+      (duality ? duality.hope + duality.fear : 0) +
+      modifierTotal;
 
     const result: RollResult = {
       id: this.nextId(),
       timestamp: Date.now(),
       diceResults,
       duality,
+      modifiers,
+      modifierTotal,
+      advantage,
       total,
       label: request.label,
     };

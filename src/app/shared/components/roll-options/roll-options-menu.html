@@ -1,0 +1,34 @@
+<ng-template #menu>
+  <div class="roll-options-menu" cdkMenu aria-label="Roll options">
+    <button
+      type="button"
+      cdkMenuItem
+      data-roll-options-item
+      class="roll-options-menu__item roll-options-menu__item--advantage"
+      (cdkMenuItemTriggered)="select('advantage')"
+    >
+      <span class="roll-options-menu__glyph" aria-hidden="true">&#9650;</span>
+      Advantage
+    </button>
+    <button
+      type="button"
+      cdkMenuItem
+      data-roll-options-item
+      class="roll-options-menu__item"
+      (cdkMenuItemTriggered)="select('normal')"
+    >
+      <span class="roll-options-menu__glyph" aria-hidden="true">&#8226;</span>
+      Normal
+    </button>
+    <button
+      type="button"
+      cdkMenuItem
+      data-roll-options-item
+      class="roll-options-menu__item roll-options-menu__item--disadvantage"
+      (cdkMenuItemTriggered)="select('disadvantage')"
+    >
+      <span class="roll-options-menu__glyph" aria-hidden="true">&#9660;</span>
+      Disadvantage
+    </button>
+  </div>
+</ng-template>

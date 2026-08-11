@@ -340,7 +340,7 @@ describe('CharacterSheetBeta', () => {
     expect(fixture.debugElement.query(By.directive(InventorySection))).toBeNull();
   });
 
-  it('keeps the classic equipment-card markup for Equipped Weapons/Armor (deferred rework)', () => {
+  it('shows the empty state when no weapon is equipped (Equipped Armor stays fully deferred)', () => {
     createComponent();
     expect(fixture.nativeElement.querySelector('.column-right .empty-state')?.textContent).toContain('No weapons equipped');
   });
@@ -415,6 +415,99 @@ describe('CharacterSheetBeta', () => {
 
       expect(component.itemModalRequest()).toBeNull();
       expect(service.getCharacterSheet).toHaveBeenCalledWith(1, expect.any(Array));
+    });
+  });
+
+  describe('click-to-roll', () => {
+    function traitButton(name: string): HTMLButtonElement {
+      const root = fixture.nativeElement as HTMLElement;
+      const badge = Array.from(root.querySelectorAll<HTMLElement>('.trait-badge'))
+        .find(el => el.textContent?.includes(name));
+      return badge!.querySelector('.trait-badge__roll') as HTMLButtonElement;
+    }
+
+    it('rolls a trait with its modifier and no advantage state on a plain click', () => {
+      createComponent(of({ ...mockResponse, agilityModifier: 2 }));
+      const service = TestBed.inject(DiceRollerService);
+      const spy = vi.spyOn(service, 'externalTrigger');
+
+      traitButton('Agility').click();
+
+      expect(spy).toHaveBeenCalledWith({
+        dice: [],
+        includeDuality: true,
+        modifiers: [{ label: 'Agility', value: 2 }],
+        advantage: undefined,
+        autoRoll: true,
+        label: 'Agility Roll',
+      });
+    });
+
+    it('is a native <button>, so Enter/Space (which the browser turns into a click) activates it -- no bespoke keyboard handler needed', () => {
+      createComponent();
+      expect(traitButton('Agility').tagName).toBe('BUTTON');
+    });
+
+    const advantageCases: { option: 'advantage' | 'normal' | 'disadvantage'; expected: 'advantage' | 'disadvantage' | undefined }[] = [
+      { option: 'advantage', expected: 'advantage' },
+      { option: 'normal', expected: undefined },
+      { option: 'disadvantage', expected: 'disadvantage' },
+    ];
+
+    for (const { option, expected } of advantageCases) {
+      it(`rolls with advantage state '${expected}' when the A/N/D menu emits '${option}'`, () => {
+        createComponent();
+        const service = TestBed.inject(DiceRollerService);
+        const spy = vi.spyOn(service, 'externalTrigger');
+
+        component.onRollTrait(component.characterSheet()!.traits[0], option);
+
+        expect(spy).toHaveBeenCalledWith(expect.objectContaining({ advantage: expected }));
+      });
+    }
+
+    const weaponWithDamage = {
+      id: 1,
+      weaponId: 1,
+      equipped: true,
+      slot: 'PRIMARY' as const,
+      weapon: {
+        id: 1,
+        name: 'Longsword',
+        damage: { diceCount: null, diceType: 'd8', modifier: 3, damageType: 'PHYSICAL', notation: '' },
+        features: [],
+      },
+    };
+
+    it('rolls proficiency-many damage dice with the flat modifier added once when the weapon damage chip is clicked', () => {
+      createComponent(of({ ...mockResponse, proficiency: 3, inventoryWeapons: [weaponWithDamage] }));
+      const service = TestBed.inject(DiceRollerService);
+      const spy = vi.spyOn(service, 'externalTrigger');
+
+      (fixture.nativeElement.querySelector('.equip-stat--roll') as HTMLButtonElement).click();
+
+      expect(spy).toHaveBeenCalledWith({
+        dice: [{ type: 'd8', count: 3 }],
+        includeDuality: false,
+        modifiers: [{ label: 'Longsword', value: 3 }],
+        autoRoll: true,
+        label: 'Longsword Damage',
+      });
+    });
+
+    it('hides the roll button and shows plain text for a weapon whose damage does not resolve to a known dice type', () => {
+      const unrollableWeapon = {
+        ...weaponWithDamage,
+        weapon: {
+          ...weaponWithDamage.weapon,
+          damage: { diceCount: 1, diceType: 'not-a-die', modifier: 0, damageType: 'PHYSICAL', notation: '' },
+        },
+      };
+      createComponent(of({ ...mockResponse, inventoryWeapons: [unrollableWeapon] }));
+
+      expect(fixture.nativeElement.querySelector('.equip-stat--roll')).toBeNull();
+      const stats = fixture.nativeElement.querySelector('.equipment-card__stats') as HTMLElement;
+      expect(stats.textContent).toContain('Phy');
     });
   });
 });

@@ -1,0 +1,51 @@
+/* The overlay pane CDK renders this into has no ambient card-face styling, so the panel supplies
+   its own -- same dark-elevated-surface vocabulary as .dialog-panel--sheet (dark fill, gold top
+   accent, black drop shadow), just sized for a menu instead of a dialog. */
+.roll-options-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  padding: var(--space-2);
+  background: var(--color-bg-darker);
+  border: 1px solid var(--color-secondary-border);
+  border-top: 3px solid var(--color-accent);
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
+}
+
+.roll-options-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-parchment);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.roll-options-menu__item:hover {
+  background: var(--color-secondary-hover-wash);
+}
+
+/* Mirrors the add-a-d6 / subtract-a-d6 mechanic (Core rules L551, L553): Advantage sits above
+   Normal and glows gold like a boosted roll; Disadvantage sits below and reads in the app's
+   existing danger-ghost red. Normal stays quiet -- it is the roll that needs no explaining. */
+.roll-options-menu__glyph {
+  width: 1em;
+  text-align: center;
+  color: var(--color-parchment-a55);
+}
+
+.roll-options-menu__item--advantage .roll-options-menu__glyph {
+  color: var(--color-accent-bright);
+}
+
+.roll-options-menu__item--disadvantage .roll-options-menu__glyph {
+  color: var(--color-danger-ghost-text);
+}
