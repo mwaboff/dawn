@@ -24,10 +24,9 @@
 
 .rest-summary__title {
   font-family: var(--font-display);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.02em;
   color: var(--color-parchment);
 }
 

@@ -4,7 +4,7 @@
   gap: var(--space-3);
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-5);
-  border-radius: 16px 16px 6px 6px;
+  border-radius: 4px;
   border: 2px solid var(--color-secondary-border);
   background: color-mix(in srgb, var(--color-parchment) 4%, transparent);
 }
@@ -12,10 +12,9 @@
 .rest-chip__name {
   flex: 1 1 auto;
   font-family: var(--font-display);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.02em;
   color: var(--color-accent);
 }
 

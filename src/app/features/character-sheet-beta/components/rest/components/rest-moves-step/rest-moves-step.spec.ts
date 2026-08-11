@@ -160,11 +160,9 @@ describe('RestMovesStep', () => {
     expect(button.getAttribute('aria-disabled')).toBe('true');
   });
 
-  it('should title the step by rest type', () => {
-    fixture.componentRef.setInput('restType', 'long');
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.rest-step__heading').textContent).toContain('Long rest');
+  /* The rest type is named by the dialog's own title; the heading is the step eyebrow. */
+  it('should mark itself as the second step', () => {
+    expect(fixture.nativeElement.querySelector('.rest-step__heading').textContent).toContain('Step 2 of 3');
   });
 
   it('should hand each chip the definition matching its selection', () => {
