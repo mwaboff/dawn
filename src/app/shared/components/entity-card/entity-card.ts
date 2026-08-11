@@ -103,21 +103,27 @@ export class EntityCard {
    * separator means the same thing here as everywhere else on the card.
    */
   readonly compactLine = computed(() => {
-    const { subtitle, headline } = this.card();
-    return [subtitle, headline].filter(Boolean).join(' · ') || undefined;
+    const { subtitle, headline, badges } = this.card();
+    // The power-level scalar, as TEXT rather than as a chip. `EntityCardData`'s slot contract puts
+    // it first and it is the only badge carrying a `value`, which is what distinguishes it from a
+    // state chip like `Equipped`. Rendering it as a chip instead was measurably wrong: a chip is
+    // ~60px of unshrinkable width, and tab + title + chip + chevron overflows a 19rem card, so
+    // every environment and adversary row in the encounter builder wrapped to two lines -- and the
+    // width the chip took came out of the name, which then broke mid-word ("ABANDON/ED GROVE")
+    // because `.entity-card__name` carries `overflow-wrap: anywhere`. In the text line the tier
+    // costs nothing unshrinkable and ellipsises with everything else.
+    const scalar = badges?.[0];
+    const tier = scalar?.value ? `${scalar.label} ${scalar.value}` : undefined;
+    return [tier, subtitle, headline].filter(Boolean).join(' · ') || undefined;
   });
 
   /**
-   * `compact` keeps only the first chip -- by `EntityCardData`'s slot contract that is the
-   * power-level scalar (Tier/Level) whenever the card has one, which is the chip a GM scanning an
-   * encounter roster is actually comparing. It used to render none at all, so tier was invisible on
-   * exactly the rows built to be scanned. The rest of the badge row (live state, the homebrew chip)
-   * stays behind the expand, where there is width for it.
+   * No chips at `compact` -- see `compactLine`, which carries the scalar as text instead. Live state
+   * and the homebrew chip wait for the expand, where there is width for them.
    */
-  readonly headerBadges = computed(() => {
-    const badges = this.card().badges ?? [];
-    return this.displaySize() === 'compact' ? badges.slice(0, 1) : badges;
-  });
+  readonly headerBadges = computed(() =>
+    this.displaySize() === 'compact' ? [] : this.card().badges ?? [],
+  );
 
   /**
    * A `compact` card renders no body, so its secondary line -- the type, the damage line, the armor

@@ -56,6 +56,15 @@
      - Hue is bounded per type so meaning survives the optimiser (community stays green, armor blue).
        Saturation floors are what keep it from buying separation by draining chroma into mud.
 
+     Two values are hand-placed against the solver's output, because a minimum-distance objective
+     has no idea what a type MEANS. Heritage landed on spring green 8 degrees from community -- the
+     one accent it must never be confused with, since a heritage IS an ancestry and a community --
+     and was the ring's tightest real pair at 8.8. It was re-solved against the whole ring (reserved
+     slots included, which a first fix missed: the obvious #73dd2c collides with reserved3 at 4.5)
+     to an olive #71ab49, clear at 10.4. Weapon came out a pale peach 3 degrees from adversary's
+     scarlet, separated from it only by chroma, on the hardest object in the game; it is now a
+     leather brown. Both leave the floor at 8.8, still bound by subclass/domainCard.
+
      The old ring's minimum was dE 4.1, with seven accents inside a 52-degree red/pink arc and
      heritage/weapon at 6.6 raw. This one's minimum is 8.8. Before changing ONE token by hand, note
      that the binding pairs are all within ~1.5 dE of that floor: moving one accent almost always
@@ -67,12 +76,12 @@
   --color-card-class: #d4a056;
   --color-card-subclass: #a752e3;
   --color-card-subclassPath: #2cb1dd;
-  --color-card-heritage: #2cdd86;
+  --color-card-heritage: #71ab49;
   --color-card-ancestry: #ddce2c;
   --color-card-community: #89d2a5;
   --color-card-domain: #dd782c;
   --color-card-domainCard: #e873e0;
-  --color-card-weapon: #d89883;
+  --color-card-weapon: #a86f5e;
   --color-card-armor: #2c8bdd;
   --color-card-loot: #d8cb83;
   --color-card-companion: #e14795;

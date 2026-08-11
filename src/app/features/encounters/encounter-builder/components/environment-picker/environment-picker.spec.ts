@@ -119,16 +119,21 @@ describe('EnvironmentPicker', () => {
     it('renders compact, expand-on-click rows in beta, the same size the item finder uses', () => {
       TestBed.inject(PreferencesService).setSheetLayout('beta');
       vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
-        of({ cards: [buildCard({ tags: ['Difficulty 10'] })], currentPage: 0, totalPages: 1, totalElements: 1 }),
+        of({
+          cards: [buildCard({ subtitle: 'Exploration', entityDisplay: { scalar: { label: 'Tier', value: '2' } } })],
+          currentPage: 0, totalPages: 1, totalElements: 1,
+        }),
       );
 
       fixture.detectChanges();
 
       const card = fixture.nativeElement.querySelector('app-entity-card');
       expect(card.classList.contains('entity-card--compact')).toBe(true);
-      // headline only renders at compact size (entity-card.html) -- its presence here confirms
-      // the environment-specific mapper (not the frozen generic one) is what's actually wired in.
-      expect(card.textContent).toContain('Difficulty 10');
+      // A compact row has to answer "which environment is this" -- its type and its tier. Both used
+      // to be invisible here: the subtitle was replaced by a Difficulty headline and badges were
+      // suppressed outright, so a GM saw only a name.
+      expect(card.textContent).toContain('Exploration');
+      expect(card.textContent).toContain('Tier 2');
     });
   });
 });

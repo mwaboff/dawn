@@ -118,7 +118,7 @@ describe('EntityCard', () => {
       expect(header().textContent).toContain('Mastery');
       expect(header().textContent).toContain('Embody an element for the rest of the scene.');
       expect(header().querySelector('.entity-card__headline')?.textContent)
-        .toBe('Mastery · Embody an element for the rest of the scene.');
+        .toBe('Level 3 · Mastery · Embody an element for the rest of the scene.');
     });
 
     it('renders the full header and clipped body at normal', () => {
@@ -285,14 +285,31 @@ describe('EntityCard', () => {
       expect(root.querySelector('.entity-card__header--interactive')).toBeTruthy();
     });
 
-    it('keeps only the scalar chip at compact, so the row still fits one line', () => {
+    it('renders no chips at compact, so nothing unshrinkable can wrap the header', () => {
       host.card.set(buildCard({ cardType: 'weapon', badges: maxBadges }));
       host.size.set('compact');
       fixture.detectChanges();
 
-      const badges = header().querySelectorAll('.entity-card__badge');
-      expect(badges.length).toBe(1);
-      expect(badges[0].textContent).toContain(maxBadges[0].label);
+      expect(header().querySelector('.entity-card__badges')).toBeFalsy();
+    });
+
+    it('carries the scalar into the compact line as text instead of a chip', () => {
+      host.card.set(buildCard({ cardType: 'weapon', subtitle: 'Physical', badges: maxBadges }));
+      host.size.set('compact');
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__headline')?.textContent)
+        .toContain(`${maxBadges[0].label} ${maxBadges[0].value}`);
+    });
+
+    it('leaves a state chip out of the compact line, since only the scalar carries a value', () => {
+      host.card.set(buildCard({ cardType: 'weapon', subtitle: 'Physical', badges: [{ label: 'Equipped' }] }));
+      host.size.set('compact');
+      fixture.detectChanges();
+
+      const line = header().querySelector('.entity-card__headline')?.textContent;
+      expect(line).toContain('Physical');
+      expect(line).not.toContain('Equipped');
     });
 
     /* Regression for the clipped-and-unreachable-even-expanded defect: `.entity-card__clip` keeps

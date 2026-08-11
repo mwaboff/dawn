@@ -53,7 +53,14 @@
     <!-- First cell, so the environment leads the roster the way it leads the scene, but in the same
          280px column track as every adversary rather than a full-width row of its own. -->
     @if (betaEnvironment(); as environment) {
-      <app-entity-card [card]="environmentEntityCard(environment)" size="compact" [appCardSurface]="'dark-capable'" />
+      <!-- `align-self: start` (see the CSS): this cell projects no controls, so without it the card
+           stretches to the row height and trails ~40px of empty face under its header. -->
+      <app-entity-card
+        class="roster-panel__environment-cell"
+        [card]="environmentEntityCard(environment)"
+        size="compact"
+        [appCardSurface]="'dark-capable'"
+      />
     }
     @for (instance of instances(); track instance.localId) {
       @if (sheetLayout() === 'beta') {
@@ -84,8 +91,9 @@
   </div>
 }
 
-<!-- Still shown when an environment is already in the grid above: the environment is not an
-     adversary, and "add some from the browser below" is the next step either way. -->
-@if (instances().length === 0) {
+<!-- Suppressed once an environment is in the grid: a dashed "nothing here yet" panel sitting under
+     a populated grid contradicts itself, and the Add Adversaries section is directly below either
+     way. -->
+@if (instances().length === 0 && !betaEnvironment()) {
   <p class="roster-panel__empty">No adversaries yet — add some from the browser below.</p>
 }

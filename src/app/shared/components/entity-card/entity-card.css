@@ -145,11 +145,11 @@
    makes the badges the thing that wraps to a second line instead, which is what `flex-wrap` on the
    header was there for. */
 .entity-card__title { display: flex; flex-direction: column; min-width: 0; flex: 1 1 9rem; }
-/* A compact row now carries a scalar chip beside the title, and tab + title + chip + chevron at a
-   9rem basis overflows the 19rem card floor and wraps to two lines -- which is the one thing a
-   single-row size cannot afford. 6rem is a basis, not a cap: `flex-grow` still takes the whole row
-   on a wider card, and `min-width: 0` above keeps the ellipsis on the subtitle line rather than
-   letting it force the row wider. */
+/* Flex line-breaking uses the flex BASE size, not the min size, so `min-width: 0` does not stop a
+   9rem basis from wrapping the header: at the 19rem card floor the content box is 272px and
+   tab + title + chevron + gaps comes to 281 at 9rem, and the line breaks before anything shrinks.
+   6rem brings it to 233 and fits, including the wider "ENVIRONMENT" tab. This is a basis, not a cap
+   -- `flex-grow` still hands the title the whole row on a wider card. */
 :host(.entity-card--compact) .entity-card__title { flex-basis: 6rem; }
 /* The name wraps rather than ellipsising -- a truncated name is unusable, and no basis is wide
    enough for every item in the books. Two lines caps how far a header can grow; `anywhere` is for
@@ -222,11 +222,14 @@
    on one line drops the narrow case to two columns. An EXPLICIT count fixes both -- the row length
    becomes a number `:nth-child` can subtract the leading rule from. It comes from a container query,
    not a media query: a card's width is its grid column's, so a 19rem card is narrow on a 4K display.
-   `max-content` columns keep cells sized to their own content (the `auto-fit` failure); `fit-content`
-   still lets a one-stat ledger hug its cell instead of drawing an empty panel across the card. */
+   Tracks are `minmax(min-content, max-content)`, not `minmax(0, ...)`: cells stay sized to their own
+   content (the `auto-fit` failure), and the `min-content` floor stops a 280px card squeezing the
+   column under the width of "DIFFICULTY", which has no wrap and would otherwise paint straight over
+   the next cell's divider. `fit-content` still lets a one-stat ledger hug its cell instead of
+   drawing an empty panel across the card. */
 /* The `column-gap` and the cell's own `padding-inline-start` are equal on purpose: together they sit
    the rule midway between two numbers rather than hard against one of them. */
-.entity-card__stats { display: grid; grid-template-columns: repeat(3, minmax(0, max-content)); gap: var(--space-4) var(--space-5); width: fit-content; max-width: 100%; padding: var(--space-4) var(--space-5); border-radius: 4px; background: var(--color-card-face-lift); }
+.entity-card__stats { display: grid; grid-template-columns: repeat(3, minmax(min-content, max-content)); gap: var(--space-4) var(--space-5); width: fit-content; max-width: 100%; padding: var(--space-4) var(--space-5); border-radius: 4px; background: var(--color-card-face-lift); }
 .entity-card__stat { display: flex; flex-direction: column; gap: .1rem; padding-inline-start: var(--space-5); border-inline-start: 1px solid var(--color-card-rule); }
 .entity-card__stat:nth-child(3n + 1) { padding-inline-start: 0; border-inline-start: none; }
 @container (min-width: 26rem) {
