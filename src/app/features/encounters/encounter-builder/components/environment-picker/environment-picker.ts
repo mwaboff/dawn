@@ -5,7 +5,7 @@ import { CardSelectionGrid } from '../../../../../shared/components/card-selecti
 import { EntitySelectionGrid } from '../../../../../shared/components/entity-selection-grid/entity-selection-grid';
 import { CardSurfaceDirective } from '../../../../../shared/directives/card-surface.directive';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
-import { environmentCardToEntityCard } from '../../../../../shared/mappers/environment-card-to-entity-card.mapper';
+import { cardDataToEntityCard } from '../../../../../shared/mappers/card-data-to-entity-card.mapper';
 import { EnvironmentService } from '../../../../../shared/services/environment.service';
 import { PreferencesService } from '../../../../../core/services/preferences.service';
 
@@ -25,9 +25,10 @@ export class EnvironmentPicker implements OnInit {
   private readonly preferencesService = inject(PreferencesService);
 
   readonly sheetLayout = this.preferencesService.sheetLayout;
-  /** Bound to `app-entity-selection-grid`'s `cardMapper` -- adds the `headline` (Difficulty)
-   * `cardDataToEntityCard` deliberately leaves unset, for the compact glance. */
-  readonly cardMapper = environmentCardToEntityCard;
+  /** Bound to `app-entity-selection-grid`'s `cardMapper`. The generic mapper is the whole job: an
+   * environment's type is already its subtitle and its tier already its first badge, and `compact`
+   * renders both. */
+  readonly cardMapper = cardDataToEntityCard;
 
   readonly selectedEnvironmentId = input<number | undefined>(undefined);
   /** Emits the full card, not just its id, so the parent can show it (name/type/tier) in the

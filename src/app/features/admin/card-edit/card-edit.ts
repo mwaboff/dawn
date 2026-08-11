@@ -17,12 +17,12 @@ import { FeatureEditService } from '../../../shared/services/feature-edit.servic
 import { RawCardResponse } from '../models/admin-api.model';
 import { RawFeatureResponse, FeatureInput } from '../../../shared/models/feature-api.model';
 import { EditableFeature } from '../../../shared/components/feature-editor/feature-editor';
-import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { EntityCardData } from '../../../shared/components/entity-card/entity-card.model';
 import { CARD_EDIT_SCHEMAS } from './schema/card-edit-schema';
 import { EntityFormSchema, EntityField, FieldDef } from '../../../shared/components/entity-form/entity-form.types';
 import { buildFormFromSchema, buildPayloadFromSchema, applyBackendErrors } from '../../../shared/components/entity-form/entity-form.utils';
 import { ENTITY_FORM_LOOKUP } from '../../../shared/components/entity-form/entity-form-lookup.token';
-import { buildPreviewCard } from './utils/card-preview.utils';
+import { buildPreviewEntityCard } from './utils/card-preview.utils';
 import { AdminLookupService } from './services/admin-lookup.service';
 import { CardEditToolbar } from './components/card-edit-toolbar/card-edit-toolbar';
 import { EntityFormField } from '../../../shared/components/entity-form/entity-form-field/entity-form-field';
@@ -82,7 +82,7 @@ export class CardEdit implements OnInit {
 
   readonly schema = computed<EntityFormSchema>(() => CARD_EDIT_SCHEMAS[this.cardType()] ?? FALLBACK_SCHEMA);
 
-  readonly previewCard = computed<CardData | null>(() => {
+  readonly previewCard = computed<EntityCardData | null>(() => {
     this.formVersion();
     const raw = this.rawCard();
     if (!raw || !this.cardForm) return null;
@@ -98,7 +98,7 @@ export class CardEdit implements OnInit {
       };
     }) ?? [];
 
-    return buildPreviewCard(this.schema(), this.cardForm.getRawValue(), raw, features);
+    return buildPreviewEntityCard(this.schema(), this.cardForm.getRawValue(), raw, features);
   });
 
   readonly hasPendingChanges = computed(() => {

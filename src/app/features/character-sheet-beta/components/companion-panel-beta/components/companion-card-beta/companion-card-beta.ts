@@ -70,16 +70,18 @@ export class CompanionCardBeta extends CompanionCard {
       id: companion.id,
       name: companion.name,
       cardType: 'companion',
+      /** `headline` renders only at `compact` size and `meta` only in the body, so the attack line
+       * is never on screen twice -- the same compact/body split every other beta mapper uses. */
       headline: attackLine,
       description: companion.description,
+      /** A companion has no tier or level, so both chips are live state: Stress first because it
+       * changes constantly, then the out-of-scene flag. */
       badges: [
         { label: 'Stress', value: `${companion.stressMarked}/${companion.stressMax}` },
         ...(companion.outOfScene ? [{ label: 'Out of scene' }] : []),
       ],
-      meta: [
-        { label: 'Evasion', value: String(companion.evasion) },
-        { label: 'Attack', value: attackLine },
-      ],
+      stats: [{ label: 'Evasion', value: String(companion.evasion) }],
+      meta: [{ label: 'Attack', value: attackLine }],
       features,
     };
   });

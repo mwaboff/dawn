@@ -26,6 +26,10 @@ export function mapMartialStanceToCardData(response: MartialStanceResponse): Car
     cardType: 'martialStance',
     subtitleSecondary: response.tier != null ? `Tier ${response.tier}` : undefined,
     tags: [response.tier != null ? `Tier ${response.tier}` : null].filter((t): t is string => !!t),
+    // Tier is the stance's only structured fact -- the effect text is the description.
+    entityDisplay: response.tier != null
+      ? { scalar: { label: 'Tier', value: String(response.tier) } }
+      : undefined,
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

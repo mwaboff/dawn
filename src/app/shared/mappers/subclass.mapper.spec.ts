@@ -244,4 +244,47 @@ describe('mapSubclassResponseToCardData', () => {
 
     expect(result.tags).toBeUndefined();
   });
+
+  describe('entityDisplay', () => {
+    it('should name the spellcasting trait and the domain list as meta rows', () => {
+      const spellcastingTrait = { trait: 'Presence', description: 'Cast with charisma', examples: 'Charm' };
+      const response = buildSubclassCardResponse({ spellcastingTrait, domainNames: ['Arcana', 'Sage'] });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        meta: [
+          { label: 'Spellcasting', value: 'Presence' },
+          { label: 'Domains', value: 'Arcana, Sage' },
+        ],
+      });
+    });
+
+    it('should list only the domains when the subclass does not cast', () => {
+      const response = buildSubclassCardResponse({ spellcastingTrait: null, domainNames: ['Blade'] });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result.entityDisplay!.meta).toEqual([{ label: 'Domains', value: 'Blade' }]);
+    });
+
+    it('should stay unset when there is neither a spellcasting trait nor a domain', () => {
+      const response = buildSubclassCardResponse({ spellcastingTrait: null, domainNames: [] });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result.entityDisplay).toBeUndefined();
+    });
+
+    it('should leave the classic subtitle, subtitleSecondary and tags untouched', () => {
+      const spellcastingTrait = { trait: 'Presence', description: 'Cast with charisma', examples: 'Charm' };
+      const response = buildSubclassCardResponse({
+        spellcastingTrait,
+        associatedClassName: 'Bard',
+        domainNames: ['Arcana', 'Sage'],
+      });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result.subtitle).toBe('Bard');
+      expect(result.subtitleSecondary).toBe('Arcana · Sage');
+      expect(result.tags).toEqual(['Spellcasting: Presence']);
+    });
+  });
 });

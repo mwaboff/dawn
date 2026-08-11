@@ -106,6 +106,15 @@ describe('TransformationPanelBeta', () => {
     expect(data.badges).toEqual([{ label: 'Human form' }]);
   });
 
+  it('states the active Wolf form as a bare label badge, carrying no value', () => {
+    host.card.set(buildCard({ name: 'Werewolf' }));
+    host.wolfFormActive.set(true);
+    fixture.detectChanges();
+
+    const data = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+    expect(data.badges).toEqual([{ label: 'Wolf form' }]);
+  });
+
   it('renders no EntityCard and shows the empty state when nothing is attached', () => {
     host.card.set(null);
     fixture.detectChanges();

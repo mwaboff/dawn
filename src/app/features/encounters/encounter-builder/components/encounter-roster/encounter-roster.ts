@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
@@ -8,7 +8,7 @@ import { EntityCard } from '../../../../../shared/components/entity-card/entity-
 import { CardSurfaceDirective } from '../../../../../shared/directives/card-surface.directive';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { EntityCardData } from '../../../../../shared/components/entity-card/entity-card.model';
-import { environmentCardToEntityCard } from '../../../../../shared/mappers/environment-card-to-entity-card.mapper';
+import { cardDataToEntityCard } from '../../../../../shared/mappers/card-data-to-entity-card.mapper';
 import { adversaryToEntityCard } from '../../../../../shared/mappers/adversary-data-to-entity-card.mapper';
 import { PreferencesService } from '../../../../../core/services/preferences.service';
 import { EncounterRosterInstance } from '../../models/encounter-roster-instance.model';
@@ -56,6 +56,19 @@ export class EncounterRoster {
 
   readonly tierOptions = TIER_OPTIONS;
 
+  /**
+   * The environment only when the beta face is on, where it is the first cell of the roster grid
+   * rather than a labelled row of its own above it. Classic keeps the separate group: its
+   * `app-daggerheart-card` is a full-height card, not a single row, so it cannot share a column
+   * track with the adversaries the way a `compact` EntityCard can.
+   *
+   * A computed rather than `@if (sheetLayout() === 'beta' && selectedEnvironment(); as env)`, which
+   * does not narrow -- `as` binds the whole `&&` expression, not its right operand.
+   */
+  readonly betaEnvironment = computed(() =>
+    this.sheetLayout() === 'beta' ? this.selectedEnvironment() : undefined,
+  );
+
   onRetierChange(localId: string, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.retierInstance.emit({ localId, tier: value ? Number(value) : undefined });
@@ -66,7 +79,7 @@ export class EncounterRoster {
   }
 
   environmentEntityCard(card: CardData): EntityCardData {
-    return environmentCardToEntityCard(card);
+    return cardDataToEntityCard(card);
   }
 
   adversaryEntityCard(adversary: AdversaryData, tierOverride: number | undefined): EntityCardData {

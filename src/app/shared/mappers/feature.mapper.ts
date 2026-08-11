@@ -12,15 +12,20 @@ import { FEATURE_TYPE_LABELS } from '../models/feature-type.model';
  * there is no separate "tier" field on Feature to surface instead.
  */
 export function mapFeatureResponseToCardData(feature: FeatureResponse): CardData {
+  const costTags = feature.costTags?.length
+    ? feature.costTags.map(tag => tag.label.toUpperCase())
+    : undefined;
+
   return {
     id: feature.id,
     name: feature.name,
     description: feature.description ?? '',
     cardType: 'feature',
     subtitle: FEATURE_TYPE_LABELS[feature.featureType] ?? feature.featureType,
-    tags: feature.costTags?.length
-      ? feature.costTags.map(tag => tag.label.toUpperCase())
-      : undefined,
+    tags: costTags,
+    // Cost tags need no label: "1 HOPE" already names its own unit, and a "Cost" label above each
+    // of two of them would only repeat itself.
+    entityDisplay: costTags ? { stats: costTags.map(tag => ({ value: tag })) } : undefined,
     metadata: { expansionId: feature.expansionId },
   };
 }

@@ -224,4 +224,39 @@ describe('mapBeastformToCardData', () => {
     expect(result.metadata!['knowledgeModifier']).toBeUndefined();
     expect(result.metadata!['evasion']).toBeUndefined();
   });
+
+  describe('entityDisplay', () => {
+    it('should carry tier as the scalar and damage and range as stats', () => {
+      const result = mapBeastformToCardData(buildBeastformResponse({ tier: 2 }));
+
+      expect(result.entityDisplay).toEqual({
+        scalar: { label: 'Tier', value: '2' },
+        stats: [
+          { label: 'Damage', value: '1d6 phy' },
+          { label: 'Range', value: 'Melee' },
+        ],
+      });
+    });
+
+    it('should leave the scalar unset when the beastform has no tier', () => {
+      const result = mapBeastformToCardData(buildBeastformResponse({ tier: undefined }));
+
+      expect(result.entityDisplay!.scalar).toBeUndefined();
+    });
+
+    it('should leave stats unset for a stat-less Evolved card', () => {
+      const result = mapBeastformToCardData(buildStatlessBeastformResponse());
+
+      expect(result.entityDisplay!.stats).toBeUndefined();
+      expect(result.entityDisplay!.scalar).toEqual({ label: 'Tier', value: '3' });
+    });
+
+    it('should leave the classic subtitle, subtitleSecondary and tags untouched', () => {
+      const result = mapBeastformToCardData(buildBeastformResponse({ tier: 2 }));
+
+      expect(result.subtitle).toBe('Agility');
+      expect(result.subtitleSecondary).toBe('Tier 2');
+      expect(result.tags).toEqual(['Tier 2', 'Melee']);
+    });
+  });
 });

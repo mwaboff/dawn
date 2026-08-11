@@ -108,7 +108,7 @@ export const typeLabels: Partial<Record<SearchableEntityType, string>> = {
   ENCOUNTER: 'Encounters',
   QUESTION: 'Questions',
   CARD_COST_TAG: 'Cost Tags',
-  TRANSFORMATION_CARD: 'Transformation Cards',
+  TRANSFORMATION_CARD: 'Transformations',
   MARTIAL_STANCE: 'Martial Stances',
   CONDITION: 'Conditions',
 };

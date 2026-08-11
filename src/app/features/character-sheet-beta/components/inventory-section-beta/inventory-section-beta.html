@@ -111,13 +111,18 @@
                          user if the button it describes is still focusable. The click no-ops. -->
                     <button
                       type="button"
-                      class="card-swap-btn card-swap-btn--vault"
+                      class="card-swap-btn card-swap-btn--icon card-swap-btn--vault"
                       [id]="removeButtonId(entry)"
                       [attr.aria-disabled]="entry.removeBlockedReason !== null"
                       [attr.aria-describedby]="entry.removeBlockedReason ? hintId(entry) : null"
                       [attr.aria-label]="'Remove ' + entry.name + ' from inventory'"
+                      [attr.title]="'Remove ' + entry.name + ' from inventory'"
                       (click)="onRemoveClicked(entry)"
-                    >Remove</button>
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
                     @if (entry.removeBlockedReason; as reason) {
                       <span class="card-swap-hint" [id]="hintId(entry)">{{ reason }}</span>
                     }

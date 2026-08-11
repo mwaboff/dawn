@@ -194,4 +194,38 @@ describe('mapDomainCardResponseToCardData', () => {
 
     expect(result.metadata!['modifiers']).toEqual([]);
   });
+
+  describe('entityDisplay', () => {
+    it('should join the domain and card type into the beta subtitle and split level from recall', () => {
+      const response = buildDomainCardResponse({ level: 3, recallCost: 2, type: 'GRIMOIRE' });
+      const result = mapDomainCardResponseToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        subtitle: 'Codex · Grimoire',
+        scalar: { label: 'Level', value: '3' },
+        stats: [{ label: 'Recall', value: '2' }],
+      });
+    });
+
+    it('should show a zero recall cost the classic tags omit', () => {
+      const result = mapDomainCardResponseToCardData(buildDomainCardResponse({ recallCost: 0 }));
+
+      expect(result.entityDisplay!.stats).toEqual([{ label: 'Recall', value: '0' }]);
+    });
+
+    it('should fall back to the card type alone when the domain was not expanded', () => {
+      const response = buildDomainCardResponse({ associatedDomain: undefined, type: 'ABILITY' });
+      const result = mapDomainCardResponseToCardData(response);
+
+      expect(result.entityDisplay!.subtitle).toBe('Ability');
+    });
+
+    it('should leave the classic subtitle and tags untouched', () => {
+      const response = buildDomainCardResponse({ level: 3, recallCost: 2, type: 'GRIMOIRE' });
+      const result = mapDomainCardResponseToCardData(response);
+
+      expect(result.subtitle).toBe('Codex');
+      expect(result.tags).toEqual(['Level 3', 'Grimoire', 'Recall: 2']);
+    });
+  });
 });

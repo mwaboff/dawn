@@ -6,7 +6,13 @@
     linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
 }
 
-.builder { max-width: 960px; margin: 0 auto; padding: 7rem 1.5rem 6rem; }
+/* 1200px matches the character builder (`create-character.css`'s `.content-area`) and level-up, so
+   the three "build a thing" pages share one page width. The 960px this used to be was the classic
+   character sheet's cap, sized for a single-column card list; this page's roster, environment and
+   adversary grids are all `auto-fill minmax(280px)`, which means 960px held them to three columns on
+   any display. The extra 240px is the fourth column -- the same reasoning `character-sheet-beta.css`
+   records for widening the beta sheet past classic. */
+.builder { max-width: 1200px; margin: 0 auto; padding: 7rem 1.5rem 6rem; }
 
 .builder__back {
   display: inline-block;

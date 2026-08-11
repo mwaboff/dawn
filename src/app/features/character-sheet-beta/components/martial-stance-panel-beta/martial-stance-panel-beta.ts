@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MartialStancePanel } from '../../../character-sheet/components/martial-stance-panel/martial-stance-panel';
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
 import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card-group';
-import { EntityCardData } from '../../../../shared/components/entity-card/entity-card.model';
+import { EntityCardBadge, EntityCardData } from '../../../../shared/components/entity-card/entity-card.model';
 import { MartialStanceResponse } from '../../../../shared/models/martial-stance-api.model';
 
 /**
@@ -21,15 +21,18 @@ import { MartialStanceResponse } from '../../../../shared/models/martial-stance-
 })
 export class MartialStancePanelBeta extends MartialStancePanel {
   toCardData(stance: MartialStanceResponse): EntityCardData {
+    /** Power-level scalar first, then live state -- the badge order every card shares. */
+    const badges: EntityCardBadge[] = [
+      ...(stance.tier !== undefined ? [{ label: 'Tier', value: String(stance.tier) }] : []),
+      ...(this.isActive(stance.id) ? [{ label: 'Active' }] : []),
+    ];
+
     return {
       id: stance.id,
       name: stance.name,
       cardType: 'martialStance',
       description: stance.description,
-      badges: [
-        ...(stance.tier !== undefined ? [{ label: 'Tier', value: String(stance.tier) }] : []),
-        ...(this.isActive(stance.id) ? [{ label: 'Active' }] : []),
-      ],
+      badges: badges.length > 0 ? badges : undefined,
     };
   }
 }

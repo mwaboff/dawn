@@ -135,6 +135,14 @@ describe('BeastformSectionBeta', () => {
       expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('undefined');
     });
 
+    it('leaves stats unset, because the view model only exposes the pre-joined stat line', () => {
+      setUpAndFlush(1, [buildBeastform()]);
+
+      const card = entityCardOf(fixture).card();
+
+      expect(card.stats).toBeUndefined();
+    });
+
     it('omits the advantages feature entirely when the form grants none', () => {
       setUpAndFlush(1, [buildBeastform({ advantages: undefined })]);
 

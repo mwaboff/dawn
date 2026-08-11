@@ -234,4 +234,47 @@ describe('mapArmorResponseToCardData', () => {
 
     expect(result.subtitleSecondary).toBe('Tier 2');
   });
+
+  describe('entityDisplay', () => {
+    it('should split the score and threshold tags into labelled stats without punctuation', () => {
+      const response = buildArmorResponse({
+        tier: 2,
+        baseScore: 4,
+        baseMajorThreshold: 8,
+        baseSevereThreshold: 16,
+      });
+      const result = mapArmorResponseToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        subtitle: '',
+        scalar: { label: 'Tier', value: '2' },
+        stats: [
+          { label: 'Score', value: '4' },
+          { label: 'Major', value: '8' },
+          { label: 'Severe', value: '16' },
+        ],
+      });
+    });
+
+    it('should blank the beta subtitle so the type tab does not say Armor twice', () => {
+      const result = mapArmorResponseToCardData(buildArmorResponse());
+
+      expect(result.entityDisplay!.subtitle).toBe('');
+    });
+
+    it('should leave the classic subtitle, subtitleSecondary and tags untouched', () => {
+      const response = buildArmorResponse({
+        tier: 2,
+        baseScore: 4,
+        baseMajorThreshold: 8,
+        baseSevereThreshold: 16,
+        isOfficial: false,
+      });
+      const result = mapArmorResponseToCardData(response);
+
+      expect(result.subtitle).toBe('Armor');
+      expect(result.subtitleSecondary).toBe('Tier 2');
+      expect(result.tags).toEqual(['Score: 4', 'Major: 8+', 'Severe: 16+', 'Custom']);
+    });
+  });
 });

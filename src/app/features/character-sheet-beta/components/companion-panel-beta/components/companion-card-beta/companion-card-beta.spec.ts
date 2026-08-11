@@ -93,18 +93,45 @@ describe('CompanionCardBeta', () => {
     expect(cardBeta()).toBeInstanceOf(CompanionCard);
   });
 
-  it('maps the companion onto EntityCardData with identity, headline, badges and meta', () => {
-    host.companion.set(buildCompanion({ attackDiceCount: 1, damageDice: 'D6', damageType: 'PHYSICAL', attackRange: 'MELEE', stressMarked: 1 }));
+  it('maps the companion onto EntityCardData with identity, headline and description', () => {
+    host.companion.set(buildCompanion({ attackDiceCount: 1, damageDice: 'D6', damageType: 'PHYSICAL', attackRange: 'MELEE' }));
     fixture.detectChanges();
 
     const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
-    expect(card.id).toBe(1);
-    expect(card.name).toBe('Forest Wolf');
-    expect(card.cardType).toBe('companion');
-    expect(card.headline).toBe('2d6 phy at Melee');
-    expect(card.description).toBe('A loyal wolf');
+    expect(card).toMatchObject({
+      id: 1,
+      name: 'Forest Wolf',
+      cardType: 'companion',
+      headline: '2d6 phy at Melee',
+      description: 'A loyal wolf',
+    });
+  });
+
+  it('carries the Stress count as a live-state badge of "marked/max"', () => {
+    host.companion.set(buildCompanion({ stressMarked: 1, stressMax: 3 }));
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
     expect(card.badges).toContainEqual({ label: 'Stress', value: '1/3' });
-    expect(card.meta).toContainEqual({ label: 'Evasion', value: '12' });
+  });
+
+  it('puts Evasion in the stats ledger as a label/value pair, since it is a number', () => {
+    const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+
+    expect(card.stats).toEqual([{ label: 'Evasion', value: '12' }]);
+  });
+
+  it('keeps meta to the attack line alone, so Evasion is not stated twice', () => {
+    const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+
+    expect(card.meta).toEqual([{ label: 'Attack', value: '2d6 phy at Melee' }]);
+  });
+
+  it('renders the Evasion stat cell with its label above the value, not baked into it', () => {
+    const cell = el.querySelector('.entity-card__stat')!;
+
+    expect([cell.querySelector('.entity-card__stat-label')?.textContent?.trim(), cell.querySelector('.entity-card__stat-value')?.textContent?.trim()])
+      .toEqual(['Evasion', '12']);
   });
 
   it('adds an "Out of scene" badge only when the companion is out of scene', () => {

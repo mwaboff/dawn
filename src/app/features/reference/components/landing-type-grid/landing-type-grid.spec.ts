@@ -114,9 +114,9 @@ describe('LandingTypeGrid', () => {
     expect(host.lastSelectedType).toBe('BEASTFORM');
   });
 
-  it('emits TRANSFORMATION_CARD when Transformation Cards card is clicked', () => {
+  it('emits TRANSFORMATION_CARD when the Transformations card is clicked', () => {
     const cards = fixture.nativeElement.querySelectorAll('.type-card') as NodeListOf<HTMLButtonElement>;
-    const transformationCard = Array.from(cards).find(c => c.textContent?.includes('Transformation Cards'));
+    const transformationCard = Array.from(cards).find(c => c.textContent?.includes('Transformations'));
     transformationCard?.click();
     expect(host.lastSelectedType).toBe('TRANSFORMATION_CARD');
   });

@@ -92,14 +92,43 @@ export class EntityCard {
   readonly toggleLabel = computed(() => (this.isExpanded() ? 'Collapse' : 'Expand'));
 
   /**
-   * A `compact` card renders no body, so its headline -- the damage line, the armor score -- exists
-   * only in the header, where `aria-label` would otherwise override it away. Folding it into the
-   * label is what lets a screen-reader user compare two collapsed rows without opening both.
+   * The one secondary line a `compact` row has room for, as `subtitle · headline`.
+   *
+   * It carries both because the two answer different questions and a roster needs both at a glance:
+   * `subtitle` is what the thing IS ("Bruiser", "Exploration", "Physical") and `headline` is its one
+   * loudest number ("Difficulty 14", "2d8+1 phy", "Score 3"). Compact used to render `headline`
+   * alone, which left the encounter builder's adversary and environment rows with no way to say
+   * which of seven adversary types or four environment types they were without being expanded.
+   * Joined with the same `·` the domain-card subtitle already uses for "Valor · Spell", so the
+   * separator means the same thing here as everywhere else on the card.
+   */
+  readonly compactLine = computed(() => {
+    const { subtitle, headline } = this.card();
+    return [subtitle, headline].filter(Boolean).join(' · ') || undefined;
+  });
+
+  /**
+   * `compact` keeps only the first chip -- by `EntityCardData`'s slot contract that is the
+   * power-level scalar (Tier/Level) whenever the card has one, which is the chip a GM scanning an
+   * encounter roster is actually comparing. It used to render none at all, so tier was invisible on
+   * exactly the rows built to be scanned. The rest of the badge row (live state, the homebrew chip)
+   * stays behind the expand, where there is width for it.
+   */
+  readonly headerBadges = computed(() => {
+    const badges = this.card().badges ?? [];
+    return this.displaySize() === 'compact' ? badges.slice(0, 1) : badges;
+  });
+
+  /**
+   * A `compact` card renders no body, so its secondary line -- the type, the damage line, the armor
+   * score -- exists only in the header, where `aria-label` would otherwise override it away. Folding
+   * it into the label is what lets a screen-reader user compare two collapsed rows without opening
+   * both. The badge is left out: it renders as real text beside the name, so it is already read.
    */
   readonly headerLabel = computed(() => {
     const label = `${this.toggleLabel()} ${this.card().name}`;
-    const headline = this.card().headline;
-    return this.displaySize() === 'compact' && headline ? `${label}, ${headline}` : label;
+    const line = this.compactLine();
+    return this.displaySize() === 'compact' && line ? `${label}, ${line}` : label;
   });
 
   constructor() {

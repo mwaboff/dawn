@@ -2,7 +2,9 @@
   <h3 class="preview-title">
     Preview <span class="preview-live-pill">LIVE</span>
   </h3>
-  @if (card()) {
-    <app-daggerheart-card [card]="card()!" layout="wide" [collapsibleFeatures]="true" />
+  @if (card(); as card) {
+    <!-- `expanded`, so the whole card is on screen while it is being edited: `normal` clips the body
+         at 15rem behind a toggle, and a preview that hides the feature you are typing is not one. -->
+    <app-entity-card [card]="card" size="expanded" [headingLevel]="4" />
   }
 </div>

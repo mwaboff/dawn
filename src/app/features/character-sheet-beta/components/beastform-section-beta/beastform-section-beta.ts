@@ -13,6 +13,14 @@ interface BeastformCardEntry {
 
 let nextInstanceId = 0;
 
+/**
+ * No `stats` ledger here on purpose. `BeastformView` exposes only `statLine`/`attackLine` -- the
+ * traits, evasion and damage are joined into those two strings by `toBeastformView` and the
+ * per-field values never reach this layer, so populating label/value stat cells would mean
+ * re-deriving (and re-formatting) numbers that the classic view model already owns. `statLine` is
+ * the card's `headline`, which only renders at `compact` size, and the attack line stays a `meta`
+ * row because it is words rather than numbers.
+ */
 function toEntityCard(form: BeastformView): EntityCardData {
   const features: EntityCardFeature[] = [
     ...(form.advantages ? [{ name: 'Gain advantage on', description: form.advantages }] : []),

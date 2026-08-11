@@ -33,41 +33,84 @@
 
   /* Card type accents. Single source of truth: the wide cards on the codex and the grouped
      sections on the character sheet both read these, so a type looks the same wherever it appears.
-     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). Before
-     adding or changing one, check it against every other token perceptually, not by hue alone: two
-     accents can sit 10+ degrees apart and still be indistinguishable if lightness and chroma match. */
+     ---------------------------------------------------------------------------------------------
+     This ring was solved numerically, not chosen by eye, and it should be RE-SOLVED rather than
+     hand-edited. The generator and its constraint checks are recorded in the commit that introduced
+     this block; the model is:
+
+     - The objective is the MINIMUM CIEDE2000 distance over every pair, evaluated on the three
+       surfaces that actually carry identity: the raw token, and --eca-deep in each theme. Raw is in
+       there because light paints the card rail at pure --ca and dark paints the type-tab chip at
+       pure --ca (see --eca-rail-mix / --eca-chip-mix below) -- one full-chroma accent surface per
+       theme, both resolving to the raw value, which is why one ring serves both.
+     - The header wash is deliberately NOT part of the objective. It is a 12%/10% tint, which puts
+       every pair between dE 1.4 and 3.7 -- at or under the just-noticeable difference -- and it
+       cannot be strengthened: 18% already drops --color-card-ink-faint under 4.5:1 on it. The wash
+       says "a card", not "which card". Don't try to fix hue confusion by deepening it.
+     - Every value satisfies WCAG AA on all ten accent surfaces across both themes. Worst cases:
+       --eca-deep 5.32:1 light / 5.05:1 dark against --color-card-face (5.79 / 4.60 against
+       --color-card-face-lift), --color-card-ink-faint on the header wash 4.50:1 light / 4.60:1 dark,
+       the muted (vaulted) feature name 4.51:1 / 4.50:1, the type-tab chip ink 5.74:1 / 4.56:1.
+       That last pair is the one to watch: the DARK chip is filled with the RAW --ca under near-black
+       ink, so a token that is merely "bright enough for dark text" elsewhere can still fail there.
+     - Hue is bounded per type so meaning survives the optimiser (community stays green, armor blue).
+       Saturation floors are what keep it from buying separation by draining chroma into mud.
+
+     The old ring's minimum was dE 4.1, with seven accents inside a 52-degree red/pink arc and
+     heritage/weapon at 6.6 raw. This one's minimum is 8.8. Before changing ONE token by hand, note
+     that the binding pairs are all within ~1.5 dE of that floor: moving one accent almost always
+     collides it with a neighbour you weren't looking at. Re-run the solver instead.
+
+     Adding a card type: claim a --color-card-reserved* slot below rather than inventing a value.
+     They are five unassigned accents that were part of the same optimisation, so they are already
+     spaced against all 18 real ones and against each other. */
   --color-card-class: #d4a056;
-  --color-card-subclass: #b87fd4;
-  --color-card-subclassPath: #56b4c7;
-  --color-card-heritage: #d45656;
-  --color-card-ancestry: #d4c256;
-  --color-card-community: #56d478;
-  --color-card-domain: #d48056;
-  --color-card-domainCard: #d4569a;
-  --color-card-weapon: #d17070;
-  --color-card-armor: #5080c7;
-  --color-card-loot: #c7a850;
-  /* Rose-pink, not the green it used to be. A companion renders directly under the transformation
-     and beastform panels, and the old #6bad56 was the closest pair in this whole palette -- a hair
-     from beastform teal and from community green. Pink is the furthest open slot from all three. */
-  --color-card-companion: #fe8fb9;
-  --color-card-beastform: #3fae8f;
-  --color-card-environment: #8b82da;
-  /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
-     renders directly above Equipped Domain Cards, and a rose accent read as a shade of
-     --color-card-domainCard rather than as a separate kind of card. */
-  --color-card-transformationCard: #8f9fe8;
-  /* Crimson rose. Its neighbours on the sheet are beastform teal above and transformation
-     blue-violet below, so the red slot that was wrong for transformations is right here. */
-  --color-card-martialStance: #d4566e;
-  --color-card-feature: #a89684;
-  /* Warm chartreuse -- the open slot between ancestry (51°) and community (136°), the widest gap
-     in the ring. The red/crimson family (heritage, weapon, martialStance, domainCard, companion)
-     that would read as the "obvious" combat-danger choice is already fully packed with <=11°
-     between neighbours, so a red here would sit indistinguishably close to at least one of them.
-     Same saturation/lightness as the majority of the ring (59.4%/58.4%), just hue-rotated, so it
-     shares the ring's contrast headroom rather than being a new, unverified extreme. */
-  --color-card-adversary: #9fd456;
+  --color-card-subclass: #a752e3;
+  --color-card-subclassPath: #2cb1dd;
+  --color-card-heritage: #2cdd86;
+  --color-card-ancestry: #ddce2c;
+  --color-card-community: #89d2a5;
+  --color-card-domain: #dd782c;
+  --color-card-domainCard: #e873e0;
+  --color-card-weapon: #d89883;
+  --color-card-armor: #2c8bdd;
+  --color-card-loot: #d8cb83;
+  --color-card-companion: #e14795;
+  --color-card-beastform: #2cddcd;
+  --color-card-environment: #9c83d8;
+  --color-card-transformationCard: #5770df;
+  --color-card-martialStance: #e24d58;
+  /* The ring's one near-neutral, and the only token with a saturation CEILING rather than a floor:
+     a feature is a fragment of another card, so it reads as parchment rather than as a type. */
+  --color-card-feature: #938c76;
+  /* Unclaimed. Rename to --color-card-<type> when a type takes one, and add the matching
+     card-accents.css rule; nothing else needs recomputing. Solved alongside the 18 above. */
+  --color-card-reserved1: #73dae8;
+  --color-card-reserved2: #d8839f;
+  --color-card-reserved3: #2cdd2c;
+  --color-card-reserved4: #83b0d8;
+  --color-card-reserved5: #a6dd2c;
+  /* Scarlet. Adversaries are the only hostile entity in the app and the one card type a GM scans a
+     list for, so this is the ring's single high-chroma hot accent -- it is the CHROMA, not the hue,
+     that separates it from the red/crimson family (weapon, martialStance, domainCard, companion),
+     all of which sit at the ring's 52-72% saturation band. Its nearest neighbour in the solved ring
+     is --color-card-weapon, the one that also shares a surface with it (reference search), at
+     CIEDE2000 11.7 raw -- above the ring's 8.7 floor, so it is not a binding pair.
+     Two constraints pinned it here, and both are easy to break by eye:
+     - It cannot be a dark oxblood, which is the intuitive "danger red". The DARK face computes
+       --eca-deep as 75% raw accent toward a near-WHITE anchor (see --eca-mix below), so a dark
+       input lands too close to the dark face: #a32e2a measures 3.46:1 there, under the 4.5:1 text
+       floor. Every accent in this ring has to sit in the same mid-lightness band.
+     - It cannot be much lighter or hotter either. The binding surface is --color-card-ink-faint on
+       the light header wash (12% accent over the face), the thinnest margin in entity-card.css:
+       this value measures 4.50:1 there. #ed461d, two points hotter, drops it to 4.47:1 and fails.
+     Verified across every surface the accent reaches, both themes, with a real sRGB relative-
+     luminance calculation: --eca-deep 8.88:1 light / 5.38:1 dark against --color-card-face (9.66 /
+     4.90 against --color-card-face-lift), tab chip ink 9.58 / 5.44, muted feature name 7.31 / 4.77,
+     light rail 3.48:1 against the face (non-text, 3:1 guideline). Only entity-card renders
+     data-card-type="adversary", so this token is beta-only: classic adversaries go through
+     app-adversary-card, which never reads it. */
+  --color-card-adversary: #ed4e26;
 
   /* Typography */
   --font-display: 'Cinzel', serif;
@@ -291,8 +334,8 @@
      face they can run as text near their own value instead of buried in ink. --eca-mix stays high
      (75% raw accent -- was 78%, see below) so already-bright accents barely move; the remaining
      --eca-anchor (--color-card-ink, our near-white) is enough to lift the darker hues --
-     --color-card-armor and --color-card-feature especially -- to AA. Worst case across all 17:
-     heritage at 5.25:1 against --color-card-face, 4.78:1 against --color-card-face-lift.
+     --color-card-armor and --color-card-feature especially -- to AA. Worst case across the ring:
+     transformationCard at 5.05:1 against --color-card-face, 4.60:1 against --color-card-face-lift.
      78% originally passed everywhere but with near-zero headroom against face-lift (heritage
      4.60:1, martialStance 4.66:1, armor 4.74:1 -- an accessibility reviewer flagged these as
      fragile, not actually failing). Counterintuitively, LOWERING --eca-mix is what buys margin:
@@ -301,8 +344,8 @@
      (comparatively darker) accent and less anchor, which was tried and made every case worse.
      --eca-chip-mix/--eca-chip-ink flip too: the chip becomes a solid, full-strength --ca fill with
      near-black ink, rather than dark-accent-on-light-ink -- --eca-deep is light here, so it can no
-     longer serve as a legible chip background. Verified against the raw (unmixed) --ca for all 17;
-     worst case is armor/heritage at 5.00:1 / 5.01:1 -- unaffected by the face-lightness change,
+     longer serve as a legible chip background. Verified against the raw (unmixed) --ca for the whole
+     ring; worst case is transformationCard at 4.56:1 -- unaffected by the face-lightness change,
      since the chip's own background is --ca itself, never --color-card-face. This pair is also why
      `.entity-card--muted` never fades the chip (see entity-card.css): a faded, less-than-full --ca
      chip background would drag near-black chip text toward unreadable against a face this dark.

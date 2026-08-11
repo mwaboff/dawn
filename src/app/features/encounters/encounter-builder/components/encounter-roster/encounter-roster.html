@@ -1,16 +1,16 @@
-@if (selectedEnvironment(); as environment) {
-  <div class="roster-panel__environment-group">
-    <span class="roster-panel__environment-label">Environment</span>
-    <div class="roster-panel__environment">
-      @if (sheetLayout() === 'beta') {
-        <!-- Ultra-minimized, expand-on-click -- the same app-entity-card size="compact" pattern
-             the character sheet's item finder uses (item-finder-result.html). -->
-        <app-entity-card [card]="environmentEntityCard(environment)" size="compact" [appCardSurface]="'dark-capable'" />
-      } @else {
+<!-- Classic only. On beta the environment is the roster grid's first cell instead (see below), so
+     the whole labelled group goes away there: a `compact` EntityCard already announces itself with
+     the environment accent and an "ENVIRONMENT" type tab, which is the same fact the heading and the
+     full-width row were spending a line each to say. -->
+@if (sheetLayout() !== 'beta') {
+  @if (selectedEnvironment(); as environment) {
+    <div class="roster-panel__environment-group">
+      <span class="roster-panel__environment-label">Environment</span>
+      <div class="roster-panel__environment">
         <app-daggerheart-card [card]="environment" [readOnly]="true" />
-      }
+      </div>
     </div>
-  </div>
+  }
 }
 
 <!-- Shared between the classic/beta branches below -- the nickname/retier/remove controls are
@@ -48,10 +48,13 @@
   >&times;</button>
 </ng-template>
 
-@if (instances().length === 0) {
-  <p class="roster-panel__empty">No adversaries yet — add some from the browser below.</p>
-} @else {
+@if (betaEnvironment() || instances().length) {
   <div class="roster-panel__grid">
+    <!-- First cell, so the environment leads the roster the way it leads the scene, but in the same
+         280px column track as every adversary rather than a full-width row of its own. -->
+    @if (betaEnvironment(); as environment) {
+      <app-entity-card [card]="environmentEntityCard(environment)" size="compact" [appCardSurface]="'dark-capable'" />
+    }
     @for (instance of instances(); track instance.localId) {
       @if (sheetLayout() === 'beta') {
         <app-entity-card
@@ -79,4 +82,10 @@
       }
     }
   </div>
+}
+
+<!-- Still shown when an environment is already in the grid above: the environment is not an
+     adversary, and "add some from the browser below" is the next step either way. -->
+@if (instances().length === 0) {
+  <p class="roster-panel__empty">No adversaries yet — add some from the browser below.</p>
 }

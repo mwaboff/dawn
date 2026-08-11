@@ -14,7 +14,11 @@ function buildEntry(provenance: ItemProvenance | null = null): CatalogCardEntry 
       cardType: 'weapon',
       headline: '2d8+3 Phy',
       description: 'A long blade.',
-      stats: ['2d8+3 Phy', 'Strength', 'Melee'],
+      stats: [
+        { label: 'Damage', value: '2d8+3 Phy' },
+        { label: 'Trait', value: 'Strength' },
+        { label: 'Range', value: 'Melee' },
+      ],
     },
     provenance,
     item: { id: 1, name: 'Broadsword' } as CatalogCardEntry['item'],

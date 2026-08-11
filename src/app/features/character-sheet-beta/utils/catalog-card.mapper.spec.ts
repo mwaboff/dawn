@@ -144,10 +144,10 @@ describe('catalog-card.mapper', () => {
   });
 
   describe('lootCatalogEntry', () => {
-    it('names a consumable in the card type tab', () => {
+    it('names a consumable in the subtitle, leaving the type tab to say "Loot"', () => {
       const entry = lootCatalogEntry(buildLoot({ isConsumable: true }), null);
 
-      expect(entry.card.eyebrow).toBe('Consumable');
+      expect(entry.card.subtitle).toBe('Consumable');
     });
 
     it('reports campaign-shared loot as campaign gear', () => {

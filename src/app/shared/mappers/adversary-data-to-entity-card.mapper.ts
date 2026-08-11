@@ -1,6 +1,11 @@
 import { AdversaryData } from '../components/adversary-card/adversary-card.model';
 import { CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
-import { EntityCardBadge, EntityCardData, EntityCardFeature } from '../components/entity-card/entity-card.model';
+import {
+  EntityCardBadge,
+  EntityCardData,
+  EntityCardFeature,
+  EntityCardStat,
+} from '../components/entity-card/entity-card.model';
 import { titleCase } from '../utils/text.utils';
 import { improvisedTierStats } from '../utils/improvised-tier-stats.utils';
 
@@ -11,47 +16,50 @@ import { improvisedTierStats } from '../utils/improvised-tier-stats.utils';
  * (`card-data-to-entity-card.mapper.ts`) because `AdversaryData` isn't a `CardData`, so this is a
  * dedicated, domain-aware mapper rather than a second generic pass.
  *
- * Field-by-field, each checked against "is this fact already shown somewhere else on the same
- * card" before it gets its own slot:
- * - `eyebrow` carries the adversary type ("Bruiser", title-cased -- see `titleCase`'s own doc
- *   comment on why raw `BRUISER` never reaches the UI). This is the ONE place type appears, and
- *   the type name is real text either way `size` renders -- elite/minion/solo status is legible
- *   without a body, satisfying WCAG 1.4.1 even though the encounter manager's compact rows don't
- *   carry `AdversaryCard`'s dashed/bold/wide-tracking modifier styling for that status.
- * - `subtitle` is `Tier N`, shown only when NOT compact -- it never appears in `badges` too, which
- *   would restate the same fact in the header a second time while expanded.
- * - `headline` is `Difficulty N`: the one fact carried into `compact`, where there's no room for
- *   anything else. Difficulty (not tier) was picked deliberately -- `adversary-browser`'s own tier
- *   filter buttons mean a GM comparing candidates within a compact row list has usually already
- *   narrowed by tier, so the more decision-relevant number at a glance is "how hard is this thing
- *   to hit", the direct analogue of `armorToEntity`'s "Score N" headline.
- *   `headline` and `stats` both carrying Difficulty is not the same duplication `subtitle`/`badges`
- *   would be: `compact` renders ONLY the header (headline), `normal`/`expanded` render ONLY the
- *   body (stats) -- the two are never on screen at once. `weaponToEntity` already relies on this
- *   same header/body split (its `headline` is also its `stats[0]`).
- *   When retiered, `headline` also carries "Retiered from Tier N" (joined with the Difficulty
- *   fact, or standing alone if difficulty is unset) -- `EntityCard` gates `badges` behind
- *   `displaySize() !== 'compact'`, so the encounter roster's always-`compact` rows would otherwise
- *   have no way to show which adversaries were retiered without expanding each one, unlike classic
- *   `AdversaryCard`, which shows its retiered marker unconditionally. `headline` is the one field
- *   `EntityCard` folds into the header's accessible name even at `compact`
- *   (`entity-card.ts`'s `headerLabel`), so it is the natural vehicle for this to survive there too.
- * - `stats` is the numbers-only scannable line (Difficulty/HP/Stress/Evasion/Major/Severe/Atk),
- *   each labelled the way `armorToEntity` labels its own stats -- a bare "8 4 12 15" says nothing
- *   on its own the way a weapon's "2d8+1 phys" does.
+ * Field-by-field, following `EntityCardData`'s slot contract -- which fact goes where is fixed
+ * across every card type now, so a GM who has learned to read a weapon can read an adversary:
+ * - `eyebrow` is left unset so the tab reads "Adversary" from `CARD_TYPE_LABELS`, the same answer
+ *   to "what am I looking at" every other card gives. It used to carry the adversary type, which
+ *   made the tab mean "what kind of adversary" here and "what kind of card" everywhere else.
+ * - `subtitle` is the adversary type ("Bruiser", title-cased -- see `titleCase`'s own doc comment
+ *   on why raw `BRUISER` never reaches the UI). It is the qualifying noun within the kind, which
+ *   is what `subtitle` is for now that the tab cannot carry a subtype. The type name is real text
+ *   at every `size` that renders a subtitle, so elite/minion/solo status is legible without a
+ *   body, satisfying WCAG 1.4.1 even though the encounter manager's compact rows don't carry
+ *   `AdversaryCard`'s dashed/bold/wide-tracking modifier styling for that status.
+ * - `badges[0]` is the effective tier, as `{ label: 'Tier', value }`. Tier is the power-level
+ *   scalar every card type now leads its header with -- an adversary's Tier chip sits exactly
+ *   where a weapon's does -- so it belongs in `badges`, not in `subtitle` where it used to live
+ *   competing with the type for the same line. Badges therefore always have at least one entry.
+ * - `headline` carries ONLY "Retiered from Tier N", and only when the GM has retiered this one.
+ *   It used to lead with `Difficulty N`, back when `compact` rendered the headline alone and no
+ *   badges: difficulty was the one fact that could reach a collapsed roster row. `compact` now
+ *   renders `subtitle · headline` plus the scalar chip (`entity-card.ts`'s `compactLine` and
+ *   `headerBadges`), so the type and the tier reach that row directly and difficulty no longer has
+ *   to ride in the headline to be seen -- it is in `stats`, one expand away, and repeating it in the
+ *   header only crowded out the type name a GM scans an encounter list for.
+ *   The retier fact stays because nothing else carries it at `compact`: it names the ORIGINAL
+ *   printed tier, which the Tier chip has stopped showing precisely because the GM retiered it.
+ *   `headline` is also folded into the header's accessible name (`headerLabel`), so it survives for
+ *   a screen-reader user comparing collapsed rows -- unlike classic `AdversaryCard`, which shows its
+ *   retiered marker unconditionally because it has a body to show it in.
+ * - `stats` is the numbers ledger (Difficulty/HP/Stress/Evasion/Major/Severe/Atk), each a
+ *   `{ label, value }` cell the card draws as a small uppercase label over its number -- the label
+ *   is never baked into the value string, because a bare "8 4 12 15" says nothing on its own the
+ *   way a weapon's "2d8+1 phys" does, and the card, not the mapper, owns how the pairing is drawn.
  * - `meta` carries the named facts a bare number can't: the attack line (weapon/range/damage,
  *   already assembled the same way `run-adversary-detail.ts`'s `attackDetailLabel` is), each
- *   Experience, and Motives & Tactics.
+ *   Experience, and Motives & Tactics. Labels carry no colon -- the card's two-column grid is what
+ *   separates label from value.
  * - `description`/`features` map straight across, the same as every other mapper in this file.
  *
  * `effectiveTier` mirrors `AdversaryCard`'s own `effectiveTier` input (the encounter roster's
  * "retier" control): when set and different from the printed tier, Difficulty/Thresholds/Attack
  * Modifier swap to the book's Improvised Statistics by Tier table (`improvised-tier-stats.utils.ts`)
  * -- the weapon/range/damage line does not retier, matching `AdversaryCard`'s own scope for this.
- * A "Retiered from Tier N" badge is the one thing this mapper puts in `badges` (and, per the
- * `headline` note above, also folds into `headline`): it names a fact (the ORIGINAL printed tier)
- * that is not shown anywhere else once `subtitle` is showing the EFFECTIVE tier, so it is new
- * information, not the "tier restated in two slots" this file's other fields deliberately avoid.
+ * The "Retiered from Tier N" badge follows the Tier chip because it is live state the GM toggled,
+ * and it names a fact (the ORIGINAL printed tier) shown nowhere else once the Tier chip is showing
+ * the EFFECTIVE tier, so it is new information rather than the same scalar twice.
  */
 export function adversaryToEntityCard(adversary: AdversaryData, effectiveTier?: number): EntityCardData {
   const isRetiered = effectiveTier !== undefined && effectiveTier !== adversary.tier;
@@ -65,19 +73,15 @@ export function adversaryToEntityCard(adversary: AdversaryData, effectiveTier?: 
   const meta = buildMeta(adversary);
   const features = adversary.features?.length ? adversary.features.map(mapFeature) : undefined;
   const retieredLabel = `Retiered from Tier ${adversary.tier}`;
-  const badges: EntityCardBadge[] | undefined = isRetiered ? [{ label: retieredLabel }] : undefined;
-  const headlineParts = [
-    difficulty !== undefined ? `Difficulty ${difficulty}` : undefined,
-    isRetiered ? retieredLabel : undefined,
-  ].filter((part): part is string => !!part);
+  const badges: EntityCardBadge[] = [{ label: 'Tier', value: String(effectiveTier ?? adversary.tier) }];
+  if (isRetiered) badges.push({ label: retieredLabel });
 
   return {
     id: adversary.id,
     name: adversary.name,
     cardType: 'adversary',
-    eyebrow: titleCase(adversary.adversaryType),
-    subtitle: `Tier ${effectiveTier ?? adversary.tier}`,
-    headline: headlineParts.length ? headlineParts.join(' · ') : undefined,
+    subtitle: titleCase(adversary.adversaryType),
+    headline: isRetiered ? retieredLabel : undefined,
     badges,
     stats: stats.length ? stats : undefined,
     meta: meta.length ? meta : undefined,
@@ -93,20 +97,22 @@ interface EffectiveNumbers {
   attackModifier?: number;
 }
 
-function buildStats(adversary: AdversaryData, effective: EffectiveNumbers): string[] {
-  const stats: string[] = [];
-  if (effective.difficulty !== undefined) stats.push(`Difficulty ${effective.difficulty}`);
-  if (adversary.hitPointMax !== undefined) stats.push(`HP ${adversary.hitPointMax}`);
-  if (adversary.stressMax !== undefined) stats.push(`Stress ${adversary.stressMax}`);
-  if (adversary.evasion !== undefined) stats.push(`Evasion ${adversary.evasion}`);
-  if (effective.majorThreshold !== undefined) stats.push(`Major ${effective.majorThreshold}`);
-  if (effective.severeThreshold !== undefined) stats.push(`Severe ${effective.severeThreshold}`);
-  if (effective.attackModifier !== undefined) stats.push(`Atk ${formatModifier(effective.attackModifier)}`);
+function buildStats(adversary: AdversaryData, effective: EffectiveNumbers): EntityCardStat[] {
+  const stats: EntityCardStat[] = [];
+  if (effective.difficulty !== undefined) stats.push({ label: 'Difficulty', value: String(effective.difficulty) });
+  if (adversary.hitPointMax !== undefined) stats.push({ label: 'HP', value: String(adversary.hitPointMax) });
+  if (adversary.stressMax !== undefined) stats.push({ label: 'Stress', value: String(adversary.stressMax) });
+  if (adversary.evasion !== undefined) stats.push({ label: 'Evasion', value: String(adversary.evasion) });
+  if (effective.majorThreshold !== undefined) stats.push({ label: 'Major', value: String(effective.majorThreshold) });
+  if (effective.severeThreshold !== undefined) stats.push({ label: 'Severe', value: String(effective.severeThreshold) });
+  if (effective.attackModifier !== undefined) {
+    stats.push({ label: 'Atk', value: formatModifier(effective.attackModifier) });
+  }
   return stats;
 }
 
-function buildMeta(adversary: AdversaryData): { label: string; value?: string }[] {
-  const meta: { label: string; value?: string }[] = [];
+function buildMeta(adversary: AdversaryData): EntityCardBadge[] {
+  const meta: EntityCardBadge[] = [];
 
   const attack = formatAttack(adversary);
   if (attack) meta.push({ label: 'Attack', value: attack });

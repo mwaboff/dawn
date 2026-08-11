@@ -26,6 +26,18 @@ function mapFeature(feature: BeastformFeatureResponse): CardFeature {
 
 export function mapBeastformToCardData(response: BeastformResponse): CardData {
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
+  const formattedRange = formatTitleCase(response.attackRange);
+
+  // No `entityDisplay.subtitle`: the card's subtitle is already the attack trait, which is the
+  // qualifying noun the beta face wants there too. Both numbers stay optional -- the "Evolved"
+  // meta-cards print no stat line at all.
+  const stats: { label: string; value: string }[] = [];
+  if (response.damage?.notation) {
+    stats.push({ label: 'Damage', value: response.damage.notation });
+  }
+  if (formattedRange) {
+    stats.push({ label: 'Range', value: formattedRange });
+  }
 
   return {
     id: response.id,
@@ -36,8 +48,12 @@ export function mapBeastformToCardData(response: BeastformResponse): CardData {
     subtitleSecondary: response.tier != null ? `Tier ${response.tier}` : response.damage?.notation,
     tags: [
       response.tier != null ? `Tier ${response.tier}` : null,
-      formatTitleCase(response.attackRange),
+      formattedRange,
     ].filter((t): t is string => !!t),
+    entityDisplay: {
+      scalar: response.tier != null ? { label: 'Tier', value: String(response.tier) } : undefined,
+      stats: stats.length > 0 ? stats : undefined,
+    },
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

@@ -32,6 +32,19 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
       `Severe: ${response.baseSevereThreshold}+`,
       ...(isCustomContent(response) ? [CUSTOM_CONTENT_TAG] : []),
     ],
+    // The beta face reads the raw numbers rather than the tag strings above: the "Score: "/"+"
+    // punctuation is there because the classic card draws one flat row of chips with nothing to
+    // separate a label from its value, while `EntityCard` stacks the label over the value itself.
+    // The blank subtitle is deliberate -- the classic "Armor" subtitle only repeats the type tab.
+    entityDisplay: {
+      subtitle: '',
+      scalar: { label: 'Tier', value: String(response.tier) },
+      stats: [
+        { label: 'Score', value: String(response.baseScore) },
+        { label: 'Major', value: String(response.baseMajorThreshold) },
+        { label: 'Severe', value: String(response.baseSevereThreshold) },
+      ],
+    },
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

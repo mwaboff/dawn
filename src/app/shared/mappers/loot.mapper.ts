@@ -32,6 +32,14 @@ export function mapLootToCardData(response: LootApiResponse): CardData {
     description: response.description ?? '',
     cardType: 'loot' as never,
     tags: tags.length > 0 ? tags : undefined,
+    // "Consumable" is a subtype of loot rather than a kind of card, so on the beta face it is the
+    // subtitle and the tab keeps saying "Loot". Cost tags are the one stat that needs no label:
+    // "1 HANDFUL" already names its own unit.
+    entityDisplay: {
+      subtitle: response.isConsumable ? 'Consumable' : undefined,
+      scalar: response.tier !== undefined ? { label: 'Tier', value: String(response.tier) } : undefined,
+      stats: response.costTags?.length ? response.costTags.map(tag => ({ value: tag })) : undefined,
+    },
     features: features?.length ? features : undefined,
     metadata: {
       tier: response.tier,
