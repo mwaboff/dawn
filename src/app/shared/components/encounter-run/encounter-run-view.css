@@ -67,14 +67,14 @@
   padding: .25rem;
   font-style: italic;
   font-size: var(--text-sm);
-  color: rgba(245, 230, 211, .45);
+  color: var(--color-parchment-a55);
 }
 
 .run-view__empty {
   padding: 2.5rem 1rem;
   text-align: center;
   font-style: italic;
-  color: rgba(245, 230, 211, .45);
+  color: var(--color-parchment-a55);
   border: 1px dashed rgba(212, 160, 86, .25);
   border-radius: 8px;
 }

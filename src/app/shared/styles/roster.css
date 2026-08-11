@@ -46,7 +46,10 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
-  opacity: 0.7;
+  /* .85, not .7. This is the class label on every roster row in the app; at .7 it composites to
+     3.96:1 against the row's own tint at the wash maximum, under the 4.5:1 floor for text this
+     size. .85 measures 5.14:1. See the wash-budget note in styles.css. */
+  opacity: 0.85;
 }
 
 .roster-class-subclass {

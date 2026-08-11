@@ -24,6 +24,15 @@
 
 .dashboard__wide { margin-top: 1rem; }
 
+/* The encounters panel spans the whole frame, but its rows are a name over one meta line with
+   nothing at the trailing edge -- exactly the shape `page-shell.css` warns not to widen, and at the
+   board measure that put a 1336px row behind ~300px of content. Two-up puts these rows at the same
+   ~660px as the rows inside the two panels beside it, so every row on the dashboard is the same
+   width whichever panel it sits in, and the panel keeps its full-width frame.
+   Note the scroll list's `max-height` counts ROWS, so two-up also halves how far it scrolls. */
+.dashboard__wide .roster-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+.dashboard__wide .roster-entry--add { max-width: calc(50% - 1px); }
+
 .dashboard__list { margin-bottom: 0.5rem; }
 
 .dashboard-panel-header {
@@ -112,5 +121,7 @@
 
 @media (max-width: 860px) {
   .dashboard__columns { grid-template-columns: 1fr; }
+  .dashboard__wide .roster-list { grid-template-columns: 1fr; }
+  .dashboard__wide .roster-entry--add { max-width: none; }
   .dashboard__header { flex-direction: column; align-items: flex-start; }
 }

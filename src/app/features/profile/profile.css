@@ -1,5 +1,4 @@
 :host {
-  position: relative;
   display: block;
 }
 
@@ -102,8 +101,6 @@
 }
 
 .profile-error {
-  position: relative;
-  z-index: 1;
   text-align: center;
   padding: 6rem 2rem;
   opacity: 0;
@@ -141,8 +138,10 @@
 
 @media (max-width: 640px) {
   /* Not a re-declaration of `.page-header`'s row layout but a reversal of it: wrapping alone would
-     drop the sigil BELOW the name, and the avatar is meant to lead on narrow screens. */
-  .profile-header { flex-direction: column-reverse; }
+     drop the sigil BELOW the name, and the avatar is meant to lead on narrow screens. The gap
+     narrows with it: `.page-header`'s is sized for the horizontal split between identity and
+     action, and reads as a hole once the two are stacked. */
+  .profile-header { flex-direction: column-reverse; gap: var(--space-7); }
   .profile-sigil { width: 64px; height: 64px; }
   .profile-error { padding: 4rem 1rem; }
 }

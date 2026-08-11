@@ -433,9 +433,16 @@
   --eca-muted-rail-mix: 100%;
 }
 
+/* Must stay AFTER the `:root` block above: `page-shell.css` is imported before it, so a `:root`
+   override written there loses the cascade tie and never applies. Both halves of the sticky-rail
+   offset -- `--nav-height` and `--shell-pad-top` -- step at the same breakpoint, and keeping them
+   in one block is what makes `calc(var(--nav-height) + var(--shell-pad-top))` correct on a phone. */
 @media (max-width: 768px) {
   :root {
     --nav-height: 4rem;
+    --shell-pad-inline: 1.25rem;
+    --shell-pad-top: 2rem;
+    --shell-pad-bottom: 3rem;
   }
 }
 
@@ -513,16 +520,20 @@ body::before {
   pointer-events: none;
   background:
     radial-gradient(ellipse 120% 60% at 50% 0%, rgba(180, 120, 50, .07) 0%, transparent 60%),
-    linear-gradient(180deg, transparent 55%, rgba(10, 7, 5, .18) 100%);
+    linear-gradient(180deg, transparent 45%, rgba(10, 7, 5, .38) 100%);
 }
 
-/* Why the bottom settle is capped at .18 and not the .38 that reads better in isolation: anything
-   pinned to the bottom of the viewport -- the item form's sticky action bar, a dialog footer --
-   paints an opaque `--color-bg-dark` that the fixed wash sits BEHIND, so the settle is exactly the
-   amount by which such a bar looks lighter than the page around it. Over #1a1412 the settle costs
-   6/256 in the red channel at .38, which is a visible seam, and 3/256 at .18, which is not. The
-   wash gets whatever depth it can have without any bottom-anchored surface having to know it
-   exists. Raise this only alongside a real fix for those bars. */
+/* On the settle's strength, because this was got wrong once and the wrong answer is tempting:
+   an element pinned to a viewport edge and painted an opaque `--color-bg-dark` cannot see the fixed
+   wash behind it, so it shows the flat base while the page around it shows base + wash. The first
+   attempt capped the settle at .18 to shrink that seam to 3/256 -- which was incoherent, since the
+   top radial shifts the surface by 11/256 and no cap was applied there. Capping the wash to hide
+   one element's bug also hands that element a veto over the whole page's depth.
+   The fix belongs on the element: the one page-surface case, the item form's sticky action bar,
+   now uses the translucent + `backdrop-filter` treatment `.run-view__header` already used, so the
+   wash shows through and there is no seam at any scroll position. Dialogs are not affected -- they
+   sit over a scrim, not over this layer. Add a new opaque viewport-pinned surface and it needs the
+   same treatment; do not reach for the settle. */
 
 /* The grain that sixteen pages each carried as their own `<div class="grain-overlay">`.
  *

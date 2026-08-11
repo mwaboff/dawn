@@ -11,10 +11,11 @@
 
 .entity-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: var(--space-4); }
 
-/* The 19rem (304px) column floor plus .sheet-page's 1.5rem (24px) side padding stops fitting below a
-   352px viewport -- below that, `body{overflow-x:hidden}` clips the remainder with no scrollbar to
-   reach it. 640px matches the sibling `.beastform-grid` (beastform-section-beta.css) so every card
-   grid on the page collapses to one column together instead of at different widths. */
+/* The 19rem (304px) column floor plus the page frame's side padding -- `--shell-pad-inline`, which
+   is 1.25rem (20px) at the widths that matter here, per the ≤768px step-down in styles.css -- stops
+   fitting below a 344px viewport. Below that, `body{overflow-x:hidden}` clips the remainder with no
+   scrollbar to reach it. 640px matches the sibling `.beastform-grid` (beastform-section-beta.css)
+   so every card grid on the page collapses to one column together instead of at different widths. */
 @media (max-width: 640px) {
   .entity-card-grid { grid-template-columns: 1fr; }
 }

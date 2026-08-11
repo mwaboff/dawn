@@ -55,17 +55,13 @@
   max-width: calc(var(--measure-column) + 2 * var(--shell-pad-inline));
 }
 
-/* On `:root`, not on `.page-shell`. Off-shell consumers read these too -- the auth container pads
-   itself with them, and the sticky rails offset by `--shell-pad-top` -- and scoping the step-down to
-   the shell left all of those paying desktop spacing on a phone. Same 768px breakpoint as
-   `--nav-height`, so the two halves of a sticky offset step together. */
-@media (max-width: 768px) {
-  :root {
-    --shell-pad-inline: 1.25rem;
-    --shell-pad-top: 2rem;
-    --shell-pad-bottom: 3rem;
-  }
-}
+/* The mobile step-down for `--shell-pad-*` is NOT here -- it lives in `styles.css`, in the same
+   `@media (max-width: 768px) { :root { … } }` block as `--nav-height`.
+   It has to. This file is `@import`ed at the top of `styles.css`, before the `:root` block that
+   sets the desktop values, and a media query adds no specificity -- so a `:root` override written
+   here loses to the later `:root` and the step-down silently never applies at any width. It was
+   written here first and did exactly that. Keeping both halves of a sticky offset in one block is
+   the other reason. */
 
 /* Shared page header: eyebrow, title, optional trailing action, closed by the accent hairline.
    Six pages use it. admin, dashboard and reference do NOT yet -- admin runs a tab nav under its
@@ -117,6 +113,10 @@
   line-height: 1.1;
   color: var(--color-parchment);
   margin: 0;
+  /* Some of these titles ARE user-entered names -- the item builder renders the item's own name
+     here -- and no measure is wide enough for every homebrew name someone types without a space.
+     Breaking mid-word is ugly; overflowing the frame is worse. */
+  overflow-wrap: anywhere;
 }
 
 /* Standfirst under the title, inside `__identity`. Capped at a reading measure of its own because

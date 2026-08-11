@@ -21,10 +21,6 @@
   padding: var(--space-11) var(--space-11) 5rem;
 }
 
-.gm-screen-grain {
-  opacity: .15;
-}
-
 .gm-screen-header {
   position: relative;
   z-index: 1;

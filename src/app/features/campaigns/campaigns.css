@@ -1,5 +1,4 @@
 :host {
-  position: relative;
   display: block;
 }
 
@@ -16,7 +15,7 @@
 .campaigns-create-btn:hover { background: rgba(212, 160, 86, 0.08); border-color: var(--color-accent); }
 .campaigns-create-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; }
 
-.campaigns-list-section { position: relative; z-index: 1; opacity: 0; animation: fadeInUp 0.6s ease-out 0.4s forwards; }
+.campaigns-list-section { opacity: 0; animation: fadeInUp 0.6s ease-out 0.4s forwards; }
 .campaigns-roster { list-style: none; display: flex; flex-direction: column; gap: 2px; }
 
 .campaigns-entry {

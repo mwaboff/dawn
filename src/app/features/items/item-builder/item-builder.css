@@ -8,6 +8,12 @@
   gap: var(--space-8);
 }
 
+/* This shell is a flex column, so `.page-header`'s own `margin-bottom` would ADD to the column
+   gap and put the header 3.125rem from the form instead of the 2rem every other page shows. */
+.item-builder .page-header {
+  margin-bottom: 0;
+}
+
 .item-builder__back {
   align-self: flex-start;
   font-family: var(--font-display);

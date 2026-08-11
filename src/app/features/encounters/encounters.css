@@ -1,5 +1,4 @@
 :host {
-  position: relative;
   display: block;
 }
 
@@ -16,8 +15,6 @@
 .encounters-points--over { color: #e08a8a; }
 
 .encounters-delete-error {
-  position: relative;
-  z-index: 1;
   margin-bottom: 1.5rem;
   padding: var(--space-6) var(--space-8);
   background: rgba(220, 38, 38, 0.12);
@@ -103,8 +100,6 @@
 .encounters-copy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .active-runs {
-  position: relative;
-  z-index: 1;
   margin-bottom: 2.5rem;
 }
 

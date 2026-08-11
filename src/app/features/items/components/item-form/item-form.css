@@ -65,6 +65,12 @@
   justify-content: flex-end;
   gap: var(--space-6);
   padding: var(--space-7) 0;
-  background: var(--color-bg-dark);
+  /* Translucent + blurred rather than an opaque `--color-bg-dark`, matching `.run-view__header`.
+     An opaque bar pinned to the viewport edge cannot see the fixed wash behind it, so it paints the
+     flat base while the page around it carries the wash's settle -- a seam that grows with the
+     wash's strength and pins the wash's budget to this one element. Letting the wash through means
+     there is no seam at any scroll position and the wash can be as deep as it wants to be. */
+  background: color-mix(in srgb, var(--color-bg-dark) 92%, transparent);
+  backdrop-filter: blur(3px);
   border-top: 1px solid color-mix(in srgb, var(--item-accent, var(--color-accent)) 25%, transparent);
 }

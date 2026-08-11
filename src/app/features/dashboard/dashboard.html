@@ -95,10 +95,11 @@
   </div>
 
   <!-- Full-width, not a 3rd grid column: campaigns already reserves fixed horizontal space for its
-       absolutely-positioned GM Screen pill, so a 3-up grid would have squeezed campaign names into
-       a much narrower column at the exact widths this dashboard targets. Encounters gets more room
-       this way than a 3rd column ever offered, and characters/campaigns keep their original,
-       untouched layout. -->
+       absolutely-positioned GM Screen pill, so a 3-up grid would squeeze campaign names into a much
+       narrower column -- and that is worse now, not better, since the dashboard moved to the board
+       measure. Encounters instead spans the frame and tiles its own rows two-up (see
+       `.dashboard__wide .roster-list`), which lands them at the same width as the rows in the
+       panels beside it without touching the campaigns column. -->
   <section class="panel dashboard__wide">
     <div class="dashboard-panel-header">
       <h2 class="panel__title">Encounters ({{ encounters().length }})</h2>

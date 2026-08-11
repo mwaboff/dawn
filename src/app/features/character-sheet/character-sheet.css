@@ -3,7 +3,10 @@
   --cp: var(--color-parchment);
   --cb: rgba(212,160,86,.2);
   --cg: rgba(212,160,86,.3);
-  --cl: rgba(212,160,86,.65);
+  /* .8, not .65. This is gold body text sitting directly on the page surface (.sheet-class,
+     .shield__label, .trait-badge__abbr), and .65 measures 3.78:1 against that surface at the wash
+     maximum -- under the 4.5:1 floor. .8 measures 5.01:1. See the wash-budget note in styles.css. */
+  --cl: rgba(212,160,86,.8);
   --fb: var(--font-body);
   display: block;
   font-family: var(--font-display);
@@ -33,7 +36,7 @@
 .level-badge--can-level { padding-bottom: 0; }
 /* Stays below --text-xs: `.level-badge` is a fixed 56px/44px (480px) box and widening it is out of
    scope here (hard-gate exception). */
-.level-badge__label { font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.7); line-height: 1; }
+.level-badge__label { font-size: .65rem; text-transform: uppercase; letter-spacing: .15em; color: rgba(212,160,86,.8); line-height: 1; }
 .level-badge__value { font-size: 1.4rem; font-weight: 900; color: var(--ca); line-height: 1.1; }
 
 .shield { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 72px; min-height: 72px; background: rgba(26,20,15,.8); border: 2px solid var(--cg); border-radius: 6px 6px 16px 16px; padding: var(--space-3) var(--space-1); position: relative; flex-shrink: 0; }
