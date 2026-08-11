@@ -1,0 +1,13 @@
+/* The Rest control sits under the shield row rather than inside it: those tiles are all values the
+   character HAS, and a verb among them reads as a fifth statistic. Stacking them into a column
+   gives the action its own register, and on mobile -- where the header stacks -- it lands directly
+   above the Health and Hope & Stress panels it modifies.
+
+   `.sheet-header__stats` keeps its own rules untouched; this only adds the column around it. */
+.sheet-header__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-5);
+  flex-shrink: 0;
+}

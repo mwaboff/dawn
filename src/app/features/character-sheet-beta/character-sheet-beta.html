@@ -37,6 +37,7 @@
           </p>
         }
       </div>
+      <div class="sheet-header__aside">
       <div class="sheet-header__stats">
         <div class="level-badge" [class.level-badge--can-level]="canLevelUp() || canLevelDown()">
           <span class="level-badge__label">Lvl</span>
@@ -84,6 +85,17 @@
               <span class="shield__value">{{ patronDie() | lowercase }}</span>
             </span>
           </div>
+        }
+      </div>
+        @if (isOwner()) {
+          <app-rest-control
+            [state]="restState()"
+            [access]="restAccess()"
+            [processing]="hfActionInFlight()"
+            [applyResult]="restApply()"
+            (submitted)="onRestSubmitted($event)"
+            (closed)="restApply.set(null)"
+          />
         }
       </div>
     </header>
