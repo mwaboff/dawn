@@ -4,7 +4,8 @@
 //
 // Shuffling file order makes cross-file state leaks fail on the PR that
 // introduces them instead of intermittently in CI. On a failure, vitest prints
-// the seed; pin it via `sequence: { seed: <n> }` here to reproduce locally.
+// the seed; pin it via `sequence: { seed: <n> }` here (optionally with
+// `maxWorkers: 1`) to reproduce locally.
 export default {
   test: {
     sequence: { shuffle: true },

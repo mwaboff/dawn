@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component } from '@angular/core';
 import { GmPanelCard } from './gm-panel-card';
@@ -31,6 +31,12 @@ describe('GmPanelCard', () => {
     fixture.detectChanges();
     host = fixture.nativeElement as HTMLElement;
   });
+
+  // The `[attr.id]` host binding renames this fixture's root element from `rootN` to the panel
+  // id, so Angular's `[id^=root]` teardown sweep misses it. Without this, one root leaks into
+  // the shared JSDOM per test, and later specs' `#id` queries resolve against the leaked
+  // duplicates and return null.
+  afterEach(() => (fixture.nativeElement as HTMLElement).remove());
 
   it('carries the panel id and gm-panel class on its own host element', () => {
     expect(host.id).toBe('conditions');
