@@ -27,6 +27,9 @@ describe('CreateCampaign', () => {
     el = fixture.nativeElement;
     httpTesting = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
+    // Routes are empty, so a real navigation after submit rejects with NG04002 once the test
+    // is over; the per-test spies below reuse this stub.
+    vitest.spyOn(router, 'navigate').mockResolvedValue(true);
     fixture.detectChanges();
   });
 
