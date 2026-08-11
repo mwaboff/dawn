@@ -1,0 +1,61 @@
+<h3 class="rest-step__heading" tabindex="-1">{{ heading() }}</h3>
+<p class="rest-step__lede">
+  Choose {{ slots() }} {{ slots() === 1 ? 'move' : 'moves' }}. You can take the same one twice.
+</p>
+
+<section class="rest-tray" aria-label="Your downtime">
+  <div class="rest-tray__head">
+    <span class="rest-tray__title">Your downtime</span>
+    <span class="rest-tray__count">{{ selections().length }} of {{ slots() }} chosen</span>
+  </div>
+
+  @for (entry of chosen(); track entry.selection.key) {
+    <app-rest-selection-chip
+      [selection]="entry.selection"
+      [definition]="entry.definition"
+      (targetChanged)="targetChanged.emit({ key: entry.selection.key, target: $event })"
+      (withPartyChanged)="withPartyChanged.emit({ key: entry.selection.key, withParty: $event })"
+      (removed)="moveRemoved.emit(entry.selection.key)"
+    />
+  }
+
+  @for (slot of emptySlots(); track slot) {
+    <p class="rest-tray__hollow">Choose a move</p>
+  }
+</section>
+
+<ul class="rest-catalogue">
+  @for (move of moves(); track move.id) {
+    <li class="rest-catalogue__row">
+      <div class="rest-catalogue__body">
+        <span class="rest-catalogue__name">{{ move.name }}</span>
+        <span class="rest-catalogue__text">{{ move.text }}</span>
+      </div>
+      <button
+        type="button"
+        class="rest-catalogue__add"
+        [disabled]="full()"
+        [attr.aria-label]="'Add ' + move.name"
+        (click)="moveAdded.emit(move)"
+      >+</button>
+    </li>
+  }
+</ul>
+
+<div class="rest-extras">
+  <div class="rest-stepper">
+    <span class="rest-stepper__label" id="rest-slot-label">Moves</span>
+    <button type="button" [disabled]="!canRemoveSlot()" aria-label="One fewer move" (click)="slotsChanged.emit(-1)">&minus;</button>
+    <span class="rest-stepper__value" aria-live="polite">{{ slots() }}</span>
+    <button type="button" [disabled]="!canAddSlot()" aria-label="One more move" (click)="slotsChanged.emit(1)">+</button>
+    <span class="rest-stepper__help">A feature or item may grant you more.</span>
+  </div>
+
+  @if (restType() === 'short') {
+    <label class="rest-toggle">
+      <input type="checkbox" [checked]="useLongRestMove()" (change)="longRestMoveToggled.emit(!useLongRestMove())" />
+      <span class="rest-toggle__label">Use a long-rest move</span>
+      <span class="rest-toggle__help">Clank’s Efficient, the Recovery card, and the like.</span>
+    </label>
+  }
+</div>
