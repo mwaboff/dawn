@@ -158,6 +158,14 @@
   --measure-page: 960px;
   --measure-column: 640px;
 
+  /* Reading measure for the wide card layout, which is a fixed-width header column beside a body of
+     prose. The body is the only part that grows, so on a `1fr` grid it tracked the page: 120ch in
+     the character creator at the board measure and 94ch in the codex, against a 45-75ch comfortable
+     range. The cap is on the CARD rather than on the text so the card narrows as a whole and there
+     is no stranded card face beside the prose. 900px puts the daggerheart card's body at ~75ch
+     (900 - 240 header - 1 rule - 56 padding) and the adversary card's at ~79ch (220/48). */
+  --card-wide-max: 900px;
+
   /* The "arrival" surface, for the three full-bleed centred pages that are a moment rather than a
      workspace: the logged-out hero, the auth card, and the error page. It is warmer and deeper than
      the application surface on purpose -- these pages have no navigation to sit under and no data to

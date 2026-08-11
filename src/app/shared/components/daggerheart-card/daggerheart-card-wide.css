@@ -1,4 +1,7 @@
-.card--wide { max-height: none; flex-direction: row; overflow: visible; }
+/* Capped and centred rather than filling its `1fr` grid track: everything this layout adds beyond
+   the fixed 240px header column lands in the body prose, so an uncapped wide card sets its line
+   length from the page width. See `--card-wide-max`. */
+.card--wide { max-height: none; flex-direction: row; overflow: visible; max-width: var(--card-wide-max); margin-inline: auto; }
 .card--wide::before { display: none; }
 .card--wide .card__content { flex-direction: row; padding: 0; }
 .card--wide .card__header {
