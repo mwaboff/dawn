@@ -5,7 +5,7 @@
   (dismissed)="dismissed.emit()"
 >
   <div modal-body class="rest-body">
-    <p class="rest-body__announcement" aria-live="polite">{{ stepAnnouncement() }}</p>
+    <p class="sr-only" aria-live="polite">{{ stepAnnouncement() }}</p>
 
     @switch (step()) {
       @case ('type') {

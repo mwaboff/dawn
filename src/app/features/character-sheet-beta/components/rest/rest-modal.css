@@ -1,15 +1,4 @@
-/* Announced to screen readers on every step change; the step is obvious on screen. */
-.rest-body__announcement {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
+/* The step announcement uses the global `.sr-only` from src/styles.css -- no local copy. */
 
 .rest-body__error {
   margin: 0 0 var(--space-5);
