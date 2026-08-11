@@ -8,19 +8,6 @@ import { ClassCardResponse } from '../../create-character/models/character-sheet
 const BEASTFORM_FEATURE_NAME = 'beastform';
 
 /**
- * Highest Beastform tier a character can assume. Beastform lets a druid transform into a creature
- * "of your tier or lower", and a multiclassed character uses the tier of their FULL character
- * level -- the rulebook's example is a level 7 wizard multiclassing into druid getting the tier 3
- * options -- so this is derived from character level alone, never from a per-class level.
- */
-export function tierForLevel(level: number): number {
-  if (level <= 1) return 1;
-  if (level <= 4) return 2;
-  if (level <= 7) return 3;
-  return 4;
-}
-
-/**
  * True when any of the character's classes has a class feature named "Beastform".
  *
  * Scans ALL classes, not the deprecated singular `class`, because that one only ever holds the

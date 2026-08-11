@@ -6,6 +6,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CharacterSheetService } from '../../core/services/character-sheet.service';
 import { AuthService } from '../../core/services/auth.service';
 import { DiceRollerService } from '../../core/services/dice-roller.service';
+import { DiceType } from '../../shared/models/dice-roller.model';
+import { rollFocusRefresh } from './utils/focus-refresh.utils';
 import { SavingSpinner } from '../../shared/components/saving-spinner/saving-spinner';
 import { ResourceTracker } from '../../shared/components/resource-tracker/resource-tracker';
 import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
@@ -72,21 +74,26 @@ export class CharacterSheet implements OnInit {
   readonly inventoryError = signal<string | null>(null);
   /** Non-null while the create-item modal is open; the kind it is locked to. */
   readonly creatingItemKind = signal<ItemKind | null>(null);
-  private readonly rawSheet = signal<CharacterSheetResponse | null>(null);
+  /** `protected` so `CharacterSheetBeta` can write it for a beta-only action, the same reason
+   * `loadCharacterSheet` is protected. Classic never reaches for it from outside this class. */
+  protected readonly rawSheet = signal<CharacterSheetResponse | null>(null);
   private readonly expandedCardIds = signal<Set<number>>(new Set());
   private nextTempInventoryId = -1;
 
-  private readonly localHpMarked = signal<number | null>(null);
-  private readonly localStressMarked = signal<number | null>(null);
-  private readonly localHopeMarked = signal<number | null>(null);
-  private readonly localArmorMarked = signal<number | null>(null);
+  /** The `local*` overrides are `protected` for the same reason as `rawSheet`: an immediate write
+   * from a subclass has to null them, or the debounced pipeline that still reads them fires 800ms
+   * later and silently reverts the write. See `onActivateMartialStance` for the same hazard. */
+  protected readonly localHpMarked = signal<number | null>(null);
+  protected readonly localStressMarked = signal<number | null>(null);
+  protected readonly localHopeMarked = signal<number | null>(null);
+  protected readonly localArmorMarked = signal<number | null>(null);
   private readonly localGoldAdjustment = signal(0);
   private readonly swapInFlight = signal(false);
   /** True while a Hope & Fear stance/transformation PUT is in flight; disables the panel controls. */
   readonly hfActionInFlight = signal(false);
 
-  private readonly localFocusMarked = signal<number | null>(null);
-  private readonly localFavor = signal<number | null>(null);
+  protected readonly localFocusMarked = signal<number | null>(null);
+  protected readonly localFavor = signal<number | null>(null);
   readonly lastFocusRoll = signal<number | null>(null);
 
   private readonly destroyRef = inject(DestroyRef);
@@ -396,14 +403,22 @@ export class CharacterSheet implements OnInit {
    */
   refreshFocus(): void {
     if (!this.isOwner()) return;
-    const instinct = this.rawSheet()?.instinctModifier ?? 0;
-    const diceCount = Math.max(instinct, 1);
-    const result = this.diceRollerService.roll({ dice: [{ type: 'd6', count: diceCount }], includeDuality: false });
-    const highest = Math.max(...result.diceResults.map(d => d.value));
-    const clamped = Math.min(highest, this.focusMax());
-    this.lastFocusRoll.set(highest);
-    this.localFocusMarked.set(clamped);
+    const result = rollFocusRefresh(
+      this.rawSheet()?.instinctModifier ?? 0,
+      this.focusMax(),
+      (sides, count) => this.rollFaces(sides, count),
+    );
+    this.lastFocusRoll.set(result.highest);
+    this.localFocusMarked.set(result.focus);
     this.focusSave$.next();
+  }
+
+  /** Adapts the dice service to the plain `(sides, count) => faces` shape the pure utils want,
+   * keeping the `DiceType` cast in one place. */
+  private rollFaces(sides: number, count: number): readonly number[] {
+    return this.diceRollerService
+      .roll({ dice: [{ type: `d${sides}` as DiceType, count }], includeDuality: false })
+      .diceResults.map(d => d.value);
   }
 
   adjustFavor(amount: number): void {

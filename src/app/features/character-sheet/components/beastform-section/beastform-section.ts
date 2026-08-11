@@ -6,7 +6,7 @@ import {
   BeastformDamageType,
   BeastformResponse,
 } from '../../../../shared/models/beastform-api.model';
-import { tierForLevel } from '../../utils/beastform-access.utils';
+import { tierForLevel } from '../../../../shared/utils/tier.utils';
 
 export interface BeastformFeatureView {
   id: number;
