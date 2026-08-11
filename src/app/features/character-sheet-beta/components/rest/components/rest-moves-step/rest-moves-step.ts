@@ -50,10 +50,6 @@ export class RestMovesStep {
   readonly slotsChanged = output<number>();
   readonly longRestMoveToggled = output<boolean>();
 
-  protected readonly heading = computed(() =>
-    this.restType() === 'short' ? 'Short rest' : 'Long rest',
-  );
-
   protected readonly chosen = computed<readonly RestSelectionView[]>(() =>
     this.selections().map(selection => ({
       selection,
