@@ -134,22 +134,27 @@
   --nav-height: 4.5rem;
 
   /* Page frame. `--shell-max` and `--shell-pad-inline` are deliberately identical to the values on
-     `.nav-container` and `.footer-container`, so every page's content starts at exactly the same x
-     as the "Oh Sheet" logo and ends level with the footer. That shared left edge -- not a shared
-     width -- is what makes the site read as one surface. Measures below vary by content type; the
-     edge does not. See `shared/styles/page-shell.css`. */
+     `.nav-container` and `.footer-container`. A board-measure page therefore starts at exactly the
+     same x as the "Oh Sheet" logo and ends level with the footer -- that alignment is what made the
+     admin page look like it belonged to its own header, and it is the thing being standardised.
+     Narrower measures centre on the same axis the navbar and footer centre on, so what every page
+     shares is the frame, the axis and the rhythm; only how far the content column extends varies.
+     See `shared/styles/page-shell.css`. */
   --shell-max: 1400px;
   --shell-pad-inline: 2rem;
   --shell-pad-top: 3rem;
   --shell-pad-bottom: 5rem;
 
-  /* Content measures, left-aligned inside the frame. Three, not nine, and each is a width already
-     tuned in this codebase rather than a fresh invention:
+  /* Content measures, centred inside the frame. Three, not nine, and none of them invented -- each
+     is a width already tuned in this codebase:
        board  -- the full frame interior (1336px): tables, multi-column boards, card grids
-       page   -- 960px, the classic character sheet's measure: rosters, detail pages, work surfaces
-       form   -- 640px, the preferences measure: single-column forms and prose
-     A roster row stretched to 1336px puts its label and its chevron a screen apart, which is the
-     failure these caps exist to prevent. */
+       page   -- 960px, the classic character sheet's measure: work surfaces whose rows are full of
+                 controls -- the sheet, the encounter run page, the item builder
+       column -- 640px, the preferences measure: one column of content, where a row is a label at
+                 one end and maybe a control at the other -- rosters, detail pages, forms, prose
+     Pick by what the widest ROW must hold, not by how important the page feels. Widening a `column`
+     page is the standing trap: a campaign row is a name and a chevron, so every pixel added to the
+     page goes into the gap between them. Four pages were briefly cut to 960px and had to come back. */
   --measure-page: 960px;
   --measure-column: 640px;
 
