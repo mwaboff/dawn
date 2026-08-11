@@ -86,7 +86,7 @@ describe('CharacterSheet', () => {
     updateCharacterSheetNotes: ReturnType<typeof vi.fn>;
     createExperience: ReturnType<typeof vi.fn>;
   };
-  let mockAuthService: { user: ReturnType<typeof vi.fn>; isAdmin: ReturnType<typeof vi.fn> };
+  let mockAuthService: { user: ReturnType<typeof vi.fn>; isAdmin: ReturnType<typeof vi.fn>; isLoggedIn: ReturnType<typeof vi.fn> };
   let diceRollerService: DiceRollerService;
   let diceRollSpy: ReturnType<typeof vi.spyOn>;
   let mockTransformationCardService: { getAllTransformationCards: ReturnType<typeof vi.fn> };
@@ -107,6 +107,7 @@ describe('CharacterSheet', () => {
     mockAuthService = {
       user: vi.fn().mockReturnValue({ id: 1, username: 'test', email: 'test@test.com', role: 'USER', createdAt: '', lastModifiedAt: '' }),
       isAdmin: vi.fn().mockReturnValue(false),
+      isLoggedIn: vi.fn().mockReturnValue(true),
     };
     mockTransformationCardService = {
       getAllTransformationCards: vi.fn().mockReturnValue(of([])),

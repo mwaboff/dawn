@@ -25,7 +25,7 @@ export const CARD_TYPE_OPTIONS = [
   { value: 'adversary', label: 'Adversaries' },
   { value: 'feature', label: 'Features' },
   { value: 'question', label: 'Questions' },
-  { value: 'transformationCard', label: 'Transformation Cards' },
+  { value: 'transformationCard', label: 'Transformations' },
   { value: 'environment', label: 'Environments' },
   { value: 'martialStance', label: 'Martial Stances' },
   { value: 'beastform', label: 'Beastforms' },

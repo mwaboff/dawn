@@ -4,13 +4,13 @@ import {
   armorToEntity,
   classCardToEntity,
   communityCardToEntity,
-  CUSTOM_ITEM_BADGE,
   domainCardToEntity,
   isCustomItem,
   lootToEntity,
   subclassCardToEntity,
   weaponToEntity,
 } from './entity-card.mapper';
+import { CUSTOM_ITEM_BADGE } from '../../../shared/mappers/custom-content.util';
 import {
   ArmorDisplay,
   CardSummary,
@@ -100,12 +100,22 @@ describe('entity-card.mapper', () => {
   });
 
   describe('subclassCardToEntity', () => {
-    it('maps card.level to the subtitle, not a badge', () => {
-      const card: SubclassCardSummary = { id: 2, name: 'Warden of the Elements', features: [], level: 'Mastery' };
-      expect(subclassCardToEntity(card).subtitle).toBe('Mastery');
+    it('title-cases the raw server level enum into the subtitle', () => {
+      const card: SubclassCardSummary = { id: 2, name: 'Warden of the Elements', features: [], level: 'FOUNDATION' };
+      expect(subclassCardToEntity(card).subtitle).toBe('Foundation');
     });
 
-    it('builds "Label: value" meta lines for domains and associated class', () => {
+    it('leaves the type tab to say "Subclass" rather than overriding it with the level', () => {
+      const card: SubclassCardSummary = { id: 2, name: 'Warden of the Elements', features: [], level: 'MASTERY' };
+      expect(subclassCardToEntity(card).eyebrow).toBeUndefined();
+    });
+
+    it('emits no subtitle for a subclass card with no level', () => {
+      const card: SubclassCardSummary = { id: 2, name: 'Warden of the Elements', features: [] };
+      expect(subclassCardToEntity(card).subtitle).toBeUndefined();
+    });
+
+    it('builds label/value meta rows for domains and associated class', () => {
       const card: SubclassCardSummary = {
         id: 2,
         name: 'Warden of the Elements',
@@ -126,24 +136,54 @@ describe('entity-card.mapper', () => {
   });
 
   describe('domainCardToEntity', () => {
-    it('puts the domain name in the eyebrow, overriding the "Domain Card" type tab', () => {
+    it('leaves the type tab to say "Domain Card" rather than overriding it with the domain', () => {
       const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], domainName: 'Valor' };
-      expect(domainCardToEntity(card).eyebrow).toBe('Valor');
-      expect(domainCardToEntity(card).cardType).toBe('domainCard');
+      expect(domainCardToEntity(card).eyebrow).toBeUndefined();
     });
 
-    it('formats level/type/recall as single-string badges with no colon', () => {
-      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3, type: 'Spell', recallCost: 2 };
-      expect(domainCardToEntity(card).badges).toEqual([
-        { label: 'Lvl 3' },
-        { label: 'Spell' },
-        { label: 'Recall 2' },
-      ]);
+    it('joins the domain and the title-cased card type into the subtitle', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], domainName: 'Valor', type: 'SPELL' };
+      expect(domainCardToEntity(card).subtitle).toBe('Valor · Spell');
     });
 
-    it('omits badges entirely when level/type/recall are all absent', () => {
+    it('drops the separator when only the domain is known', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], domainName: 'Valor' };
+      expect(domainCardToEntity(card).subtitle).toBe('Valor');
+    });
+
+    it('drops the separator when only the card type is known', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], type: 'GRIMOIRE' };
+      expect(domainCardToEntity(card).subtitle).toBe('Grimoire');
+    });
+
+    it('omits the subtitle when neither domain nor card type is known', () => {
       const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [] };
+      expect(domainCardToEntity(card).subtitle).toBeUndefined();
+    });
+
+    it('carries the level as the only badge, in the power-level scalar shape', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3, type: 'SPELL', recallCost: 2 };
+      expect(domainCardToEntity(card).badges).toEqual([{ label: 'Level', value: '3' }]);
+    });
+
+    it('omits badges when the card has no level', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], recallCost: 2 };
       expect(domainCardToEntity(card).badges).toBeUndefined();
+    });
+
+    it('moves recall cost out of the badges and into the stat ledger', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3, recallCost: 2 };
+      expect(domainCardToEntity(card).stats).toEqual([{ label: 'Recall', value: '2' }]);
+    });
+
+    it('keeps a zero recall cost, which is a real value rather than a missing one', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], recallCost: 0 };
+      expect(domainCardToEntity(card).stats).toEqual([{ label: 'Recall', value: '0' }]);
+    });
+
+    it('omits stats when the card has no recall cost', () => {
+      const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3 };
+      expect(domainCardToEntity(card).stats).toBeUndefined();
     });
   });
 
@@ -174,16 +214,36 @@ describe('entity-card.mapper', () => {
       expect(weaponToEntity(buildWeapon({ isPrimary: false }), null).eyebrow).toBeUndefined();
     });
 
-    it('orders stats as damage, trait, range, then humanised burden', () => {
+    it('orders stats as damage, trait, range, then humanised burden, each labelled', () => {
       const weapon = buildWeapon({ damage: '2d8+1', range: 'Very Far', trait: 'Instinct', burden: 'ONE_HANDED' });
 
-      expect(weaponToEntity(weapon, null).stats).toEqual(['2d8+1', 'Instinct', 'Very Far', 'One-handed']);
+      expect(weaponToEntity(weapon, null).stats).toEqual([
+        { label: 'Damage', value: '2d8+1' },
+        { label: 'Trait', value: 'Instinct' },
+        { label: 'Range', value: 'Very Far' },
+        { label: 'Burden', value: 'One-Handed' },
+      ]);
     });
 
-    it('humanises a TWO_HANDED burden into "Two-handed"', () => {
+    it('humanises a TWO_HANDED burden into the printed "Two-Handed"', () => {
       const weapon = buildWeapon({ burden: 'TWO_HANDED' });
 
-      expect(weaponToEntity(weapon, null).stats).toContain('Two-handed');
+      expect(weaponToEntity(weapon, null).stats).toContainEqual({ label: 'Burden', value: 'Two-Handed' });
+    });
+
+    it('drops a stat whose value is blank rather than emitting an empty cell', () => {
+      const weapon = buildWeapon({ trait: '', range: '' });
+
+      expect(weaponToEntity(weapon, null).stats).toEqual([
+        { label: 'Damage', value: '1d4' },
+        { label: 'Burden', value: 'One-Handed' },
+      ]);
+    });
+
+    it('bakes no colon into a stat value, since the card draws the label itself', () => {
+      const stats = weaponToEntity(buildWeapon(), null).stats ?? [];
+
+      expect(stats.every(stat => !stat.value.includes(':'))).toBe(true);
     });
 
     it('no longer emits meta', () => {
@@ -197,6 +257,16 @@ describe('entity-card.mapper', () => {
       expect(weaponToEntity(weapon, null).badges ?? []).not.toContainEqual(
         expect.objectContaining({ label: 'Equipped' }),
       );
+    });
+
+    it('leads the badges with the tier scalar, ahead of equipped state and provenance', () => {
+      const weapon = buildWeapon({ tier: 2, createdByUserId: 7 });
+
+      expect(weaponToEntity(weapon, 'primary').badges).toEqual([
+        { label: 'Tier', value: '2' },
+        { label: 'Equipped', value: 'Primary' },
+        CUSTOM_ITEM_BADGE,
+      ]);
     });
 
     it('adds an Equipped/Secondary badge for the secondary slot', () => {
@@ -220,7 +290,23 @@ describe('entity-card.mapper', () => {
     it('builds three labelled stats: Score, Major and Severe', () => {
       const armor = buildArmor({ baseScore: 5, baseMajorThreshold: 3, baseSevereThreshold: 6 });
 
-      expect(armorToEntity(armor, false).stats).toEqual(['Score: 5', 'Major: 3', 'Severe: 6']);
+      expect(armorToEntity(armor, false).stats).toEqual([
+        { label: 'Score', value: '5' },
+        { label: 'Major', value: '3' },
+        { label: 'Severe', value: '6' },
+      ]);
+    });
+
+    it('bakes no colon into a stat value, since the card draws the label itself', () => {
+      const stats = armorToEntity(buildArmor(), false).stats ?? [];
+
+      expect(stats.every(stat => !stat.value.includes(':'))).toBe(true);
+    });
+
+    it('leads the badges with the tier scalar, ahead of equipped state', () => {
+      const armor = buildArmor({ tier: 3 });
+
+      expect(armorToEntity(armor, true).badges).toEqual([{ label: 'Tier', value: '3' }, { label: 'Equipped' }]);
     });
 
     it('no longer emits meta', () => {
@@ -239,18 +325,22 @@ describe('entity-card.mapper', () => {
   });
 
   describe('lootToEntity', () => {
-    it('labels the eyebrow "Consumable" when the loot is consumable', () => {
-      expect(lootToEntity(buildLoot({ isConsumable: true })).eyebrow).toBe('Consumable');
+    it('names a consumable in the subtitle', () => {
+      expect(lootToEntity(buildLoot({ isConsumable: true })).subtitle).toBe('Consumable');
     });
 
-    it('omits the eyebrow for non-consumable loot', () => {
-      expect(lootToEntity(buildLoot({ isConsumable: false })).eyebrow).toBeUndefined();
+    it('leaves the type tab to say "Loot" even for a consumable', () => {
+      expect(lootToEntity(buildLoot({ isConsumable: true })).eyebrow).toBeUndefined();
     });
 
-    it('emits its cost tags as stats', () => {
-      const loot = buildLoot({ costTags: ['3 gold', 'Common'] });
+    it('omits the subtitle for non-consumable loot', () => {
+      expect(lootToEntity(buildLoot({ isConsumable: false })).subtitle).toBeUndefined();
+    });
 
-      expect(lootToEntity(loot).stats).toEqual(['3 gold', 'Common']);
+    it('emits its cost tags as unlabelled stats, since a tag names its own unit', () => {
+      const loot = buildLoot({ costTags: ['1 HANDFUL', 'Common'] });
+
+      expect(lootToEntity(loot).stats).toEqual([{ value: '1 HANDFUL' }, { value: 'Common' }]);
     });
 
     it('omits stats when there are no cost tags', () => {

@@ -25,7 +25,12 @@
 /* Border/hover-wash derive from the same re-bound tokens the text already uses (--color-accent-text
    generally, --color-swap-vault-text/--color-swap-equip-text for the two semantic hovers) so the
    button's chrome, not just its text, adapts per card theme instead of staying a fixed gold literal. */
-.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 25%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
+/* `min-height` rather than letting padding decide: it puts the text buttons and the glyph-only ones
+   below on one baseline so a row of mixed controls reads as a single set, and it holds that baseline
+   at 24px+ under condensed density, where --space-1's 3.2px would otherwise compute a 23.8px box --
+   just under the WCAG 2.5.8 (AA) minimum target. 26px is the comfortable-density text button's own
+   natural height, so this pins the row to what it already measured rather than resizing it. */
+.card-swap-btn { display: inline-flex; align-items: center; gap: var(--space-1); min-height: 26px; font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .1em; padding: var(--space-1) var(--space-3); border-radius: 2px; border: 1px solid color-mix(in srgb, var(--color-accent-text) 25%, transparent); background: transparent; color: var(--color-accent-a75); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s; }
 .card-swap-btn:hover:not(:disabled):not([aria-disabled='true']) { background: color-mix(in srgb, var(--color-accent-text) 8%, transparent); border-color: color-mix(in srgb, var(--color-accent-text) 40%, transparent); color: var(--color-accent-text); }
 .card-swap-btn:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
 /* `[aria-disabled]` as well as `:disabled`: a control whose unavailability has a reason worth
@@ -33,6 +38,16 @@
    and still has to LOOK unavailable. */
 .card-swap-btn:disabled, .card-swap-btn[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
 .card-swap-btn__arrow { font-size: .85rem; line-height: 1; }
+/* Icon-only compact form -- no visible label, so the wide horizontal padding a text button needs is
+   dropped in favour of a square hit area centred on the one glyph (Edit's pencil, Customize's copy,
+   Remove's trash). Square is `min-width` against the shared `min-height` above, so these sit exactly
+   as tall as the Equip/Unequip text buttons beside them.
+   This was 44px, the WCAG 2.5.5 (AAA) target. Three 44px glyphs next to a 26px text button made the
+   manage group tower over the equip action that is the row's primary control, so the row now holds
+   one baseline at 26px -- past the 24px WCAG 2.5.8 (AA) minimum, and `.card-action-row`'s 8px gap
+   clears 2.5.8's undersized-target spacing exception besides. */
+.card-swap-btn--icon { padding: var(--space-1); min-width: 26px; justify-content: center; gap: 0; }
+.card-swap-btn--icon svg { width: 16px; height: 16px; }
 /* Equip/unequip and manage (Edit / Remove) sit in one row, adjacent rather than pushed to opposite
    edges -- they are one set of things you can do to this item. A hairline keeps the two intents
    legible without splitting them across two bars; it drops when the group starts its own line,

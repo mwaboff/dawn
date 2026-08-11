@@ -26,30 +26,59 @@
   </div>
 
   @if (mode() === 'single') {
-    <app-card-selection-grid
-      [cards]="cards()"
-      [loading]="loading()"
-      [error]="error()"
-      [selectedCard]="selectedCard()"
-      [skeletonCount]="6"
-      [collapsibleFeatures]="true"
-      layout="wide"
-      (cardSelected)="onSingleAncestrySelected($event)"
-    />
-  } @else {
-    @if (mixedStep() === 'pick-ancestries') {
-      <p class="step-instruction">Choose two ancestries to blend</p>
+    @if (cardFormat() === 'beta') {
+      <app-entity-selection-grid
+        appCardSurface="light-only"
+        [cards]="cards()"
+        [loading]="loading()"
+        [error]="error()"
+        [selectedCard]="selectedCard()"
+        [skeletonCount]="6"
+        layout="wide"
+        ariaLabel="Choose an ancestry"
+        (cardSelected)="onSingleAncestrySelected($event)"
+      />
+    } @else {
       <app-card-selection-grid
         [cards]="cards()"
         [loading]="loading()"
         [error]="error()"
-        [selectedCards]="selectedAncestries()"
-        [maxSelections]="2"
+        [selectedCard]="selectedCard()"
         [skeletonCount]="6"
         [collapsibleFeatures]="true"
         layout="wide"
-        (cardsSelected)="onAncestriesSelected($event)"
+        (cardSelected)="onSingleAncestrySelected($event)"
       />
+    }
+  } @else {
+    @if (mixedStep() === 'pick-ancestries') {
+      <p class="step-instruction">Choose two ancestries to blend</p>
+      @if (cardFormat() === 'beta') {
+        <app-entity-selection-grid
+          appCardSurface="light-only"
+          [cards]="cards()"
+          [loading]="loading()"
+          [error]="error()"
+          [selectedCards]="selectedAncestries()"
+          [maxSelections]="2"
+          [skeletonCount]="6"
+          layout="wide"
+          ariaLabel="Choose two ancestries to blend"
+          (cardsSelected)="onAncestriesSelected($event)"
+        />
+      } @else {
+        <app-card-selection-grid
+          [cards]="cards()"
+          [loading]="loading()"
+          [error]="error()"
+          [selectedCards]="selectedAncestries()"
+          [maxSelections]="2"
+          [skeletonCount]="6"
+          [collapsibleFeatures]="true"
+          layout="wide"
+          (cardsSelected)="onAncestriesSelected($event)"
+        />
+      }
       @if (canProceedToFeatures()) {
         <div class="step-action">
           <button class="btn btn--primary" (click)="proceedToFeatures()">

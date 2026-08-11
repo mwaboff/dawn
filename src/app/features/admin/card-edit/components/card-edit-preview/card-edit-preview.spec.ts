@@ -3,9 +3,9 @@ import { Component, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CardEditPreview } from './card-edit-preview';
-import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { EntityCardData } from '../../../../../shared/components/entity-card/entity-card.model';
 
-const MOCK_CARD: CardData = {
+const MOCK_CARD: EntityCardData = {
   id: 1,
   name: 'Bard',
   description: 'Masters of captivation.',
@@ -17,7 +17,7 @@ const MOCK_CARD: CardData = {
   imports: [CardEditPreview],
 })
 class HostComponent {
-  card = signal<CardData | null>(null);
+  card = signal<EntityCardData | null>(null);
 }
 
 describe('CardEditPreview', () => {
@@ -51,10 +51,10 @@ describe('CardEditPreview', () => {
   });
 
   describe('when card is null', () => {
-    it('does not render the daggerheart card', () => {
+    it('does not render a card', () => {
       host.card.set(null);
       fixture.detectChanges();
-      expect(el.querySelector('app-daggerheart-card')).toBeNull();
+      expect(el.querySelector('app-entity-card')).toBeNull();
     });
   });
 
@@ -64,18 +64,18 @@ describe('CardEditPreview', () => {
       fixture.detectChanges();
     });
 
-    it('renders the daggerheart card component', () => {
-      expect(el.querySelector('app-daggerheart-card')).toBeTruthy();
+    it('renders the shared EntityCard, the face the rest of the site uses', () => {
+      expect(el.querySelector('app-entity-card')).toBeTruthy();
     });
 
-    it('passes collapsibleFeatures as true to DaggerheartCard', () => {
-      const cardDe = fixture.debugElement.query(By.css('app-daggerheart-card'));
-      expect(cardDe?.componentInstance?.collapsibleFeatures()).toBe(true);
+    it('renders it expanded, so the body is not clipped behind a toggle while editing', () => {
+      const cardDe = fixture.debugElement.query(By.css('app-entity-card'));
+      expect(cardDe?.componentInstance?.size()).toBe('expanded');
     });
 
-    it('passes layout wide to DaggerheartCard', () => {
-      const cardDe = fixture.debugElement.query(By.css('app-daggerheart-card'));
-      expect(cardDe?.componentInstance?.layout()).toBe('wide');
+    it('passes the card straight through', () => {
+      const cardDe = fixture.debugElement.query(By.css('app-entity-card'));
+      expect(cardDe?.componentInstance?.card()).toEqual(MOCK_CARD);
     });
   });
 });

@@ -93,26 +93,36 @@
                   @if (entry.canEdit) {
                     <button
                       type="button"
-                      class="card-swap-btn"
+                      class="card-swap-btn card-swap-btn--icon"
                       [attr.aria-label]="'Edit ' + entry.name + ', a custom item you created'"
+                      [attr.title]="'Edit ' + entry.name + ', a custom item you created'"
                       (click)="onEditClicked(entry)"
                     >
-                      <span class="card-swap-btn__arrow" aria-hidden="true">&#10022;</span> Edit
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
                     </button>
                   }
+                  <app-customize-item-action variant="beta" [result]="customizeResultFor(entry)" />
                   @if (isOwner()) {
                     <!-- aria-disabled rather than the `disabled` attribute: a blocked Remove carries
                          a reason ("Unequip to remove") that only reaches a keyboard or screen-reader
                          user if the button it describes is still focusable. The click no-ops. -->
                     <button
                       type="button"
-                      class="card-swap-btn card-swap-btn--vault"
+                      class="card-swap-btn card-swap-btn--icon card-swap-btn--vault"
                       [id]="removeButtonId(entry)"
                       [attr.aria-disabled]="entry.removeBlockedReason !== null"
                       [attr.aria-describedby]="entry.removeBlockedReason ? hintId(entry) : null"
                       [attr.aria-label]="'Remove ' + entry.name + ' from inventory'"
+                      [attr.title]="'Remove ' + entry.name + ' from inventory'"
                       (click)="onRemoveClicked(entry)"
-                    >Remove</button>
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
+                    </button>
                     @if (entry.removeBlockedReason; as reason) {
                       <span class="card-swap-hint" [id]="hintId(entry)">{{ reason }}</span>
                     }

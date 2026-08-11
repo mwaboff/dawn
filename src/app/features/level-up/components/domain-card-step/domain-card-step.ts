@@ -1,18 +1,23 @@
 import { Component, input, output, signal, computed, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../../../shared/directives/card-surface.directive';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { DomainService } from '../../../../shared/services/domain.service';
+import { PreferencesService } from '../../../../core/services/preferences.service';
 import { DomainCardSummary } from '../../../character-sheet/models/character-sheet-view.model';
 
 @Component({
   selector: 'app-domain-card-step',
-  imports: [CardSelectionGrid],
+  imports: [CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective],
   templateUrl: './domain-card-step.html',
   styleUrl: './domain-card-step.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DomainCardStep implements OnInit {
   private readonly domainService = inject(DomainService);
+  private readonly preferences = inject(PreferencesService);
+  readonly sheetLayout = this.preferences.sheetLayout;
 
   readonly accessibleDomainIds = input.required<number[]>();
   readonly domainCardLevelCap = input.required<number | null>();

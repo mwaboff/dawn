@@ -62,14 +62,16 @@ export class RunAdversaryDetail implements OnDestroy {
 
   readonly noteMaxLength = NOTE_MAX_LENGTH;
 
-  /** `Battleaxe · Very Close · 2d8+5 physical` -- the range enum is title-cased (`shared/utils/
+  /** `Battleaxe · Very Close · 2d8+5 phy` -- the range enum is title-cased (`shared/utils/
    * text.utils.ts`), since the raw `VERY_CLOSE` is an implementation detail, not what the book
-   * prints. */
+   * prints. `damage.notation` is the backend's already-formatted printed damage line and already
+   * ends in the abbreviated type ("phy"/"mag") for every adversary -- appending `damageType` on
+   * top duplicated it ("2d8+5 phy physical"). See `adversary-card.ts`'s `damageLabel` for the same
+   * fix with the same reasoning. */
   readonly attackDetailLabel = computed(() => {
     const data = this.statBlock();
     if (!data.weaponName) return undefined;
-    const damage = data.damage ? `${data.damage.notation} ${data.damage.damageType}` : undefined;
-    return [data.weaponName, titleCase(data.attackRange) || undefined, damage]
+    return [data.weaponName, titleCase(data.attackRange) || undefined, data.damage?.notation]
       .filter((part): part is string => !!part)
       .join(' · ');
   });

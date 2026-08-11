@@ -6,7 +6,17 @@
     linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
 }
 
-.builder { max-width: 960px; margin: 0 auto; padding: 7rem 1.5rem 6rem; }
+/* 1200px matches the character builder (`create-character.css`'s `.content-area`) and level-up, so
+   the three "build a thing" pages share one page width. The 960px this used to be was the classic
+   character sheet's cap, sized for a single-column card list, and this page's roster, environment
+   and adversary grids are all `auto-fill minmax(280px)`.
+   What the extra 240px buys is WIDER columns, not more of them -- three either way. After
+   `.builder` padding (48) and the collapsible section's rail and body padding (28), the grid gets
+   1124px, and a fourth 280px track plus its 16px gap needs 1168. Widening it to a fourth column
+   would mean 1244px, which would no longer match the character builder. The width still earns its
+   place: a 364px column is what lets a `compact` EntityCard header sit on one line (see
+   `entity-card.css`'s title basis), which at 284px it could not. */
+.builder { max-width: 1200px; margin: 0 auto; padding: 7rem 1.5rem 6rem; }
 
 .builder__back {
   display: inline-block;

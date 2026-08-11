@@ -37,15 +37,28 @@
     </div>
   </div>
 
-  <app-card-selection-grid
-    [cards]="activeWeapons()"
-    [loading]="activeLoading()"
-    [error]="activeError()"
-    [selectedCard]="activeSelected() ?? undefined"
-    [skeletonCount]="6"
-    [collapsibleFeatures]="true"
-    (cardSelected)="onCardClicked($event)"
-  />
+  @if (cardFormat() === 'beta') {
+    <app-entity-selection-grid
+      appCardSurface="light-only"
+      [cards]="activeWeapons()"
+      [loading]="activeLoading()"
+      [error]="activeError()"
+      [selectedCard]="activeSelected() ?? undefined"
+      [skeletonCount]="6"
+      [ariaLabel]="weaponAriaLabel()"
+      (cardSelected)="onCardClicked($event)"
+    />
+  } @else {
+    <app-card-selection-grid
+      [cards]="activeWeapons()"
+      [loading]="activeLoading()"
+      [error]="activeError()"
+      [selectedCard]="activeSelected() ?? undefined"
+      [skeletonCount]="6"
+      [collapsibleFeatures]="true"
+      (cardSelected)="onCardClicked($event)"
+    />
+  }
 
   <app-equipment-pagination
     [currentPage]="activePagination().currentPage"

@@ -12,11 +12,16 @@ function mapFeature(feature: ClassFeatureResponse, subtitle: string): CardFeatur
 
 export function mapClassResponseToCardData(response: ClassResponse): CardData {
   const tags: string[] = [];
+  // The classic chips bake the label into the string because that row has nothing to separate a
+  // label from its value; the beta ledger draws the label above the number, so it takes the pair.
+  const stats: { label: string; value: string }[] = [];
   if (response.startingEvasion != null) {
     tags.push(`Evasion: ${response.startingEvasion}`);
+    stats.push({ label: 'Evasion', value: String(response.startingEvasion) });
   }
   if (response.startingHitPoints != null) {
     tags.push(`Hit Points: ${response.startingHitPoints}`);
+    stats.push({ label: 'Hit Points', value: String(response.startingHitPoints) });
   }
 
   const features: CardFeature[] = [
@@ -30,6 +35,7 @@ export function mapClassResponseToCardData(response: ClassResponse): CardData {
     description: response.description,
     cardType: 'class',
     tags: tags.length > 0 ? tags : undefined,
+    entityDisplay: stats.length > 0 ? { stats } : undefined,
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

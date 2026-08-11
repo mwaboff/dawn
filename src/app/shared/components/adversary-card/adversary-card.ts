@@ -4,6 +4,7 @@ import { AdversaryData } from './adversary-card.model';
 import { CardFeatureItem } from '../daggerheart-card/card-feature-item/card-feature-item';
 import { FormatTextPipe } from '../../pipes/format-text.pipe';
 import { improvisedTierStats } from '../../utils/improvised-tier-stats.utils';
+import { titleCase } from '../../utils/text.utils';
 
 /**
  * One small ornamental mark per adversary type, in the same spirit as the entity-type glyphs in
@@ -120,6 +121,20 @@ export class AdversaryCard {
     return ADVERSARY_TYPE_GLYPHS[this.adversary().adversaryType] ?? '◆';
   }
 
+  /** `BRUISER` -> `Bruiser` -- the printed term, not the raw backend enum (`shared/utils/
+   * text.utils.ts`'s own doc comment covers exactly this case). The raw value stays in
+   * `adversary().adversaryType` for the glyph lookup and threat-tier checks below, which key off
+   * the enum on purpose; only the text a person reads goes through `titleCase`. */
+  get typeLabel(): string {
+    return titleCase(this.adversary().adversaryType);
+  }
+
+  /** `VERY_CLOSE` -> `Very Close`. Empty string (not "Undefined") when the adversary has no
+   * ranged attack, matching `titleCase`'s own null/undefined handling. */
+  get attackRangeLabel(): string {
+    return titleCase(this.adversary().attackRange);
+  }
+
   /**
    * The Battle Guide's three visual weight classes: Elite (Bruiser/Horde/Leader/Solo), Minion
    * (uniquely costed per group rather than per creature), and everything else. Drives the type
@@ -157,10 +172,17 @@ export class AdversaryCard {
     return this.retieredStats()?.severeThreshold ?? this.adversary().severeThreshold;
   }
 
+  /**
+   * `notation` is the backend's already-formatted printed damage line, and for every adversary
+   * (verified against the Core Rulebook's own printed stat blocks -- e.g. Acid Burrower's
+   * "1d12+2 phy" -- and 24 others, plus `adversary.mapper.spec.ts`'s own fixtures) it already ends
+   * in the abbreviated damage type ("phy"/"mag"). Appending `damageType` on top of that printed
+   * "physical"/"magic" duplicated it -- "1d12+2 phy physical". Unlike weapons (`weapon.mapper.ts`),
+   * where `notation` is dice-only and the type is shown separately, an adversary's `notation` is
+   * the single printed line and needs nothing appended to it.
+   */
   get damageLabel(): string {
-    const dmg = this.adversary().damage;
-    if (!dmg) return '';
-    return `${dmg.notation} ${dmg.damageType}`;
+    return this.adversary().damage?.notation ?? '';
   }
 
   get attackModifierLabel(): string {

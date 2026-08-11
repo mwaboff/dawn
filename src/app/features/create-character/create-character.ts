@@ -6,6 +6,8 @@ import { TabNav } from './components/tab-nav/tab-nav';
 import { CharacterForm } from './components/character-form/character-form';
 import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardSelectionGrid } from '../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../shared/directives/card-surface.directive';
 import { CardSkeleton } from '../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../shared/components/card-error/card-error';
 import { AncestrySelector, MixedAncestrySelection } from './components/ancestry-selector/ancestry-selector';
@@ -18,6 +20,7 @@ import { AncestryService } from '../../shared/services/ancestry.service';
 import { CommunityService } from '../../shared/services/community.service';
 import { DomainService } from '../../shared/services/domain.service';
 import { MartialStanceService } from '../../shared/services/martial-stance.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 import { mapMartialStanceToCardData } from '../../shared/mappers/martial-stance.mapper';
 import { hasMartialStances } from '../character-sheet/utils/martial-stance-access.utils';
 import { hasCompanionFeature } from '../character-sheet/utils/companion-access.utils';
@@ -48,7 +51,7 @@ interface FeatureWithModifiers {
 
 @Component({
   selector: 'app-create-character',
-  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, CardSkeleton, CardError, AncestrySelector, MartialStanceSelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection, CompanionCreator],
+  imports: [TabNav, CharacterForm, SubclassPathSelector, CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective, CardSkeleton, CardError, AncestrySelector, MartialStanceSelector, TraitSelector, WeaponSection, ArmorSection, ExperienceSelector, ExperienceBonusAllocator, ReviewSection, CompanionCreator],
   templateUrl: './create-character.html',
   styleUrl: './create-character.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,6 +66,11 @@ export class CreateCharacter implements OnInit {
   private readonly characterSheetService = inject(CharacterSheetService);
   private readonly companionService = inject(CompanionService);
   private readonly router = inject(Router);
+  private readonly preferences = inject(PreferencesService);
+
+  /** Gates the beta `EntityCard`-based renderers throughout this template -- see dawn beta-cards
+   * work. `'classic'` (the default) must render byte-identical to today; only `'beta'` is new. */
+  readonly sheetLayout = this.preferences.sheetLayout;
 
   readonly activeTab = signal<TabId>('class');
   private readonly selectedCards = signal<Partial<Record<TabId, CardData>>>({});
@@ -166,6 +174,10 @@ export class CreateCharacter implements OnInit {
   readonly domainCardMaxSelections = computed<number>(() =>
     CreateCharacter.CREATION_BASE_DOMAIN_CARDS + this.bonusDomainCardSlots(),
   );
+
+  /** Beta's `EntitySelectionGrid` requires a specific accessible name for its selection group;
+   * the count varies with `domainCardMaxSelections` (2, or more with a bonus-slot subclass). */
+  readonly domainCardsAriaLabel = computed(() => `Choose ${this.domainCardMaxSelections()} domain cards`);
 
   readonly experienceBonusAllocations = signal<number[]>([]);
 

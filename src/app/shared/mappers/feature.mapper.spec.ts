@@ -64,6 +64,32 @@ describe('mapFeatureResponseToCardData', () => {
     expect(result.tags).toBeUndefined();
   });
 
+  describe('entityDisplay', () => {
+    it('should turn the cost tags into stats that carry no label', () => {
+      const result = mapFeatureResponseToCardData(buildFeatureResponse({
+        costTags: [{ id: 1, label: 'stress', category: 'cost' }, { id: 2, label: '1 hope', category: 'cost' }],
+      }));
+
+      expect(result.entityDisplay).toEqual({ stats: [{ value: 'STRESS' }, { value: '1 HOPE' }] });
+    });
+
+    it('should stay unset when there are no cost tags', () => {
+      const result = mapFeatureResponseToCardData(buildFeatureResponse({ costTags: [] }));
+
+      expect(result.entityDisplay).toBeUndefined();
+    });
+
+    it('should leave the classic subtitle and tags untouched', () => {
+      const result = mapFeatureResponseToCardData(buildFeatureResponse({
+        featureType: 'DOMAIN',
+        costTags: [{ id: 1, label: 'stress', category: 'cost' }],
+      }));
+
+      expect(result.subtitle).toBe('Domain');
+      expect(result.tags).toEqual(['STRESS']);
+    });
+  });
+
   it('should distinguish same-named feature variants by description (HF-01 find-or-create key)', () => {
     const tier1 = mapFeatureResponseToCardData(buildFeatureResponse({ id: 10, name: 'Barrier', description: 'Tier 1: Mark 2 Stress.' }));
     const tier2 = mapFeatureResponseToCardData(buildFeatureResponse({ id: 11, name: 'Barrier', description: 'Tier 2: Mark 3 Stress.' }));

@@ -120,7 +120,9 @@ describe('RunAdversaryDetail', () => {
         buildStatBlock({
           weaponName: 'Stinger',
           attackRange: 'VERY_CLOSE',
-          damage: { notation: '1d6+1', damageType: 'physical' },
+          // `notation` is the backend's already-formatted printed line and already ends in the
+          // abbreviated type ("phy") for every real adversary -- this fixture matches that shape.
+          damage: { notation: '1d6+1 phy', damageType: 'PHYSICAL' },
         }),
       );
       fixture.detectChanges();
@@ -129,7 +131,21 @@ describe('RunAdversaryDetail', () => {
       expect(text).toContain('Stinger');
       expect(text).toContain('Very Close');
       expect(text).not.toContain('VERY_CLOSE');
-      expect(text).toContain('1d6+1 physical');
+      expect(text).toContain('1d6+1 phy');
+    });
+
+    it('should not print the damage type a second time when notation already ends in it', () => {
+      host.statBlock.set(
+        buildStatBlock({
+          weaponName: 'Stinger',
+          attackRange: 'VERY_CLOSE',
+          damage: { notation: '1d6+1 phy', damageType: 'PHYSICAL' },
+        }),
+      );
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.querySelector('.run-detail__attack-text').textContent.toLowerCase();
+      expect(text.match(/phy/g)).toHaveLength(1);
     });
 
     it('should not render a Standard Attack section when there is no weapon', () => {

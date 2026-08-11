@@ -17,7 +17,7 @@ function buildCard(overrides: Partial<EntityCardData> = {}): EntityCardData {
     subtitle: 'Mastery',
     headline: 'Embody an element for the rest of the scene.',
     description: 'You channel raw elemental power through your body.',
-    badges: [{ label: 'Lvl', value: '3' }],
+    badges: [{ label: 'Level', value: '3' }],
     meta: [{ label: 'Domains', value: 'Sage, Valor' }],
     features: [
       {
@@ -110,12 +110,15 @@ describe('EntityCard', () => {
       expect(root.querySelector('.entity-card__body')).toBeFalsy();
     });
 
-    it('shows the headline instead of the subtitle at compact', () => {
+    it('joins the subtitle and headline into one line at compact', () => {
       host.size.set('compact');
       fixture.detectChanges();
 
+      // Both, so an encounter row says WHAT a thing is as well as its one loudest fact.
+      expect(header().textContent).toContain('Mastery');
       expect(header().textContent).toContain('Embody an element for the rest of the scene.');
-      expect(header().textContent).not.toContain('Mastery');
+      expect(header().querySelector('.entity-card__headline')?.textContent)
+        .toBe('Level 3 · Mastery · Embody an element for the rest of the scene.');
     });
 
     it('renders the full header and clipped body at normal', () => {
@@ -259,21 +262,22 @@ describe('EntityCard', () => {
   });
 
   describe('overflow safety', () => {
-    /* Regression for the header-clipping defect: a domain card's tab + 3 badges + chevron
-       (entity-card.mapper.ts's `domainCardToEntity` gives up to three -- level, type, recall cost)
-       exceeds the grid's 19rem column floor. jsdom never computes layout, so this can't assert the
-       badges land on a second line -- but it can assert the property that makes that possible
-       (`flex-wrap: wrap`, read from the real component stylesheet) and that every badge plus the
-       toggle survive in the DOM for that wrap to have something to work with. Without the CSS fix,
-       this property assertion fails; without the mapper's badge data, the DOM assertion would pass
-       vacuously, which is why both are here together. */
+    /* Regression for the header-clipping defect: a tab + 3 badges + chevron exceeds the grid's 19rem
+       column floor. Three is the contract's ceiling (see EntityCardData.badges) and a custom
+       equipped weapon is the card that actually reaches it -- tier, then state, then provenance.
+       jsdom never computes layout, so this can't assert the badges land on a second line -- but it
+       can assert the property that makes that possible (`flex-wrap: wrap`, read from the real
+       component stylesheet) and that every badge plus the toggle survive in the DOM for that wrap
+       to have something to work with. Without the CSS fix, this property assertion fails; without
+       the badge data, the DOM assertion would pass vacuously, which is why both are here. */
+    const maxBadges = [
+      { label: 'Tier', value: '2' },
+      { label: 'Equipped', value: 'Primary' },
+      { label: 'Custom', glyph: '✦' },
+    ];
+
     it('lets the header wrap instead of clipping the toggle when badges push past one line', () => {
-      host.card.set(
-        buildCard({
-          cardType: 'domainCard',
-          badges: [{ label: 'Lvl 3' }, { label: 'GRIMOIRE' }, { label: 'Recall 2' }],
-        }),
-      );
+      host.card.set(buildCard({ cardType: 'weapon', badges: maxBadges }));
       makeOverflow();
 
       expect(getComputedStyle(header()).flexWrap).toBe('wrap');
@@ -281,17 +285,31 @@ describe('EntityCard', () => {
       expect(root.querySelector('.entity-card__header--interactive')).toBeTruthy();
     });
 
-    it('has nothing to wrap at compact, since compact renders no badges', () => {
-      host.card.set(
-        buildCard({
-          cardType: 'domainCard',
-          badges: [{ label: 'Lvl 3' }, { label: 'GRIMOIRE' }, { label: 'Recall 2' }],
-        }),
-      );
+    it('renders no chips at compact, so nothing unshrinkable can wrap the header', () => {
+      host.card.set(buildCard({ cardType: 'weapon', badges: maxBadges }));
       host.size.set('compact');
       fixture.detectChanges();
 
       expect(header().querySelector('.entity-card__badges')).toBeFalsy();
+    });
+
+    it('carries the scalar into the compact line as text instead of a chip', () => {
+      host.card.set(buildCard({ cardType: 'weapon', subtitle: 'Physical', badges: maxBadges }));
+      host.size.set('compact');
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__headline')?.textContent)
+        .toContain(`${maxBadges[0].label} ${maxBadges[0].value}`);
+    });
+
+    it('leaves a state chip out of the compact line, since only the scalar carries a value', () => {
+      host.card.set(buildCard({ cardType: 'weapon', subtitle: 'Physical', badges: [{ label: 'Equipped' }] }));
+      host.size.set('compact');
+      fixture.detectChanges();
+
+      const line = header().querySelector('.entity-card__headline')?.textContent;
+      expect(line).toContain('Physical');
+      expect(line).not.toContain('Equipped');
     });
 
     /* Regression for the clipped-and-unreachable-even-expanded defect: `.entity-card__clip` keeps
@@ -311,11 +329,11 @@ describe('EntityCard', () => {
       fixture.detectChanges();
 
       const description = root.querySelector('.entity-card__description')!;
-      const metaRow = root.querySelector('.entity-card__meta-row')!;
+      const metaValue = root.querySelector('.entity-card__meta-value')!;
       const featureDescription = root.querySelector('.entity-card__feature-description')!;
 
       expect(getComputedStyle(description).overflowWrap).toBe('anywhere');
-      expect(getComputedStyle(metaRow).overflowWrap).toBe('anywhere');
+      expect(getComputedStyle(metaValue).overflowWrap).toBe('anywhere');
       expect(getComputedStyle(featureDescription).overflowWrap).toBe('anywhere');
     });
   });
@@ -346,12 +364,39 @@ describe('EntityCard', () => {
   });
 
   describe('stats', () => {
+    const weaponStats = [
+      { label: 'Damage', value: '2d8+1 phys' },
+      { label: 'Trait', value: 'Presence' },
+      { label: 'Range', value: 'Melee' },
+      { label: 'Burden', value: 'Two-handed' },
+    ];
+
     it('renders one .entity-card__stat per entry, in order', () => {
-      host.card.set(buildCard({ stats: ['2d8+1 phys', 'Presence', 'Melee', 'Two-handed'] }));
+      host.card.set(buildCard({ stats: weaponStats }));
       fixture.detectChanges();
 
-      const stats = Array.from(root.querySelectorAll('.entity-card__stat')).map(el => el.textContent);
-      expect(stats).toEqual(['2d8+1 phys', 'Presence', 'Melee', 'Two-handed']);
+      const values = Array.from(root.querySelectorAll('.entity-card__stat-value')).map(
+        el => el.textContent,
+      );
+      expect(values).toEqual(['2d8+1 phys', 'Presence', 'Melee', 'Two-handed']);
+    });
+
+    it('renders each stat label in its own element, not baked into the value', () => {
+      host.card.set(buildCard({ stats: weaponStats }));
+      fixture.detectChanges();
+
+      const labels = Array.from(root.querySelectorAll('.entity-card__stat-label')).map(
+        el => el.textContent,
+      );
+      expect(labels).toEqual(['Damage', 'Trait', 'Range', 'Burden']);
+    });
+
+    it('renders no label element for a stat that names itself', () => {
+      host.card.set(buildCard({ stats: [{ value: '1 Handful' }] }));
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__stat-label')).toBeFalsy();
+      expect(root.querySelector('.entity-card__stat-value')?.textContent).toBe('1 Handful');
     });
 
     it('renders no .entity-card__stats element when stats is absent', () => {
@@ -359,6 +404,72 @@ describe('EntityCard', () => {
       fixture.detectChanges();
 
       expect(root.querySelector('.entity-card__stats')).toBeFalsy();
+    });
+  });
+
+  /* The label/value split is the whole point of both slots: the card sets the label in the small
+     uppercase display face and the value in the body face beside it, which is what replaced the
+     literal ": " the template used to interpolate. A regression here reads as a styling nit but is
+     actually the standardization failing -- "TIER 3" collapsing back into one undifferentiated run. */
+  describe('label and value rendering', () => {
+    it('renders a badge label and value as separate elements with no colon between them', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Tier', value: '3' }] }));
+      fixture.detectChanges();
+
+      const badge = header().querySelector('.entity-card__badge')!;
+      expect(badge.querySelector('.entity-card__badge-label')?.textContent).toBe('Tier');
+      expect(badge.querySelector('.entity-card__badge-value')?.textContent).toBe('3');
+      expect(badge.textContent).not.toContain(':');
+    });
+
+    /* The two halves are separate elements, so without the template's explicit `&ngsp;` they
+       concatenate to "Tier3" -- which is what a screen reader announces and what copying the card
+       yields, even though it looks correctly spaced on screen. Angular's default
+       `preserveWhitespaces: false` deletes a plain space here, so this can only be asserted, not
+       assumed. */
+    it('keeps a real space between a badge label and its value for text extraction', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Tier', value: '3' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge')!.textContent).toContain('Tier 3');
+    });
+
+    it('keeps a real space between a stat label and its value for text extraction', () => {
+      host.card.set(buildCard({ stats: [{ label: 'Difficulty', value: '14' }] }));
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__stat')!.textContent).toContain('Difficulty 14');
+    });
+
+    it('renders no value element for a badge that is a bare state label', () => {
+      host.card.set(buildCard({ badges: [{ label: 'Equipped' }] }));
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__badge-value')).toBeFalsy();
+      expect(header().querySelector('.entity-card__badge-label')?.textContent).toBe('Equipped');
+    });
+
+    it('renders a meta row as a label and a value in the grid, with no colon', () => {
+      host.card.set(buildCard({ meta: [{ label: 'Motives', value: 'Burrow, drag away, feed' }] }));
+      fixture.detectChanges();
+
+      const meta = root.querySelector('.entity-card__meta')!;
+      expect(meta.querySelector('.entity-card__meta-label')?.textContent).toBe('Motives');
+      expect(meta.querySelector('.entity-card__meta-value')?.textContent).toBe(
+        'Burrow, drag away, feed',
+      );
+      expect(meta.textContent).not.toContain(':');
+    });
+
+    /* A value-less meta row is a bare fact, not a label, so it spans both grid columns rather than
+       being squeezed to the label column's width. */
+    it('spans a value-less meta row across both columns', () => {
+      host.card.set(buildCard({ meta: [{ label: 'Blade · Bone' }] }));
+      fixture.detectChanges();
+
+      const label = root.querySelector('.entity-card__meta-label')!;
+      expect(label.classList.contains('entity-card__meta-label--full')).toBe(true);
+      expect(root.querySelector('.entity-card__meta-value')).toBeFalsy();
     });
   });
 

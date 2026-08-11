@@ -2,11 +2,12 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { InventorySectionBeta } from './inventory-section-beta';
 import { ArmorDisplay, LootDisplay, WeaponDisplay } from '../../../character-sheet/models/character-sheet-view.model';
 import { InventoryEditEvent, InventoryEquipArmorEvent, InventoryEquipWeaponEvent, InventoryRemoveEvent } from '../../../character-sheet/components/inventory-section/inventory-section';
 import { WeaponEquipConstraints } from '../../../character-sheet/utils/inventory-equip.utils';
+import { AuthService } from '../../../../core/services/auth.service';
 
 function buildWeapon(overrides: Partial<WeaponDisplay> = {}): WeaponDisplay {
   return {
@@ -135,6 +136,7 @@ describe('InventorySectionBeta', () => {
   let fixture: ComponentFixture<TestHost>;
   let host: TestHost;
   let el: HTMLElement;
+  let authService: AuthService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -143,6 +145,8 @@ describe('InventorySectionBeta', () => {
     });
     fixture = TestBed.createComponent(TestHost);
     host = fixture.componentInstance;
+    authService = TestBed.inject(AuthService);
+    vi.spyOn(authService, 'isLoggedIn').mockReturnValue(true);
     fixture.detectChanges();
     el = fixture.nativeElement;
   });
@@ -267,13 +271,20 @@ describe('InventorySectionBeta', () => {
   });
 
   describe('Edit button visibility', () => {
+    // Scoped to `[aria-label^="Edit"]`, not just "the first non-vault .card-swap-btn" -- the
+    // customize action's own Copy button also renders in `.card-action-row__manage` and is
+    // non-vault, so a bare `:not(.card-swap-btn--vault)` selector would false-positive on it.
+    function editButton(): HTMLButtonElement | null {
+      return el.querySelector<HTMLButtonElement>('.card-action-row__manage .card-swap-btn[aria-label^="Edit"]');
+    }
+
     it('shows the Edit button for the owner viewing their own homebrew', () => {
       host.weapons.set([buildWeapon({ createdByUserId: 5 })]);
       host.currentUserId.set(5);
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
+      expect(editButton()).toBeTruthy();
     });
 
     it('shows the Edit button for a NON-owner viewer who authored the item, but hides owner-only controls', () => {
@@ -282,7 +293,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(false);
       fixture.detectChanges();
 
-      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
+      expect(editButton()).toBeTruthy();
       expect(el.querySelector('.card-action-row__manage .card-swap-btn--vault')).toBeNull();
     });
 
@@ -292,7 +303,7 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      expect(el.querySelector('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')).toBeNull();
+      expect(editButton()).toBeNull();
     });
 
     it('emits editItem with the catalogue item id when Edit is clicked', () => {
@@ -301,9 +312,80 @@ describe('InventorySectionBeta', () => {
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('.card-action-row__manage .card-swap-btn:not(.card-swap-btn--vault)')!.click();
+      editButton()!.click();
 
       expect(host.editEvents).toEqual([{ type: 'weapon', itemId: 42 }]);
+    });
+
+    it('renders the Edit glyph as an icon-only inline SVG button (no visible text label)', () => {
+      host.weapons.set([buildWeapon({ createdByUserId: 5 })]);
+      host.currentUserId.set(5);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const btn = editButton();
+      expect(btn?.classList).toContain('card-swap-btn--icon');
+      expect(btn?.textContent?.trim()).toBe('');
+      const svg = btn?.querySelector('svg');
+      expect(svg).toBeTruthy();
+      expect(svg?.getAttribute('aria-hidden')).toBe('true');
+      expect(svg?.getAttribute('focusable')).toBe('false');
+      expect(btn?.getAttribute('title')).toBe(btn?.getAttribute('aria-label'));
+    });
+  });
+
+  // The copy dispatch and success/failure/in-flight logic itself is `CustomizeItemAction`'s own
+  // responsibility and is fully covered by its own spec -- this only checks the section wires it
+  // up (right item, inside the manage group, no duplicate Edit affordance).
+  describe('customize action', () => {
+    function customizeButton(): HTMLButtonElement | undefined {
+      return Array.from(el.querySelectorAll<HTMLButtonElement>('.card-action-row__manage app-customize-item-action button'))
+        .find(b => b.getAttribute('aria-label')?.startsWith('Customize'));
+    }
+
+    it('offers a customize/copy glyph button in the manage group when signed in', () => {
+      host.weapons.set([buildWeapon()]);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(customizeButton()).toBeTruthy();
+      expect(customizeButton()?.classList).toContain('card-swap-btn--icon');
+    });
+
+    it('offers nothing when signed out', () => {
+      // A fresh fixture, not the shared one from `beforeEach` -- see the identical comment in
+      // inventory-item-row.spec.ts: `CustomizeItemAction.canCustomize` caches its first read of
+      // `authService.isLoggedIn()`, which only a real signal (not a plain `vi.fn()`) can invalidate.
+      vi.spyOn(authService, 'isLoggedIn').mockReturnValue(false);
+      const signedOutFixture = TestBed.createComponent(TestHost);
+      signedOutFixture.componentInstance.weapons.set([buildWeapon()]);
+      signedOutFixture.componentInstance.isOwner.set(true);
+      signedOutFixture.detectChanges();
+
+      const signedOutEl: HTMLElement = signedOutFixture.nativeElement;
+      const btn = Array.from(signedOutEl.querySelectorAll<HTMLButtonElement>('.card-action-row__manage app-customize-item-action button'))
+        .find(b => b.getAttribute('aria-label')?.startsWith('Customize'));
+      expect(btn).toBeFalsy();
+    });
+
+    it('never shows a second Edit button from within the customize action, even for the viewer\'s own homebrew', () => {
+      host.weapons.set([buildWeapon({ createdByUserId: 5 })]);
+      host.currentUserId.set(5);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const editButtons = Array.from(el.querySelectorAll('button')).filter(
+        b => b.getAttribute('aria-label')?.startsWith('Edit'),
+      );
+      expect(editButtons.length).toBe(1);
+    });
+
+    it('names the current item in the customize button\'s accessible label', () => {
+      host.weapons.set([buildWeapon({ name: 'Rusty Sabre' })]);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(customizeButton()?.getAttribute('aria-label')).toBe('Customize Rusty Sabre');
     });
   });
 

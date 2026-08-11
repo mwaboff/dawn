@@ -6,12 +6,28 @@
     }
   </div>
   <div class="env-picker__grid">
-    <app-card-selection-grid
-      [cards]="environments()"
-      [loading]="loading()"
-      [error]="error()"
-      [selectedCard]="selectedCard()"
-      (cardSelected)="onCardSelected($event)"
-    />
+    @if (sheetLayout() === 'beta') {
+      <!-- Ultra-minimized, expand-on-click rows -- the same app-entity-card size="compact" pattern
+           the character sheet's item finder uses (item-finder-result.html). -->
+      <app-entity-selection-grid
+        [appCardSurface]="'dark-capable'"
+        [cards]="environments()"
+        [loading]="loading()"
+        [error]="error()"
+        [selectedCard]="selectedCard()"
+        [size]="'compact'"
+        [cardMapper]="cardMapper"
+        ariaLabel="Choose an environment"
+        (cardSelected)="onCardSelected($event)"
+      />
+    } @else {
+      <app-card-selection-grid
+        [cards]="environments()"
+        [loading]="loading()"
+        [error]="error()"
+        [selectedCard]="selectedCard()"
+        (cardSelected)="onCardSelected($event)"
+      />
+    }
   </div>
 </div>

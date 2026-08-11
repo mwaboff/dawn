@@ -1,0 +1,52 @@
+@if (loading()) {
+  <app-entity-skeleton [count]="skeletonCount()" [layout]="layout()" [columns]="columns()" />
+} @else if (error()) {
+  <app-card-error />
+} @else {
+  @if (maxSelections() > 1) {
+    <div class="selection-counter" aria-live="polite">
+      {{ selectedCards().length }}/{{ maxSelections() }} selected
+    </div>
+  }
+  <div
+    #grid
+    class="entity-selection-grid"
+    [class.entity-selection-grid--wide]="layout() === 'wide'"
+    [class.entity-selection-grid--columns-2]="isColumnCapped()"
+    [attr.role]="isRadioGroup() ? 'radiogroup' : 'group'"
+    [attr.aria-label]="ariaLabel()"
+  >
+    @for (card of cards(); track card.id; let i = $index) {
+      <app-entity-card [card]="entityCard(card)" [size]="size()">
+        <div card-controls class="card-action-row">
+          <button
+            type="button"
+            class="entity-select"
+            [class.entity-select--radio]="isRadioGroup()"
+            [class.entity-select--selected]="isSelected(card)"
+            [attr.role]="isRadioGroup() ? 'radio' : 'checkbox'"
+            [attr.aria-checked]="isSelected(card)"
+            [attr.aria-disabled]="isAtMax(card) ? true : null"
+            [attr.aria-label]="selectLabel(card)"
+            [attr.tabindex]="isRadioGroup() ? controlTabIndex(card) : 0"
+            (click)="onSelect(card)"
+            (keydown)="onControlKeydown($event, i)"
+          >
+            <span class="entity-select__box" aria-hidden="true">
+              @if (isSelected(card)) {
+                @if (isRadioGroup()) {
+                  <span class="entity-select__dot"></span>
+                } @else {
+                  <span class="entity-select__mark">&#10003;</span>
+                }
+              }
+            </span>
+            <span class="entity-select__text">
+              {{ isSelected(card) ? 'Selected' : (isAtMax(card) ? 'Limit reached' : 'Select') }}
+            </span>
+          </button>
+        </div>
+      </app-entity-card>
+    }
+  </div>
+}

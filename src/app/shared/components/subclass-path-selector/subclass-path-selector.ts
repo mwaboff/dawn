@@ -1,6 +1,9 @@
 import { Component, input, output, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { DaggerheartCard } from '../daggerheart-card/daggerheart-card';
+import { EntityCard } from '../entity-card/entity-card';
 import { CardData } from '../daggerheart-card/daggerheart-card.model';
+import { EntityCardData } from '../entity-card/entity-card.model';
+import { cardDataToEntityCard } from '../../mappers/card-data-to-entity-card.mapper';
 import { SubclassLevel } from '../../models/subclass-api.model';
 
 type CardUpgradeState = 'owned' | 'next' | 'locked' | 'normal';
@@ -15,7 +18,7 @@ interface SubclassPath {
 
 @Component({
   selector: 'app-subclass-path-selector',
-  imports: [DaggerheartCard],
+  imports: [DaggerheartCard, EntityCard],
   templateUrl: './subclass-path-selector.html',
   styleUrl: './subclass-path-selector.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +29,29 @@ export class SubclassPathSelector {
   readonly collapsibleFeatures = input<boolean>(false);
   readonly ownedCardIds = input<number[]>([]);
   readonly foundationOnly = input<boolean>(false);
+  /**
+   * `'classic'` (default) keeps today's exact `DaggerheartCard`-based rendering, unchanged.
+   * `'beta'` renders the active card as an `EntityCard` instead, with a dedicated select control
+   * projected into `[card-controls]` in place of the whole card being clickable -- `EntityCard`'s
+   * header is already a button (expand/collapse), so unlike `DaggerheartCard` the card itself
+   * cannot double as the click target. Upgrade-mode/`foundationOnly` locking behaves identically in
+   * both modes; only the card face and the selection affordance differ.
+   */
+  readonly cardFormat = input<'classic' | 'beta'>('classic');
+  /**
+   * Suppresses the beta-mode Select control -- for a pure browse/display surface (the reference
+   * tab) that binds no `selectedCard` and handles no `cardSelected`, a "Select" button would be
+   * dead UI wired to nothing. Has no effect on `cardFormat="classic"`, which never reads this
+   * input at all -- classic stays byte-identical regardless.
+   *
+   * Owned/Locked status text is a separate question from the Select control: once `ownedCardIds`
+   * is actually passed there IS a real "you already have this" concept worth stating even in a
+   * read-only view, so those two states still render their status text (see `showControls`). A
+   * card merely locked by `foundationOnly` with no `ownedCardIds` -- i.e. no real owned/upgrade
+   * context at all -- renders no status text here; only `EntityCard`'s own `muted` dimming marks
+   * it, which is all a bare browse page with no owned concept should say.
+   */
+  readonly readOnly = input<boolean>(false);
   readonly cardSelected = output<CardData>();
 
   private readonly pathLevelTabs = signal<Map<number, SubclassLevel>>(new Map());
@@ -155,5 +181,40 @@ export class SubclassPathSelector {
     const selected = this.selectedCard();
     if (!selected) return false;
     return this.isUpgradeMode ? selected.id === activeCard.id : selected.id === path.foundation.id;
+  }
+
+  entityCard(card: CardData): EntityCardData {
+    return cardDataToEntityCard(card);
+  }
+
+  /**
+   * Whether clicking `card` would actually select it -- the same guard `onCardClicked` applies,
+   * exposed separately so beta mode can decide whether to render a Select control at all instead
+   * of relying on a click silently doing nothing.
+   */
+  isCardSelectable(path: SubclassPath, card: CardData): boolean {
+    if (this.isUpgradeMode) return this.getCardState(card.id) === 'next';
+    if (this.foundationOnly()) return this.getCardState(card.id) !== 'locked';
+    return true;
+  }
+
+  selectLabel(path: SubclassPath, card: CardData): string {
+    return this.isActiveCardSelected(path, card) ? `${card.name} selected` : `Select ${card.name}`;
+  }
+
+  /**
+   * Whether beta mode has anything at all to project into `[card-controls]` for `card`. The
+   * template omits the whole projected element rather than rendering it with no content when this
+   * is `false`, so `EntityCard`'s own `.entity-card__controls:empty` rule collapses the footer
+   * entirely instead of showing a bare padded, bordered box with nothing in it.
+   */
+  showControls(path: SubclassPath, card: CardData): boolean {
+    const state = this.getCardState(card.id);
+    if (state === 'owned') return true;
+    if (!this.readOnly() && this.isCardSelectable(path, card)) return true;
+    // Unrestricted outside read-only mode (unchanged from before `readOnly` existed) -- the
+    // restriction to "only once ownedCardIds is real" is a read-only-mode-only rule.
+    if (state === 'locked') return !this.readOnly() || this.isUpgradeMode;
+    return false;
   }
 }

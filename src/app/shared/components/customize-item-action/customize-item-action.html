@@ -1,0 +1,53 @@
+@if (canCustomize()) {
+  @if (variant() === 'beta') {
+    <div class="customize-item-action">
+      <button
+        type="button"
+        class="card-swap-btn card-swap-btn--icon"
+        [class.customize-item-action__btn--busy]="copying()"
+        [disabled]="copying()"
+        [attr.aria-label]="copyLabel()"
+        [attr.aria-busy]="copying() || null"
+        [attr.title]="copyLabel()"
+        (click)="onCustomize()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      </button>
+      @if (canEdit()) {
+        <button
+          type="button"
+          class="card-swap-btn card-swap-btn--icon"
+          [attr.aria-label]="editLabel()"
+          [attr.title]="editLabel()"
+          (click)="onEdit()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </button>
+      }
+      @if (copyFailed()) {
+        <p class="customize-item-action__error" role="alert">Couldn't copy {{ result().name }} — try again.</p>
+      }
+    </div>
+  } @else {
+    <div class="customize-action">
+      <button
+        type="button"
+        class="btn btn--secondary btn--sm"
+        [disabled]="copying()"
+        [attr.aria-label]="'Customize ' + result().name"
+        (click)="onCustomize()"
+      >
+        {{ copying() ? 'Copying…' : 'Customize this item' }}
+      </button>
+      @if (copyFailed()) {
+        <p class="customize-action-error" role="alert">Couldn't copy {{ result().name }} — try again.</p>
+      }
+    </div>
+  }
+}

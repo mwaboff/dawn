@@ -108,4 +108,31 @@ describe('mapClassResponseToCardData', () => {
 
     expect(result.features).toBeUndefined();
   });
+
+  describe('entityDisplay', () => {
+    it('should split the Evasion and Hit Points tags into labelled stats', () => {
+      const response = buildClassResponse({ startingEvasion: 10, startingHitPoints: 8 });
+      const result = mapClassResponseToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        stats: [
+          { label: 'Evasion', value: '10' },
+          { label: 'Hit Points', value: '8' },
+        ],
+      });
+    });
+
+    it('should carry no power-level scalar -- a class has neither a tier nor a level', () => {
+      const result = mapClassResponseToCardData(buildClassResponse());
+
+      expect(result.entityDisplay!.scalar).toBeUndefined();
+    });
+
+    it('should leave the classic tags untouched', () => {
+      const response = buildClassResponse({ startingEvasion: 10, startingHitPoints: 8 });
+      const result = mapClassResponseToCardData(response);
+
+      expect(result.tags).toEqual(['Evasion: 10', 'Hit Points: 8']);
+    });
+  });
 });

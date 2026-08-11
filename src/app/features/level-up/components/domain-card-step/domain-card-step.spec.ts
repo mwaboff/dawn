@@ -1,10 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Component, signal } from '@angular/core';
 import { of } from 'rxjs';
 
 import { DomainCardStep } from './domain-card-step';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { DomainService } from '../../../../shared/services/domain.service';
+import { PreferencesService } from '../../../../core/services/preferences.service';
+import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { DomainCardSummary } from '../../../character-sheet/models/character-sheet-view.model';
 
 const MOCK_DOMAIN_CARDS: CardData[] = [
@@ -345,6 +349,69 @@ describe('DomainCardStep', () => {
 
       expect(pills[2].classList.contains('active')).toBe(true);
       expect(pills[0].classList.contains('active')).toBe(false);
+    });
+  });
+
+  describe('beta layout', () => {
+    afterEach(() => {
+      localStorage.clear();
+      document.documentElement.removeAttribute('data-card-theme');
+    });
+
+    function setupBeta(): { fixture: ComponentFixture<TestHost>; host: TestHost; betaEl: HTMLElement } {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      const betaFixture = TestBed.createComponent(TestHost);
+      betaFixture.detectChanges();
+      return { fixture: betaFixture, host: betaFixture.componentInstance, betaEl: betaFixture.nativeElement as HTMLElement };
+    }
+
+    it('renders an entity selection grid instead of the classic card selection grid', () => {
+      const { betaEl } = setupBeta();
+
+      expect(betaEl.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(betaEl.querySelector('app-card-selection-grid')).toBeNull();
+    });
+
+    it('scopes the beta grid to a light-only card surface', () => {
+      const { betaEl } = setupBeta();
+
+      const surface = betaEl.querySelector('[data-card-theme]');
+      expect(surface).toBeTruthy();
+      expect(surface?.querySelector('app-entity-selection-grid')).toBeTruthy();
+    });
+
+    it('still emits domainCardsSelected when a card is selected in beta', () => {
+      const { fixture, host, betaEl } = setupBeta();
+      const control = betaEl.querySelector('app-entity-selection-grid [role="radio"]') as HTMLElement;
+      control.click();
+      fixture.detectChanges();
+
+      expect(host.lastSelectedCards.length).toBe(1);
+    });
+
+    it('leaves classic rendering untouched when sheetLayout is classic', () => {
+      expect(el.querySelector('app-entity-selection-grid')).toBeNull();
+      expect(el.querySelector('app-card-selection-grid')).toBeTruthy();
+    });
+
+    it('caps the beta grid at 2 columns', () => {
+      const { fixture } = setupBeta();
+      const grid = fixture.debugElement.query(By.directive(EntitySelectionGrid));
+
+      expect((grid.componentInstance as EntitySelectionGrid).columns()).toBe(2);
+    });
+
+    it('does not set layout="wide" on the beta grid (columns would lose to it)', () => {
+      const { fixture } = setupBeta();
+      const grid = fixture.debugElement.query(By.directive(EntitySelectionGrid));
+
+      expect((grid.componentInstance as EntitySelectionGrid).layout()).toBe('default');
+    });
+
+    it('keeps the classic grid at layout="wide"', () => {
+      const grid = fixture.debugElement.query(By.directive(CardSelectionGrid));
+
+      expect((grid.componentInstance as CardSelectionGrid).layout()).toBe('wide');
     });
   });
 });

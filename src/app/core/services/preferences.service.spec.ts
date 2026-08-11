@@ -33,8 +33,8 @@ describe('PreferencesService', () => {
       expect(service.motion()).toBe('system');
     });
 
-    it('defaults cardTheme to dark when nothing is stored or stamped', () => {
-      expect(service.cardTheme()).toBe('dark');
+    it('defaults cardTheme to default when nothing is stored or stamped', () => {
+      expect(service.cardTheme()).toBe('default');
     });
   });
 
@@ -60,7 +60,7 @@ describe('PreferencesService', () => {
         density: 'condensed',
         motion: 'full',
         sheetLayout: 'classic',
-        cardTheme: 'dark',
+        cardTheme: 'default',
       });
     });
 
@@ -73,7 +73,7 @@ describe('PreferencesService', () => {
         density: 'condensed',
         motion: 'reduced',
         sheetLayout: 'classic',
-        cardTheme: 'dark',
+        cardTheme: 'default',
       });
     });
   });
@@ -95,7 +95,7 @@ describe('PreferencesService', () => {
         density: 'condensed',
         motion: 'reduced',
         sheetLayout: 'beta',
-        cardTheme: 'dark',
+        cardTheme: 'default',
       });
     });
   });
@@ -120,6 +120,29 @@ describe('PreferencesService', () => {
         sheetLayout: 'beta',
         cardTheme: 'dark',
       });
+    });
+  });
+
+  describe('darkCapableCardFace / lightOnlyCardFace', () => {
+    it('resolves the default preference to dark for a dark-capable surface and light for a light-only one', () => {
+      service.setCardTheme('default');
+
+      expect(service.darkCapableCardFace()).toBe('dark');
+      expect(service.lightOnlyCardFace()).toBe('light');
+    });
+
+    it('resolves an explicit light preference to light on both kinds of surface', () => {
+      service.setCardTheme('light');
+
+      expect(service.darkCapableCardFace()).toBe('light');
+      expect(service.lightOnlyCardFace()).toBe('light');
+    });
+
+    it('resolves an explicit dark preference to dark on both kinds of surface', () => {
+      service.setCardTheme('dark');
+
+      expect(service.darkCapableCardFace()).toBe('dark');
+      expect(service.lightOnlyCardFace()).toBe('dark');
     });
   });
 
@@ -217,10 +240,10 @@ describe('PreferencesService', () => {
     });
 
     /* Pins the upgrade path for a user whose stored blob predates the cardTheme feature entirely
-       (no key at all, not just an unrecognized one) -- they get dark today where they got light
-       before this preference existed, which is the intended behaviour change, not a regression.
-       Must not throw and must leave their other three preferences exactly as stored. */
-    it('migrates a pre-cardTheme stored blob to dark without disturbing the other three preferences', () => {
+       (no key at all, not just an unrecognized one) -- they get 'default' (which resolves to
+       dark on the app root, same as before this preference existed), not a regression. Must not
+       throw and must leave their other three preferences exactly as stored. */
+    it('migrates a pre-cardTheme stored blob to default without disturbing the other three preferences', () => {
       localStorage.setItem(
         PREFERENCES_STORAGE_KEY,
         JSON.stringify({ density: 'condensed', motion: 'reduced', sheetLayout: 'beta' }),
@@ -233,13 +256,13 @@ describe('PreferencesService', () => {
         freshService = TestBed.inject(PreferencesService);
       }).not.toThrow();
 
-      expect(freshService.cardTheme()).toBe('dark');
+      expect(freshService.cardTheme()).toBe('default');
       expect(freshService.density()).toBe('condensed');
       expect(freshService.motion()).toBe('reduced');
       expect(freshService.sheetLayout()).toBe('beta');
     });
 
-    it('falls back to dark for an unknown cardTheme value', () => {
+    it('falls back to default for an unknown cardTheme value', () => {
       localStorage.setItem(
         PREFERENCES_STORAGE_KEY,
         JSON.stringify({ density: 'condensed', motion: 'full', cardTheme: 'psychedelic' }),
@@ -249,7 +272,17 @@ describe('PreferencesService', () => {
       TestBed.configureTestingModule({});
       const freshService = TestBed.inject(PreferencesService);
 
-      expect(freshService.cardTheme()).toBe('dark');
+      expect(freshService.cardTheme()).toBe('default');
+    });
+
+    it('keeps a stored explicit "light" or "dark" cardTheme value unchanged (pre-default-feature upgrade path)', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'light' }));
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.cardTheme()).toBe('light');
     });
   });
 
@@ -284,7 +317,11 @@ describe('PreferencesService', () => {
       expect(freshService.density()).toBe('condensed');
     });
 
-    it('initializes cardTheme from a pre-stamped DOM attribute over a different stored value', () => {
+    /* Unlike density/motion, data-card-theme on <html> holds the *resolved* dark-capable face
+       ('light'/'dark'), not the raw preference -- 'default' never appears there. So cardTheme
+       must always initialize from storage, even when a pre-stamped DOM attribute disagrees with
+       what storage implies, or a 'default' preference could never survive a reload. */
+    it('initializes cardTheme from storage even when a pre-stamped DOM attribute disagrees', () => {
       localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'light' }));
       document.documentElement.setAttribute('data-card-theme', 'dark');
 
@@ -292,18 +329,18 @@ describe('PreferencesService', () => {
       TestBed.configureTestingModule({});
       const freshService = TestBed.inject(PreferencesService);
 
-      expect(freshService.cardTheme()).toBe('dark');
+      expect(freshService.cardTheme()).toBe('light');
     });
 
-    it('ignores an invalid data-card-theme attribute and falls back to storage', () => {
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'dark' }));
-      document.documentElement.setAttribute('data-card-theme', 'psychedelic');
+    it('initializes a "default" cardTheme from storage even though the DOM attribute is stamped "dark"', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ cardTheme: 'default' }));
+      document.documentElement.setAttribute('data-card-theme', 'dark');
 
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({});
       const freshService = TestBed.inject(PreferencesService);
 
-      expect(freshService.cardTheme()).toBe('dark');
+      expect(freshService.cardTheme()).toBe('default');
     });
   });
 

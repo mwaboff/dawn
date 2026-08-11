@@ -19,7 +19,7 @@ import { RosterPanel } from './components/roster-panel/roster-panel';
 import { RosterPanelItem } from './components/roster-panel/roster-panel.model';
 import { campaignToRosterItem, encounterToRosterItem, ownedItemToRosterItem } from './components/roster-panel/roster-panel.mapper';
 import { ENCOUNTER_NEW_PATH, ENCOUNTERS_LIST_PATH, encounterEditPath } from '../encounters/encounter-routes';
-import { ITEMS_NEW_PATH, ItemKind, itemEditPath } from '../items/item-routes';
+import { ITEMS_NEW_PATH, ItemKind, itemEditPath } from '../../shared/utils/item-routes.utils';
 import { WeaponService } from '../../shared/services/weapon.service';
 import { ArmorService } from '../../shared/services/armor.service';
 import { LootService } from '../../shared/services/loot.service';

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay, FeatureDisplay } from '../../../../models/character-sheet-view.model';
 import { EquipmentCard, EquipmentStat } from '../../../equipment-card/equipment-card';
-import { canEditItem } from '../../../../utils/inventory-equip.utils';
+import { canEditItem } from '../../../../../../shared/utils/item-ownership.utils';
 
 @Component({
   selector: 'app-inventory-item-row',

@@ -2,19 +2,24 @@ import { Component, input, output, signal, inject, ChangeDetectionStrategy, OnIn
 
 import { CardData } from '../../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { CardSelectionGrid } from '../../../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../../../shared/components/entity-selection-grid/entity-selection-grid';
+import { CardSurfaceDirective } from '../../../../../../shared/directives/card-surface.directive';
 import { EquipmentPagination } from '../equipment-pagination/equipment-pagination';
 import { ArmorService } from '../../../../../../shared/services/armor.service';
 import { PaginationState } from '../../../../models/equipment.model';
 
 @Component({
   selector: 'app-armor-section',
-  imports: [CardSelectionGrid, EquipmentPagination],
+  imports: [CardSelectionGrid, EntitySelectionGrid, CardSurfaceDirective, EquipmentPagination],
   templateUrl: './armor-section.html',
   styleUrl: './armor-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArmorSection implements OnInit {
   readonly initialArmor = input<CardData | null>(null);
+  /** `'classic'` (default) keeps today's `CardSelectionGrid` rendering unchanged; `'beta'` swaps
+   * to `EntitySelectionGrid`. */
+  readonly cardFormat = input<'classic' | 'beta'>('classic');
 
   readonly armorSelected = output<CardData | null>();
 

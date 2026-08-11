@@ -5,21 +5,30 @@
   <span class="entity-card__title">
     <span class="entity-card__name">{{ card().name }}</span>
     @if (displaySize() === 'compact') {
-      @if (card().headline) {
-        <span class="entity-card__headline">{{ card().headline }}</span>
+      @if (compactLine(); as line) {
+        <span class="entity-card__headline">{{ line }}</span>
       }
     } @else if (card().subtitle) {
       <span class="entity-card__subtitle">{{ card().subtitle }}</span>
     }
   </span>
-  @if (displaySize() !== 'compact' && card().badges?.length) {
+  @if (headerBadges().length) {
     <span class="entity-card__badges">
-      @for (badge of card().badges; track badge.label) {
+      @for (badge of headerBadges(); track badge.label) {
         <span class="entity-card__badge">
           @if (badge.glyph) {
             <span class="entity-card__badge-glyph" aria-hidden="true">{{ badge.glyph }}</span>
           }
-          {{ badge.value ? badge.label + ': ' + badge.value : badge.label }}
+          <!-- `&ngsp;` here and in the stat/meta blocks below, not a plain space: Angular's default
+               `preserveWhitespaces: false` deletes whitespace-only text nodes, and without one the
+               two spans concatenate in `textContent` as "Tier1" -- which is what a screen reader
+               reads out and what a copy of the card yields. Safe in every layout used here: both
+               flex and grid drop an anonymous item that contains only white space, so this adds no
+               visual gap of its own (the `gap` property does that). -->
+          <span class="entity-card__badge-label">{{ badge.label }}</span>&ngsp;
+          @if (badge.value) {
+            <span class="entity-card__badge-value">{{ badge.value }}</span>
+          }
         </span>
       }
     </span>
@@ -66,14 +75,22 @@
       @if (card().stats?.length) {
         <div class="entity-card__stats">
           @for (stat of card().stats; track $index) {
-            <span class="entity-card__stat">{{ stat }}</span>
+            <div class="entity-card__stat">
+              @if (stat.label) {
+                <span class="entity-card__stat-label">{{ stat.label }}</span>&ngsp;
+              }
+              <span class="entity-card__stat-value">{{ stat.value }}</span>
+            </div>
           }
         </div>
       }
       @if (card().meta?.length) {
         <div class="entity-card__meta">
           @for (item of card().meta; track item.label) {
-            <p class="entity-card__meta-row">{{ item.value ? item.label + ': ' + item.value : item.label }}</p>
+            <span class="entity-card__meta-label" [class.entity-card__meta-label--full]="!item.value">{{ item.label }}</span>&ngsp;
+            @if (item.value) {
+              <span class="entity-card__meta-value">{{ item.value }}</span>
+            }
           }
         </div>
       }

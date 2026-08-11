@@ -92,14 +92,49 @@ export class EntityCard {
   readonly toggleLabel = computed(() => (this.isExpanded() ? 'Collapse' : 'Expand'));
 
   /**
-   * A `compact` card renders no body, so its headline -- the damage line, the armor score -- exists
-   * only in the header, where `aria-label` would otherwise override it away. Folding it into the
-   * label is what lets a screen-reader user compare two collapsed rows without opening both.
+   * The one secondary line a `compact` row has room for, as `subtitle · headline`.
+   *
+   * It carries both because the two answer different questions and a roster needs both at a glance:
+   * `subtitle` is what the thing IS ("Bruiser", "Exploration", "Physical") and `headline` is its one
+   * loudest number ("Difficulty 14", "2d8+1 phy", "Score 3"). Compact used to render `headline`
+   * alone, which left the encounter builder's adversary and environment rows with no way to say
+   * which of seven adversary types or four environment types they were without being expanded.
+   * Joined with the same `·` the domain-card subtitle already uses for "Valor · Spell", so the
+   * separator means the same thing here as everywhere else on the card.
+   */
+  readonly compactLine = computed(() => {
+    const { subtitle, headline, badges } = this.card();
+    // The power-level scalar, as TEXT rather than as a chip. `EntityCardData`'s slot contract puts
+    // it first and it is the only badge carrying a `value`, which is what distinguishes it from a
+    // state chip like `Equipped`. Rendering it as a chip instead was measurably wrong: a chip is
+    // ~60px of unshrinkable width, and tab + title + chip + chevron overflows a 19rem card, so
+    // every environment and adversary row in the encounter builder wrapped to two lines -- and the
+    // width the chip took came out of the name, which then broke mid-word ("ABANDON/ED GROVE")
+    // because `.entity-card__name` carries `overflow-wrap: anywhere`. In the text line the tier
+    // costs nothing unshrinkable and ellipsises with everything else.
+    const scalar = badges?.[0];
+    const tier = scalar?.value ? `${scalar.label} ${scalar.value}` : undefined;
+    return [tier, subtitle, headline].filter(Boolean).join(' · ') || undefined;
+  });
+
+  /**
+   * No chips at `compact` -- see `compactLine`, which carries the scalar as text instead. Live state
+   * and the homebrew chip wait for the expand, where there is width for them.
+   */
+  readonly headerBadges = computed(() =>
+    this.displaySize() === 'compact' ? [] : this.card().badges ?? [],
+  );
+
+  /**
+   * A `compact` card renders no body, so its secondary line -- the type, the damage line, the armor
+   * score -- exists only in the header, where `aria-label` would otherwise override it away. Folding
+   * it into the label is what lets a screen-reader user compare two collapsed rows without opening
+   * both. The badge is left out: it renders as real text beside the name, so it is already read.
    */
   readonly headerLabel = computed(() => {
     const label = `${this.toggleLabel()} ${this.card().name}`;
-    const headline = this.card().headline;
-    return this.displaySize() === 'compact' && headline ? `${label}, ${headline}` : label;
+    const line = this.compactLine();
+    return this.displaySize() === 'compact' && line ? `${label}, ${line}` : label;
   });
 
   constructor() {

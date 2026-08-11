@@ -54,6 +54,8 @@
   display: none;
 }
 
+.roster-panel__environment-cell { align-self: start; }
+
 .roster-panel__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

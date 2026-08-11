@@ -77,6 +77,14 @@ describe('MartialStancePanelBeta', () => {
     expect(card.badges).toEqual([{ label: 'Tier', value: '2' }]);
   });
 
+  it('leaves badges undefined -- not an empty array -- for an inactive stance with no tier', () => {
+    host.stances.set([{ ...buildStance(1, 'Aggressive Stance', 1), tier: undefined }]);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+    expect(card.badges).toBeUndefined();
+  });
+
   it("adds an Active badge to the currently active stance's card", () => {
     host.stances.set([buildStance(1, 'Aggressive Stance', 1)]);
     host.activeId.set(1);
@@ -84,6 +92,15 @@ describe('MartialStancePanelBeta', () => {
 
     const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
     expect(card.badges).toContainEqual({ label: 'Active' });
+  });
+
+  it('orders the Tier badge ahead of the Active state badge', () => {
+    host.stances.set([buildStance(1, 'Aggressive Stance', 3)]);
+    host.activeId.set(1);
+    fixture.detectChanges();
+
+    const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+    expect(card.badges).toEqual([{ label: 'Tier', value: '3' }, { label: 'Active' }]);
   });
 
   it('mutes every stance card except the active one, so the active stance reads at a glance', () => {

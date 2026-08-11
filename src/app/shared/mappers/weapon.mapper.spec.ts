@@ -304,4 +304,28 @@ describe('mapWeaponResponseToCardData', () => {
       notation: '+3',
     });
   });
+
+  describe('entityDisplay', () => {
+    it('should put tier in the scalar and the four weapon numbers in stats', () => {
+      const result = mapWeaponResponseToCardData(buildWeaponResponse({ tier: 3 }));
+
+      expect(result.entityDisplay).toEqual({
+        scalar: { label: 'Tier', value: '3' },
+        stats: [
+          { label: 'Damage', value: '1d8' },
+          { label: 'Trait', value: 'Agility' },
+          { label: 'Range', value: 'Far' },
+          { label: 'Burden', value: 'Two-Handed' },
+        ],
+      });
+    });
+
+    it('should leave the classic subtitle, subtitleSecondary and tags untouched', () => {
+      const result = mapWeaponResponseToCardData(buildWeaponResponse({ tier: 3, isOfficial: false }));
+
+      expect(result.subtitle).toBe('Physical Weapon');
+      expect(result.subtitleSecondary).toBe('Tier 3');
+      expect(result.tags).toEqual(['1d8', 'Far', 'Two-Handed', 'Agility', 'Custom']);
+    });
+  });
 });

@@ -12,6 +12,44 @@
     <app-card-skeleton [count]="4" />
   } @else if (error()) {
     <app-card-error />
+  } @else if (sheetLayout() === 'beta') {
+    <div [appCardSurface]="'light-only'" role="group" [attr.aria-label]="instruction()">
+      @for (group of tierGroups(); track group.tier) {
+        <div class="stance-tier-group">
+          <h3 class="stance-tier-group__heading">Tier {{ group.tier }}</h3>
+          @if (group.tier > maxTier()) {
+            <p class="stance-tier-group__hint">Unlocked at a higher tier</p>
+          }
+          <div class="entity-stance-grid">
+            @for (card of group.stances; track card.id) {
+              <app-entity-card [card]="entityCard(card)" [muted]="isKnown(card) || !isSelectable(card)">
+                <div card-controls class="card-action-row">
+                  <button
+                    type="button"
+                    class="entity-select"
+                    [class.entity-select--selected]="isSelected(card)"
+                    role="checkbox"
+                    [attr.aria-checked]="isSelected(card)"
+                    [attr.aria-disabled]="isDisabled(card) ? true : null"
+                    [attr.aria-label]="stanceSelectLabel(card)"
+                    (click)="onCardClicked(card)"
+                  >
+                    <span class="entity-select__box" aria-hidden="true">
+                      @if (isSelected(card)) {
+                        <span class="entity-select__mark">&#10003;</span>
+                      }
+                    </span>
+                    <span class="entity-select__text">
+                      {{ stanceSelectStatusText(card) }}
+                    </span>
+                  </button>
+                </div>
+              </app-entity-card>
+            }
+          </div>
+        </div>
+      }
+    </div>
   } @else {
     @for (group of tierGroups(); track group.tier) {
       <div class="stance-tier-group">

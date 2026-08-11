@@ -110,7 +110,7 @@ describe('CharacterSheetBeta', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: CharacterSheetService, useValue: { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse), updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)) } },
-        { provide: AuthService, useValue: { user: vi.fn().mockReturnValue(authUser), isAdmin: vi.fn().mockReturnValue(false) } },
+        { provide: AuthService, useValue: { user: vi.fn().mockReturnValue(authUser), isAdmin: vi.fn().mockReturnValue(false), isLoggedIn: vi.fn().mockReturnValue(true) } },
         { provide: TransformationCardService, useValue: { getAllTransformationCards: vi.fn().mockReturnValue(of([])) } },
         { provide: CompanionService, useValue: { getCompanions: vi.fn().mockReturnValue(of([])) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => routeId } } } },

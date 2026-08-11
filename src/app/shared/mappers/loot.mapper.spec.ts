@@ -100,4 +100,42 @@ describe('mapLootToCardData', () => {
 
     expect(result.metadata!['isConsumable']).toBe(true);
   });
+
+  describe('entityDisplay', () => {
+    it('should carry tier as the scalar, Consumable as the subtitle and cost tags as unlabelled stats', () => {
+      const response = buildLootResponse({ tier: 2, isConsumable: true, costTags: ['1 HANDFUL'] });
+      const result = mapLootToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        subtitle: 'Consumable',
+        scalar: { label: 'Tier', value: '2' },
+        stats: [{ value: '1 HANDFUL' }],
+      });
+    });
+
+    it('should leave the beta subtitle unset for loot that is not consumable', () => {
+      const result = mapLootToCardData(buildLootResponse({ isConsumable: false }));
+
+      expect(result.entityDisplay!.subtitle).toBeUndefined();
+    });
+
+    it('should leave the scalar and stats unset when there is no tier or cost tag', () => {
+      const result = mapLootToCardData(buildLootResponse());
+
+      expect(result.entityDisplay!.scalar).toBeUndefined();
+      expect(result.entityDisplay!.stats).toBeUndefined();
+    });
+
+    it('should leave the classic tags untouched', () => {
+      const response = buildLootResponse({
+        tier: 2,
+        isConsumable: true,
+        costTags: ['1 HANDFUL'],
+        isOfficial: false,
+      });
+      const result = mapLootToCardData(response);
+
+      expect(result.tags).toEqual(['Tier 2', 'Consumable', '1 HANDFUL', 'Custom']);
+    });
+  });
 });

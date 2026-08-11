@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ENCOUNTER_NEW_PATH } from '../../features/encounters/encounter-routes';
-import { ITEMS_NEW_PATH } from '../../features/items/item-routes';
+import { ITEMS_NEW_PATH } from '../../shared/utils/item-routes.utils';
 
 /** How far the page scrolls before the bar goes from translucent to nearly solid. */
 const SCROLLED_THRESHOLD_PX = 10;

@@ -1,4 +1,9 @@
-import { EntityCardBadge, EntityCardData, EntityCardFeature } from '../../../shared/components/entity-card/entity-card.model';
+import {
+  EntityCardBadge,
+  EntityCardData,
+  EntityCardFeature,
+  EntityCardStat,
+} from '../../../shared/components/entity-card/entity-card.model';
 import {
   ArmorDisplay,
   CardSummary,
@@ -8,6 +13,8 @@ import {
   SubclassCardSummary,
   WeaponDisplay,
 } from '../../character-sheet/models/character-sheet-view.model';
+import { CUSTOM_ITEM_BADGE } from '../../../shared/mappers/custom-content.util';
+import { titleCase } from '../../../shared/utils/text.utils';
 import { WeaponSlot } from '../../character-sheet/utils/inventory-equip.utils';
 
 /**
@@ -68,61 +75,69 @@ export function subclassCardToEntity(card: SubclassCardSummary): EntityCardData 
     name: card.name,
     cardType: 'subclass',
     // card.level is the server's SubclassLevel enum name -- "FOUNDATION"/"SPECIALIZATION"/
-    // "MASTERY" -- exactly the italic subtitle line EntityCardData documents, not a numeric badge.
-    subtitle: card.level,
+    // "MASTERY" -- the qualifying noun within the kind, which is what `subtitle` is for. It is not
+    // the power-level scalar a Tier/Level badge carries, so title-casing it into the subtitle is
+    // both the right slot and the printed spelling.
+    subtitle: card.level ? titleCase(card.level) : undefined,
     meta: meta.length ? meta : undefined,
     description: card.description,
     features: mapFeatures(card.features),
   };
 }
 
-/**
- * The homebrew mark. Both a chip and a glyph, because neither alone is enough: the glyph is
- * `aria-hidden` decoration (see `EntityCardBadge.glyph`) and the word is what a screen reader and a
- * colour-blind reader actually get.
- */
-export const CUSTOM_ITEM_BADGE: EntityCardBadge = { label: 'Custom', glyph: '✦' };
-
 /** Official gear has no author; anything with one was written by a player. */
 export function isCustomItem(item: { createdByUserId?: number | null }): boolean {
   return item.createdByUserId !== null && item.createdByUserId !== undefined;
 }
 
+/**
+ * Title case on both words, matching the printed books (514 "One-Handed" / 326 "Two-Handed" across
+ * the Core and Hope & Fear texts, and no lowercase instance of either) and matching what
+ * `shared/mappers/weapon.mapper.ts` has always rendered on the classic card. This map used to say
+ * "One-handed", so the same weapon read differently on the beta sheet than in the beta reference
+ * browser -- the exact inconsistency the slot contract exists to remove.
+ */
 const BURDEN_LABELS: Record<string, string> = {
-  ONE_HANDED: 'One-handed',
-  TWO_HANDED: 'Two-handed',
+  ONE_HANDED: 'One-Handed',
+  TWO_HANDED: 'Two-Handed',
 };
 
-/** Chips every piece of gear can carry, in scan order: what it's doing, how good it is, who wrote it. */
+/**
+ * Chips every piece of gear can carry, in the fixed order `EntityCardData.badges` documents: the
+ * power-level scalar first so tier lands in the same place on every card, then live state the
+ * reader can change, then provenance. Three chips is the ceiling, which this hits exactly.
+ */
 function itemBadges(
   item: { tier?: number; createdByUserId?: number | null },
   equipped?: EntityCardBadge,
 ): EntityCardBadge[] | undefined {
   const badges: EntityCardBadge[] = [];
-  if (equipped) badges.push(equipped);
   if (item.tier) badges.push({ label: 'Tier', value: String(item.tier) });
+  if (equipped) badges.push(equipped);
   if (isCustomItem(item)) badges.push(CUSTOM_ITEM_BADGE);
   return badges.length ? badges : undefined;
 }
 
 /**
- * Weapon, armor and loot as cards, with their numbers on one line in the order the equipped-weapon
- * panel already uses -- damage, trait, range, burden. Stacked `Label: value` rows were tried first
- * and read worse: four lines of prose to answer what one glance at "2d8+1 phys / Presence / Melee"
- * answers, on the card a player reads mid-roll.
+ * Weapon, armor and loot as cards. The weapon's numbers keep the order the equipped-weapon panel
+ * already uses -- damage, trait, range, burden -- so a player who has learned the panel reads the
+ * card without relearning it. Each is a labelled cell: `EntityCard` stacks a small uppercase label
+ * over its value, so the label costs no extra line and a bare "Presence" in a row of four values no
+ * longer has to be guessed at.
  *
- * The weapon's own slot eligibility is deliberately NOT a type-tab override here. "Primary Weapon"
- * in the tab beside an "Equipped: Primary" badge is the same fact said twice; the eligibility now
- * rides on the Equip button, which is where it is actionable (see `inventory-card.mapper.ts`).
+ * The weapon's own slot eligibility is deliberately NOT a type-tab override here. The tab always
+ * answers "what kind of card is this", and "Primary Weapon" there beside an "Equipped Primary" badge
+ * is the same fact said twice; the eligibility rides on the Equip button, which is where it is
+ * actionable (see `inventory-card.mapper.ts`).
  *
  * `equippedSlot` is the character's state rather than the weapon's, so it arrives as an argument.
  */
 export function weaponToEntity(weapon: WeaponDisplay, equippedSlot: WeaponSlot | null): EntityCardData {
-  const stats: string[] = [];
-  if (weapon.damage) stats.push(weapon.damage);
-  if (weapon.trait) stats.push(weapon.trait);
-  if (weapon.range) stats.push(weapon.range);
-  if (weapon.burden) stats.push(BURDEN_LABELS[weapon.burden] ?? weapon.burden);
+  const stats: EntityCardStat[] = [];
+  if (weapon.damage) stats.push({ label: 'Damage', value: weapon.damage });
+  if (weapon.trait) stats.push({ label: 'Trait', value: weapon.trait });
+  if (weapon.range) stats.push({ label: 'Range', value: weapon.range });
+  if (weapon.burden) stats.push({ label: 'Burden', value: BURDEN_LABELS[weapon.burden] ?? weapon.burden });
 
   return {
     id: weapon.inventoryEntryId,
@@ -145,12 +160,13 @@ export function armorToEntity(armor: ArmorDisplay, equipped: boolean): EntityCar
     cardType: 'armor',
     headline: `Score ${armor.baseScore}`,
     badges: itemBadges(armor, equipped ? { label: 'Equipped' } : undefined),
-    // Labelled, unlike a weapon's: three bare numbers would say nothing on their own. Same wording
-    // and order as the Equipped Armor panel.
+    // Same wording and order as the Equipped Armor panel. The labels matter more here than on a
+    // weapon -- three bare numbers would say nothing on their own -- and the card draws each label
+    // above its value, so the colons that used to be baked into the value string are gone.
     stats: [
-      `Score: ${armor.baseScore}`,
-      `Major: ${armor.baseMajorThreshold}`,
-      `Severe: ${armor.baseSevereThreshold}`,
+      { label: 'Score', value: String(armor.baseScore) },
+      { label: 'Major', value: String(armor.baseMajorThreshold) },
+      { label: 'Severe', value: String(armor.baseSevereThreshold) },
     ],
     features: mapFeatures(armor.features),
   };
@@ -158,35 +174,43 @@ export function armorToEntity(armor: ArmorDisplay, equipped: boolean): EntityCar
 
 /**
  * Loot carries its rules as prose rather than as named features, so the description is the body and
- * there is nothing to map into `features`. Consumables say so in the type tab, where the reader is
- * already looking for what kind of thing this is.
+ * there is nothing to map into `features`. "Consumable" is a subtype of loot, not a kind of card, so
+ * it goes in the subtitle and the tab keeps saying "Loot" -- a reader who has learned that the tab
+ * answers "what am I looking at" gets the same answer here as on every other card.
+ *
+ * Cost tags are the one stat that needs no label: "1 HANDFUL" already names its own unit, and a
+ * "Cost" label above each of two tags would repeat itself.
  */
 export function lootToEntity(loot: LootDisplay): EntityCardData {
   return {
     id: loot.inventoryEntryId,
     name: loot.name,
     cardType: 'loot',
-    eyebrow: loot.isConsumable ? 'Consumable' : undefined,
+    subtitle: loot.isConsumable ? 'Consumable' : undefined,
     headline: loot.costTags[0],
     badges: itemBadges(loot),
-    stats: loot.costTags.length ? [...loot.costTags] : undefined,
+    stats: loot.costTags.length ? loot.costTags.map(tag => ({ value: tag })) : undefined,
     description: loot.description,
   };
 }
 
+/**
+ * The three facts on the printed card's header land in three different slots, by kind rather than by
+ * where they sit on the card: the domain and the card type are what qualifies this card within
+ * domain cards ("Valor · Spell"), so they are the subtitle; level is the power-level scalar, so it
+ * is the one badge; recall cost is a number, so it is a stat. `card.type` is a raw server enum, so
+ * it is title-cased into the printed spelling.
+ */
 export function domainCardToEntity(card: DomainCardSummary): EntityCardData {
-  const badges: EntityCardBadge[] = [];
-  if (card.level !== undefined) badges.push({ label: `Lvl ${card.level}` });
-  if (card.type) badges.push({ label: card.type });
-  if (card.recallCost !== undefined) badges.push({ label: `Recall ${card.recallCost}` });
+  const subtitleParts = [card.domainName, card.type ? titleCase(card.type) : undefined].filter(Boolean);
 
   return {
     id: card.id,
     name: card.name,
     cardType: 'domainCard',
-    // Domain cards show their domain ("Valor") in the type tab instead of "Domain Card".
-    eyebrow: card.domainName,
-    badges: badges.length ? badges : undefined,
+    subtitle: subtitleParts.length ? subtitleParts.join(' · ') : undefined,
+    badges: card.level !== undefined ? [{ label: 'Level', value: String(card.level) }] : undefined,
+    stats: card.recallCost !== undefined ? [{ label: 'Recall', value: String(card.recallCost) }] : undefined,
     description: card.description,
     features: mapFeatures(card.features),
   };

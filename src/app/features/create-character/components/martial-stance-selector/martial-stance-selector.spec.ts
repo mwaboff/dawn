@@ -121,4 +121,40 @@ describe('MartialStanceSelector', () => {
     const counter = fixture.nativeElement.querySelector('.selection-counter');
     expect(counter.textContent.trim()).toBe('2 of 2 chosen');
   });
+
+  describe('beta mode (cardFormat="beta")', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('cardFormat', 'beta');
+    });
+
+    it('renders the tier 1 group through EntitySelectionGrid', () => {
+      setCards();
+      const grid = fixture.nativeElement.querySelector('app-entity-selection-grid');
+      expect(grid).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-daggerheart-card')).toBeFalsy();
+    });
+
+    it('renders tier 2+ stances as plain, non-selectable EntityCards with a literal "Locked" status', () => {
+      setCards();
+      const cards = Array.from(fixture.nativeElement.querySelectorAll('app-entity-card')) as HTMLElement[];
+      const tier2Card = cards.find(el => el.textContent?.includes('Relentless'));
+      expect(tier2Card).toBeTruthy();
+      expect(tier2Card?.textContent).toContain('Locked');
+      expect(tier2Card?.querySelector('.entity-select')).toBeFalsy();
+    });
+
+    it('emits the full selection when a tier 1 EntitySelectionGrid control is clicked', () => {
+      setCards();
+      let emitted: CardData[] | undefined;
+      component.stancesSelected.subscribe(v => (emitted = v));
+
+      const controls = Array.from(
+        fixture.nativeElement.querySelectorAll('.entity-select'),
+      ) as HTMLButtonElement[];
+      const aggressiveControl = controls.find(btn => btn.closest('app-entity-card')?.textContent?.includes('Aggressive'));
+      aggressiveControl?.click();
+
+      expect(emitted).toEqual([TIER1[0]]);
+    });
+  });
 });

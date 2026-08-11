@@ -1,14 +1,5 @@
 import { ArmorDisplay, WeaponDisplay } from '../models/character-sheet-view.model';
 
-/**
- * Whether the viewer may edit this piece of gear. Only the author of a piece of homebrew may:
- * `createdByUserId` is null on official content and absent when the sheet response didn't expand
- * the item, so the equality check covers both without a separate guard.
- */
-export function canEditItem(item: { createdByUserId?: number | null }, viewerId: number | null): boolean {
-  return viewerId !== null && item.createdByUserId === viewerId;
-}
-
 /** Which of the character's two weapon slots a piece of gear is sitting in, or `null` for stowed. */
 export type WeaponSlot = 'primary' | 'secondary';
 

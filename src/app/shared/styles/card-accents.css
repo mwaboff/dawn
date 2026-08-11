@@ -22,3 +22,4 @@
 [data-card-type='feature'] { --ca: var(--color-card-feature); }
 [data-card-type='transformationCard'] { --ca: var(--color-card-transformationCard); }
 [data-card-type='martialStance'] { --ca: var(--color-card-martialStance); }
+[data-card-type='adversary'] { --ca: var(--color-card-adversary); }

@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms'
 import { FieldDef } from '../../../../shared/components/entity-form/entity-form.types';
 import { positiveValidator } from '../../../../shared/components/entity-form/entity-form.utils';
 import { FeatureInput } from '../../../../shared/models/feature-api.model';
-import { ItemKind } from '../../item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import {
   DEFAULT_ITEM_FORM_VALUE,
   ITEM_TIERS,

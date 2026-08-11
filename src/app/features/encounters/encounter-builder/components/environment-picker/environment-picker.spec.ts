@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { EnvironmentPicker } from './environment-picker';
 import { EnvironmentService } from '../../../../../shared/services/environment.service';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { PreferencesService } from '../../../../../core/services/preferences.service';
 
 function buildCard(overrides: Partial<CardData> = {}): CardData {
   return { id: 1, name: 'Collapsing Bridge', description: '', cardType: 'environment', ...overrides };
@@ -20,6 +21,12 @@ describe('EnvironmentPicker', () => {
     fixture = TestBed.createComponent(EnvironmentPicker);
     component = fixture.componentInstance;
     environmentService = TestBed.inject(EnvironmentService);
+  });
+
+  // PreferencesService persists sheetLayout to localStorage, which jsdom keeps across tests in
+  // this file -- without this, a 'beta' test bleeds into the next test's default PreferencesService.
+  afterEach(() => {
+    localStorage.clear();
   });
 
   it('loads environments on init', () => {
@@ -83,5 +90,50 @@ describe('EnvironmentPicker', () => {
     component.onClear();
 
     expect(emitted).toBeUndefined();
+  });
+
+  describe('beta sheet layout', () => {
+    it('renders the classic card-selection-grid by default', () => {
+      vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
+        of({ cards: [buildCard()], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-card-selection-grid')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-entity-selection-grid')).toBeNull();
+    });
+
+    it('switches to the beta entity-selection-grid when the sheet layout preference is beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
+        of({ cards: [buildCard()], currentPage: 0, totalPages: 1, totalElements: 1 }),
+      );
+
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('app-card-selection-grid')).toBeNull();
+    });
+
+    it('renders compact, expand-on-click rows in beta, the same size the item finder uses', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
+        of({
+          cards: [buildCard({ subtitle: 'Exploration', entityDisplay: { scalar: { label: 'Tier', value: '2' } } })],
+          currentPage: 0, totalPages: 1, totalElements: 1,
+        }),
+      );
+
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('app-entity-card');
+      expect(card.classList.contains('entity-card--compact')).toBe(true);
+      // A compact row has to answer "which environment is this" -- its type and its tier. Both used
+      // to be invisible here: the subtitle was replaced by a Difficulty headline and badges were
+      // suppressed outright, so a GM saw only a name.
+      expect(card.textContent).toContain('Exploration');
+      expect(card.textContent).toContain('Tier 2');
+    });
   });
 });

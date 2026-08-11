@@ -7,7 +7,7 @@ import {
   WeaponRange,
   WeaponTrait,
 } from '../../../shared/models/weapon-api.model';
-import { ItemKind } from '../item-routes';
+import { ItemKind } from '../../../shared/utils/item-routes.utils';
 
 /**
  * Everything the item builder can edit, flattened across all three kinds rather than split into a

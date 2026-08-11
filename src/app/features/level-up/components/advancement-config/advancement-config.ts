@@ -1,6 +1,8 @@
 import { Component, input, output, signal, computed, inject, OnInit, ChangeDetectionStrategy, effect } from '@angular/core';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
+import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
 import { SubclassPathSelector } from '../../../../shared/components/subclass-path-selector/subclass-path-selector';
+import { CardSurfaceDirective } from '../../../../shared/directives/card-surface.directive';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { AvailableAdvancement, AdvancementChoice, AdvancementType, TraitEnum, LevelUpOptionsResponse } from '../../models/level-up-api.model';
 import { CharacterSheetView, TraitDisplay, ExperienceDisplay } from '../../../character-sheet/models/character-sheet-view.model';
@@ -8,11 +10,12 @@ import { CardData } from '../../../../shared/components/daggerheart-card/daggerh
 import { DomainService } from '../../../../shared/services/domain.service';
 import { SubclassService } from '../../../../shared/services/subclass.service';
 import { SubclassPathService } from '../../../../shared/services/subclass-path.service';
+import { PreferencesService } from '../../../../core/services/preferences.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-advancement-config',
-  imports: [CardSelectionGrid, SubclassPathSelector, FormatTextPipe],
+  imports: [CardSelectionGrid, EntitySelectionGrid, SubclassPathSelector, CardSurfaceDirective, FormatTextPipe],
   templateUrl: './advancement-config.html',
   styleUrl: './advancement-config.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +24,8 @@ export class AdvancementConfig implements OnInit {
   private readonly domainService = inject(DomainService);
   private readonly subclassService = inject(SubclassService);
   private readonly subclassPathService = inject(SubclassPathService);
+  private readonly preferences = inject(PreferencesService);
+  readonly sheetLayout = this.preferences.sheetLayout;
 
   readonly advancement = input.required<AvailableAdvancement>();
   readonly characterSheet = input.required<CharacterSheetView>();

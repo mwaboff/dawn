@@ -1,0 +1,121 @@
+:host {
+  display: block;
+}
+
+/* Same column geometry as `.entity-selection-grid`/`.entity-selection-grid--wide`
+   (entity-selection-grid.css) -- the whole point is that swapping the skeleton for real
+   `EntityCard`s doesn't reflow the grid underneath it. */
+.entity-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: var(--space-9);
+}
+
+.entity-skeleton-grid--wide {
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+/* Mirrors `.entity-selection-grid--columns-2` (entity-selection-grid.css) exactly -- same 2-column
+   cap, same 768px "reading comfort" breakpoint (not this file's own overflow-avoidance 640px one),
+   same rationale. See that rule's comment and the `columns` input's doc comment for why. */
+.entity-skeleton-grid--columns-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 768px) {
+  .entity-skeleton-grid--columns-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .entity-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Face, rule and radius match `EntityCard`'s own `:host` (entity-card.css) -- the accent rail is
+   the one thing deliberately skipped: a placeholder doesn't yet know which of the 17 card accents
+   is coming, so all four edges stay the neutral `--color-card-rule` rather than guessing one. */
+.entity-skeleton-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-card-rule);
+  border-radius: 8px;
+  background: var(--color-card-face);
+  animation: entity-skeleton-fade-in .4s ease both;
+}
+
+.entity-skeleton-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-7);
+  border-bottom: 1px solid var(--color-card-rule);
+}
+
+.entity-skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-7);
+}
+
+/* A blend of the card's own ink and face tokens, not a fixed grey -- this is what makes the bars
+   flip correctly with `data-card-theme` instead of assuming one theme (compare `--eca-deep` in
+   entity-card.css, the same color-mix() idiom). */
+.entity-skeleton-bar {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-card-ink) 12%, var(--color-card-face));
+}
+
+.entity-skeleton-bar--tab { width: 4rem; height: .8rem; }
+.entity-skeleton-bar--name { width: 65%; height: 1rem; }
+.entity-skeleton-bar--subtitle { width: 40%; height: .75rem; }
+
+.entity-skeleton-stats { display: flex; gap: var(--space-5); }
+.entity-skeleton-bar--stat { width: 4.5rem; height: .75rem; }
+
+.entity-skeleton-bar--line { width: 100%; height: .7rem; }
+.entity-skeleton-bar--line-medium { width: 80%; }
+.entity-skeleton-bar--line-short { width: 55%; }
+
+.entity-skeleton-feature { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.entity-skeleton-bar--feature-name { width: 35%; height: .75rem; }
+
+.entity-skeleton-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-card-ink) 6%, transparent) 50%,
+    transparent 100%
+  );
+  animation: entity-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes entity-skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes entity-skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Mirrors styles.css's own `@media (prefers-reduced-motion: reduce) { :root:not([data-motion='full']) * ... }`
+   guard (its motion-preference block) so an explicit in-app "Full" choice overrides OS-level
+   reduced-motion here too -- without the guard, an OS-level preference would still kill this
+   animation even when the user explicitly asked for Full. No matching guard is needed for the
+   explicit "Reduced" in-app choice (no OS signal): styles.css's separate, unconditional
+   `:root[data-motion='reduced'] *` rule already force-collapses animation-duration to .01ms
+   regardless of what this file does, so it doesn't need duplicating here. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) .entity-skeleton-card { animation: none; }
+  :root:not([data-motion='full']) .entity-skeleton-shimmer { animation: none; opacity: 0; }
+}

@@ -63,6 +63,15 @@ export function mapDomainCardResponseToCardData(response: DomainCardResponse): C
     cardType: 'domainCard',
     subtitle: domainName || undefined,
     tags: buildTags(response),
+    // The printed header's three facts split by kind rather than by position: domain and card type
+    // are what qualifies this card within domain cards, level is the power-level scalar, and recall
+    // cost is a number. Recall is shown even at 0 (the classic tags omit it) so the ledger matches
+    // the sheet's `domainCardToEntity`, where a 0-recall card still reads "RECALL 0".
+    entityDisplay: {
+      subtitle: [domainName, formatTitleCase(response.type)].filter(Boolean).join(' · ') || undefined,
+      scalar: { label: 'Level', value: String(response.level) },
+      stats: [{ label: 'Recall', value: String(response.recallCost) }],
+    },
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

@@ -11,7 +11,9 @@
       var prefs = JSON.parse(localStorage.getItem('oh-sheet:preferences'));
       var density = prefs && prefs.density === 'condensed' ? 'condensed' : 'comfortable';
       var motion = prefs && (prefs.motion === 'reduced' || prefs.motion === 'full') ? prefs.motion : 'system';
-      var cardTheme = prefs && prefs.cardTheme === 'light' ? 'light' : 'dark';
+      var cardThemePref = prefs && (prefs.cardTheme === 'light' || prefs.cardTheme === 'dark' || prefs.cardTheme === 'default') ? prefs.cardTheme : 'default';
+      // 'default' and 'dark' both resolve to dark on <html> -- the root is a dark-capable surface.
+      var cardTheme = cardThemePref === 'light' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-density', density);
       document.documentElement.setAttribute('data-motion', motion);
       document.documentElement.setAttribute('data-card-theme', cardTheme);

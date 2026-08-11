@@ -14,6 +14,9 @@ import {
 } from '@angular/core';
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
 import { InventoryTab, InventoryTabs } from '../../../../shared/components/inventory-tabs/inventory-tabs';
+import { CustomizeItemAction } from '../../../../shared/components/customize-item-action/customize-item-action';
+import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
+import { SearchableEntityType } from '../../../../shared/models/search.model';
 import { ArmorDisplay, LootDisplay, WeaponDisplay } from '../../../character-sheet/models/character-sheet-view.model';
 import { ItemFinder } from '../item-finder/item-finder';
 import { CatalogItem } from '../../utils/catalog-card.mapper';
@@ -55,7 +58,7 @@ import {
   templateUrl: './inventory-section-beta.html',
   styleUrl: './inventory-section-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard, InventoryTabs, ItemFinder],
+  imports: [EntityCard, InventoryTabs, ItemFinder, CustomizeItemAction],
 })
 export class InventorySectionBeta {
   readonly weapons = input.required<WeaponDisplay[]>();
@@ -153,6 +156,21 @@ export class InventorySectionBeta {
 
   equipHintId(entry: InventoryCardEntry, action: InventoryEquipAction): string {
     return `inv-equip-hint-${this.entryKey(entry)}-${action.kind}`;
+  }
+
+  /**
+   * `CustomizeItemAction` takes a `MappedSearchResult` (the codex's shape); an inventory entry
+   * only needs to fill in `type`/`id`/`name` for the Copy action to work -- it deliberately carries
+   * no `card`, so this component's own Edit button never appears here (this card already has one,
+   * a few lines up).
+   */
+  customizeResultFor(entry: InventoryCardEntry): MappedSearchResult {
+    return {
+      type: entry.type.toUpperCase() as SearchableEntityType,
+      id: entry.itemId,
+      name: entry.name,
+      relevanceScore: null,
+    };
   }
 
   selectTab(tab: InventoryTab): void {

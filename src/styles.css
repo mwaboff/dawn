@@ -16,6 +16,7 @@
 @import "./app/shared/styles/dialog.css";
 @import "./app/shared/styles/card-accents.css";
 @import "./app/shared/styles/entity-card-actions.css";
+@import "./app/shared/styles/entity-select-control.css";
 
 :root {
   /* Warm Tavern Color Palette */
@@ -32,118 +33,93 @@
 
   /* Card type accents. Single source of truth: the wide cards on the codex and the grouped
      sections on the character sheet both read these, so a type looks the same wherever it appears.
-     Hues are spaced deliberately -- see the gaps at 165 (beastform) and 250 (environment). Before
-     adding or changing one, check it against every other token perceptually, not by hue alone: two
-     accents can sit 10+ degrees apart and still be indistinguishable if lightness and chroma match. */
+     ---------------------------------------------------------------------------------------------
+     This ring was solved numerically, not chosen by eye, and it should be RE-SOLVED rather than
+     hand-edited. The generator and its constraint checks are recorded in the commit that introduced
+     this block; the model is:
+
+     - The objective is the MINIMUM CIEDE2000 distance over every pair, evaluated on the three
+       surfaces that actually carry identity: the raw token, and --eca-deep in each theme. Raw is in
+       there because light paints the card rail at pure --ca and dark paints the type-tab chip at
+       pure --ca (see --eca-rail-mix / --eca-chip-mix below) -- one full-chroma accent surface per
+       theme, both resolving to the raw value, which is why one ring serves both.
+     - The header wash is deliberately NOT part of the objective. It is a 12%/10% tint, which puts
+       every pair between dE 1.4 and 3.7 -- at or under the just-noticeable difference -- and it
+       cannot be strengthened: 18% already drops --color-card-ink-faint under 4.5:1 on it. The wash
+       says "a card", not "which card". Don't try to fix hue confusion by deepening it.
+     - Every value satisfies WCAG AA on all ten accent surfaces across both themes. Worst cases:
+       --eca-deep 5.32:1 light / 5.05:1 dark against --color-card-face (5.79 / 4.60 against
+       --color-card-face-lift), --color-card-ink-faint on the header wash 4.50:1 light / 4.60:1 dark,
+       the muted (vaulted) feature name 4.51:1 / 4.50:1, the type-tab chip ink 5.74:1 / 4.56:1.
+       That last pair is the one to watch: the DARK chip is filled with the RAW --ca under near-black
+       ink, so a token that is merely "bright enough for dark text" elsewhere can still fail there.
+     - Hue is bounded per type so meaning survives the optimiser (community stays green, armor blue).
+       Saturation floors are what keep it from buying separation by draining chroma into mud.
+
+     Two values are hand-placed against the solver's output, because a minimum-distance objective
+     has no idea what a type MEANS. Heritage landed on spring green 8 degrees from community -- the
+     one accent it must never be confused with, since a heritage IS an ancestry and a community --
+     and was the ring's tightest real pair at 8.8. It was re-solved against the whole ring (reserved
+     slots included, which a first fix missed: the obvious #73dd2c collides with reserved3 at 4.5)
+     to an olive #71ab49, clear at 10.4. Weapon came out a pale peach 3 degrees from adversary's
+     scarlet, separated from it only by chroma, on the hardest object in the game; it is now a
+     leather brown. Both leave the floor at 8.8, still bound by subclass/domainCard.
+
+     The old ring's minimum was dE 4.1, with seven accents inside a 52-degree red/pink arc and
+     heritage/weapon at 6.6 raw. This one's minimum is 8.8. Before changing ONE token by hand, note
+     that the binding pairs are all within ~1.5 dE of that floor: moving one accent almost always
+     collides it with a neighbour you weren't looking at. Re-run the solver instead.
+
+     Adding a card type: claim a --color-card-reserved* slot below rather than inventing a value.
+     They are five unassigned accents that were part of the same optimisation, so they are already
+     spaced against all 18 real ones and against each other. */
   --color-card-class: #d4a056;
-  --color-card-subclass: #b87fd4;
-  --color-card-subclassPath: #56b4c7;
-  --color-card-heritage: #d45656;
-  --color-card-ancestry: #d4c256;
-  --color-card-community: #56d478;
-  --color-card-domain: #d48056;
-  --color-card-domainCard: #d4569a;
-  --color-card-weapon: #d17070;
-  --color-card-armor: #5080c7;
-  --color-card-loot: #c7a850;
-  /* Rose-pink, not the green it used to be. A companion renders directly under the transformation
-     and beastform panels, and the old #6bad56 was the closest pair in this whole palette -- a hair
-     from beastform teal and from community green. Pink is the furthest open slot from all three. */
-  --color-card-companion: #fe8fb9;
-  --color-card-beastform: #3fae8f;
-  --color-card-environment: #8b82da;
-  /* Moonlit blue-violet. Deliberately not in the red/magenta family: the transformation group
-     renders directly above Equipped Domain Cards, and a rose accent read as a shade of
-     --color-card-domainCard rather than as a separate kind of card. */
-  --color-card-transformationCard: #8f9fe8;
-  /* Crimson rose. Its neighbours on the sheet are beastform teal above and transformation
-     blue-violet below, so the red slot that was wrong for transformations is right here. */
-  --color-card-martialStance: #d4566e;
-  --color-card-feature: #a89684;
-
-  /* EntityCard has two faces, chosen by `data-card-theme` on <html> (plumbed elsewhere; this file
-     only reacts to it). Light is the original: every other panel on the site is dark parchment-on-
-     black, so this is the one place near-black ink on a warm-white ground is correct. Dark is a
-     card "lifted off the table" -- a warm charcoal, lighter and LESS saturated than
-     --color-bg-dark, so a card reads as an object resting on the page rather than a hole in it.
-     Both ink triples below are verified >=4.5:1 (WCAG AA) against both --color-card-face and
-     --color-card-face-lift, computed with a real sRGB relative-luminance calculation, not eyeballed.
-     Light: ink 15.90:1 / 17.31:1 (face / face-lift), ink-soft 8.97:1 / 9.76:1,
-            ink-faint 5.20:1 / 5.66:1.
-     Dark:  ink 13.09:1 / 11.91:1, ink-soft 8.11:1 / 7.38:1, ink-faint 5.78:1 / 5.26:1 (face is
-            #272423, +2 CIE L* over the first dark-theme render -- see the dark override block
-            below for why; ink-faint's own colour was revised separately for headroom, see there
-            too). */
-  --color-card-face: #f7f4ee;
-  --color-card-face-lift: #fffefb;
-  --color-card-ink: #1d1916;
-  --color-card-ink-soft: #4a423b;
-  --color-card-ink-faint: #6f6558;
-  --color-card-rule: #ded5c6;
-  /* Dedicated `.entity-card--muted` ink pair -- see entity-card.css for why muted text needs its
-     own directly-computed colours rather than an opacity fade or a formula referencing the normal
-     ink tokens. Verified >=4.5:1 against every real backdrop muted text can sit on (plain face,
-     and the muted, per-accent-tinted header wash, all 17 accents): worst case 9.78:1 (ink) / 5.21:1
-     (ink-soft). --color-card-ink-faint has NO muted counterpart on purpose -- see there too. */
-  --color-card-ink-muted: #3e3a36;
-  --color-card-ink-soft-muted: #69625b;
-  /* Fixed (non-accent-derived) danger red for the light face -- 9.03:1 against --color-card-face-lift,
-     8.30:1 against --color-card-face. Used by the projected-content overrides below; unlike
-     --eca-deep it doesn't tint per card type, because a warning/danger colour should read the same
-     regardless of which of the 17 accents the card is wearing. */
-  --color-card-danger-ink: #7c2f2f;
-  /* Same idea as --color-card-danger-ink, for the two card-swap actions whose colour carries
-     meaning (vault = amber, equip = green) that a flat ink would erase. Computed the same way as
-     --eca-deep (45% mixed with --color-bg-darker) from the colours the dark theme already uses for
-     these two actions -- rgba(212,128,86,*) and rgba(86,200,120,*) below -- so it reads as the same
-     hue, just legible here. vault: 8.43:1, equip: 6.45:1 against --color-card-face-lift. */
-  --color-card-vault-ink: #6b4330;
-  --color-card-equip-ink: #32693f;
-
-  /* --eca-* tokens read by entity-card.css to build --eca-deep/--eca-tint from the 17 --color-card-*
-     accent hues without the component ever branching on theme. --eca-mix/--eca-anchor pin
-     --eca-deep's color-mix(): light keeps the original 45%-toward-near-black behaviour that buries
-     every hue in ink (necessary on white -- see the dark override below for why it inverts).
-     --eca-chip-ink drives the `.entity-card__tab` lozenge's ink; --eca-chip-mix drives its bg --
-     see entity-card.css's :host block for why --eca-chip-bg itself must NOT be declared here.
-     Both are plain leaf values (a colour, a percentage) with no --ca/--eca-deep inside them, which
-     matters -- see below.
-     --eca-muted-mix is shared by both themes (not overridden below): the percentage of the header
-     wash retained on a `.entity-card--muted` card -- DECORATIVE fading only, see entity-card.css.
-     Same value works for both themes because it's a relative retention, not an absolute colour.
-     --eca-muted-rail-mix is the same idea for the top/left border, but it IS overridden per theme,
-     and the asymmetry is deliberate: 35% in light, where the border is a full --ca accent rail and
-     fading it reads as that accent receding; 100% (i.e. untouched) in dark, where there is no
-     accent rail left to fade and the border is plain --color-card-rule. Fading it in dark would
-     attack the one thing separating a dark card from the page -- --color-card-rule carries 100% of
-     that job at 3.72:1, and muted cards are already the hardest to pick out, so that is exactly
-     where the edge must stay at full strength. A muted dark card recedes via its ink tokens and
-     header wash instead. Do not "fix" this back to a single shared value. --eca-muted-text-mix is
-     the equivalent for the one piece of TEXT that still derives from --ca -- the feature-name
-     colour -- and is deliberately much closer to 100%: text has a 4.5:1 floor decoration doesn't,
-     so it can only be dimmed a little (worst case across all 17 accents is 4.5-4.8:1 either theme;
-     see entity-card.css for the exact formula and why it can't just reference --eca-deep directly).
-     Muted TEXT overall is never opacity-faded -- that used to be the mechanism, and it silently
-     broke WCAG AA in both themes; this is the fix.
-     --eca-rail-mix/--eca-rail-top-width/--eca-rail-left-width drive the card's top/left border --
-     the user's call, not a design default: light keeps the original full-strength --ca rail at its
-     original asymmetric widths (2px top, 3px left); dark drops the accent rail entirely, at 1px
-     matching the other two edges, so the border reads as a plain uniform frame with the accent
-     confined to the chip and feature-name text. All three are plain leaf values (a percentage, two
-     lengths) with no --ca inside them -- entity-card.css's :host block is where --eca-rail-color
-     actually multiplies --ca, for the same reason --eca-chip-bg has to live there. */
-  --eca-mix: 45%;
-  --eca-anchor: var(--color-bg-darker);
-  --eca-tint-pct: 12%;
-  --eca-hover-pct: 18%;
-  --eca-chip-mix: 0%;
-  --eca-chip-ink: var(--color-text-lighter);
-  --eca-rail-mix: 100%;
-  --eca-rail-top-width: 2px;
-  --eca-rail-left-width: 3px;
-  --eca-muted-mix: 35%;
-  --eca-muted-rail-mix: 35%;
-  --eca-muted-text-mix: 92%;
+  --color-card-subclass: #a752e3;
+  --color-card-subclassPath: #2cb1dd;
+  --color-card-heritage: #71ab49;
+  --color-card-ancestry: #ddce2c;
+  --color-card-community: #89d2a5;
+  --color-card-domain: #dd782c;
+  --color-card-domainCard: #e873e0;
+  --color-card-weapon: #a86f5e;
+  --color-card-armor: #2c8bdd;
+  --color-card-loot: #d8cb83;
+  --color-card-companion: #e14795;
+  --color-card-beastform: #2cddcd;
+  --color-card-environment: #9c83d8;
+  --color-card-transformationCard: #5770df;
+  --color-card-martialStance: #e24d58;
+  /* The ring's one near-neutral, and the only token with a saturation CEILING rather than a floor:
+     a feature is a fragment of another card, so it reads as parchment rather than as a type. */
+  --color-card-feature: #938c76;
+  /* Unclaimed. Rename to --color-card-<type> when a type takes one, and add the matching
+     card-accents.css rule; nothing else needs recomputing. Solved alongside the 18 above. */
+  --color-card-reserved1: #73dae8;
+  --color-card-reserved2: #d8839f;
+  --color-card-reserved3: #2cdd2c;
+  --color-card-reserved4: #83b0d8;
+  --color-card-reserved5: #a6dd2c;
+  /* Scarlet. Adversaries are the only hostile entity in the app and the one card type a GM scans a
+     list for, so this is the ring's single high-chroma hot accent -- it is the CHROMA, not the hue,
+     that separates it from the red/crimson family (weapon, martialStance, domainCard, companion),
+     all of which sit at the ring's 52-72% saturation band. Its nearest neighbour in the solved ring
+     is --color-card-weapon, the one that also shares a surface with it (reference search), at
+     CIEDE2000 11.7 raw -- above the ring's 8.7 floor, so it is not a binding pair.
+     Two constraints pinned it here, and both are easy to break by eye:
+     - It cannot be a dark oxblood, which is the intuitive "danger red". The DARK face computes
+       --eca-deep as 75% raw accent toward a near-WHITE anchor (see --eca-mix below), so a dark
+       input lands too close to the dark face: #a32e2a measures 3.46:1 there, under the 4.5:1 text
+       floor. Every accent in this ring has to sit in the same mid-lightness band.
+     - It cannot be much lighter or hotter either. The binding surface is --color-card-ink-faint on
+       the light header wash (12% accent over the face), the thinnest margin in entity-card.css:
+       this value measures 4.50:1 there. #ed461d, two points hotter, drops it to 4.47:1 and fails.
+     Verified across every surface the accent reaches, both themes, with a real sRGB relative-
+     luminance calculation: --eca-deep 8.88:1 light / 5.38:1 dark against --color-card-face (9.66 /
+     4.90 against --color-card-face-lift), tab chip ink 9.58 / 5.44, muted feature name 7.31 / 4.77,
+     light rail 3.48:1 against the face (non-text, 3:1 guideline). Only entity-card renders
+     data-card-type="adversary", so this token is beta-only: classic adversaries go through
+     app-adversary-card, which never reads it. */
+  --color-card-adversary: #ed4e26;
 
   /* Typography */
   --font-display: 'Cinzel', serif;
@@ -227,6 +203,92 @@
   --panel-pad-x: var(--space-9);
 }
 
+:root, [data-card-theme='light'] {
+  /* EntityCard has two faces, chosen by `data-card-theme` on <html> (plumbed elsewhere; this file
+     only reacts to it). Light is the original: every other panel on the site is dark parchment-on-
+     black, so this is the one place near-black ink on a warm-white ground is correct. Dark is a
+     card "lifted off the table" -- a warm charcoal, lighter and LESS saturated than
+     --color-bg-dark, so a card reads as an object resting on the page rather than a hole in it.
+     Both ink triples below are verified >=4.5:1 (WCAG AA) against both --color-card-face and
+     --color-card-face-lift, computed with a real sRGB relative-luminance calculation, not eyeballed.
+     Light: ink 15.90:1 / 17.31:1 (face / face-lift), ink-soft 8.97:1 / 9.76:1,
+            ink-faint 5.20:1 / 5.66:1.
+     Dark:  ink 13.09:1 / 11.91:1, ink-soft 8.11:1 / 7.38:1, ink-faint 5.78:1 / 5.26:1 (face is
+            #272423, +2 CIE L* over the first dark-theme render -- see the dark override block
+            below for why; ink-faint's own colour was revised separately for headroom, see there
+            too). */
+  --color-card-face: #f7f4ee;
+  --color-card-face-lift: #fffefb;
+  --color-card-ink: #1d1916;
+  --color-card-ink-soft: #4a423b;
+  --color-card-ink-faint: #6f6558;
+  --color-card-rule: #ded5c6;
+  /* Dedicated `.entity-card--muted` ink pair -- see entity-card.css for why muted text needs its
+     own directly-computed colours rather than an opacity fade or a formula referencing the normal
+     ink tokens. Verified >=4.5:1 against every real backdrop muted text can sit on (plain face,
+     and the muted, per-accent-tinted header wash, all 17 accents): worst case 9.78:1 (ink) / 5.21:1
+     (ink-soft). --color-card-ink-faint has NO muted counterpart on purpose -- see there too. */
+  --color-card-ink-muted: #3e3a36;
+  --color-card-ink-soft-muted: #69625b;
+  /* Fixed (non-accent-derived) danger red for the light face -- 9.03:1 against --color-card-face-lift,
+     8.30:1 against --color-card-face. Used by the projected-content overrides below; unlike
+     --eca-deep it doesn't tint per card type, because a warning/danger colour should read the same
+     regardless of which of the 17 accents the card is wearing. */
+  --color-card-danger-ink: #7c2f2f;
+  /* Same idea as --color-card-danger-ink, for the two card-swap actions whose colour carries
+     meaning (vault = amber, equip = green) that a flat ink would erase. Computed the same way as
+     --eca-deep (45% mixed with --color-bg-darker) from the colours the dark theme already uses for
+     these two actions -- rgba(212,128,86,*) and rgba(86,200,120,*) below -- so it reads as the same
+     hue, just legible here. vault: 8.43:1, equip: 6.45:1 against --color-card-face-lift. */
+  --color-card-vault-ink: #6b4330;
+  --color-card-equip-ink: #32693f;
+
+  /* --eca-* tokens read by entity-card.css to build --eca-deep/--eca-tint from the 17 --color-card-*
+     accent hues without the component ever branching on theme. --eca-mix/--eca-anchor pin
+     --eca-deep's color-mix(): light keeps the original 45%-toward-near-black behaviour that buries
+     every hue in ink (necessary on white -- see the dark override below for why it inverts).
+     --eca-chip-ink drives the `.entity-card__tab` lozenge's ink; --eca-chip-mix drives its bg --
+     see entity-card.css's :host block for why --eca-chip-bg itself must NOT be declared here.
+     Both are plain leaf values (a colour, a percentage) with no --ca/--eca-deep inside them, which
+     matters -- see below.
+     --eca-muted-mix is shared by both themes (not overridden below): the percentage of the header
+     wash retained on a `.entity-card--muted` card -- DECORATIVE fading only, see entity-card.css.
+     Same value works for both themes because it's a relative retention, not an absolute colour.
+     --eca-muted-rail-mix is the same idea for the top/left border, but it IS overridden per theme,
+     and the asymmetry is deliberate: 35% in light, where the border is a full --ca accent rail and
+     fading it reads as that accent receding; 100% (i.e. untouched) in dark, where there is no
+     accent rail left to fade and the border is plain --color-card-rule. Fading it in dark would
+     attack the one thing separating a dark card from the page -- --color-card-rule carries 100% of
+     that job at 3.72:1, and muted cards are already the hardest to pick out, so that is exactly
+     where the edge must stay at full strength. A muted dark card recedes via its ink tokens and
+     header wash instead. Do not "fix" this back to a single shared value. --eca-muted-text-mix is
+     the equivalent for the one piece of TEXT that still derives from --ca -- the feature-name
+     colour -- and is deliberately much closer to 100%: text has a 4.5:1 floor decoration doesn't,
+     so it can only be dimmed a little (worst case across all 17 accents is 4.5-4.8:1 either theme;
+     see entity-card.css for the exact formula and why it can't just reference --eca-deep directly).
+     Muted TEXT overall is never opacity-faded -- that used to be the mechanism, and it silently
+     broke WCAG AA in both themes; this is the fix.
+     --eca-rail-mix/--eca-rail-top-width/--eca-rail-left-width drive the card's top/left border --
+     the user's call, not a design default: light keeps the original full-strength --ca rail at its
+     original asymmetric widths (2px top, 3px left); dark drops the accent rail entirely, at 1px
+     matching the other two edges, so the border reads as a plain uniform frame with the accent
+     confined to the chip and feature-name text. All three are plain leaf values (a percentage, two
+     lengths) with no --ca inside them -- entity-card.css's :host block is where --eca-rail-color
+     actually multiplies --ca, for the same reason --eca-chip-bg has to live there. */
+  --eca-mix: 45%;
+  --eca-anchor: var(--color-bg-darker);
+  --eca-tint-pct: 12%;
+  --eca-hover-pct: 18%;
+  --eca-chip-mix: 0%;
+  --eca-chip-ink: var(--color-text-lighter);
+  --eca-rail-mix: 100%;
+  --eca-rail-top-width: 2px;
+  --eca-rail-left-width: 3px;
+  --eca-muted-mix: 35%;
+  --eca-muted-rail-mix: 35%;
+  --eca-muted-text-mix: 92%;
+}
+
 /* EntityCard dark face -- "the card lifted off the table". Deliberately desaturated warm charcoal,
    lighter than --color-bg-dark (#1a1412) but NOT closer to its hue: elevation and desaturation do
    the separating, not more brown-and-gold, or a card would read as a hole in the page instead of
@@ -245,7 +307,7 @@
    zero margin, and was nudged lighter for headroom), which is what actually makes the card read as
    a distinct object -- confirmed by rendering the same cards with each lever alone and combined;
    the rule change was the one that mattered, the face bump is a minor assist on top of it. */
-:root[data-card-theme='dark'] {
+[data-card-theme='dark'] {
   --color-card-face: #272423;
   --color-card-face-lift: #2f2b28;
   --color-card-ink: #f0ece5;
@@ -281,8 +343,8 @@
      face they can run as text near their own value instead of buried in ink. --eca-mix stays high
      (75% raw accent -- was 78%, see below) so already-bright accents barely move; the remaining
      --eca-anchor (--color-card-ink, our near-white) is enough to lift the darker hues --
-     --color-card-armor and --color-card-feature especially -- to AA. Worst case across all 17:
-     heritage at 5.25:1 against --color-card-face, 4.78:1 against --color-card-face-lift.
+     --color-card-armor and --color-card-feature especially -- to AA. Worst case across the ring:
+     transformationCard at 5.05:1 against --color-card-face, 4.60:1 against --color-card-face-lift.
      78% originally passed everywhere but with near-zero headroom against face-lift (heritage
      4.60:1, martialStance 4.66:1, armor 4.74:1 -- an accessibility reviewer flagged these as
      fragile, not actually failing). Counterintuitively, LOWERING --eca-mix is what buys margin:
@@ -291,8 +353,8 @@
      (comparatively darker) accent and less anchor, which was tried and made every case worse.
      --eca-chip-mix/--eca-chip-ink flip too: the chip becomes a solid, full-strength --ca fill with
      near-black ink, rather than dark-accent-on-light-ink -- --eca-deep is light here, so it can no
-     longer serve as a legible chip background. Verified against the raw (unmixed) --ca for all 17;
-     worst case is armor/heritage at 5.00:1 / 5.01:1 -- unaffected by the face-lightness change,
+     longer serve as a legible chip background. Verified against the raw (unmixed) --ca for the whole
+     ring; worst case is transformationCard at 4.56:1 -- unaffected by the face-lightness change,
      since the chip's own background is --ca itself, never --color-card-face. This pair is also why
      `.entity-card--muted` never fades the chip (see entity-card.css): a faded, less-than-full --ca
      chip background would drag near-black chip text toward unreadable against a face this dark.

@@ -35,6 +35,19 @@ export function mapEnvironmentToCardData(response: EnvironmentResponse): CardDat
     subtitle: titleCase(response.environmentType),
     subtitleSecondary: `Tier ${response.tier}`,
     tags: [formatDifficulty(response)],
+    // Difficulty changes slot with its own shape: a printed number is a stat, and the verbatim
+    // rules callout the "Special" variant prints is prose, so it belongs in the named-facts grid
+    // where a long value can wrap. No `entityDisplay.subtitle` -- the card's subtitle is already
+    // the environment type.
+    entityDisplay: {
+      scalar: { label: 'Tier', value: String(response.tier) },
+      stats: response.difficulty !== undefined
+        ? [{ label: 'Difficulty', value: String(response.difficulty) }]
+        : undefined,
+      meta: response.difficulty === undefined && response.difficultySpecial
+        ? [{ label: 'Difficulty', value: response.difficultySpecial }]
+        : undefined,
+    },
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,

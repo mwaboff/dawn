@@ -13,7 +13,7 @@ import { PaginatedResponse } from '../../../../shared/models/api.model';
 import { CampaignResponse } from '../../../../shared/models/campaign-api.model';
 import { WeaponResponse } from '../../../../shared/models/weapon-api.model';
 import { ItemForm } from '../../../items/components/item-form/item-form';
-import { ItemKind } from '../../../items/item-routes';
+import { ItemKind } from '../../../../shared/utils/item-routes.utils';
 import { ItemSubmit } from '../../../items/item-submit';
 import { DEFAULT_ITEM_FORM_VALUE, ItemFormValue } from '../../../items/models/item-form-value.model';
 import { ItemFormModal, ItemCreatedEvent } from './item-form-modal';

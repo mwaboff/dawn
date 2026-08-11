@@ -14,7 +14,7 @@ import { CompanionPanelBeta } from './components/companion-panel-beta/companion-
 import { InventoryEditEvent } from '../character-sheet/components/inventory-section/inventory-section';
 import { ItemCreatedEvent, ItemFormModal } from '../character-sheet/components/item-form-modal/item-form-modal';
 import { InventorySectionBeta } from './components/inventory-section-beta/inventory-section-beta';
-import { ItemKind } from '../items/item-routes';
+import { ItemKind } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';

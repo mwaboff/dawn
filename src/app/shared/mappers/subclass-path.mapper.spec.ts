@@ -83,4 +83,38 @@ describe('mapSubclassPathToCardData', () => {
 
     expect(result.metadata!['spellcastingTrait']).toEqual(trait);
   });
+
+  describe('entityDisplay', () => {
+    it('should name the spellcasting trait and the domain list as meta rows', () => {
+      const response = buildSubclassPathResponse({
+        spellcastingTrait: { trait: 'KNOWLEDGE', description: 'Desc', examples: 'Examples' },
+        associatedDomains: [{ id: 1, name: 'Blade' }, { id: 2, name: 'Bone' }],
+      });
+      const result = mapSubclassPathToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        meta: [
+          { label: 'Spellcasting', value: 'KNOWLEDGE' },
+          { label: 'Domains', value: 'Blade, Bone' },
+        ],
+      });
+    });
+
+    it('should stay unset when there is neither a spellcasting trait nor a domain', () => {
+      const response = buildSubclassPathResponse({ spellcastingTrait: undefined, associatedDomains: undefined });
+      const result = mapSubclassPathToCardData(response);
+
+      expect(result.entityDisplay).toBeUndefined();
+    });
+
+    it('should leave the classic tags untouched', () => {
+      const response = buildSubclassPathResponse({
+        spellcastingTrait: { trait: 'KNOWLEDGE', description: 'Desc', examples: 'Examples' },
+        associatedDomains: [{ id: 1, name: 'Blade' }, { id: 2, name: 'Bone' }],
+      });
+      const result = mapSubclassPathToCardData(response);
+
+      expect(result.tags).toEqual(['Spellcasting: KNOWLEDGE', 'Blade', 'Bone']);
+    });
+  });
 });

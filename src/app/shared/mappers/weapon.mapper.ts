@@ -62,6 +62,17 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
       response.damage.notation, formattedRange, formattedBurden, formattedTrait,
       ...(isCustomContent(response) ? [CUSTOM_CONTENT_TAG] : []),
     ],
+    // The same four numbers in the same order the equipped-weapon panel and the sheet's own
+    // `weaponToEntity` use, so one weapon reads identically in the browser and on the sheet.
+    entityDisplay: {
+      scalar: { label: 'Tier', value: String(response.tier) },
+      stats: [
+        { label: 'Damage', value: response.damage.notation },
+        { label: 'Trait', value: formattedTrait },
+        { label: 'Range', value: formattedRange },
+        { label: 'Burden', value: formattedBurden },
+      ],
+    },
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
@@ -73,6 +84,7 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
       tier: response.tier,
       damage: response.damage,
       modifiers,
+      createdByUserId: response.createdByUserId ?? null,
     },
   };
 }

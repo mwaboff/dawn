@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { CampaignService } from '../../../shared/services/campaign.service';
 import { ItemForm } from '../components/item-form/item-form';
 import { ITEM_KIND_LABELS, ItemFormValue } from '../models/item-form-value.model';
-import { ItemKind, isItemKind, itemEditPath } from '../item-routes';
+import { ItemKind, isItemKind, itemEditPath } from '../../../shared/utils/item-routes.utils';
 import { ItemSubmit } from '../item-submit';
 import { readSaveErrorMessage, shareableCampaignOptions } from '../utils/item-form-host.utils';
 import { formValueToRequest, responseToFormValue, savedResponseToFormValue } from './item-builder.mapper';

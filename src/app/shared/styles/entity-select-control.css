@@ -1,0 +1,79 @@
+/* The selection affordance projected into `[card-controls]` by `EntitySelectionGrid` (role="radio"
+   /"checkbox", single- or multi-select) and `SubclassPathSelector`'s beta mode (aria-pressed toggle
+   -- see that component's doc comment for why it uses a different ARIA pattern despite sharing this
+   look). Global rather than component-scoped for the same reason `entity-card-actions.css` is:
+   `[card-controls]` content is styled by whoever wrote it, so a component-scoped copy in each of
+   the two callers would be the copy-rename fork dawn/CLAUDE.md rules out.
+
+   Reads the same re-bound tokens `entity-card-actions.css` does (`--color-accent-text`,
+   `--color-control-text`, `--color-focus-ring`, all set on `.entity-card__controls`/`__actions` in
+   entity-card.css) so the control inks correctly on whichever of the 17 card accents / light-or-dark
+   face it lands on, with zero per-caller patching. */
+
+.entity-select {
+  display: inline-flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 35%, transparent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-control-text);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.entity-select:hover:not([aria-disabled='true']) {
+  background: color-mix(in srgb, var(--color-accent-text) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent-text) 55%, transparent);
+}
+.entity-select:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+/* `[aria-disabled]`, not `:disabled` -- same reasoning as `card-swap-btn` (entity-card-actions.css):
+   an at-max-selections control stays focusable so a screen-reader user still lands on it and hears
+   why it's unavailable, rather than it vanishing from the tab order. */
+.entity-select[aria-disabled='true'] { opacity: .5; cursor: not-allowed; }
+
+/* The box is deliberately not the only selected cue -- `.entity-select__text` always renders
+   "Selected"/"Select"/"Limit reached" as real text beside it (WCAG 1.4.1: never colour alone). */
+.entity-select__box {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 1.1rem; height: 1.1rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+}
+/* Round for a true radio (mutually exclusive, one path/card chosen), square for everything else
+   (multi-select checkboxes, and the single toggle button SubclassPathSelector's beta mode uses) --
+   the shape itself echoes the native affordance a sighted user already knows. */
+.entity-select--radio .entity-select__box { border-radius: 50%; }
+
+.entity-select--selected .entity-select__box {
+  background: var(--color-accent-text);
+  border-color: var(--color-accent-text);
+  color: var(--color-card-face);
+}
+.entity-select__dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+.entity-select__mark { font-size: .75rem; line-height: 1; }
+.entity-select__text { white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .entity-select { transition: none; }
+}
+
+/* The Owned/Locked/Known status text shown beside `.entity-select` (or in its place, when the card
+   isn't selectable at all) wherever a caller renders that state as text next to the control instead
+   of dimming the whole card -- `SubclassPathSelector`'s beta mode and the martial-stance selector/
+   level-up step both project this into the same `[card-controls]` slot `.entity-select` lives in, so
+   it belongs here rather than tripled per caller (dawn/CLAUDE.md's copy-rename-fork rule).
+   --color-card-ink-faint isn't one of `.entity-select`'s re-bound tokens above -- it's a genuine
+   `--color-card-*` custom property (entity-card.css/styles.css) that already varies per card face
+   through normal inheritance, no remapping needed. */
+.card-select-status {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--color-card-ink-faint);
+}

@@ -1,13 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { catchError, of } from 'rxjs';
 
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { AdversaryData } from '../../../../../shared/components/adversary-card/adversary-card.model';
+import { EntityCard } from '../../../../../shared/components/entity-card/entity-card';
+import { EntityCardData } from '../../../../../shared/components/entity-card/entity-card.model';
+import { adversaryToEntityCard } from '../../../../../shared/mappers/adversary-data-to-entity-card.mapper';
 import { CardSkeleton } from '../../../../../shared/components/card-skeleton/card-skeleton';
 import { CardError } from '../../../../../shared/components/card-error/card-error';
+import { CardSurfaceDirective } from '../../../../../shared/directives/card-surface.directive';
 import { PaginationControls } from '../../../../../shared/components/pagination-controls/pagination-controls';
 import { AdversaryService } from '../../../../../shared/services/adversary.service';
 import { AdversaryTypeKey } from '../../../../../shared/utils/battle-points.utils';
+import { PreferencesService } from '../../../../../core/services/preferences.service';
 
 const TIER_OPTIONS = [1, 2, 3, 4] as const;
 const PAGE_SIZE = 12;
@@ -36,12 +42,15 @@ const TYPE_OPTIONS: readonly { value: AdversaryTypeKey; label: string }[] = [
   selector: 'app-adversary-browser',
   templateUrl: './adversary-browser.html',
   styleUrl: './adversary-browser.css',
-  imports: [AdversaryCard, CardSkeleton, CardError, PaginationControls],
+  imports: [AdversaryCard, EntityCard, CardSkeleton, CardError, PaginationControls, CardSurfaceDirective, NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdversaryBrowser implements OnInit {
   private readonly adversaryService = inject(AdversaryService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly preferencesService = inject(PreferencesService);
+
+  readonly sheetLayout = this.preferencesService.sheetLayout;
 
   readonly adversaryAdded = output<AdversaryData>();
 
@@ -75,6 +84,10 @@ export class AdversaryBrowser implements OnInit {
     clearTimeout(this.addFlashTimeout);
     this.justAddedId.set(adversary.id);
     this.addFlashTimeout = setTimeout(() => this.justAddedId.set(null), ADD_FLASH_MS);
+  }
+
+  entityCard(adversary: AdversaryData): EntityCardData {
+    return adversaryToEntityCard(adversary);
   }
 
   isTierSelected(tier: number): boolean {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPreviewCard } from './card-preview.utils';
+import { buildPreviewCard, buildPreviewEntityCard } from './card-preview.utils';
 import { EntityFormSchema } from '../../../../shared/components/entity-form/entity-form.types';
 import { RawCardResponse } from '../../models/admin-api.model';
 
@@ -64,7 +64,9 @@ describe('buildPreviewCard', () => {
     expect(result.id).toBe(42);
     expect(result.name).toBe('Fireball');
     expect(result.description).toBe('Deals fire damage');
-    expect(result.cardType).toBe('domain');
+    // The SCHEMA's type, not the `cardType` sitting on the raw API response above -- reading that
+    // one previewed every card type in the domain accent.
+    expect(result.cardType).toBe('domainCard');
     expect(result.tags).toContain('Level 3');
     expect(result.tags).toContain('SPELL');
     expect(result.tags).toContain('Recall: 2');
@@ -97,5 +99,37 @@ describe('buildPreviewCard', () => {
     };
     const result = buildPreviewCard(noPreviewTagsSchema, { name: 'Rex' }, rawCard, []);
     expect(result.tags).toEqual([]);
+  });
+});
+
+describe('buildPreviewEntityCard', () => {
+  const adversarySchema: EntityFormSchema = { cardType: 'adversary', sections: [] };
+
+  it('gives an adversary a real stat ledger rather than a row of tag chips', () => {
+    const result = buildPreviewEntityCard(adversarySchema, {
+      name: 'Gnarl', tier: 2, adversaryType: 'BRUISER',
+      difficulty: 14, hitPointMax: 8, stressMax: 3, evasion: 12,
+    }, rawCard, []);
+
+    expect(result.cardType).toBe('adversary');
+    expect(result.subtitle).toBe('Bruiser');
+    expect(result.stats).toContainEqual({ label: 'Difficulty', value: '14' });
+    expect(result.stats).toContainEqual({ label: 'HP', value: '8' });
+    expect(result.badges).toContainEqual({ label: 'Tier', value: '2' });
+  });
+
+  it('omits a stat the admin has not filled in yet rather than printing a zero', () => {
+    const result = buildPreviewEntityCard(adversarySchema, {
+      name: 'Gnarl', tier: 1, adversaryType: 'MINION', difficulty: null, hitPointMax: '', evasion: 12,
+    }, rawCard, []);
+
+    expect(result.stats).toEqual([{ label: 'Evasion', value: '12' }]);
+  });
+
+  it('routes every other type through the generic CardData mapper', () => {
+    const result = buildPreviewEntityCard(domainCardSchema, { name: 'Fireball', level: 3 }, rawCard, []);
+
+    expect(result.cardType).toBe('domainCard');
+    expect(result.stats).toBeUndefined();
   });
 });

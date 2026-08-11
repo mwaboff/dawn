@@ -3,12 +3,12 @@ import { ArmorDisplay, LootDisplay, WeaponDisplay } from '../../character-sheet/
 import {
   WeaponEquipConstraints,
   WeaponSlot,
-  canEditItem,
   canEquipWeaponAsPrimary,
   canEquipWeaponAsSecondary,
   isArmorEntryEquipped,
   weaponEquipSlot,
 } from '../../character-sheet/utils/inventory-equip.utils';
+import { canEditItem } from '../../../shared/utils/item-ownership.utils';
 import { armorToEntity, lootToEntity, weaponToEntity } from './entity-card.mapper';
 
 export type InventoryItemType = 'weapon' | 'armor' | 'loot';

@@ -166,18 +166,18 @@ describe('Preferences', () => {
   });
 
   describe('card theme options', () => {
-    it('renders light and dark options', () => {
+    it('renders default, light, and dark options, with default listed first', () => {
       const values = Array.from(el.querySelectorAll('input[name="cardTheme"]')).map(
         i => (i as HTMLInputElement).value,
       );
-      expect(values).toEqual(['light', 'dark']);
+      expect(values).toEqual(['default', 'light', 'dark']);
     });
 
-    it('marks dark as checked by default', () => {
-      const dark = el.querySelector(
-        'input[name="cardTheme"][value="dark"]',
+    it('marks default as checked by default', () => {
+      const defaultOption = el.querySelector(
+        'input[name="cardTheme"][value="default"]',
       ) as HTMLInputElement;
-      expect(dark.checked).toBe(true);
+      expect(defaultOption.checked).toBe(true);
     });
 
     it('clicking light calls setCardTheme on the service', () => {
@@ -225,6 +225,12 @@ describe('Preferences', () => {
       const darkLabel = el.querySelector('input[name="cardTheme"][value="dark"]')
         ?.closest('label');
       expect(darkLabel?.querySelector('.preferences-option__badge')).toBeFalsy();
+    });
+
+    it('does not tag the Default option with a badge', () => {
+      const defaultLabel = el.querySelector('input[name="cardTheme"][value="default"]')
+        ?.closest('label');
+      expect(defaultLabel?.querySelector('.preferences-option__badge')).toBeFalsy();
     });
   });
 });

@@ -353,4 +353,34 @@ describe('WeaponSection', () => {
 
     expect(component.activeWeapons()).toEqual(component.secondaryWeapons());
   });
+
+  describe('beta mode (cardFormat="beta")', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('cardFormat', 'beta');
+    });
+
+    it('renders EntitySelectionGrid instead of CardSelectionGrid', () => {
+      fixture.detectChanges();
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('app-entity-selection-grid')).toBeTruthy();
+      expect(compiled.querySelector('app-card-selection-grid')).toBeFalsy();
+    });
+
+    it('labels the selection group for the active slot', () => {
+      fixture.detectChanges();
+      expect(component.weaponAriaLabel()).toBe('Choose your primary weapon');
+
+      component.onPrimaryCardClicked(primaryCards[0]);
+      weaponServiceMock.getWeapons.mockReturnValue(of(buildPaginatedCards(secondaryCards)));
+      component.onSlotChange('SECONDARY');
+
+      expect(component.weaponAriaLabel()).toBe('Choose your secondary weapon');
+    });
+
+    it('still selects a weapon via onCardClicked in beta mode', () => {
+      fixture.detectChanges();
+      component.onCardClicked(primaryCards[0]);
+      expect(component.selectedPrimary()?.id).toBe(primaryCards[0].id);
+    });
+  });
 });

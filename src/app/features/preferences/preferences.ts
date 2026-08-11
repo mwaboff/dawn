@@ -55,15 +55,24 @@ const SHEET_LAYOUT_OPTIONS: readonly PreferenceOption<SheetLayout>[] = [
 
 const CARD_THEME_OPTIONS: readonly PreferenceOption<CardTheme>[] = [
   {
+    value: 'default',
+    label: 'Default',
+    description:
+      'Dark cards wherever the site has a dark look to match, light cards everywhere else — ' +
+      'the default. As more of the site gets a dark treatment, this follows along automatically.',
+  },
+  {
     value: 'light',
     label: 'Light',
-    description: 'Dark ink on a pale card face.',
+    description: 'Dark ink on a pale card face, everywhere.',
     badge: 'Beta',
   },
   {
     value: 'dark',
     label: 'Dark',
-    description: 'Pale ink on a dark card face, matching the rest of the site — the default.',
+    description:
+      'Pale ink on a dark card face, everywhere. Character creation and levelling up don\'t ' +
+      'have a dark page to match yet, so the card will stand out against its lighter background there.',
   },
 ];
 

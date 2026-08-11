@@ -145,4 +145,38 @@ describe('mapEnvironmentToCardData', () => {
 
     expect(result.metadata!['isOfficial']).toBe(false);
   });
+
+  describe('entityDisplay', () => {
+    it('should carry tier as the scalar and a printed Difficulty as a stat', () => {
+      const response = buildEnvironmentResponse({ tier: 2, difficulty: 12 });
+      const result = mapEnvironmentToCardData(response);
+
+      expect(result.entityDisplay).toEqual({
+        scalar: { label: 'Tier', value: '2' },
+        stats: [{ label: 'Difficulty', value: '12' }],
+      });
+    });
+
+    it('should move a Special difficulty into meta, since it is prose rather than a number', () => {
+      const response = buildEnvironmentResponse({
+        difficulty: undefined,
+        difficultySpecial: 'Special (see "Relative Strength")',
+      });
+      const result = mapEnvironmentToCardData(response);
+
+      expect(result.entityDisplay!.stats).toBeUndefined();
+      expect(result.entityDisplay!.meta).toEqual([
+        { label: 'Difficulty', value: 'Special (see "Relative Strength")' },
+      ]);
+    });
+
+    it('should leave the classic subtitle, subtitleSecondary and tags untouched', () => {
+      const response = buildEnvironmentResponse({ tier: 2, difficulty: 12 });
+      const result = mapEnvironmentToCardData(response);
+
+      expect(result.subtitle).toBe('Exploration');
+      expect(result.subtitleSecondary).toBe('Tier 2');
+      expect(result.tags).toEqual(['Difficulty 12']);
+    });
+  });
 });

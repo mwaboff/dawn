@@ -1,0 +1,56 @@
+/* Original, unchanged -- the classic ('variant() !== "beta"') text button below the card. */
+.customize-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+.customize-action-error {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: #fca5a5;
+}
+
+/* Beta only. Button chrome itself is the shared .card-swap-btn/.card-swap-btn--icon classes
+   (shared/styles/entity-card-actions.css) -- nothing to declare for that here. */
+.customize-item-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.customize-item-action__btn--busy {
+  animation: customize-item-action-pulse 1s ease-in-out infinite;
+}
+
+@keyframes customize-item-action-pulse {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customize-item-action__btn--busy {
+    animation: none;
+    opacity: .6;
+  }
+}
+
+/* --color-warning-text, not --color-error-text-on-dark: this text is always projected into
+   `EntityCard`'s `[card-controls]` slot (variant() === 'beta' only renders docked in an
+   `app-entity-card`, see the component's doc comment), which re-points --color-warning-text to
+   --color-card-danger-ink (entity-card.css) so it inks correctly on whichever card face this lands
+   on -- --color-error-text-on-dark is a fixed value tuned for one specific dark panel
+   (--color-bg-dark) and fails badly on the light card face's near-white background.
+   --color-card-danger-ink is verified >=4.5:1 in both: light 8.30:1/9.03:1 (face/face-lift), dark
+   6.01:1/5.47:1 (styles.css). */
+.customize-item-action__error {
+  margin: 0;
+  flex-basis: 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-warning-text);
+}
