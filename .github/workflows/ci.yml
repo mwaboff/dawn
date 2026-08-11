@@ -1,9 +1,9 @@
 name: CI
+# No push trigger for main: release.yml calls this workflow on every push to
+# main, so a standalone run there would execute the whole pipeline twice.
 on:
   workflow_call:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: read

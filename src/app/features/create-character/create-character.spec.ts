@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 
@@ -143,6 +144,9 @@ describe('CreateCharacter', () => {
     }).compileComponents();
 
     httpTesting = TestBed.inject(HttpTestingController);
+    // No routes are registered here, so the real post-submit navigation would reject with
+    // NG04002 after the test has already finished.
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(CreateCharacter);
     component = fixture.componentInstance;
   });
