@@ -1,13 +1,20 @@
 :host {
   display: block;
+  /* This page scrolls under the fixed navbar, so the run view's sticky header has to clear it or
+     the Complete/Discard controls hide behind the navbar mid-fight. The component defaults to 0,
+     which is right in its other host, a GM screen panel that is its own scroll container. */
+  --run-view-sticky-top: calc(var(--nav-height) + var(--shell-pad-top));
 }
 
-/* An ember line across the top of the viewport -- the one cue that distinguishes "you're in a
-   live fight" from every other calm parchment page in the app. */
+/* An ember line across the top of the page -- the one cue that distinguishes "you're in a live
+   fight" from every other calm page in the app.
+   It sits below the navbar rather than at viewport 0: the navbar is `position: fixed` at
+   `z-index: 100`, so at `top: 0` this line was painted behind it and had never actually been
+   visible. `--nav-height` puts it exactly where the page's own content begins. */
 :host::before {
   content: '';
   position: fixed;
-  top: 0;
+  top: var(--nav-height);
   left: 0;
   right: 0;
   height: 3px;

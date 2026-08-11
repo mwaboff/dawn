@@ -1,4 +1,7 @@
 <div class="page-shell builder">
+  <!-- This page's "title" is an editable name field, so there is no heading text to promote and the
+       document had no h1 at all. Visually hidden, matching the character creator's approach. -->
+  <h1 class="sr-only">Encounter builder</h1>
   <a [routerLink]="encountersListPath" class="builder__back">&larr; Back to Encounters</a>
 
   @if (loading()) {

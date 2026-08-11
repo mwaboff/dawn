@@ -142,7 +142,11 @@
      See `shared/styles/page-shell.css`. */
   --shell-max: 1400px;
   --shell-pad-inline: 2rem;
-  --shell-pad-top: 3rem;
+  /* 3.5rem, not 3rem: several of these pages open with an 11px gold uppercase eyebrow, and at 48px
+     below a 72px fixed gold-on-dark navbar that eyebrow reads as another row of navbar chrome
+     rather than as the start of the page. 56px separates them. The pages lost far more height than
+     this when the old 6-8rem top paddings went, so it costs nothing. */
+  --shell-pad-top: 3.5rem;
   --shell-pad-bottom: 5rem;
 
   /* Content measures, centred inside the frame. Three, not nine, and none of them invented -- each
