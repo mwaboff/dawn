@@ -1,19 +1,14 @@
-<div class="grain-overlay encounters-grain"></div>
-<div class="encounters-page">
+<div class="encounters-page page-shell page-shell--column">
 
-  <header class="encounters-header">
-    <div class="encounters-identity">
-      <span class="encounters-eyebrow">Battle Ready</span>
-      <h1 class="encounters-title">Encounters</h1>
+  <header class="page-header">
+    <div class="page-header__identity">
+      <span class="page-header__eyebrow">Battle Ready</span>
+      <h1 class="page-header__title">Encounters</h1>
     </div>
-    <a [routerLink]="newEncounterPath" class="encounters-create-btn">+ New Encounter</a>
+    <div class="page-header__actions">
+      <a [routerLink]="newEncounterPath" class="encounters-create-btn">+ New Encounter</a>
+    </div>
   </header>
-
-  <div class="encounters-divider">
-    <div class="encounters-divider-line"></div>
-    <span class="encounters-divider-label">Saved Encounters</span>
-    <div class="encounters-divider-line"></div>
-  </div>
 
   @if (deleteError()) {
     <p class="encounters-delete-error" role="alert">Couldn't delete this encounter — try again.</p>

@@ -2,16 +2,16 @@
   <div class="grain-overlay page-grain" aria-hidden="true"></div>
 
   @if (loading()) {
-    <div class="level-down-loading" role="status" aria-live="polite">
+    <div class="level-down-loading page-shell" role="status" aria-live="polite">
       <p class="loading-text">Loading...</p>
     </div>
   } @else if (error(); as err) {
-    <div class="level-down-error" role="alert">
+    <div class="level-down-error page-shell" role="alert">
       <h1 class="error-title">Error</h1>
       <p class="error-message">{{ err }}</p>
     </div>
   } @else {
-    <div class="content-area">
+    <div class="content-area page-shell">
       <div class="parchment-container max-level-container">
         <div class="max-level-crest" aria-hidden="true">
           <svg class="crest-diamond" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

@@ -13,7 +13,7 @@
 .armor-instead-prompt__text { flex-basis: 100%; font-family: var(--font-body); font-size: var(--text-sm); color: rgba(245,230,211,.8); }
 .armor-instead-prompt__btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .6rem; border-radius: 2px; border: 1px solid var(--color-accent); background: transparent; color: var(--color-accent); cursor: pointer; }
 .armor-instead-prompt__btn:hover { background: rgba(212,160,86,.1); }
-.armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: rgba(245,230,211,.5); cursor: pointer; text-decoration: underline; }
+.armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: var(--color-parchment-a55); cursor: pointer; text-decoration: underline; }
 
 .companion-experiences { display: flex; flex-direction: column; gap: .2rem; }
 .companion-experience-item { display: flex; align-items: baseline; gap: var(--space-3); padding: .2rem 0; border-bottom: 1px solid rgba(212,160,86,.08); }

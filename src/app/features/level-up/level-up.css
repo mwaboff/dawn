@@ -1,12 +1,11 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--nav-height));
 }
 
 .level-up-page {
   position: relative;
-  min-height: 100vh;
-  padding: 1.5rem;
+  min-height: calc(100vh - var(--nav-height));
   background:
     linear-gradient(to bottom, rgba(26, 20, 18, 0.1) 0%, transparent 240px),
     radial-gradient(ellipse at 30% 0%, rgba(180, 120, 50, 0.06) 0%, transparent 50%),
@@ -15,7 +14,7 @@
 
 .page-grain { opacity: 0.12; mix-blend-mode: multiply; }
 
-.content-area { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+.content-area { position: relative; z-index: 1; }
 
 .parchment-container {
   position: relative;
@@ -75,9 +74,4 @@
 
 @media (max-width: 640px) {
   .parchment-container { padding: 1.5rem; }
-  .level-up-page { padding: .75rem; }
-}
-
-@media (min-width: 768px) {
-  .level-up-page { padding: 2rem; }
 }

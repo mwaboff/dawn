@@ -5,18 +5,6 @@
   animation: fadeInUp 0.6s ease-out 0.1s forwards;
 }
 
-.summary-eyebrow {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: var(--space-5);
-  opacity: 0.8;
-}
-
 .summary-name-row {
   display: flex;
   align-items: baseline;
@@ -24,13 +12,10 @@
   margin-bottom: var(--space-5);
 }
 
-.summary-name {
-  font-size: clamp(2.25rem, 6vw, 3.5rem);
-  line-height: 1.1;
-  color: var(--color-parchment);
-  margin: 0;
-  word-break: break-word;
-}
+/* Size and colour come from `.page-header__title`: this heading is the campaign page's title, and
+   it used to be 56px while the campaigns list that links to it was 40px -- the step was visible on
+   the most-travelled navigation in the app. Only the wrapping rule is local. */
+.summary-name { word-break: break-word; }
 
 .summary-badge-ended {
   font-family: var(--font-display);

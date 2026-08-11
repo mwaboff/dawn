@@ -1,25 +1,25 @@
-<div class="item-builder">
+<div class="item-builder page-shell page-shell--page">
   <a class="item-builder__back" [routerLink]="backTarget()">&larr; {{ backLabel() }}</a>
 
-  <header class="item-builder__header">
-    <div class="item-builder__identity">
-      <p class="item-builder__eyebrow">{{ eyebrow() }}</p>
-      <h1 class="item-builder__title">{{ heading() }}</h1>
+  <header class="page-header">
+    <div class="page-header__identity">
+      <p class="page-header__eyebrow">{{ eyebrow() }}</p>
+      <h1 class="page-header__title">{{ heading() }}</h1>
     </div>
     @if (isEdit() && !loadError()) {
-      <button
-        type="button"
-        class="item-builder__duplicate"
-        [disabled]="duplicating() || saving()"
-        [attr.aria-label]="'Duplicate this item'"
-        (click)="onDuplicate()"
-      >
-        {{ duplicating() ? 'Duplicating…' : 'Duplicate' }}
-      </button>
+      <div class="page-header__actions">
+        <button
+          type="button"
+          class="item-builder__duplicate"
+          [disabled]="duplicating() || saving()"
+          [attr.aria-label]="'Duplicate this item'"
+          (click)="onDuplicate()"
+        >
+          {{ duplicating() ? 'Duplicating…' : 'Duplicate' }}
+        </button>
+      </div>
     }
   </header>
-
-  <div class="item-builder__rule"></div>
 
   @if (isEdit() && !loadError()) {
     <p class="item-builder__scope">Changes apply to every character carrying this item.</p>

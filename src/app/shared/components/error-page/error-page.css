@@ -1,20 +1,17 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--nav-height));
   width: 100%;
 }
 
 .error-hero {
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--nav-height));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 30% 40%, rgba(180, 120, 50, 0.1), transparent 60%),
-    radial-gradient(ellipse at 70% 60%, rgba(150, 100, 40, 0.06), transparent 50%),
-    linear-gradient(175deg, #201710, #150f0a 50%, #0d0806);
+  background: var(--surface-hero);
 }
 
 .error-grain {

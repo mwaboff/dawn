@@ -1,21 +1,6 @@
 :host {
   position: relative;
   display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
-    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
-}
-
-.campaign {
-  position: relative;
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 8rem 2rem 6rem;
-}
-
-.campaign-grain {
-  opacity: 0.15;
 }
 
 .campaign-divider {
@@ -131,7 +116,6 @@
 }
 
 @media (max-width: 640px) {
-  .campaign { padding: 7rem 1.25rem 4rem; }
   .campaign-divider { margin: 2rem 0 1rem; }
   .campaign-error { padding: 3rem 1rem; }
 }

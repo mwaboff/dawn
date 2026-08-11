@@ -1,19 +1,14 @@
-<div class="grain-overlay campaigns-grain"></div>
-<div class="campaigns">
+<div class="campaigns page-shell page-shell--column">
 
-  <header class="campaigns-header">
-    <div class="campaigns-identity">
-      <span class="campaigns-eyebrow">Adventures</span>
-      <h1 class="campaigns-title">My Campaigns</h1>
+  <header class="page-header campaigns-header">
+    <div class="page-header__identity">
+      <span class="page-header__eyebrow">Adventures</span>
+      <h1 class="page-header__title">My Campaigns</h1>
     </div>
-    <button type="button" class="campaigns-create-btn" (click)="onCreateCampaign()">+ New Campaign</button>
+    <div class="page-header__actions">
+      <button type="button" class="campaigns-create-btn" (click)="onCreateCampaign()">+ New Campaign</button>
+    </div>
   </header>
-
-  <div class="campaigns-divider">
-    <div class="campaigns-divider-line"></div>
-    <span class="campaigns-divider-label">Campaigns</span>
-    <div class="campaigns-divider-line"></div>
-  </div>
 
   <section class="campaigns-list-section">
     @if (loading()) {

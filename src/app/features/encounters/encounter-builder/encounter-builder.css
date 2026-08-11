@@ -1,22 +1,16 @@
 :host {
   display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
-    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
 }
 
-/* 1200px matches the character builder (`create-character.css`'s `.content-area`) and level-up, so
-   the three "build a thing" pages share one page width. The 960px this used to be was the classic
-   character sheet's cap, sized for a single-column card list, and this page's roster, environment
-   and adversary grids are all `auto-fill minmax(280px)`.
-   What the extra 240px buys is WIDER columns, not more of them -- three either way. After
-   `.builder` padding (48) and the collapsible section's rail and body padding (28), the grid gets
-   1124px, and a fourth 280px track plus its 16px gap needs 1168. Widening it to a fourth column
-   would mean 1244px, which would no longer match the character builder. The width still earns its
-   place: a 364px column is what lets a `compact` EntityCard header sit on one line (see
-   `entity-card.css`'s title basis), which at 284px it could not. */
-.builder { max-width: 1200px; margin: 0 auto; padding: 7rem 1.5rem 6rem; }
+/* Width now comes from `.page-shell` (board measure) rather than a local 1200px cap. The cap's
+   original reason was to match the character builder so the three "build a thing" pages share one
+   width -- that still holds, because the character builder is on the board measure too.
+   What changed is the column count. The roster and adversary grids are `auto-fill minmax(280px)`:
+   at 1200 the grid resolved to 1124px and fit three 364px tracks, and the old note argued against
+   widening because a fourth track at 284px would break the compact EntityCard header onto two
+   lines. At the board measure the grid gets ~1308px and does take a fourth track -- but at 315px,
+   which clears the 19rem/304px card floor that `entity-card.css` documents as the point where a
+   compact header still fits one line. Four columns here is deliberate, not drift. */
 
 .builder__back {
   display: inline-block;
@@ -91,7 +85,6 @@
 .builder__section { margin-bottom: 2.5rem; }
 
 @media (max-width: 640px) {
-  .builder { padding: 6rem 1rem 4rem; }
   .builder__header { flex-direction: column; }
   .builder__save { align-items: flex-start; width: 100%; }
 }

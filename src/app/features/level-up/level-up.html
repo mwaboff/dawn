@@ -2,16 +2,16 @@
   <div class="grain-overlay page-grain" aria-hidden="true"></div>
 
   @if (loading()) {
-    <div class="level-up-loading" role="status" aria-live="polite">
+    <div class="level-up-loading page-shell" role="status" aria-live="polite">
       <p class="loading-text">Preparing level-up...</p>
     </div>
   } @else if (error(); as err) {
-    <div class="level-up-error" role="alert">
+    <div class="level-up-error page-shell" role="alert">
       <h1 class="error-title">Cannot Level Up</h1>
       <p class="error-message">{{ err }}</p>
     </div>
   } @else if (characterSheet(); as sheet) {
-    <div class="content-area">
+    <div class="content-area page-shell">
       <div class="parchment-container">
         <header class="level-up-header">
           <div class="level-up-header__info">

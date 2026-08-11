@@ -1,53 +1,6 @@
 :host {
   position: relative;
   display: block;
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 120, 50, 0.07) 0%, transparent 50%),
-    linear-gradient(175deg, #1a1412 0%, #0d0806 100%);
-}
-
-.preferences {
-  position: relative;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 8rem var(--space-9) 6rem;
-}
-
-.preferences-grain {
-  opacity: 0.15;
-}
-
-.preferences-header {
-  position: relative;
-  z-index: 1;
-  margin-bottom: var(--space-11);
-}
-
-.preferences-eyebrow {
-  display: inline-block;
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  opacity: 0.8;
-  margin-bottom: var(--space-5);
-}
-
-.preferences-title {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.1;
-  color: var(--color-parchment);
-  margin: 0 0 var(--space-7);
-}
-
-.preferences-intro {
-  font-size: var(--text-base);
-  line-height: 1.6;
-  color: var(--color-parchment-a55, rgba(245, 230, 211, 0.65));
-  max-width: 46ch;
 }
 
 .preferences-form {
@@ -147,9 +100,6 @@
 }
 
 @media (max-width: 640px) {
-  .preferences {
-    padding: 7rem var(--space-7) 4rem;
-  }
   .preferences-fieldset {
     padding: var(--space-8) var(--space-7);
   }

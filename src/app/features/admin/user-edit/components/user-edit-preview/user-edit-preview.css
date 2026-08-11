@@ -1,4 +1,4 @@
-.preview-sticky { position: sticky; top: 6rem; }
+.preview-sticky { position: sticky; top: calc(var(--nav-height) + var(--shell-pad-top)); }
 
 .preview-title {
   font-family: var(--font-display);
