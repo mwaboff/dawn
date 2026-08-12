@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapFeatureResponseToCardData } from './feature.mapper';
 import { FeatureResponse } from '../models/feature-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildFeatureResponse(overrides: Partial<FeatureResponse> = {}): FeatureResponse {
   return {
@@ -97,5 +98,28 @@ describe('mapFeatureResponseToCardData', () => {
     expect(tier1.name).toBe(tier2.name);
     expect(tier1.description).not.toBe(tier2.description);
     expect(tier1.id).not.toBe(tier2.id);
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildFeatureResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapFeatureResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'feature',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildFeatureResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapFeatureResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
+    });
   });
 });

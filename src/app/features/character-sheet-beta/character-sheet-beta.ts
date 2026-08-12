@@ -16,6 +16,8 @@ import { ItemCreatedEvent, ItemFormModal } from '../character-sheet/components/i
 import { InventorySectionBeta } from './components/inventory-section-beta/inventory-section-beta';
 import { ItemKind } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
+import { RestrictedCardPlaceholder } from '../character-sheet/components/restricted-card-placeholder/restricted-card-placeholder';
+import { LockIcon } from '../../shared/components/lock-icon/lock-icon';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';
 import { DiceRollerService } from '../../core/services/dice-roller.service';
@@ -70,6 +72,7 @@ interface DomainCardEntry {
     './character-sheet-beta-equipment.css',
     './character-sheet-beta-notes.css',
     './character-sheet-beta-rest.css',
+    './character-sheet-beta-restricted.css',
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -91,6 +94,8 @@ interface DomainCardEntry {
     CollapsibleCardGroup,
     RollOptionsDirective,
     RestControl,
+    RestrictedCardPlaceholder,
+    LockIcon,
   ],
 })
 export class CharacterSheetBeta extends CharacterSheet {

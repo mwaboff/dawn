@@ -1,4 +1,4 @@
-import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { FeatureResponse } from '../models/feature-api.model';
 import { FEATURE_TYPE_LABELS } from '../models/feature-type.model';
 
@@ -12,6 +12,10 @@ import { FEATURE_TYPE_LABELS } from '../models/feature-type.model';
  * there is no separate "tier" field on Feature to surface instead.
  */
 export function mapFeatureResponseToCardData(feature: FeatureResponse): CardData {
+  if (feature.restricted) {
+    return buildRestrictedCardData(feature.id, 'feature', feature.expansionName);
+  }
+
   const costTags = feature.costTags?.length
     ? feature.costTags.map(tag => tag.label.toUpperCase())
     : undefined;
@@ -26,6 +30,6 @@ export function mapFeatureResponseToCardData(feature: FeatureResponse): CardData
     // Cost tags need no label: "1 HOPE" already names its own unit, and a "Cost" label above each
     // of two of them would only repeat itself.
     entityDisplay: costTags ? { stats: costTags.map(tag => ({ value: tag })) } : undefined,
-    metadata: { expansionId: feature.expansionId },
+    metadata: { expansionId: feature.expansionId, srd: feature.srd },
   };
 }

@@ -43,6 +43,16 @@ export interface TransformationCardResponse {
   createdAt: string;
   lastModifiedAt: string;
   deletedAt?: string;
+  /** Whether this card is SRD-licensed content, freely usable without owning the sourcebook it
+   * belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this card because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating); every other field except `id` may then be
+   * omitted. See `transformation-card.mapper.ts`'s `mapTransformationCardToCardData`. */
+  restricted?: boolean;
+  /** The paid book this card belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }
 
 export interface TransformationCardFilters {

@@ -29,6 +29,9 @@
 .trade-card-btn:disabled { opacity: .4; cursor: not-allowed; }
 .trade-card-btn__name { color: #3e2723; font-weight: 600; flex: 1; }
 .trade-card-btn__meta { color: #7a5c46; font-size: var(--text-sm, .875rem); }
+/* Locked, not broken -- same dashed-border convention as the sheet's restricted placeholder. */
+.trade-card-btn--restricted { border-style: dashed; opacity: .75; }
+.trade-card-btn__lock { opacity: .6; }
 
 .equip-section { margin-top: .75rem; display: flex; flex-direction: column; gap: .375rem; }
 .equip-label { font-family: 'Lora', serif; font-size: var(--text-sm, .875rem); color: #5a4230; margin: 0; }

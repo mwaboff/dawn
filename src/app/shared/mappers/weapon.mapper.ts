@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { DamageType, WeaponFeatureResponse, WeaponModifierResponse, WeaponResponse } from '../models/weapon-api.model';
 import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
@@ -42,6 +42,10 @@ function mapFeature(feature: WeaponFeatureResponse): CardFeature {
 }
 
 export function mapWeaponResponseToCardData(response: WeaponResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'weapon', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
   const formattedRange = formatTitleCase(response.range);
   const formattedBurden = formatBurden(response.burden);
@@ -76,6 +80,7 @@ export function mapWeaponResponseToCardData(response: WeaponResponse): CardData 
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       isPrimary: response.isPrimary,
       burden: response.burden,
       damageType: response.damage.damageType,

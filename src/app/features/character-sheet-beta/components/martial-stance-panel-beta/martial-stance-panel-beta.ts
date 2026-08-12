@@ -5,6 +5,7 @@ import { EntityCard } from '../../../../shared/components/entity-card/entity-car
 import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card-group';
 import { EntityCardBadge, EntityCardData } from '../../../../shared/components/entity-card/entity-card.model';
 import { MartialStanceResponse } from '../../../../shared/models/martial-stance-api.model';
+import { restrictedEntity } from '../../utils/entity-card.mapper';
 
 /**
  * Beta redesign of {@link MartialStancePanel}: same stance list, activation, and drop logic --
@@ -21,6 +22,8 @@ import { MartialStanceResponse } from '../../../../shared/models/martial-stance-
 })
 export class MartialStancePanelBeta extends MartialStancePanel {
   toCardData(stance: MartialStanceResponse): EntityCardData {
+    if (stance.restricted) return restrictedEntity(stance.id, 'martialStance', stance.expansionName);
+
     /** Power-level scalar first, then live state -- the badge order every card shares. */
     const badges: EntityCardBadge[] = [
       ...(stance.tier !== undefined ? [{ label: 'Tier', value: String(stance.tier) }] : []),

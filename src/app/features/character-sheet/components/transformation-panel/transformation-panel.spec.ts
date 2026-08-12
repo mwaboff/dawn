@@ -359,4 +359,68 @@ describe('TransformationPanel', () => {
       });
     });
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedCard(overrides: Partial<TransformationCardResponse> = {}): TransformationCardResponse {
+      // `name` is real API shape only because the response type keeps it required -- a restricted
+      // response never actually sends it. `description`/`features` are left off too, matching the
+      // wire.
+      return { id: 9, name: 'ignored', expansionId: 2, createdAt: '', lastModifiedAt: '', restricted: true, ...overrides };
+    }
+
+    it('shows the shared locked title instead of "No transformation" for a restricted, attached card', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+
+      expect(el.querySelector('.expandable-card__name')?.textContent).toContain('Content Not Available');
+      expect(el.querySelector('.expandable-card__name')?.textContent).not.toContain('No transformation');
+    });
+
+    it('shows a lock icon and locked message instead of description/features once expanded', () => {
+      host.card.set(buildRestrictedCard({ expansionName: 'Hope & Fear' }));
+      fixture.detectChanges();
+      expandBody();
+
+      expect(el.querySelector('.transformation-locked app-lock-icon')).toBeTruthy();
+      expect(el.querySelector('.transformation-locked__message')?.textContent).toContain('Hope & Fear');
+      expect(el.querySelector('.transformation-feature')).toBeFalsy();
+    });
+
+    it('shows no Feed Tokens or Wolf Form for a restricted card, even one named Vampire/Werewolf', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+      expandBody();
+
+      expect(el.querySelector('.feed-tokens')).toBeFalsy();
+      expect(el.querySelector('.wolf-form')).toBeFalsy();
+    });
+
+    it('offers no Change action on a restricted card -- swapping is not the removal exception', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+      expandBody();
+
+      const actions = Array.from(el.querySelectorAll('.transformation-action-btn')).map(a => a.textContent?.trim());
+      expect(actions).toEqual(['Remove']);
+    });
+
+    it('still offers Remove on a restricted card -- otherwise the player is stuck in a form they cannot see', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+      expandBody();
+
+      el.querySelector<HTMLButtonElement>('.transformation-action-btn--remove')?.click();
+
+      expect(host.removedCalled).toBe(true);
+    });
+
+    it('degrades to a generic message rather than interpolating "undefined" when expansionName is absent', () => {
+      host.card.set(buildRestrictedCard({ expansionName: undefined }));
+      fixture.detectChanges();
+      expandBody();
+
+      const message = el.querySelector('.transformation-locked__message')!.textContent!;
+      expect(message).not.toContain('undefined');
+    });
+  });
 });

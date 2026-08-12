@@ -25,6 +25,7 @@ const mockCharacterSheet: CharacterSheetView = {
   armorScore: { base: 0, modified: 0, hasModifier: false, modifierSources: [] },
   majorDamageThreshold: { base: 4, modified: 4, hasModifier: false, modifierSources: [] },
   severeDamageThreshold: { base: 8, modified: 8, hasModifier: false, modifierSources: [] },
+  armorRestricted: false,
   hopeMax: { base: 5, modified: 5, hasModifier: false, modifierSources: [] },
   stressMax: { base: 5, modified: 5, hasModifier: false, modifierSources: [] },
   hitPointMarked: 0,

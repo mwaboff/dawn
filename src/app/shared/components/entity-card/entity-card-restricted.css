@@ -1,0 +1,28 @@
+/* Split out of entity-card.css, which is already at the 4kB budget warning (see that file's own
+   note on `--eca-*`) -- same "locked, not broken" treatment `DaggerheartCard`'s `card--restricted`
+   and `AdversaryCard`'s `adversary-card--restricted` variants use: dashed rail, no fabricated
+   stats, a lock icon and message where the ledger/description/features would be. */
+:host(.entity-card--restricted) {
+  border-top-style: dashed;
+  border-left-style: dashed;
+}
+
+.entity-card__locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+
+.entity-card__locked-icon { width: 26px; height: 26px; color: var(--eca-deep); opacity: .55; }
+
+.entity-card__locked-message {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--color-card-ink-soft);
+}

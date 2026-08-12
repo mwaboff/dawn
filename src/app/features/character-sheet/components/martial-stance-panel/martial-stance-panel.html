@@ -10,6 +10,20 @@
   } @else {
     <div class="card-group__list">
       @for (stance of stances(); track stance.id) {
+        @if (stance.restricted) {
+          <app-restricted-card-placeholder [expansionName]="stance.expansionName">
+            <!-- Activation ("Enter") is never offered on a restricted stance -- only dropping one
+                 that already happens to be active, the same removal-only exception every locked
+                 card carries. -->
+            @if (canAct() && isActive(stance.id)) {
+              <div class="stance-actions">
+                <button type="button" class="stance-btn stance-btn--clear" (click)="onClear()" [disabled]="actionInFlight()">
+                  Drop stance
+                </button>
+              </div>
+            }
+          </app-restricted-card-placeholder>
+        } @else {
         <div class="expandable-card expandable-card--martialStance" [class.expandable-card--stanceActive]="isActive(stance.id)">
           <button type="button" class="expandable-card__header" (click)="toggleStance(stance.id)"
                   [attr.aria-expanded]="isExpanded(stance.id)"
@@ -47,6 +61,7 @@
             </div>
           }
         </div>
+        }
       }
     </div>
   }

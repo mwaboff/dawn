@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { DaggerheartCard } from './daggerheart-card';
-import { CardData } from './daggerheart-card.model';
+import { CardData, RESTRICTED_CARD_TITLE, restrictedCardMessage } from './daggerheart-card.model';
 
 const MOCK_CARD: CardData = {
   id: 1,
@@ -545,6 +545,99 @@ describe('DaggerheartCard', () => {
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('[data-card-type="transformationCard"]')).toBeTruthy();
+    });
+  });
+
+  describe('Restricted card', () => {
+    // The regression guard the placeholder face must never break: a card with `restricted`
+    // absent (every existing caller, until their DTOs start setting it) renders exactly as
+    // before -- normal name/description/tags, no placeholder markup, fully interactive.
+    it('should render the classic face unchanged when restricted is absent', () => {
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--restricted')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.card__restricted-title')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.card__name').textContent.trim()).toBe('Bard');
+      expect(fixture.nativeElement.querySelector('.card__description').textContent.trim()).toBe('Masters of captivation.');
+      expect(card.getAttribute('role')).toBe('button');
+      expect(card.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('should render the placeholder face and hide the normal content when restricted', () => {
+      host.card.set({
+        id: 412,
+        cardType: 'domain',
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      } as CardData);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.classList.contains('card--restricted')).toBe(true);
+
+      const title = fixture.nativeElement.querySelector('.card__restricted-title');
+      expect(title.textContent.trim()).toBe(RESTRICTED_CARD_TITLE);
+
+      const message = fixture.nativeElement.querySelector('.card__restricted-message');
+      expect(message.textContent.trim()).toBe(restrictedCardMessage('Hope & Fear'));
+
+      expect(fixture.nativeElement.querySelector('.card__name')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.card__description')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.card__tags')).toBeFalsy();
+    });
+
+    it('should keep the card type accent and badge on a restricted card', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-card-type="domain"]')).toBeTruthy();
+      const badge = fixture.nativeElement.querySelector('.card__type-badge');
+      expect(badge.textContent.trim()).toBe('Domain');
+    });
+
+    it('should degrade the message gracefully when expansionName is absent', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      const message = fixture.nativeElement.querySelector('.card__restricted-message');
+      expect(message.textContent.trim()).toBe(restrictedCardMessage(undefined));
+      expect(message.textContent).not.toContain('undefined');
+    });
+
+    it('should not be focusable or have a button role', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.hasAttribute('role')).toBe(false);
+      expect(card.getAttribute('tabindex')).toBe('-1');
+    });
+
+    it('should not emit cardClicked when restricted and clicked', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      card.click();
+
+      expect(host.clickedCard).toBeNull();
+    });
+
+    it('should not emit cardClicked on Enter key when restricted', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(host.clickedCard).toBeNull();
+    });
+
+    it('should have an aria-label built from the placeholder title, not card().name', () => {
+      host.card.set({ id: 412, cardType: 'domain', restricted: true } as CardData);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.card');
+      expect(card.getAttribute('aria-label')).toBe(`${RESTRICTED_CARD_TITLE}, Domain card`);
     });
   });
 });

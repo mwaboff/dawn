@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapBeastformToCardData } from './beastform.mapper';
 import { BeastformResponse } from '../models/beastform-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildBeastformResponse(overrides: Partial<BeastformResponse> = {}): BeastformResponse {
   return {
@@ -257,6 +258,29 @@ describe('mapBeastformToCardData', () => {
       expect(result.subtitle).toBe('Agility');
       expect(result.subtitleSecondary).toBe('Tier 2');
       expect(result.tags).toEqual(['Tier 2', 'Melee']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildBeastformResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapBeastformToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'beastform',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildBeastformResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapBeastformToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

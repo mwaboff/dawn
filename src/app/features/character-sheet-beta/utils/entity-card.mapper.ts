@@ -16,6 +16,7 @@ import {
 import { CUSTOM_ITEM_BADGE } from '../../../shared/mappers/custom-content.util';
 import { titleCase } from '../../../shared/utils/text.utils';
 import { WeaponSlot } from '../../character-sheet/utils/inventory-equip.utils';
+import { CardType } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 /**
  * View-model mapping only -- `character-sheet-beta` inherits every save pipeline, equip
@@ -23,6 +24,20 @@ import { WeaponSlot } from '../../character-sheet/utils/inventory-equip.utils';
  * the beta page adds: turning the inherited `CharacterSheetView` card summaries into
  * `EntityCardData`, the shape the shared `EntityCard` component renders.
  */
+
+/**
+ * The locked `EntityCardData` a redacted view-model returns in place of its normal mapping, once
+ * `card.restricted` is true (SRD vs. paid-expansion content gating). Same 2-field shape
+ * `cardDataToEntityCard` builds for the catalogue/browse path, so a restricted card reads
+ * identically wherever `EntityCard` draws it -- `EntityCard` draws the locked face itself off
+ * `restricted`/`expansionName`, so this stops short of inventing a `name`/`description` the way it
+ * used to. Exported so no caller has to hand-roll this shape itself; `MartialStancePanelBeta
+ * .toCardData` (which maps `MartialStanceResponse` straight to `EntityCardData` with no view-model
+ * step) is the one caller outside this file.
+ */
+export function restrictedEntity(id: number | string, cardType: CardType, expansionName?: string): EntityCardData {
+  return { id, cardType, restricted: true, expansionName };
+}
 
 function mapFeatures(features: readonly FeatureDisplay[]): EntityCardFeature[] {
   return features.map(feature => ({
@@ -36,6 +51,7 @@ function mapFeatures(features: readonly FeatureDisplay[]): EntityCardFeature[] {
 }
 
 export function classCardToEntity(card: CardSummary): EntityCardData {
+  if (card.restricted) return restrictedEntity(card.id, 'class', card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -46,6 +62,7 @@ export function classCardToEntity(card: CardSummary): EntityCardData {
 }
 
 export function ancestryCardToEntity(card: CardSummary): EntityCardData {
+  if (card.restricted) return restrictedEntity(card.id, 'ancestry', card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -56,6 +73,7 @@ export function ancestryCardToEntity(card: CardSummary): EntityCardData {
 }
 
 export function communityCardToEntity(card: CardSummary): EntityCardData {
+  if (card.restricted) return restrictedEntity(card.id, 'community', card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -66,6 +84,7 @@ export function communityCardToEntity(card: CardSummary): EntityCardData {
 }
 
 export function subclassCardToEntity(card: SubclassCardSummary): EntityCardData {
+  if (card.restricted) return restrictedEntity(card.id, 'subclass', card.expansionName);
   const meta: EntityCardBadge[] = [];
   if (card.domainNames?.length) meta.push({ label: 'Domains', value: card.domainNames.join(', ') });
   if (card.associatedClassName) meta.push({ label: 'Class', value: card.associatedClassName });
@@ -133,6 +152,7 @@ function itemBadges(
  * `equippedSlot` is the character's state rather than the weapon's, so it arrives as an argument.
  */
 export function weaponToEntity(weapon: WeaponDisplay, equippedSlot: WeaponSlot | null): EntityCardData {
+  if (weapon.restricted) return restrictedEntity(weapon.inventoryEntryId, 'weapon', weapon.expansionName);
   const stats: EntityCardStat[] = [];
   if (weapon.damage) stats.push({ label: 'Damage', value: weapon.damage });
   if (weapon.trait) stats.push({ label: 'Trait', value: weapon.trait });
@@ -154,6 +174,7 @@ export function weaponToEntity(weapon: WeaponDisplay, equippedSlot: WeaponSlot |
 }
 
 export function armorToEntity(armor: ArmorDisplay, equipped: boolean): EntityCardData {
+  if (armor.restricted) return restrictedEntity(armor.inventoryEntryId, 'armor', armor.expansionName);
   return {
     id: armor.inventoryEntryId,
     name: armor.name,
@@ -182,6 +203,7 @@ export function armorToEntity(armor: ArmorDisplay, equipped: boolean): EntityCar
  * "Cost" label above each of two tags would repeat itself.
  */
 export function lootToEntity(loot: LootDisplay): EntityCardData {
+  if (loot.restricted) return restrictedEntity(loot.inventoryEntryId, 'loot', loot.expansionName);
   return {
     id: loot.inventoryEntryId,
     name: loot.name,
@@ -206,6 +228,7 @@ export function lootToEntity(loot: LootDisplay): EntityCardData {
  * instead.
  */
 export function domainCardToEntity(card: DomainCardSummary): EntityCardData {
+  if (card.restricted) return restrictedEntity(card.id, 'domainCard', card.expansionName);
   const subtitleParts = [card.domainName, card.type ? titleCase(card.type) : undefined].filter(Boolean);
 
   return {

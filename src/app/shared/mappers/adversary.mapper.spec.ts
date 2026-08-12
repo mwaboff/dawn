@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapAdversaryToAdversaryData } from './adversary.mapper';
 import { AdversaryApiResponse } from '../models/adversary-api.model';
+import { RESTRICTED_CARD_TITLE } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildAdversaryResponse(overrides: Partial<AdversaryApiResponse> = {}): AdversaryApiResponse {
   return {
@@ -182,5 +183,35 @@ describe('mapAdversaryToAdversaryData', () => {
     const result = mapAdversaryToAdversaryData(response);
 
     expect(result.motivesAndTactics).toBe('Capture and report');
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked AdversaryData without reading any other field', () => {
+      const response = buildAdversaryResponse({
+        id: 99,
+        restricted: true,
+        expansionName: 'Hope & Fear',
+        difficulty: 20,
+        motivesAndTactics: 'should be ignored',
+      });
+      const result = mapAdversaryToAdversaryData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        name: RESTRICTED_CARD_TITLE,
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+      // `tier`/`adversaryType` stay absent rather than a `0`/`''` placeholder that could read as
+      // fact -- `AdversaryCard` never displays them once `restricted` is true.
+      expect(result.tier).toBeUndefined();
+      expect(result.adversaryType).toBeUndefined();
+    });
+
+    it('does not throw when the source response carries only id and tier/adversaryType', () => {
+      expect(() =>
+        mapAdversaryToAdversaryData({ id: 99, tier: 1, adversaryType: 'MINION', restricted: true } as AdversaryApiResponse),
+      ).not.toThrow();
+    });
   });
 });

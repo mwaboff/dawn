@@ -5,6 +5,8 @@ import { CardFeatureItem } from '../daggerheart-card/card-feature-item/card-feat
 import { FormatTextPipe } from '../../pipes/format-text.pipe';
 import { improvisedTierStats } from '../../utils/improvised-tier-stats.utils';
 import { titleCase } from '../../utils/text.utils';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../daggerheart-card/daggerheart-card.model';
+import { LockIcon } from '../lock-icon/lock-icon';
 
 /**
  * One small ornamental mark per adversary type, in the same spirit as the entity-type glyphs in
@@ -36,8 +38,8 @@ let nextInstanceId = 0;
 @Component({
   selector: 'app-adversary-card',
   templateUrl: './adversary-card.html',
-  styleUrls: ['./adversary-card.css', './adversary-card-wide.css'],
-  imports: [CardFeatureItem, FormatTextPipe],
+  styleUrls: ['./adversary-card.css', './adversary-card-wide.css', './adversary-card-restricted.css'],
+  imports: [CardFeatureItem, FormatTextPipe, LockIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdversaryCard {
@@ -61,6 +63,10 @@ export class AdversaryCard {
    * Improvised Statistics by Tier table and a "retiered from Tier N" marker appears.
    */
   readonly effectiveTier = input<number | undefined>(undefined);
+
+  /** Exposed for the template; the copy itself lives in `daggerheart-card.model.ts` so this face
+   * and the classic/beta `DaggerheartCard`/`EntityCard` faces never drift apart. */
+  readonly restrictedTitle = RESTRICTED_CARD_TITLE;
 
   private readonly featuresExpanded = signal(false);
   private readonly descriptionExpanded = signal(false);
@@ -117,8 +123,12 @@ export class AdversaryCard {
     return `Retiered from Tier ${this.adversary().tier}`;
   }
 
+  restrictedMessage(expansionName: string | undefined): string {
+    return restrictedCardMessage(expansionName);
+  }
+
   get typeGlyph(): string {
-    return ADVERSARY_TYPE_GLYPHS[this.adversary().adversaryType] ?? '◆';
+    return ADVERSARY_TYPE_GLYPHS[this.adversary().adversaryType ?? ''] ?? '◆';
   }
 
   /** `BRUISER` -> `Bruiser` -- the printed term, not the raw backend enum (`shared/utils/
@@ -143,7 +153,7 @@ export class AdversaryCard {
   private readonly threatTier = computed<AdversaryThreatTier>(() => {
     const type = this.adversary().adversaryType;
     if (type === 'MINION') return 'minion';
-    if (ELITE_ADVERSARY_TYPES.has(type)) return 'elite';
+    if (ELITE_ADVERSARY_TYPES.has(type ?? '')) return 'elite';
     return 'standard';
   });
 

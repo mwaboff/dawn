@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { BeastformFeatureResponse, BeastformResponse } from '../models/beastform-api.model';
 
 /**
@@ -25,6 +25,10 @@ function mapFeature(feature: BeastformFeatureResponse): CardFeature {
 }
 
 export function mapBeastformToCardData(response: BeastformResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'beastform', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
   const formattedRange = formatTitleCase(response.attackRange);
 
@@ -57,6 +61,7 @@ export function mapBeastformToCardData(response: BeastformResponse): CardData {
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       example: response.example,
       advantages: response.advantages,
       attackRange: response.attackRange,

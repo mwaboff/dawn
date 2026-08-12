@@ -54,6 +54,16 @@ export interface BeastformResponse {
   createdAt: string;
   lastModifiedAt: string;
   deletedAt?: string;
+  /** Whether this beastform is SRD-licensed content, freely usable without owning the
+   * sourcebook it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this beastform because the viewer lacks access to
+   * its expansion (SRD vs. paid-expansion content gating); every other field except `id` may
+   * then be omitted. See `beastform.mapper.ts`'s `mapBeastformToCardData`. */
+  restricted?: boolean;
+  /** The paid book this beastform belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }
 
 /**

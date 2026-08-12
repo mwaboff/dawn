@@ -316,6 +316,95 @@ describe('CharacterSheetBeta', () => {
     expect(component.vaultDomainCardEntries().length).toBe(0);
   });
 
+  describe('restricted domain cards (SRD vs. paid-expansion content gating)', () => {
+    const restrictedResponse: CharacterSheetResponse = {
+      ...mockResponse,
+      domainCards: mockResponse.domainCards!.map(card => ({
+        ...card,
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      })),
+    };
+
+    it('offers no Equip action on a restricted vaulted card -- activating rules the player cannot see', () => {
+      createComponent(of(restrictedResponse));
+      toggleGroup('Domain Card Vault');
+
+      const vaultSection = fixture.nativeElement.querySelector('.vault-section');
+      expect(vaultSection.querySelector('app-entity-card')).toBeTruthy();
+      expect(vaultSection.querySelector('.card-swap-btn--equip')).toBeFalsy();
+    });
+
+    it('still offers the Vault action on a restricted equipped card -- the removal exception', () => {
+      createComponent(of(restrictedResponse));
+
+      const vaultBtn = fixture.nativeElement.querySelector('.cards-section .card-swap-btn--vault') as HTMLButtonElement;
+      expect(vaultBtn).toBeTruthy();
+      expect(vaultBtn.textContent).toContain('Vault');
+    });
+  });
+
+  describe('header stats for a restricted equipped armor (SRD vs. paid-expansion content gating)', () => {
+    // Same fix as classic (`armorRestricted`/`lockedStatLabel`, inherited from `CharacterSheet`) --
+    // Armor score/Major/Severe Damage Threshold must never show the mapper's internal 0 fallback
+    // as the literal number once the equipped armor is restricted.
+    const restrictedArmorResponse: CharacterSheetResponse = {
+      ...mockResponse,
+      inventoryArmors: [{
+        id: 200, armorId: 20, equipped: true,
+        armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+      }],
+    };
+
+    function shieldFor(label: string): HTMLElement {
+      const el = fixture.nativeElement as HTMLElement;
+      const shields = Array.from(el.querySelectorAll<HTMLElement>('.shield'));
+      return shields.find(s => s.querySelector('.shield__label')?.textContent?.trim() === label)!;
+    }
+
+    it('shows a lock icon in the Armor shield instead of a fabricated 0', () => {
+      createComponent(of(restrictedArmorResponse));
+
+      const armorShield = shieldFor('Armor');
+      expect(armorShield.querySelector('.shield__value--locked app-lock-icon')).toBeTruthy();
+      expect(armorShield.querySelector('.shield__value:not(.shield__value--locked)')).toBeFalsy();
+    });
+
+    it('shows a lock icon for Major and Severe Damage Threshold instead of level-only numbers presented as fact', () => {
+      createComponent(of(restrictedArmorResponse));
+
+      const markers = fixture.nativeElement.querySelectorAll('.damage-marker__value--locked app-lock-icon');
+      expect(markers.length).toBe(2);
+      expect(fixture.nativeElement.querySelector('.damage-marker__value:not(.damage-marker__value--locked)')).toBeFalsy();
+    });
+
+    it('shows real numbers, not lock icons, once the equipped armor is unrestricted', () => {
+      createComponent(of({
+        ...mockResponse,
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4, features: [] } }],
+      }));
+
+      expect(shieldFor('Armor').querySelector('.shield__value--locked')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.damage-marker__value--locked')).toBeFalsy();
+    });
+
+    it('sets armorInsteadUnavailableReason (for the companion "mark Armor instead" offer) when armor is restricted -- inherited from CharacterSheet', () => {
+      createComponent(of(restrictedArmorResponse));
+
+      expect(component.armorInsteadUnavailableReason()).toContain('Mark Armor Instead unavailable');
+      expect(component.armorInsteadUnavailableReason()).toContain('Hope & Fear');
+    });
+
+    it('leaves armorInsteadUnavailableReason null once armor is unrestricted', () => {
+      createComponent(of({
+        ...mockResponse,
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4, features: [] } }],
+      }));
+
+      expect(component.armorInsteadUnavailableReason()).toBeNull();
+    });
+  });
+
   it('renders the beta beastform section, not the classic one', () => {
     createComponent();
     expect(fixture.debugElement.query(By.directive(BeastformSectionBeta))).toBeTruthy();

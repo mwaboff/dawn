@@ -442,4 +442,18 @@ describe('InventorySection', () => {
       expect(el.querySelector('button.remove-btn')).toBeTruthy();
     });
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    // The actual locked-face/action-gating rules are `InventoryItemRow`'s own -- this is an
+    // integration check that a restricted item passed down through the list still reaches the row
+    // as such, not a re-test of the row's rendering (see .agents/rules/testing.md on not
+    // duplicating a child's assertions).
+    it('passes a restricted weapon through to its row, which renders the locked placeholder', () => {
+      host.weapons.set([{ id: 1, inventoryEntryId: 1, name: 'Content Not Available', restricted: true, expansionName: 'Hope & Fear', damage: '', trait: '', range: '', burden: '', isPrimary: true, features: [] }]);
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-restricted-card-placeholder')).toBeTruthy();
+      expect(el.querySelector('app-equipment-card')).toBeFalsy();
+    });
+  });
 });

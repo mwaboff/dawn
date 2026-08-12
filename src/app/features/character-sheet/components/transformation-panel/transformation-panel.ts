@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { TransformationCardResponse } from '../../../../shared/models/transformation-card-api.model';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
-import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { CardData, RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { LockIcon } from '../../../../shared/components/lock-icon/lock-icon';
 import { mapTransformationCardToCardData } from '../../../../shared/mappers/transformation-card.mapper';
 import { isVampireTransformation, isWerewolfTransformation } from '../../utils/transformation-card.utils';
 
@@ -24,9 +25,12 @@ const MAX_FEED_TOKENS = 6;
 @Component({
   selector: 'app-transformation-panel',
   templateUrl: './transformation-panel.html',
-  styleUrl: './transformation-panel.css',
+  // `transformation-panel-restricted.css` is split out for the same reason `entity-card-restricted
+  // .css` is: `transformation-panel.css` is already at the 4kB budget warning, so the locked
+  // face's rules get their own budget instead of pushing the main file toward the 8kB error.
+  styleUrls: ['./transformation-panel.css', './transformation-panel-restricted.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe, CardSelectionGrid],
+  imports: [FormatTextPipe, CardSelectionGrid, LockIcon],
 })
 export class TransformationPanel {
   readonly card = input<TransformationCardResponse | null>(null);
@@ -47,7 +51,18 @@ export class TransformationPanel {
   /** Collapsed by default; the header badges carry the live state a player needs mid-combat. */
   readonly expanded = signal(false);
 
-  readonly headerName = computed(() => this.card()?.name ?? 'No transformation');
+  /**
+   * A restricted attached card's `.name` is redacted along with everything else -- reading it
+   * unguarded (`this.card()?.name ?? 'No transformation'`) would misreport a locked, still-attached
+   * transformation as "no transformation chosen", which is wrong AND hides the fact that the
+   * player is currently stuck in a form they can't see. The shared placeholder title takes over
+   * instead, same as every other locked face.
+   */
+  readonly headerName = computed(() => {
+    const c = this.card();
+    if (!c) return 'No transformation';
+    return c.restricted ? RESTRICTED_CARD_TITLE : c.name;
+  });
   /**
    * The panel only renders once a GM has enabled transformations for this character, so the empty
    * state addresses someone who has already been granted one and just has not picked yet. Anyone
@@ -63,6 +78,10 @@ export class TransformationPanel {
   readonly currentTokens = computed(() => this.tokens() ?? 0);
   readonly features = computed(() => this.card()?.features ?? []);
   readonly maxTokens = MAX_FEED_TOKENS;
+
+  /** Exposed for the template; the copy itself lives in `daggerheart-card.model.ts` so this face
+   * never drifts from the shared/adversary/martial-stance/beastform locked faces. */
+  readonly lockedMessage = computed(() => restrictedCardMessage(this.card()?.expansionName));
 
   readonly catalogOptions = computed<CardData[]>(() => this.catalog().map(mapTransformationCardToCardData));
   readonly selectedOption = computed<CardData | undefined>(() => {

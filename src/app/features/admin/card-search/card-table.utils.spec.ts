@@ -2,7 +2,8 @@ import { CardData } from '../../../shared/components/daggerheart-card/daggerhear
 import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
 import { ColumnSpec, CardRow } from './card-table.model';
 import {
-  buildAdversaryRow, buildCardRow, categoryForSearchType, categoryLabel, dedupeRowsByLink, sortRows,
+  buildAdversaryRow, buildCardRow, categoryForSearchType, categoryLabel, dedupeRowsByLink,
+  rowKey, sortRows, srdTypeForCategory, withSrdSuffix,
 } from './card-table.utils';
 
 function subclassCard(id: number, name: string, level: string, pathId = 42): CardData {
@@ -18,7 +19,7 @@ function subclassCard(id: number, name: string, level: string, pathId = 42): Car
 const col = (key: string, numeric = false): ColumnSpec => ({ key, label: key, width: '5rem', numeric });
 
 function row(id: number, name: string, cells: Record<string, string> = {}): CardRow {
-  return { id, name, typeLabel: 'Weapons', link: ['/admin/cards', 'weapon', id], cells };
+  return { id, name, typeLabel: 'Weapons', link: ['/admin/cards', 'weapon', id], cells, srdType: 'WEAPON' };
 }
 
 describe('card-table.utils', () => {
@@ -30,6 +31,49 @@ describe('card-table.utils', () => {
 
     it('returns null for a type with no admin category', () => {
       expect(categoryForSearchType('QUESTION')).toBeNull();
+    });
+  });
+
+  describe('srdTypeForCategory', () => {
+    it('maps a category id to its backend SearchableEntityType', () => {
+      expect(srdTypeForCategory('weapon')).toBe('WEAPON');
+      expect(srdTypeForCategory('domainCard')).toBe('DOMAIN_CARD');
+    });
+
+    it('overrides subclass to SUBCLASS_PATH, not the SUBCLASS_CARD it browses', () => {
+      expect(srdTypeForCategory('subclass')).toBe('SUBCLASS_PATH');
+    });
+
+    it('returns null for an unknown category id', () => {
+      expect(srdTypeForCategory('mystery')).toBeNull();
+    });
+  });
+
+  describe('rowKey', () => {
+    it('pairs the srdType with the id', () => {
+      expect(rowKey(row(7, 'Longsword'))).toBe('WEAPON:7');
+    });
+
+    it('falls back to "none" when the row has no flaggable type', () => {
+      expect(rowKey({ ...row(7, 'Longsword'), srdType: null })).toBe('none:7');
+    });
+  });
+
+  describe('withSrdSuffix', () => {
+    it('appends the suffix to a non-empty name when srd is true', () => {
+      expect(withSrdSuffix('Core Set', true)).toBe('Core Set (SRD)');
+    });
+
+    it('leaves a non-empty name unchanged when srd is false', () => {
+      expect(withSrdSuffix('Hope & Fear', false)).toBe('Hope & Fear');
+    });
+
+    it('leaves a non-empty name unchanged when srd is undefined', () => {
+      expect(withSrdSuffix('Hope & Fear', undefined)).toBe('Hope & Fear');
+    });
+
+    it('never appends to a blank name, even when srd is true', () => {
+      expect(withSrdSuffix('', true)).toBe('');
     });
   });
 
@@ -47,6 +91,18 @@ describe('card-table.utils', () => {
     it('links to the generic card editor', () => {
       const card: CardData = { id: 7, name: 'Longsword', description: '', cardType: 'weapon' };
       expect(buildCardRow(card, 'weapon', []).link).toEqual(['/admin/cards', 'weapon', 7]);
+    });
+
+    it('carries the SRD-flaggable type for its category', () => {
+      const card: CardData = { id: 7, name: 'Longsword', description: '', cardType: 'weapon' };
+      expect(buildCardRow(card, 'weapon', []).srdType).toBe('WEAPON');
+    });
+
+    it('flags a subclass row with SUBCLASS_PATH, not SUBCLASS_CARD', () => {
+      const card: CardData = {
+        id: 5, name: 'Warden', description: '', cardType: 'subclass', metadata: { subclassPathId: 42 },
+      };
+      expect(buildCardRow(card, 'subclass', []).srdType).toBe('SUBCLASS_PATH');
     });
 
     it('links a subclass card to its parent path editor', () => {
@@ -90,6 +146,18 @@ describe('card-table.utils', () => {
     it('renders a missing metadata value as an empty cell rather than "undefined"', () => {
       const card: CardData = { id: 1, name: 'Longsword', description: '', cardType: 'weapon' };
       expect(buildCardRow(card, 'weapon', [col('tier'), col('trait')]).cells).toEqual({ tier: '', trait: '' });
+    });
+
+    it('reads the row srd flag off metadata', () => {
+      const srdCard: CardData = { id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { srd: true } };
+      const nonSrdCard: CardData = { id: 2, name: 'Dagger', description: '', cardType: 'weapon', metadata: { srd: false } };
+      expect(buildCardRow(srdCard, 'weapon', []).srd).toBe(true);
+      expect(buildCardRow(nonSrdCard, 'weapon', []).srd).toBe(false);
+    });
+
+    it('leaves srd undefined when metadata has no srd flag', () => {
+      const card: CardData = { id: 1, name: 'Longsword', description: '', cardType: 'weapon' };
+      expect(buildCardRow(card, 'weapon', []).srd).toBeUndefined();
     });
 
     it('renders consumable as Yes/No', () => {
@@ -136,11 +204,22 @@ describe('card-table.utils', () => {
       expect(result.link).toEqual(['/admin/cards', 'adversary', 10]);
       expect(result.typeLabel).toBe('Adversaries');
       expect(result.cells).toEqual({ tier: '2', adversaryType: 'Standard', difficulty: '12', hp: '5' });
+      expect(result.srdType).toBe('ADVERSARY');
     });
 
     it('summarizes into the detail column for cross-type results', () => {
       const adversary: AdversaryData = { id: 10, name: 'Goblin', tier: 1, adversaryType: 'MINION' };
       expect(buildAdversaryRow(adversary, [col('detail')]).cells['detail']).toBe('Minion · Tier 1');
+    });
+
+    it('reads the row srd flag off the adversary', () => {
+      const srdAdversary: AdversaryData = { id: 10, name: 'Goblin', tier: 1, adversaryType: 'MINION', srd: true };
+      expect(buildAdversaryRow(srdAdversary, []).srd).toBe(true);
+    });
+
+    it('leaves srd undefined when the field is absent', () => {
+      const adversary: AdversaryData = { id: 10, name: 'Goblin', tier: 1, adversaryType: 'MINION' };
+      expect(buildAdversaryRow(adversary, []).srd).toBeUndefined();
     });
   });
 

@@ -10,6 +10,7 @@ export interface UserResponse {
   createdAt: string;
   lastModifiedAt: string;
   usernameChosen: boolean;
+  accessAllExpansions?: boolean;
 }
 
 export interface ChooseUsernameRequest {

@@ -35,6 +35,10 @@ export class CompanionPanel {
   readonly canCreate = input(false);
   readonly saving = input(false);
   readonly armorAvailable = input(false);
+  /** Non-null only while the equipped armor is restricted -- see `CharacterSheet
+   * .armorInsteadUnavailableReason`'s own doc comment. Forwarded to every `CompanionCard` so the
+   * Armored training's "mark Armor instead" offer can stay visible but disabled, with why. */
+  readonly armorInsteadUnavailableReason = input<string | null>(null);
   readonly errorMessage = input<string | null>(null);
   /** Forwarded to every `CompanionCard` -- see that component's doc for why this is computed once
    * at the character-sheet level rather than per-companion. */

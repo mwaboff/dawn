@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 import { EntityCard } from './entity-card';
 import { EntityCardData, EntityCardSize } from './entity-card.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../daggerheart-card/daggerheart-card.model';
 import {
   ResizeObserverStubHandle,
   installResizeObserverStub,
@@ -488,6 +489,90 @@ describe('EntityCard', () => {
       expect(root.querySelectorAll('.entity-card__feature').length).toBe(2);
       expect(root.textContent).toContain('First unnamed feature.');
       expect(root.textContent).toContain('Second unnamed feature.');
+    });
+  });
+
+  describe('restricted (locked) card', () => {
+    /** A redacted stub, mirroring exactly what `cardDataToEntityCard`/`adversaryToEntityCard`/
+     * `restrictedEntity` hand `EntityCard` -- `id`/`cardType`/`restricted`/`expansionName` only,
+     * every other field genuinely absent rather than fabricated. */
+    function restrictedCard(overrides: Partial<EntityCardData> = {}): EntityCardData {
+      return { id: 9, cardType: 'domainCard', restricted: true, expansionName: 'Hope & Fear', ...overrides };
+    }
+
+    it('does not crash when name/description/stats/features are entirely absent', () => {
+      host.card.set(restrictedCard());
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+    });
+
+    it('marks the host as restricted', () => {
+      host.card.set(restrictedCard());
+      fixture.detectChanges();
+
+      expect(root.querySelector('app-entity-card')!.classList.contains('entity-card--restricted')).toBe(true);
+    });
+
+    it('shows the shared locked title in the header instead of the absent name', () => {
+      host.card.set(restrictedCard());
+      fixture.detectChanges();
+
+      expect(header().querySelector('.entity-card__name')?.textContent).toBe(RESTRICTED_CARD_TITLE);
+    });
+
+    it('renders a lock icon and the shared locked message in place of the normal body', () => {
+      host.card.set(restrictedCard());
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__locked app-lock-icon')).toBeTruthy();
+      expect(root.querySelector('.entity-card__locked-message')?.textContent?.trim())
+        .toBe(restrictedCardMessage('Hope & Fear'));
+    });
+
+    it('never renders stats, meta, description or features for a locked card', () => {
+      host.card.set(restrictedCard());
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__stats')).toBeFalsy();
+      expect(root.querySelector('.entity-card__meta')).toBeFalsy();
+      expect(root.querySelector('.entity-card__description')).toBeFalsy();
+      expect(root.querySelector('.entity-card__features')).toBeFalsy();
+    });
+
+    it('renders no header badges or subtitle for a locked card, even if a mapper mistakenly sets them', () => {
+      host.card.set(restrictedCard({ subtitle: 'Should not show', badges: [{ label: 'Tier', value: '3' }] }));
+      fixture.detectChanges();
+
+      expect(root.querySelector('.entity-card__badges')).toBeFalsy();
+      expect(root.querySelector('.entity-card__subtitle')).toBeFalsy();
+    });
+
+    it('degrades to a generic message rather than interpolating "undefined" when expansionName is absent', () => {
+      host.card.set(restrictedCard({ expansionName: undefined }));
+      fixture.detectChanges();
+
+      const message = root.querySelector('.entity-card__locked-message')!.textContent!;
+      expect(message).not.toContain('undefined');
+      expect(message).toBe(restrictedCardMessage(undefined));
+    });
+
+    it('still projects card-actions content, e.g. a caller-supplied removal action', () => {
+      host.card.set(restrictedCard());
+      host.withActions.set(true);
+      fixture.detectChanges();
+
+      // EntityCard has no opinion on WHICH actions a caller projects -- restricting the projected
+      // content to removal-only is the caller's job (see the equipped/vault/inventory slots and
+      // encounter-roster.html). This only proves the slot itself still renders on a locked card.
+      expect(root.querySelector('.projected-action')).toBeTruthy();
+    });
+
+    it('does not concatenate "undefined" into the expanded clip\'s accessible name', () => {
+      host.card.set(restrictedCard());
+      host.size.set('expanded');
+      fixture.detectChanges();
+
+      expect(clip().getAttribute('aria-label')).toBe(`${RESTRICTED_CARD_TITLE} details`);
     });
   });
 });

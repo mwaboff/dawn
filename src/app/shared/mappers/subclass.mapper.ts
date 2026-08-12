@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { SubclassCardResponse, SubclassFeatureResponse } from '../models/subclass-api.model';
 
 function mapFeature(feature: SubclassFeatureResponse): CardFeature {
@@ -13,6 +13,10 @@ function mapFeature(feature: SubclassFeatureResponse): CardFeature {
 }
 
 export function mapSubclassResponseToCardData(response: SubclassCardResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'subclass', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
   const subtitle = response.associatedClassName ?? undefined;
   const subtitleSecondary = response.domainNames?.length
@@ -38,6 +42,7 @@ export function mapSubclassResponseToCardData(response: SubclassCardResponse): C
   const metadata: Record<string, unknown> = {
     expansionId: response.expansionId,
     expansionName: response.expansionName,
+    srd: response.srd,
     subclassPathId: response.subclassPathId,
     subclassPathName: response.subclassPathName,
     associatedClassId: response.associatedClassId,

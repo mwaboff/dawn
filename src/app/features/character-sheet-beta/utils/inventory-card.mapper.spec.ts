@@ -157,6 +157,26 @@ describe('inventory-card.mapper', () => {
       expect(action.disabled).toBe(true);
       expect(action.hint).toBe('Needs both hands free');
     });
+
+    it('offers no equip action for a restricted, not-yet-equipped weapon -- its slot eligibility is redacted too', () => {
+      // `isPrimary`/`burden` default to safe placeholders on a redacted `WeaponDisplay` (see
+      // `buildRestrictedWeaponDisplay`), not real values -- an equip button built from them would
+      // be a guess, so restricted weapons get none until unrestricted.
+      const restricted = buildWeapon({ restricted: true, isPrimary: true, burden: 'ONE_HANDED' });
+
+      expect(weaponCardEntry(restricted, buildState(), null).equipActions).toEqual([]);
+    });
+
+    it('still offers unequip for an already-equipped restricted weapon', () => {
+      const restricted = buildWeapon({ inventoryEntryId: 1, restricted: true });
+      const state = buildState({ activePrimaryWeapon: restricted });
+
+      const actions = weaponCardEntry(restricted, state, null).equipActions;
+
+      expect(actions).toEqual([
+        { kind: 'unequip', label: 'Unequip', ariaLabel: expect.any(String), disabled: false, hint: null },
+      ]);
+    });
   });
 
   describe('armorCardEntry equip action', () => {
@@ -177,6 +197,23 @@ describe('inventory-card.mapper', () => {
 
       expect(action.disabled).toBe(false);
       expect(action.hint).toBeNull();
+    });
+
+    it('offers no equip action for a restricted, not-yet-equipped armor', () => {
+      const restricted = buildArmor({ restricted: true });
+
+      expect(armorCardEntry(restricted, buildState({ canEquipArmorSlot: true }), null).equipActions).toEqual([]);
+    });
+
+    it('still offers unequip for an already-equipped restricted armor', () => {
+      const restricted = buildArmor({ inventoryEntryId: 1, restricted: true });
+      const state = buildState({ activeArmor: restricted });
+
+      const actions = armorCardEntry(restricted, state, null).equipActions;
+
+      expect(actions).toEqual([
+        { kind: 'unequip', label: 'Unequip', ariaLabel: expect.any(String), disabled: false, hint: null },
+      ]);
     });
   });
 

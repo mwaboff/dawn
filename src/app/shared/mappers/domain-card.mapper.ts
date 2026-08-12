@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { DomainCardFeatureResponse, DomainCardResponse } from '../models/domain-card-api.model';
 
 export const DOMAIN_THEME_COLORS: Record<string, string> = {
@@ -52,6 +52,10 @@ function buildDescription(response: DomainCardResponse): string {
 }
 
 export function mapDomainCardResponseToCardData(response: DomainCardResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'domainCard', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(f => mapFeature(f, response.type));
   const domainName = response.associatedDomain?.name ?? '';
   const accentColor = domainName ? (DOMAIN_THEME_COLORS[domainName] ?? undefined) : undefined;
@@ -75,6 +79,7 @@ export function mapDomainCardResponseToCardData(response: DomainCardResponse): C
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       domainName,
       domainId: response.associatedDomainId,
       type: response.type,

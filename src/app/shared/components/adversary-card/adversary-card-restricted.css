@@ -1,0 +1,30 @@
+/* Split out of adversary-card.css, which is already over the 4kB budget warning -- this file has
+   its own headroom. Same "locked, not broken" treatment as `DaggerheartCard`'s `--restricted`
+   variant (`daggerheart-card-variants.css`): dashed border, no fabricated stats, a lock icon and
+   message in place of the stat block. */
+.adversary-card--restricted { border-style: dashed; border-color: rgba(199, 64, 64, .35); }
+.adversary-card--restricted .adversary-card__header { border-bottom-color: rgba(199, 64, 64, .15); }
+
+.adversary-card__body--restricted {
+  align-items: center;
+  text-align: center;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+}
+
+.adversary-card__restricted-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--color-accent);
+  opacity: .55;
+}
+
+.adversary-card__restricted-message {
+  margin: 0;
+  font-size: .9rem;
+  font-style: normal;
+  line-height: 1.55;
+  color: #b8a898;
+  opacity: .7;
+  max-width: 26ch;
+}

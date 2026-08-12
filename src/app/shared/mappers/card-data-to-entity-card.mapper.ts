@@ -59,6 +59,14 @@ import { CUSTOM_CONTENT_TAG, CUSTOM_ITEM_BADGE } from './custom-content.util';
  * `--color-card-*` token and a `card-accents.css` rule).
  */
 export function cardDataToEntityCard(card: CardData): EntityCardData {
+  // A redacted stub (`card.restricted`) carries nothing else safe to read -- no name, subtitle,
+  // tags, features, or `entityDisplay`. `EntityCard` draws its own locked face off `restricted`/
+  // `expansionName` (the same shared copy every other face uses), so this passes the flag straight
+  // through instead of inventing a name/description for a normal-looking card to display.
+  if (card.restricted) {
+    return { id: card.id, cardType: card.cardType, restricted: true, expansionName: card.expansionName };
+  }
+
   const display = card.entityDisplay;
   const secondaryMeta = card.subtitleSecondary ? [{ label: card.subtitleSecondary }] : undefined;
   const common = {

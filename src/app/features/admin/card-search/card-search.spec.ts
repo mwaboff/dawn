@@ -7,9 +7,11 @@ import { CardSearch } from './card-search';
 import { CodexBrowseService } from '../../../shared/services/codex-browse.service';
 import { ExpansionService } from '../../../shared/services/expansion.service';
 import { SearchService } from '../../../shared/services/search.service';
+import { AdminContentService } from './services/admin-content.service';
 import { CardData } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { AdversaryData } from '../../../shared/components/adversary-card/adversary-card.model';
 import { BrowseResult, SearchResponse } from '../../../shared/models/search.model';
+import { BulkSrdUpdateResponse } from './models/bulk-srd.model';
 import { DEFAULT_PAGE_SIZE } from './card-table.model';
 
 const mockCards: CardData[] = [
@@ -35,6 +37,7 @@ describe('CardSearch', () => {
   let browseService: CodexBrowseService;
   let searchService: SearchService;
   let expansionService: ExpansionService;
+  let adminContentService: AdminContentService;
   let queryParams: Record<string, string>;
   let queryParamMap$: BehaviorSubject<ParamMap>;
 
@@ -70,6 +73,7 @@ describe('CardSearch', () => {
     browseService = TestBed.inject(CodexBrowseService);
     searchService = TestBed.inject(SearchService);
     expansionService = TestBed.inject(ExpansionService);
+    adminContentService = TestBed.inject(AdminContentService);
 
     // Stubbed before the component is created: the expansion lookup is kicked off
     // in the constructor.
@@ -167,7 +171,7 @@ describe('CardSearch', () => {
       setParams({ type: 'weapon' });
       const headers = Array.from(fixture.nativeElement.querySelectorAll('th'))
         .map(el => (el as HTMLElement).textContent?.trim().replace(/\s*[▲▼]$/, ''));
-      expect(headers).toEqual(['ID', 'Name', 'Tier', 'Trait', 'Range', 'Burden', 'Damage', 'Expansion']);
+      expect(headers).toEqual(['', 'ID', 'Name', 'Tier', 'Trait', 'Range', 'Burden', 'Damage', 'Expansion']);
     });
 
     it('renders adversary rows linking to the adversary editor', () => {
@@ -434,6 +438,239 @@ describe('CardSearch', () => {
       setParams({ type: 'weapon', q: 'sword' });
       expect(component.error()).toBe(true);
       expect(fixture.nativeElement.querySelector('.search-error')?.textContent).toContain('Failed to load cards');
+    });
+  });
+
+  describe('bulk SRD flagging', () => {
+    it('disables the bulk action buttons when nothing is selected', () => {
+      setParams({ type: 'weapon' });
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('.selection-bar .page-btn'));
+      expect(buttons.length).toBe(3);
+      expect(buttons.every(b => b.disabled)).toBe(true);
+      expect(fixture.nativeElement.querySelector('.selection-bar').textContent).toContain('0 selected');
+    });
+
+    it('tracks a toggled row and enables the bulk actions', () => {
+      setParams({ type: 'weapon' });
+      component.onRowSelectionToggled('WEAPON:1');
+      fixture.detectChanges();
+      expect(component.selectedCount()).toBe(1);
+      const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('.selection-bar .page-btn'));
+      expect(buttons.every(b => !b.disabled)).toBe(true);
+    });
+
+    it('toggling the same key twice clears the selection', () => {
+      setParams({ type: 'weapon' });
+      component.onRowSelectionToggled('WEAPON:1');
+      component.onRowSelectionToggled('WEAPON:1');
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('selects every flaggable row on the page via select-all', () => {
+      setParams({ type: 'weapon' });
+      component.onPageSelectionToggled(true);
+      expect(component.selectedCount()).toBe(2);
+    });
+
+    it('clears the whole page selection via select-all(false)', () => {
+      setParams({ type: 'weapon' });
+      component.onPageSelectionToggled(true);
+      component.onPageSelectionToggled(false);
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('clears the selection when Clear is clicked', () => {
+      setParams({ type: 'weapon' });
+      component.onRowSelectionToggled('WEAPON:1');
+      component.clearSelection();
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('clears the selection when the active category changes', () => {
+      setParams({ type: 'weapon' });
+      component.onRowSelectionToggled('WEAPON:1');
+      component.onCategorySelected('armor');
+      fixture.detectChanges();
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('clears the selection when the page changes', () => {
+      setParams({ type: 'weapon' });
+      component.onRowSelectionToggled('WEAPON:1');
+      component.onPageChanged(1);
+      fixture.detectChanges();
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('sends one PATCH with the selected ids and the target srd value', () => {
+      setParams({ type: 'weapon' });
+      vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+        of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1, 2], unknownIds: [] }));
+
+      component.onPageSelectionToggled(true);
+      component.runBulkAction(true);
+
+      expect(adminContentService.updateSrd).toHaveBeenCalledWith({ type: 'WEAPON', ids: [1, 2], srd: true });
+    });
+
+    it('reports full success and clears the selection afterward', () => {
+      setParams({ type: 'weapon' });
+      vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+        of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1, 2], unknownIds: [] }));
+
+      component.onPageSelectionToggled(true);
+      component.runBulkAction(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.bulk-result').textContent).toContain('Marked 2 items as SRD.');
+      expect(component.selectedCount()).toBe(0);
+    });
+
+    it('reports a partial success and which ids were not found, without calling it a success', () => {
+      setParams({ type: 'weapon' });
+      vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+        of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1], unknownIds: [2] }));
+
+      component.onPageSelectionToggled(true);
+      component.runBulkAction(true);
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.querySelector('.bulk-result').textContent;
+      expect(text).toContain('Marked 1 of 2 items as SRD.');
+      expect(text).toContain('Not found: 2');
+    });
+
+    it('reports a failed type-group without hiding a type-group that succeeded', () => {
+      vi.spyOn(searchService, 'search').mockReturnValue(of(mockSearchResponse([
+        { type: 'WEAPON', id: 1, name: 'Longsword', relevanceScore: 1, expandedEntity: null },
+        { type: 'ADVERSARY', id: 10, name: 'Goblin', relevanceScore: 1, expandedEntity: null },
+      ])));
+      setParams({ type: 'all', q: 'blade' });
+
+      vi.spyOn(adminContentService, 'updateSrd').mockImplementation(req => req.type === 'WEAPON'
+        ? of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1], unknownIds: [] })
+        : throwError(() => ({ status: 403, error: { message: 'Forbidden' } })));
+
+      component.onPageSelectionToggled(true);
+      component.runBulkAction(true);
+      fixture.detectChanges();
+
+      expect(adminContentService.updateSrd).toHaveBeenCalledTimes(2);
+      const text = fixture.nativeElement.querySelector('.bulk-result').textContent;
+      expect(text).toContain('Marked 1 of 2 items as SRD.');
+      expect(text).toContain('ADVERSARY: Forbidden');
+    });
+
+    it('falls back to a generic message when the failed call has no structured error body', () => {
+      setParams({ type: 'weapon' });
+      vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(throwError(() => new Error('Network down')));
+
+      component.onPageSelectionToggled(true);
+      component.runBulkAction(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.bulk-result').textContent).toContain('Failed to update 2 item(s).');
+    });
+
+    it('does nothing when the bulk action is triggered with an empty selection', () => {
+      setParams({ type: 'weapon' });
+      vi.spyOn(adminContentService, 'updateSrd');
+      component.runBulkAction(true);
+      expect(adminContentService.updateSrd).not.toHaveBeenCalled();
+      expect(component.bulkResult()).toBeNull();
+    });
+
+    describe('post-bulk-update refresh', () => {
+      function expansionCellsByName(): Record<string, string | undefined> {
+        const result: Record<string, string | undefined> = {};
+        for (const el of Array.from(fixture.nativeElement.querySelectorAll('.card-row'))) {
+          const row = el as HTMLElement;
+          const name = row.querySelector('.card-row__link')?.textContent?.trim();
+          if (name) result[name] = row.querySelector('td:last-child')?.textContent?.trim();
+        }
+        return result;
+      }
+
+      it('reflects the new srd state in the expansion column immediately, without refetching', () => {
+        vi.spyOn(browseService, 'browse').mockReturnValue(of({
+          ...mockBrowseResult,
+          cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionName: 'Core Set' } }],
+          totalElements: 1,
+        }));
+        setParams({ type: 'weapon' });
+        vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+          of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1], unknownIds: [] }));
+        (browseService.browse as ReturnType<typeof vi.fn>).mockClear();
+
+        component.onPageSelectionToggled(true);
+        component.runBulkAction(true);
+        fixture.detectChanges();
+
+        expect(expansionCellsByName()['Longsword']).toBe('Core Set (SRD)');
+        expect(browseService.browse).not.toHaveBeenCalled();
+      });
+
+      it('updates only the rows the backend reported in updatedIds, not the whole selection', () => {
+        vi.spyOn(browseService, 'browse').mockReturnValue(of({
+          ...mockBrowseResult,
+          cards: [
+            { id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionName: 'Core Set' } },
+            { id: 2, name: 'Dagger', description: '', cardType: 'weapon', metadata: { expansionName: 'Core Set' } },
+          ],
+          totalElements: 2,
+        }));
+        setParams({ type: 'weapon' });
+        // id 2 comes back unknown -- it must not be annotated even though it was selected.
+        vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+          of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1], unknownIds: [2] }));
+
+        component.onPageSelectionToggled(true);
+        component.runBulkAction(true);
+        fixture.detectChanges();
+
+        const byName = expansionCellsByName();
+        expect(byName['Longsword']).toBe('Core Set (SRD)');
+        expect(byName['Dagger']).toBe('Core Set');
+      });
+
+      it('unmarking flips the annotation back off', () => {
+        vi.spyOn(browseService, 'browse').mockReturnValue(of({
+          ...mockBrowseResult,
+          cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionName: 'Core Set', srd: true } }],
+          totalElements: 1,
+        }));
+        setParams({ type: 'weapon' });
+        vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+          of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: false, updatedIds: [1], unknownIds: [] }));
+
+        expect(expansionCellsByName()['Longsword']).toBe('Core Set (SRD)');
+
+        component.onPageSelectionToggled(true);
+        component.runBulkAction(false);
+        fixture.detectChanges();
+
+        expect(expansionCellsByName()['Longsword']).toBe('Core Set');
+      });
+
+      it('clears the local override on the next fetch so it never outlives the page it applied to', () => {
+        vi.spyOn(browseService, 'browse').mockReturnValue(of({
+          ...mockBrowseResult,
+          cards: [{ id: 1, name: 'Longsword', description: '', cardType: 'weapon', metadata: { expansionName: 'Core Set' } }],
+          totalElements: 1,
+        }));
+        setParams({ type: 'weapon' });
+        vi.spyOn(adminContentService, 'updateSrd').mockReturnValue(
+          of<BulkSrdUpdateResponse>({ type: 'WEAPON', srd: true, updatedIds: [1], unknownIds: [] }));
+
+        component.onPageSelectionToggled(true);
+        component.runBulkAction(true);
+        fixture.detectChanges();
+        expect(expansionCellsByName()['Longsword']).toBe('Core Set (SRD)');
+
+        component.onCategorySelected('armor');
+        fixture.detectChanges();
+        expect(expansionCellsByName()['Longsword']).toBe('Core Set');
+      });
     });
   });
 });

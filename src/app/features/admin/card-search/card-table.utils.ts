@@ -40,6 +40,43 @@ export function categoryLabel(categoryId: string): string {
   return ADMIN_CATEGORIES.find(c => c.id === categoryId)?.label ?? categoryId;
 }
 
+/**
+ * Maps an admin category id to the `SearchableEntityType` key the bulk SRD-flagging endpoint
+ * expects. Overrides `subclass` to `SUBCLASS_PATH`: the backend rejects `SUBCLASS_CARD` since a
+ * card's `srd` is derived from its path, and a subclass row is already identified by the path id
+ * (see `buildCardRow`), so this keeps the row's id and its flaggable type in agreement.
+ */
+export function srdTypeForCategory(categoryId: string): SearchableEntityType | null {
+  if (categoryId === 'subclass') return 'SUBCLASS_PATH';
+  return ADMIN_CATEGORIES.find(c => c.id === categoryId)?.type ?? null;
+}
+
+/** Stable per-row selection/tracking key -- pairs the flaggable type with the id so rows from
+ *  different tables never collide even though both use small auto-increment ids. */
+export function rowKey(row: CardRow): string {
+  return `${row.srdType ?? 'none'}:${row.id}`;
+}
+
+/**
+ * Appends "(SRD)" to an expansion cell's text when the row is SRD content. Never appends to a
+ * blank cell -- custom/user-authored content has no expansion by design, and a bare "(SRD)" or
+ * "undefined (SRD)" would read as a rendering bug rather than a deliberate absence.
+ */
+export function withSrdSuffix(expansionText: string, srd: boolean | undefined): string {
+  return expansionText && srd ? `${expansionText} (SRD)` : expansionText;
+}
+
+/** Reads the row's own `srd` flag off `CardData.metadata`, where every card mapper forwards it. */
+function cardSrd(card: CardData): boolean | undefined {
+  const value = card.metadata?.['srd'];
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+/** Reads the row's own `srd` flag off `AdversaryData`. */
+function adversarySrd(adversary: AdversaryData): boolean | undefined {
+  return adversary.srd;
+}
+
 function str(value: unknown): string {
   return value == null || value === '' ? '' : String(value);
 }
@@ -153,6 +190,8 @@ export function buildCardRow(
     typeLabel: categoryLabel(categoryId),
     link: cardLink(card, categoryId),
     cells,
+    srdType: srdTypeForCategory(categoryId),
+    srd: cardSrd(card),
   };
 }
 
@@ -203,6 +242,8 @@ export function buildAdversaryRow(
     typeLabel: categoryLabel('adversary'),
     link: ['/admin/cards', 'adversary', adversary.id],
     cells,
+    srdType: 'ADVERSARY',
+    srd: adversarySrd(adversary),
   };
 }
 

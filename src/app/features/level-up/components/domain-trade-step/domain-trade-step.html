@@ -16,7 +16,11 @@
           @for (card of characterDomainCards(); track card.id) {
             <button class="trade-card-btn"
               [class.selected]="isCardInTradeOut(trade(), card)"
+              [class.trade-card-btn--restricted]="card.restricted"
               (click)="onToggleTradeOut(card)">
+              @if (card.restricted) {
+                <span class="trade-card-btn__lock" aria-hidden="true">&#128274;</span>
+              }
               <span class="trade-card-btn__name">{{ card.name }}</span>
               @if (card.domainName) {
                 <span class="trade-card-btn__meta">{{ card.domainName }}</span>

@@ -1033,4 +1033,194 @@ describe('mapToCharacterSheetView', () => {
       expect(result.inventoryItems[0].id).toBe(8);
     });
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    it('replaces a restricted class card with the locked placeholder', () => {
+      const sheet = makeSheet({
+        // `name` is real API shape only because the response type keeps it required -- a
+        // restricted response never actually sends it, and the assertion below shows the mapper
+        // ignores it in favour of the shared placeholder title.
+        class: { id: 9, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.classCards).toHaveLength(1);
+      expect(result.classCards[0]).toEqual({
+        id: 9,
+        name: 'Content Not Available',
+        description: expect.stringContaining('Hope & Fear'),
+        features: [],
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades gracefully when a restricted card has no known expansion', () => {
+      const sheet = makeSheet({
+        ancestryCards: [{ id: 5, name: 'ignored', restricted: true }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.ancestryCards[0].restricted).toBe(true);
+      expect(result.ancestryCards[0].expansionName).toBeUndefined();
+      expect(result.ancestryCards[0].description).not.toContain('undefined');
+    });
+
+    it('replaces a restricted subclass card, leaving the subclass-only fields unset', () => {
+      const sheet = makeSheet({
+        subclassCards: [{ id: 6, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.subclassCards[0].name).toBe('Content Not Available');
+      expect(result.subclassCards[0].restricted).toBe(true);
+      expect(result.subclassCards[0].associatedClassName).toBeUndefined();
+      expect(result.subclassCards[0].level).toBeUndefined();
+    });
+
+    it('replaces a restricted domain card, leaving the domain-only fields unset', () => {
+      const sheet = makeSheet({
+        equippedDomainCardIds: [7],
+        domainCards: [{ id: 7, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.equippedDomainCards[0].name).toBe('Content Not Available');
+      expect(result.equippedDomainCards[0].restricted).toBe(true);
+      expect(result.equippedDomainCards[0].domainName).toBeUndefined();
+      expect(result.equippedDomainCards[0].recallCost).toBeUndefined();
+    });
+
+    it('replaces a restricted equipped weapon with a safe placeholder', () => {
+      const sheet = makeSheet({
+        inventoryWeapons: [{
+          id: 100, weaponId: 10, equipped: true, slot: 'PRIMARY',
+          // `name` is real API shape only because `WeaponResponse.name` is typed required --
+          // on the wire a restricted response never sends it, and the assertion below shows the
+          // mapper ignores it (the placeholder title wins) rather than reading it.
+          weapon: { id: 10, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activePrimaryWeapon).toEqual({
+        id: 10,
+        inventoryEntryId: 100,
+        name: 'Content Not Available',
+        // `false`, not `true` -- `isPrimary` is one of the fields the backend redacted along with
+        // everything else, so it defaults to the inert value rather than a fabricated affirmative
+        // claim (see `buildRestrictedWeaponDisplay`'s own doc comment).
+        isPrimary: false,
+        damage: '',
+        trait: '',
+        range: '',
+        burden: '',
+        features: [],
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+      expect(result.activePrimaryWeapon?.damageDice).toBeUndefined();
+    });
+
+    it('replaces restricted equipped armor with a safe placeholder', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{
+          id: 200, armorId: 20, equipped: true,
+          armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.activeArmor).toEqual({
+        id: 20,
+        inventoryEntryId: 200,
+        name: 'Content Not Available',
+        baseScore: 0,
+        baseMajorThreshold: 0,
+        baseSevereThreshold: 0,
+        features: [],
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('falls back armorScore/thresholds to the no-bonus numbers for a restricted equipped armor, not a throw or NaN', () => {
+      // `equippedArmor.baseScore`/`baseMajorThreshold`/`baseSevereThreshold` are redacted along
+      // with everything else once the armor is restricted, so `mapToCharacterSheetView` treats the
+      // missing bonus as 0 -- level-only thresholds, no armor score. These numbers still have to be
+      // real (not undefined/NaN): the Armor pip tracker's `max` reads `armorScore.modified`
+      // directly and needs something to render pips against. The arithmetic is deliberately
+      // unchanged by `armorRestricted` -- a hidden armor still contributes what it contributes,
+      // there is nothing to compute -- the flag only tells a template the number is incomplete;
+      // see the next two tests and `character-sheet.spec.ts`/`character-sheet-beta.spec.ts` for
+      // where that flag actually gets acted on.
+      const sheet = makeSheet({
+        level: 3,
+        inventoryArmors: [{
+          id: 200, armorId: 20, equipped: true,
+          armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      // Both thresholds use the `+ level` branch here, not the no-armor `level`/`level * 2`
+      // branch -- `equippedArmor` is truthy (a restricted stub, but still an equipped entry), so
+      // only its own baseMajorThreshold/baseSevereThreshold are what fall back to 0.
+      expect(result.armorScore.modified).toBe(0);
+      expect(result.majorDamageThreshold.modified).toBe(3);
+      expect(result.severeDamageThreshold.modified).toBe(3);
+    });
+
+    it('sets armorRestricted when the equipped armor is restricted', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{
+          id: 200, armorId: 20, equipped: true,
+          armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+        }],
+      });
+
+      expect(mapToCharacterSheetView(sheet).armorRestricted).toBe(true);
+    });
+
+    it('leaves armorRestricted false for an unrestricted equipped armor', () => {
+      const sheet = makeSheet({
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4 } }],
+      });
+
+      expect(mapToCharacterSheetView(sheet).armorRestricted).toBe(false);
+    });
+
+    it('leaves armorRestricted false when nothing is equipped', () => {
+      expect(mapToCharacterSheetView(makeSheet({ inventoryArmors: [] })).armorRestricted).toBe(false);
+    });
+
+    it('replaces a restricted inventory item with a safe placeholder', () => {
+      const sheet = makeSheet({
+        inventoryItems: [{
+          id: 300, lootId: 30,
+          loot: { id: 30, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+        }],
+      });
+
+      const result = mapToCharacterSheetView(sheet);
+
+      expect(result.inventoryItems[0]).toEqual({
+        id: 30,
+        inventoryEntryId: 300,
+        name: 'Content Not Available',
+        description: expect.stringContaining('Hope & Fear'),
+        isConsumable: false,
+        costTags: [],
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+  });
 });

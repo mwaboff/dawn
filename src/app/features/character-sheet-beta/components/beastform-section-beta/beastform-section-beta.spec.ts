@@ -189,6 +189,49 @@ describe('BeastformSectionBeta', () => {
     expect(host.querySelectorAll('[card-actions]').length).toBe(0);
   });
 
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedBeastform(overrides: Partial<BeastformResponse> = {}): BeastformResponse {
+      return {
+        id: 9,
+        name: 'ignored',
+        expansionId: 2,
+        isOfficial: false,
+        isPublic: false,
+        createdAt: '',
+        lastModifiedAt: '',
+        restricted: true,
+        ...overrides,
+      };
+    }
+
+    it('maps to the locked 2-field card and lets EntityCard draw the locked face itself', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform({ expansionName: 'Hope & Fear' })]);
+
+      const card = entityCardOf(fixture).card();
+
+      expect(card.restricted).toBe(true);
+      expect(card.expansionName).toBe('Hope & Fear');
+      expect(card.name).toBeUndefined();
+      expect(card.badges).toBeUndefined();
+      expect(card.headline).toBeUndefined();
+      expect(card.meta).toBeUndefined();
+      expect(card.features).toBeUndefined();
+    });
+
+    it('does not throw sorting a mix of restricted and normal beastforms', () => {
+      expect(() => setUpAndFlush(1, [buildRestrictedBeastform(), buildBeastform()])).not.toThrow();
+    });
+
+    it('renders the shared locked face through EntityCard, with no fabricated Tier badge', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform({ expansionName: 'Hope & Fear' })]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.entity-card__locked')).toBeTruthy();
+      expect(host.querySelector('.entity-card__badges')).toBeFalsy();
+      expect(host.textContent).toContain('Hope & Fear');
+    });
+  });
+
   it("points the header's aria-controls at the id actually rendered on the section body", () => {
     setUpAndFlush(1, [buildBeastform()]);
 

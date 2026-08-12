@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { WeaponDisplay, ArmorDisplay, LootDisplay, FeatureDisplay } from '../../../../models/character-sheet-view.model';
 import { EquipmentCard, EquipmentStat } from '../../../equipment-card/equipment-card';
+import { RestrictedCardPlaceholder } from '../../../restricted-card-placeholder/restricted-card-placeholder';
 import { canEditItem } from '../../../../../../shared/utils/item-ownership.utils';
 
 @Component({
@@ -8,7 +9,7 @@ import { canEditItem } from '../../../../../../shared/utils/item-ownership.utils
   templateUrl: './inventory-item-row.html',
   styleUrl: './inventory-item-row.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EquipmentCard],
+  imports: [EquipmentCard, RestrictedCardPlaceholder],
 })
 export class InventoryItemRow {
   readonly item = input.required<WeaponDisplay | ArmorDisplay | LootDisplay>();
@@ -62,6 +63,13 @@ export class InventoryItemRow {
 
   /** Only the author of a piece of homebrew gets the edit shortcut -- see `canEditItem`. */
   readonly canEdit = computed<boolean>(() => canEditItem(this.item(), this.currentUserId()));
+
+  /** True when the backend redacted this item because the viewer lacks access to its expansion
+   * (SRD vs. paid-expansion content gating) -- the row swaps to `RestrictedCardPlaceholder`
+   * instead of `EquipmentCard`, which would otherwise draw the safe-default stats (`damage: ''`,
+   * `Score: 0`, ...) `buildRestrictedWeaponDisplay`/etc. fill in as if they were real. */
+  readonly restricted = computed<boolean>(() => this.item().restricted === true);
+  readonly expansionName = computed<string | undefined>(() => this.item().expansionName);
 
   readonly cardName = computed<string>(() => this.item().name);
 

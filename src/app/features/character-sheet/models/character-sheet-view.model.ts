@@ -17,6 +17,17 @@ export interface CharacterSheetView {
   severeDamageThreshold: DisplayStat;
   hopeMax: DisplayStat;
   stressMax: DisplayStat;
+  /**
+   * True when the equipped armor is restricted (SRD vs. paid-expansion content gating). `armorScore`
+   * /`majorDamageThreshold`/`severeDamageThreshold` still hold real numbers when this is true --
+   * the equipped armor's own base numbers are redacted, so `mapToCharacterSheetView` computes
+   * those three as if it contributed nothing, purely so the Armor pip tracker's `max` has a number
+   * to render against. That fallback is never the whole story (a hidden armor still contributes
+   * whatever it contributes), so this flag is what tells a template to mark the stat as incomplete
+   * rather than presenting the fallback as fact -- see `CharacterSheet.html`'s Armor/Major/Severe
+   * stat boxes and the beta equivalent.
+   */
+  armorRestricted: boolean;
 
   hitPointMarked: number;
   armorMarked: number;
@@ -94,6 +105,16 @@ export interface WeaponDisplay {
   name: string;
   tier?: number;
   isPrimary: boolean;
+  /**
+   * True when the backend redacted this weapon because the viewer lacks access to its expansion
+   * (SRD vs. paid-expansion content gating). `name` still holds safe placeholder text (see
+   * `buildRestrictedWeaponDisplay`) and `damage`/`trait`/`range`/`burden`/`features` are empty --
+   * check this flag before drawing the normal equipped-weapon face.
+   */
+  restricted?: boolean;
+  /** The paid book this weapon belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
   damage: string;
   /**
    * Structured counterpart of `damage`, alongside it (not a replacement — the classic sheet
@@ -122,6 +143,11 @@ export interface ArmorDisplay {
   createdByUserId?: number | null;
   name: string;
   tier?: number;
+  /** See `WeaponDisplay.restricted`. `baseScore`/`baseMajorThreshold`/`baseSevereThreshold` are 0
+   * and `features` is empty when this is true. */
+  restricted?: boolean;
+  /** See `WeaponDisplay.expansionName`. */
+  expansionName?: string;
   baseScore: number;
   baseMajorThreshold: number;
   baseSevereThreshold: number;
@@ -137,6 +163,11 @@ export interface LootDisplay {
   description?: string;
   isConsumable: boolean;
   costTags: string[];
+  /** See `WeaponDisplay.restricted`. `description` holds the locked-card message (not real loot
+   * text) when this is true. */
+  restricted?: boolean;
+  /** See `WeaponDisplay.expansionName`. */
+  expansionName?: string;
 }
 
 export interface FeatureDisplay {
@@ -158,6 +189,16 @@ export interface CardSummary {
   name: string;
   description?: string;
   features: FeatureDisplay[];
+  /**
+   * True when the backend redacted this card because the viewer lacks access to its expansion
+   * (SRD vs. paid-expansion content gating). `name`/`description` still hold safe placeholder
+   * text (see `buildRestrictedCardSummary`) and `features` is empty -- check this flag to draw
+   * the locked look instead of the normal card.
+   */
+  restricted?: boolean;
+  /** The paid book this card belongs to, present only alongside `restricted: true` and only when
+   * the backend knows it. */
+  expansionName?: string;
 }
 
 export interface SubclassCardSummary extends CardSummary {

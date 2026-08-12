@@ -2,6 +2,7 @@
   <table class="card-table">
     <caption class="sr-only">Card search results</caption>
     <colgroup>
+      <col style="width: 2.25rem" />
       <col style="width: 5rem" />
       @if (showType()) {
         <col style="width: 9rem" />
@@ -13,6 +14,11 @@
     </colgroup>
     <thead>
       <tr>
+        <th scope="col" class="col--checkbox">
+          <input type="checkbox" class="row-checkbox" aria-label="Select all rows on this page"
+            [checked]="allSelected()" [indeterminate]="someSelected() && !allSelected()"
+            (change)="onPageSelectionToggle($event)" />
+        </th>
         <th scope="col" class="col--numeric" [attr.aria-sort]="ariaSort('id')">
           <button type="button" class="col-sort" (click)="onSort('id')">
             ID <span class="col-sort__arrow" aria-hidden="true">{{ sortIndicator('id') }}</span>
@@ -41,7 +47,11 @@
     </thead>
     <tbody>
       @for (row of rows(); track trackRow($index, row)) {
-        <tr class="card-row">
+        <tr class="card-row" [class.card-row--selected]="isSelected(row)">
+          <td class="col--checkbox">
+            <input type="checkbox" class="row-checkbox" [attr.aria-label]="'Select ' + row.name"
+              [checked]="isSelected(row)" [disabled]="!row.srdType" (change)="onRowSelectionToggle(row)" />
+          </td>
           <td class="col--numeric card-row__id">{{ row.id }}</td>
           @if (showType()) {
             <td class="card-row__type">{{ row.typeLabel }}</td>
@@ -50,7 +60,7 @@
             <a [routerLink]="row.link" class="card-row__link">{{ row.name }}</a>
           </td>
           @for (col of columns(); track col.key) {
-            <td [class.col--numeric]="col.numeric" [title]="row.cells[col.key]">{{ row.cells[col.key] }}</td>
+            <td [class.col--numeric]="col.numeric" [title]="cellText(row, col)">{{ cellText(row, col) }}</td>
           }
         </tr>
       }

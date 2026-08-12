@@ -19,8 +19,12 @@
         </button>
       }
       @if (isOwner()) {
+        <!-- Change is not offered on a restricted card -- swapping is not the removal exception.
+             Remove always stays, so a player stuck in a form they can't see can still drop it. -->
         <div card-actions class="transformation-actions">
-          <button type="button" class="btn btn--secondary btn--sm" (click)="openPicker()" [disabled]="!canAct()">Change</button>
+          @if (!data.restricted) {
+            <button type="button" class="btn btn--secondary btn--sm" (click)="openPicker()" [disabled]="!canAct()">Change</button>
+          }
           <button type="button" class="btn btn--danger-ghost btn--sm" (click)="onRemove()" [disabled]="!canAct()">Remove</button>
         </div>
       }

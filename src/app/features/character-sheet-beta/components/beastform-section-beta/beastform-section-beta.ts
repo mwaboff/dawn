@@ -20,8 +20,16 @@ let nextInstanceId = 0;
  * re-deriving (and re-formatting) numbers that the classic view model already owns. `statLine` is
  * the card's `headline`, which only renders at `compact` size, and the attack line stays a `meta`
  * row because it is words rather than numbers.
+ *
+ * A restricted form short-circuits to the same 4-field locked shape every other `EntityCardData`
+ * mapper in this app returns -- `EntityCard` draws the locked face itself off `restricted`/
+ * `expansionName`, so this stops short of a fabricated `Tier undefined` badge (`form.tier` is
+ * genuinely absent on a redacted stub, and `String(undefined)` would otherwise print the word
+ * "undefined" as if it were real data).
  */
 function toEntityCard(form: BeastformView): EntityCardData {
+  if (form.restricted) return { id: form.id, cardType: 'beastform', restricted: true, expansionName: form.expansionName };
+
   const features: EntityCardFeature[] = [
     ...(form.advantages ? [{ name: 'Gain advantage on', description: form.advantages }] : []),
     ...form.features.map(feature => ({ name: feature.name, description: feature.description })),
@@ -32,7 +40,7 @@ function toEntityCard(form: BeastformView): EntityCardData {
     name: form.name,
     cardType: 'beastform',
     headline: form.statLine ?? undefined,
-    badges: [{ label: 'Tier', value: String(form.tier) }],
+    badges: form.tier !== undefined ? [{ label: 'Tier', value: String(form.tier) }] : undefined,
     meta: form.attackLine ? [{ label: 'Attack', value: form.attackLine }] : undefined,
     features,
   };

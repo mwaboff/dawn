@@ -32,6 +32,16 @@
   font-style: italic;
 }
 
+/* Layout delta only -- the checkbox layout needs `display:flex` on the label, which
+   `.form-label` (inline by default) can't give it. Same pattern as entity-form-field.css,
+   duplicated here because Angular's emulated encapsulation scopes styles per-component. */
+.form-label--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+}
+
 .identity-readonly {
   display: grid;
   grid-template-columns: 1fr;

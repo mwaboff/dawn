@@ -176,6 +176,23 @@ describe('SheetViewerPanel', () => {
     expect(fixture.nativeElement.textContent).toContain('Vitals unavailable');
   });
 
+  it('shows an unavailable marker, not a fabricated 0, for a restricted equipped armor\'s thresholds', () => {
+    httpMock.expectOne(r => r.url === BRENNA_URL).flush({
+      ...sheet(),
+      inventoryArmors: [{
+        id: 200, armorId: 20, equipped: true,
+        armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+      }],
+    });
+    httpMock.expectOne(r => r.url === MARROW_URL).flush(sheet(43, 'Old Marrow'));
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('.stat-row__vital')) as HTMLElement[];
+    const majSevRow = rows.find(r => r.textContent?.includes('Maj / Sev'));
+    expect(majSevRow?.querySelector('b')?.textContent?.trim()).toBe('—/—');
+    expect(majSevRow?.querySelector('b')?.getAttribute('aria-label')).toContain('unavailable');
+  });
+
   it('tells the GM when the campaign has no characters', () => {
     flushAll();
     TestBed.inject(GmScreenContext).setCampaign({

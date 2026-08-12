@@ -21,9 +21,18 @@ import { CollapsibleCardGroup } from '../collapsible-card-group/collapsible-card
   imports: [EntityCard, CardSelectionGrid, CollapsibleCardGroup],
 })
 export class TransformationPanelBeta extends TransformationPanel {
+  /**
+   * A restricted attached card short-circuits to the same 2-field locked shape every other
+   * `EntityCardData` mapper in this app returns -- `EntityCard` draws the locked face itself off
+   * `restricted`/`expansionName`, so this never reaches `current.name`/`.description`/`.features`
+   * (all absent on a redacted stub) to build a fabricated card.
+   */
   readonly entityCard = computed<EntityCardData | null>(() => {
     const current = this.card();
     if (!current) return null;
+    if (current.restricted) {
+      return { id: current.id, cardType: 'transformationCard', restricted: true, expansionName: current.expansionName };
+    }
 
     return {
       id: current.id,

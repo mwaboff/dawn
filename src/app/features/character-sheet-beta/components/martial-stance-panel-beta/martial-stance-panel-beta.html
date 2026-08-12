@@ -7,7 +7,11 @@
     <div class="card-group__list">
       @for (stance of stances(); track stance.id) {
         <app-entity-card [card]="toCardData(stance)" [muted]="!isActive(stance.id)">
-          @if (canAct()) {
+          <!-- A restricted stance offers activation ("Enter") only while it happens to already be
+               the active one, where the sole available action is dropping it -- the same
+               removal-only exception `.agents/rules`'s locked-card contract carves out everywhere
+               else. Activating a stance whose rules the player can't see is never offered. -->
+          @if (canAct() && (isActive(stance.id) || !stance.restricted)) {
             <div card-actions class="stance-actions">
               @if (isActive(stance.id)) {
                 <button type="button" class="btn btn--danger-ghost btn--sm" (click)="onClear()" [disabled]="actionInFlight()">

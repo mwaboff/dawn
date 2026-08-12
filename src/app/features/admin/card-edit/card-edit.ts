@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, FormGroup, AbstractControl, FormControl } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import { AdminCardService } from '../../../shared/services/admin-card.service';
@@ -51,7 +51,7 @@ const FALLBACK_SCHEMA: EntityFormSchema = {
   templateUrl: './card-edit.html',
   styleUrl: './card-edit.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, CardEditToolbar, EntityFormField, FeatureEditor, CardEditPreview, AddExpansionDialog],
+  imports: [ReactiveFormsModule, RouterLink, CardEditToolbar, EntityFormField, FeatureEditor, CardEditPreview, AddExpansionDialog],
   providers: [{ provide: ENTITY_FORM_LOOKUP, useExisting: AdminLookupService }],
 })
 export class CardEdit implements OnInit {
@@ -127,6 +127,22 @@ export class CardEdit implements OnInit {
 
   getControl(fieldName: string): AbstractControl {
     return this.cardForm.get(fieldName)!;
+  }
+
+  /**
+   * A subclass's `srd` flag is derived entirely from its subclass path
+   * (`subclass_paths.srd`) so that a path and its 3 subclass cards can never
+   * disagree -- the path is the only writable copy. This identifies the one
+   * field, on the one card type, that renders as a disabled cross-reference
+   * instead of the normal editable checkbox.
+   */
+  isDerivedSubclassSrdField(field: FieldDef): boolean {
+    return field.name === 'srd' && this.cardType() === 'subclass';
+  }
+
+  subclassPathLink(): (string | number)[] | null {
+    const pathId = this.cardForm.get('subclassPathId')?.value;
+    return pathId ? ['/admin/cards', 'subclassPath', pathId] : null;
   }
 
   bumpFormVersion(): void {
@@ -297,6 +313,12 @@ export class CardEdit implements OnInit {
           this.rawCard.set(raw);
           this.rawFeatures.set(this.extractFeatures(raw));
           this.cardForm = buildFormFromSchema(this.schema(), raw, this.fb);
+          // Read-only cross-reference to the subclass path's srd flag -- never sent in the
+          // payload, since buildPayloadFromSchema only includes dirty controls and a disabled
+          // control can never become dirty.
+          if (this.cardType() === 'subclass') {
+            this.cardForm.get('srd')?.disable();
+          }
           this.cardForm.valueChanges
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.formVersion.update(v => v + 1));

@@ -44,6 +44,12 @@ export class CompanionCard {
   /** Whether the character has an unmarked Armor Slot right now, for the `Armored` training's
    * "mark Armor instead of Stress" offer. */
   readonly armorAvailable = input(false);
+  /** Non-null only while the equipped armor is restricted (SRD vs. paid-expansion content
+   * gating). The offer stays visible in that case rather than silently vanishing the way it would
+   * if this were folded into `armorAvailable` -- see `offersArmorInstead` -- but the button itself
+   * is disabled and carries this as its reason, since we cannot tell whether a slot is actually
+   * free. See `CharacterSheet.armorInsteadUnavailableReason` for where the text comes from. */
+  readonly armorInsteadUnavailableReason = input<string | null>(null);
   /** Verbatim reminders for Beastbound Specialization/Mastery features that affect the companion
    * but aren't Training options -- "Battle-Bonded"/"Loyal Friend" -- so have nowhere else on this
    * card to be shown. Computed once at the character-sheet level from the owning character's
@@ -68,7 +74,20 @@ export class CompanionCard {
   });
 
   readonly hasArmoredTraining = computed(() => this.companion().trainings.some(t => t.option === 'ARMORED'));
-  readonly offersArmorInstead = computed(() => this.hasArmoredTraining() && this.armorAvailable());
+  /**
+   * Whether the "mark Armor instead" choice is offered at all. True either because a slot is
+   * genuinely free, or because the equipped armor is restricted and we cannot tell -- the second
+   * case must still surface the choice (disabled, with a reason) rather than silently behaving as
+   * if the character had no Armor capacity at all, which is what folding
+   * `armorInsteadUnavailableReason` into `armorAvailable` itself would do.
+   */
+  readonly offersArmorInstead = computed(() =>
+    this.hasArmoredTraining() && (this.armorAvailable() || this.armorInsteadUnavailableReason() !== null),
+  );
+
+  /** Drives the "Mark Armor Instead" button's `disabled`/label -- shared by classic and beta so
+   * the two templates read the same condition instead of repeating it. */
+  readonly armorInsteadDisabled = computed(() => !this.armorAvailable() && this.armorInsteadUnavailableReason() !== null);
 
   readonly reminders = computed(() =>
     this.companion().trainings
@@ -120,6 +139,9 @@ export class CompanionCard {
   }
 
   confirmMarkArmorInstead(): void {
+    // Defense in depth -- the button that calls this is already `disabled` in this state, so this
+    // only matters if something reaches the handler another way.
+    if (this.armorInsteadDisabled()) return;
     this.markArmorInstead.emit();
     this.pendingStressValue.set(null);
   }

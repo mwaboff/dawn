@@ -22,6 +22,7 @@ import { ResultCard } from './components/result-card/result-card';
 import { SubclassPathSelector } from '../../shared/components/subclass-path-selector/subclass-path-selector';
 import { CardData } from '../../shared/components/daggerheart-card/daggerheart-card.model';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { AuthService } from '../../core/services/auth.service';
 
 export type ViewMode = 'landing' | 'mixedSearch' | 'focusedSearch' | 'focusedBrowse';
 
@@ -57,6 +58,7 @@ export class Reference implements OnInit {
   private readonly classService = inject(ClassService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly preferencesService = inject(PreferencesService);
+  private readonly authService = inject(AuthService);
 
   readonly sheetLayout = this.preferencesService.sheetLayout;
 
@@ -159,6 +161,20 @@ export class Reference implements OnInit {
       const page = this.currentPage();
       if (mode === 'landing') { this.results.set([]); this.browseResult.set(null); return; }
       if (mode === 'focusedBrowse') {
+        // FEATURE is deliberately absent from BROWSABLE_TYPES (no clickable category, no
+        // "View all" section -- see BROWSABLE_TYPES' doc comment), but it does have a working
+        // CodexBrowseService arm, so it remains reachable via a hand-crafted `?type=FEATURE`
+        // URL. The backend restricts the standalone feature endpoints to MODERATOR+ (a
+        // Feature's own srd/isOfficial flags can go stale relative to the parent that granted
+        // them, so the endpoint can't be trusted to reflect a parent's current gating -- see
+        // FeatureController's javadoc). Below that role, treat it the same as "no active type"
+        // rather than firing a request that would 403 and surface as an error.
+        if (type === 'FEATURE' && !this.authService.isModerator()) {
+          this.browseResult.set(null);
+          this.loading.set(false);
+          this.error.set(false);
+          return;
+        }
         // `type` is guaranteed non-null here (focusedBrowse only occurs when activeType is set,
         // per the viewMode computed above), but it may still be a SearchableEntityType with no
         // browse endpoint -- e.g. reached via a hand-crafted `?type=QUESTION` URL rather than a

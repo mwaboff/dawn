@@ -149,6 +149,22 @@ describe('DomainTradeStep', () => {
     expect(tradeOutBtn.classList.contains('selected')).toBe(false);
   });
 
+  it('shows a locked look for a restricted character card, not raw fabricated data', () => {
+    host.characterDomainCards.set([
+      // `name` already holds the safe placeholder text (see `buildRestrictedCardSummary` in
+      // character-sheet-view.mapper.ts) -- `domainName` is genuinely absent, matching the wire.
+      { id: 1, name: 'Content Not Available', features: [], restricted: true, expansionName: 'Hope & Fear' },
+      MOCK_CHARACTER_CARDS[1],
+    ]);
+    fixture.detectChanges();
+
+    const restrictedBtn = el.querySelector('.trade-card-btn--restricted') as HTMLButtonElement;
+    expect(restrictedBtn).toBeTruthy();
+    expect(restrictedBtn.querySelector('.trade-card-btn__lock')).toBeTruthy();
+    expect(restrictedBtn.querySelector('.trade-card-btn__name')?.textContent).toBe('Content Not Available');
+    expect(restrictedBtn.querySelector('.trade-card-btn__meta')).toBeFalsy();
+  });
+
   it('should load tradable cards on init', () => {
     expect(mockDomainService.getDomainCards).toHaveBeenCalledWith([1, 2], 0, 100, [1, 2, 3]);
   });

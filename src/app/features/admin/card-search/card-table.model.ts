@@ -1,4 +1,5 @@
 import { BrowsableType } from '../../../shared/services/codex-browse.service';
+import { SearchableEntityType } from '../../../shared/models/search.model';
 
 /**
  * One rendered table row. `link` is the router path the name cell anchors to, so
@@ -12,6 +13,20 @@ export interface CardRow {
   link: (string | number)[];
   /** Type-specific column values, keyed by `ColumnSpec.key`. */
   cells: Record<string, string>;
+  /**
+   * The `SearchableEntityType` key `PATCH /api/admin/content/srd` expects for this row, or
+   * `null` when the row's category has no SRD-flaggable backing type. A subclass row is
+   * identified by its path (see `buildCardRow`), so this is `SUBCLASS_PATH` rather than the
+   * `SUBCLASS_CARD` its category browses -- the backend rejects flagging cards directly since
+   * their `srd` is derived from the path.
+   */
+  srdType: SearchableEntityType | null;
+  /**
+   * The row's own SRD flag, as opposed to its expansion's -- two cards from the same book can
+   * legitimately differ. Optional because some backend responses may omit it, in which case the
+   * expansion cell degrades to the plain name rather than assuming either state.
+   */
+  srd?: boolean;
 }
 
 export interface ColumnSpec {

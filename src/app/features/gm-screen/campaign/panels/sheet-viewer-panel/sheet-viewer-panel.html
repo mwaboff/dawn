@@ -41,7 +41,10 @@
                   <b>{{ s.hopeMarked }}/{{ s.hopeMax.modified }}</b><small>Hope</small>
                 </span>
                 <span class="stat-row__vital">
-                  <b>{{ s.majorDamageThreshold.modified }}/{{ s.severeDamageThreshold.modified }}</b>
+                  <!-- See `party-member-detail.html` for why: both thresholds derive from the
+                       equipped armor's own numbers, redacted along with everything else once that
+                       armor is restricted. -->
+                  <b [attr.aria-label]="s.armorRestricted ? 'Major and Severe Damage Threshold unavailable' : null">{{ s.armorRestricted ? '—/—' : s.majorDamageThreshold.modified + '/' + s.severeDamageThreshold.modified }}</b>
                   <small>Maj / Sev</small>
                 </span>
               </span>

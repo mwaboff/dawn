@@ -253,6 +253,47 @@ describe('cardDataToEntityCard', () => {
     });
   });
 
+  describe('restricted cards', () => {
+    it('passes only id, cardType, restricted and expansionName through, ignoring every other field', () => {
+      const result = cardDataToEntityCard(
+        buildCard({
+          id: 412,
+          cardType: 'domain',
+          restricted: true,
+          expansionName: 'Hope & Fear',
+          subtitle: 'should be ignored',
+          tags: ['should be ignored'],
+          features: [{ name: 'Ignored', description: 'Ignored' }],
+          entityDisplay: { scalar: { label: 'Tier', value: '3' } },
+        }),
+      );
+
+      // `EntityCard` draws the locked face itself off `restricted`/`expansionName` -- no
+      // `name`/`description` is fabricated here for it to read instead.
+      expect(result).toEqual({
+        id: 412,
+        cardType: 'domain',
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('carries expansionName through as-is, including when absent', () => {
+      const result = cardDataToEntityCard(buildCard({ id: 412, cardType: 'domain', restricted: true }));
+
+      expect(result.restricted).toBe(true);
+      expect(result.expansionName).toBeUndefined();
+      expect(result.name).toBeUndefined();
+      expect(result.description).toBeUndefined();
+    });
+
+    it('does not throw when the source CardData carries only id and cardType', () => {
+      expect(() =>
+        cardDataToEntityCard({ id: 412, cardType: 'domain', restricted: true } as CardData),
+      ).not.toThrow();
+    });
+  });
+
   describe('every CardType maps without throwing and passes cardType through', () => {
     const allCardTypes: CardType[] = [
       'class', 'subclass', 'heritage', 'community', 'ancestry', 'domain', 'domainCard',

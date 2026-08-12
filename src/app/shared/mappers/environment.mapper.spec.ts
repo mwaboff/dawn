@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapEnvironmentToCardData } from './environment.mapper';
 import { EnvironmentResponse } from '../models/environment-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildEnvironmentResponse(overrides: Partial<EnvironmentResponse> = {}): EnvironmentResponse {
   return {
@@ -177,6 +178,29 @@ describe('mapEnvironmentToCardData', () => {
       expect(result.subtitle).toBe('Exploration');
       expect(result.subtitleSecondary).toBe('Tier 2');
       expect(result.tags).toEqual(['Difficulty 12']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildEnvironmentResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapEnvironmentToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'environment',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildEnvironmentResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapEnvironmentToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

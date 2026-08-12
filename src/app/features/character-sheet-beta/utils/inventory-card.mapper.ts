@@ -112,7 +112,13 @@ export function weaponCardEntry(
     card: weaponToEntity(weapon, slot),
     canEdit: canEditItem(weapon, currentUserId),
     removeBlockedReason: slot ? EQUIPPED_REMOVE_BLOCK : null,
-    equipActions: weaponEquipActions(weapon, state),
+    // A restricted, not-yet-equipped weapon's `isPrimary`/`burden` are redacted along with
+    // everything else, so there's no real slot eligibility to offer -- an equip button built
+    // from those absent fields would be a guess, not a decision. `weaponEquipActions` still
+    // returns `unequip` for an already-equipped one (`slot` truthy) without touching those
+    // fields, so that stays offered, and removal (which only needs the id) is unaffected either
+    // way.
+    equipActions: weapon.restricted && !slot ? [] : weaponEquipActions(weapon, state),
     equippedWeaponSlot: slot,
   };
 }
@@ -123,15 +129,20 @@ export function armorCardEntry(
   currentUserId: number | null,
 ): InventoryCardEntry {
   const equipped = isArmorEntryEquipped(armor, state.activeArmor);
+  // Same restricted guard `weaponCardEntry` applies: a not-yet-equipped restricted armor offers no
+  // Equip action (activating rules the player can't see), but an already-equipped one still offers
+  // Unequip -- the removal exception a locked card carries.
   const equipActions: InventoryEquipAction[] = equipped
     ? [{ kind: 'unequip', label: 'Unequip', ariaLabel: `Unequip ${armor.name}`, disabled: false, hint: null }]
-    : [{
-        kind: 'equip-armor',
-        label: 'Equip',
-        ariaLabel: `Equip ${armor.name}`,
-        disabled: !state.canEquipArmorSlot,
-        hint: state.canEquipArmorSlot ? null : 'Unequip current armor first',
-      }];
+    : armor.restricted
+      ? []
+      : [{
+          kind: 'equip-armor',
+          label: 'Equip',
+          ariaLabel: `Equip ${armor.name}`,
+          disabled: !state.canEquipArmorSlot,
+          hint: state.canEquipArmorSlot ? null : 'Unequip current armor first',
+        }];
 
   return {
     type: 'armor',

@@ -275,6 +275,35 @@ describe('Reference', () => {
     );
   });
 
+  describe('FEATURE browse type (MODERATOR+ gated)', () => {
+    // FEATURE has a working CodexBrowseService arm but is deliberately absent from
+    // BROWSABLE_TYPES (no clickable category, no "View all" section), so the only way to
+    // reach it is a hand-crafted `?type=FEATURE` URL. The backend restricts the standalone
+    // feature endpoints to MODERATOR+, so below that role this must behave like "no active
+    // type" rather than firing a request that would 403.
+    it('does not call CodexBrowseService.browse for FEATURE when the user is not a moderator', () => {
+      component.activeType.set('FEATURE');
+      fixture.detectChanges();
+      expect(browseSpy.browse).not.toHaveBeenCalled();
+    });
+
+    it('does not set the error state for FEATURE when the user is not a moderator', () => {
+      component.activeType.set('FEATURE');
+      fixture.detectChanges();
+      expect(component.error()).toBe(false);
+      expect(component.browseResult()).toBeNull();
+    });
+
+    it('calls CodexBrowseService.browse for FEATURE when the user is a moderator or above', () => {
+      // isModerator() is true for MODERATOR, ADMIN, and OWNER alike (see AuthService); the
+      // component only ever consults this one computed, so a single case covers all three.
+      vi.spyOn(TestBed.inject(AuthService), 'isModerator').mockReturnValue(true);
+      component.activeType.set('FEATURE');
+      fixture.detectChanges();
+      expect(browseSpy.browse).toHaveBeenCalledWith('FEATURE', { isOfficial: true }, 0);
+    });
+  });
+
   describe('isSectionBrowsable', () => {
     it('returns true for a type with a real browse endpoint', () => {
       expect(component.isSectionBrowsable('WEAPON')).toBe(true);

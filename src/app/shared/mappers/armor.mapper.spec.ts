@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapArmorResponseToCardData } from './armor.mapper';
 import { ArmorResponse } from '../models/armor-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildArmorResponse(overrides: Partial<ArmorResponse> = {}): ArmorResponse {
   return {
@@ -275,6 +276,29 @@ describe('mapArmorResponseToCardData', () => {
       expect(result.subtitle).toBe('Armor');
       expect(result.subtitleSecondary).toBe('Tier 2');
       expect(result.tags).toEqual(['Score: 4', 'Major: 8+', 'Severe: 16+', 'Custom']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildArmorResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapArmorResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'armor',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildArmorResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapArmorResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

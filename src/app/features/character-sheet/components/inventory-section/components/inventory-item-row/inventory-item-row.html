@@ -8,6 +8,9 @@
   </div>
 } @else {
   <div class="inventory-row">
+    @if (restricted()) {
+      <app-restricted-card-placeholder [expansionName]="expansionName()" />
+    } @else {
     <app-equipment-card
       [name]="cardName()"
       [badge]="cardBadge() ?? ''"
@@ -15,6 +18,7 @@
       [stats]="cardStats()"
       [burden]="weaponBurden()"
       [features]="cardFeatures()" />
+    }
     <div class="inventory-row__floating">
       @if (canEdit()) {
         <button class="edit-btn" (click)="onEditClick()" [attr.aria-label]="'Edit ' + item().name">&#x270E;</button>
@@ -31,7 +35,7 @@
                   [attr.aria-label]="'Unequip ' + item().name">
             <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
           </button>
-        } @else {
+        } @else if (!restricted()) {
           <button class="card-swap-btn card-swap-btn--equip"
                   [disabled]="!canEquipAsPrimary()"
                   (click)="onEquipClick('primary')"
@@ -53,7 +57,7 @@
                   [attr.aria-label]="'Unequip ' + item().name">
             <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Unequip
           </button>
-        } @else {
+        } @else if (!restricted()) {
           <button class="card-swap-btn card-swap-btn--equip"
                   [disabled]="!canEquipArmor()"
                   (click)="onEquipClick('equip')"

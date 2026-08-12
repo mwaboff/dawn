@@ -46,6 +46,7 @@ function buildCompanion(overrides: Partial<CompanionApiResponse> = {}): Companio
       [canManage]="canManage()"
       [processing]="processing()"
       [armorAvailable]="armorAvailable()"
+      [armorInsteadUnavailableReason]="armorInsteadUnavailableReason()"
       [classFeatureReminders]="classFeatureReminders()"
       (editRequested)="onEditRequested()"
       (deleteConfirmed)="onDeleteConfirmed()"
@@ -60,6 +61,7 @@ class TestHost {
   canManage = signal(true);
   processing = signal(false);
   armorAvailable = signal(false);
+  armorInsteadUnavailableReason = signal<string | null>(null);
   classFeatureReminders = signal<CompanionClassFeatureReminder[]>([]);
   editRequestedCount = 0;
   deleteConfirmedCount = 0;
@@ -250,6 +252,56 @@ describe('CompanionCardBeta', () => {
 
     expect(host.markArmorInsteadCount).toBe(1);
     expect(host.lastStressChanged).toBeUndefined();
+  });
+
+  describe('restricted equipped armor (SRD vs. paid-expansion content gating)', () => {
+    function armoredCompanion(): CompanionApiResponse {
+      return buildCompanion({ trainings: [{ id: 1, option: 'ARMORED', acquiredAtLevel: 2 }] });
+    }
+
+    it('still offers the choice (not silently skipped) when armor is restricted', () => {
+      host.companion.set(armoredCompanion());
+      host.armorAvailable.set(false);
+      host.armorInsteadUnavailableReason.set('Armor score unavailable.');
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.resource-box')!.click();
+      fixture.detectChanges();
+
+      expect(host.lastStressChanged).toBeUndefined();
+      expect(el.querySelector('.armor-instead-prompt')).toBeTruthy();
+    });
+
+    it('disables the Mark Armor Instead button and labels it with the reason, via the inherited handler', () => {
+      host.companion.set(armoredCompanion());
+      host.armorAvailable.set(false);
+      host.armorInsteadUnavailableReason.set('Armor score unavailable.');
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.resource-box')!.click();
+      fixture.detectChanges();
+      const btn = Array.from(el.querySelectorAll<HTMLButtonElement>('.armor-instead-prompt__btn'))
+        .find(b => b.textContent?.includes('Armor'))!;
+
+      expect(btn.disabled).toBe(true);
+      expect(btn.getAttribute('aria-label')).toBe('Armor score unavailable.');
+      btn.click();
+      expect(host.markArmorInsteadCount).toBe(0);
+    });
+
+    it('leaves the button enabled once armor is no longer restricted', () => {
+      host.companion.set(armoredCompanion());
+      host.armorAvailable.set(true);
+      host.armorInsteadUnavailableReason.set(null);
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('.resource-box')!.click();
+      fixture.detectChanges();
+      const btn = Array.from(el.querySelectorAll<HTMLButtonElement>('.armor-instead-prompt__btn'))
+        .find(b => b.textContent?.includes('Armor'))!;
+
+      expect(btn.disabled).toBe(false);
+    });
   });
 
   it('emits editRequested via the inherited handler when Edit is clicked', () => {
