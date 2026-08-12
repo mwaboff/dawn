@@ -31,11 +31,6 @@ export function isCompanionDowned(companion: RestCompanionState): boolean {
   return companion.stressMarked >= companion.stressMax;
 }
 
-/** True when a companion can use Creature Comfort at all: it has the training, and it is present. */
-function canUseCreatureComfort(companion: RestCompanionState): boolean {
-  return companion.hasCreatureComfort && !isCompanionDowned(companion);
-}
-
 /**
  * Which companions may be offered a Creature Comfort choice for a rest of this type.
  *
@@ -154,13 +149,15 @@ export function applyCreatureComfort(
     // Re-read the companion from `current`: an earlier move may have cleared its Stress, and a
     // long rest's return may have brought it back since `choices` was elected in the modal.
     const live = current.companions.find(entry => entry.id === companion.id);
-    if (!live) continue;
+    // An election can only exist for a companion the modal offered, which means one holding the
+    // training. A companion that has since lost it has nothing to explain, so it drops silently.
+    if (!live || !live.hasCreatureComfort) continue;
 
     // The modal offers a long rest's downed companions this choice on the strength of the Stress
     // the return will clear. Clearing 1 un-downs any legal companion, but the backend does not
     // clamp `stressMarked` to the max, so one marked PAST its max is still out of the scene here.
     // Saying so beats dropping an election the player made with no explanation.
-    if (!canUseCreatureComfort(live)) {
+    if (isCompanionDowned(live)) {
       lines.push({
         moveKey: null,
         title: `Creature Comfort (${live.name})`,
@@ -222,11 +219,7 @@ export function toCompanionChanges(
     .map(companion => {
       const previous = before.find(entry => entry.id === companion.id);
       return previous && previous.stressMarked !== companion.stressMarked
-        ? {
-            id: companion.id,
-            stressMarked: companion.stressMarked,
-            previousStressMarked: previous.stressMarked,
-          }
+        ? { id: companion.id, stressMarked: companion.stressMarked }
         : null;
     })
     .filter((change): change is RestCompanionChange => change !== null);

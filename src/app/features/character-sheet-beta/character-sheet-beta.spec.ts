@@ -668,7 +668,7 @@ describe('CharacterSheetBeta', () => {
 
         component.onRestSubmitted({
           ...OUTCOME,
-          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+          companionChanges: [{ id: 7, stressMarked: 1 }],
         });
 
         expect(companionService().updateCompanion).toHaveBeenCalledWith(7, { stressMarked: 1 });
@@ -689,7 +689,7 @@ describe('CharacterSheetBeta', () => {
         component.onRestSubmitted({
           ...OUTCOME,
           changes: OUTCOME.previous,
-          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+          companionChanges: [{ id: 7, stressMarked: 1 }],
         });
 
         expect(sheetService().updateCharacterSheet).not.toHaveBeenCalled();
@@ -716,7 +716,7 @@ describe('CharacterSheetBeta', () => {
 
         component.onRestSubmitted({
           ...OUTCOME,
-          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+          companionChanges: [{ id: 7, stressMarked: 1 }],
         });
 
         expect(companionService().updateCompanion).not.toHaveBeenCalled();
@@ -738,7 +738,7 @@ describe('CharacterSheetBeta', () => {
 
         component.onRestSubmitted({
           ...OUTCOME,
-          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+          companionChanges: [{ id: 7, stressMarked: 1 }],
         });
 
         expect(component.restCompanionSaveFailed()).toBe(true);

@@ -157,7 +157,7 @@ describe('sympathetic Stress clearing', () => {
     );
 
     expect(outcome.unchanged).toBe(false);
-    expect(outcome.companionChanges).toEqual([{ id: 1, stressMarked: 0, previousStressMarked: 2 }]);
+    expect(outcome.companionChanges).toEqual([{ id: 1, stressMarked: 0 }]);
   });
 
   it('leaves companions alone for a move that clears no Stress', () => {

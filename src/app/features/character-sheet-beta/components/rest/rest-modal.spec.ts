@@ -352,7 +352,7 @@ describe('RestModal', () => {
 
       actionButton('Take the rest')!.click();
 
-      expect(outcome!.companionChanges).toEqual([{ id: 1, stressMarked: 1, previousStressMarked: 2 }]);
+      expect(outcome!.companionChanges).toEqual([{ id: 1, stressMarked: 1 }]);
     });
 
     it('should discard elections on Back', () => {

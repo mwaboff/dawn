@@ -45,11 +45,14 @@ export interface RestCompanionState {
   readonly hasCreatureComfort: boolean;
 }
 
-/** Absolute new Stress for one companion the rest moved. Never a delta. */
+/**
+ * Absolute new Stress for one companion the rest moved. Never a delta, and no "previous" alongside
+ * it: the save routes through `onCompanionStressChanged`, which snapshots each companion itself for
+ * rollback, so a pre-rest value carried here would be written and never read.
+ */
 export interface RestCompanionChange {
   readonly id: number;
   readonly stressMarked: number;
-  readonly previousStressMarked: number;
 }
 
 export type RestMoveRoll =
