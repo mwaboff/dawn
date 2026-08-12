@@ -240,16 +240,26 @@ export class CharacterSheet implements OnInit {
    * `companionFeatureReminders`, not the same as the imported util, so the arrow function below
    * unambiguously calls the util rather than shadowing itself. */
   readonly companionFeatureReminders = computed(() => companionClassFeatureReminders(this.rawSheet()?.subclassCards));
-  readonly companionArmorAvailable = computed(() => this.markedArmor() < (this.characterSheet()?.armorScore.modified ?? 0));
+  /**
+   * Whether a companion's Armored training can spend an Armor slot right now.
+   *
+   * Checks `armorRestricted()` explicitly rather than relying on `armorScore.modified` falling to
+   * zero. That fallback is not a reliable signal: `ARMOR_SCORE` modifiers exist independently of
+   * equipped armor (the Hope & Fear ancestry feature granting a permanent +1, and any homebrew
+   * feature authored against the same target), so a character with a restricted armor can still
+   * compute a non-zero score. Reading the number alone would leave the offer enabled, and clicking
+   * it would be swallowed by the guard in `onCompanionMarkArmorInstead` -- marking neither Stress
+   * nor Armor and closing the prompt, with nothing to tell the player why.
+   */
+  readonly companionArmorAvailable = computed(
+    () => !this.armorRestricted() && this.markedArmor() < (this.characterSheet()?.armorScore.modified ?? 0),
+  );
   /**
    * Non-null only while the equipped armor is restricted -- passed down through `CompanionPanel`
    * so the Armored training's "mark Armor instead" offer can stay visible but disabled, with an
-   * explanation, rather than silently vanishing the way `companionArmorAvailable` alone would
-   * make it (that computed reads the same `armorScore.modified` 0-fallback `armorRestricted`'s own
-   * doc comment covers, so a restricted armor reads identically to "no slots free" today -- the
-   * choice just never appears, with no way for the player to tell why). Threading a pre-built
-   * label down, rather than a bare boolean, keeps `lockedStatLabel`'s wording as the single
-   * definition instead of a second copy in `CompanionCard`.
+   * explanation, rather than silently vanishing. Threading a pre-built label down, rather than a
+   * bare boolean, keeps `lockedStatLabel`'s wording as the single definition instead of a second
+   * copy in `CompanionCard`.
    */
   readonly armorInsteadUnavailableReason = computed(() =>
     this.armorRestricted() ? this.lockedStatLabel('Mark Armor Instead') : null,

@@ -862,6 +862,39 @@ describe('CharacterSheet', () => {
       expect(component.armorInsteadUnavailableReason()).toContain('Hope & Fear');
     });
 
+    it('reports no companion Armor slot while armor is restricted, even when an ARMOR_SCORE modifier keeps the score above zero', () => {
+      // The offer used to be gated on `armorScore.modified` alone, on the assumption that a
+      // restricted armor always drives it to the mapper's 0 fallback. ARMOR_SCORE modifiers exist
+      // independently of equipped armor -- the Hope & Fear ancestry feature grants a permanent +1 --
+      // so the score can be non-zero while the armor itself is unreadable. Gated on the number
+      // alone, the offer stayed enabled and the click was swallowed by the handler's guard: neither
+      // Stress nor Armor marked, prompt dismissed, nothing shown to the player.
+      createComponent('1', of({
+        ...restrictedArmorResponse,
+        ancestryCards: [{
+          id: 30, name: 'Ancestry',
+          features: [{
+            id: 40, name: '+1 Armor Score', description: 'Gain a permanent +1 bonus to your Armor Score.',
+            modifiers: [{ target: 'ARMOR_SCORE', operation: 'ADD', value: 1 }],
+          }],
+        }],
+      } as CharacterSheetResponse));
+      fixture.detectChanges();
+
+      expect(component.characterSheet()?.armorScore.modified).toBe(1);
+      expect(component.companionArmorAvailable()).toBe(false);
+    });
+
+    it('offers a companion Armor slot when the score is above zero and the armor is not restricted', () => {
+      createComponent('1', of({
+        ...mockResponse,
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4, features: [] } }],
+      }));
+      fixture.detectChanges();
+
+      expect(component.companionArmorAvailable()).toBe(true);
+    });
+
     it('leaves armorInsteadUnavailableReason null once armor is unrestricted', () => {
       createComponent('1', of({
         ...mockResponse,
