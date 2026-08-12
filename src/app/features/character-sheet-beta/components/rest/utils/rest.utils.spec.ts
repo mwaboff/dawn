@@ -429,6 +429,20 @@ describe('applyRestMoves', () => {
     });
   });
 
+  describe('previous', () => {
+    it('should report the pre-rest values so the save can send only what moved', () => {
+      const outcome = applyRestMoves('short', state(), [pick('tendToWounds')], scriptedRoller([1]));
+
+      expect(outcome.previous).toMatchObject({ hitPointMarked: 4, stressMarked: 3, favor: 3 });
+    });
+
+    it('should match the changes exactly for a rest that moved nothing', () => {
+      const outcome = applyRestMoves('short', state(), [], scriptedRoller());
+
+      expect(outcome.previous).toEqual(outcome.changes);
+    });
+  });
+
   it('should not mutate the state it was given', () => {
     const original = state();
 

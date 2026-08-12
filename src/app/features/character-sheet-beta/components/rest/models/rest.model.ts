@@ -110,6 +110,12 @@ export interface RestOutcome {
   readonly restType: RestType;
   readonly nextState: RestCharacterState;
   readonly changes: RestResourceChanges;
+  /**
+   * The same fields as they stood before the rest. Kept so the save can send only what actually
+   * moved: a partial update that restates untouched fields can be rejected wholesale by a
+   * server-side gate on a resource this character doesn't have (transformations, for one).
+   */
+  readonly previous: RestResourceChanges;
   readonly summary: readonly RestSummaryLine[];
   /** True when nothing moved. Submit skips the PUT entirely. */
   readonly unchanged: boolean;

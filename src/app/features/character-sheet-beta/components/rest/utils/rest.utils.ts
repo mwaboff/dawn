@@ -264,5 +264,5 @@ export function applyRestMoves(
     key => changes[key] === before[key],
   );
 
-  return { restType, nextState: current, changes, summary, unchanged };
+  return { restType, nextState: current, changes, previous: before, summary, unchanged };
 }

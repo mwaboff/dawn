@@ -147,6 +147,19 @@ describe('toRestCharacterState', () => {
   it('should default Wolf Form to inactive when the field is absent', () => {
     expect(toRestCharacterState(sources())?.wolfFormActive).toBe(false);
   });
+
+  it('should read Wolf Form when the GM has enabled transformations', () => {
+    const enabled = raw({ transformationEnabled: true, wolfFormActive: true });
+
+    expect(toRestCharacterState(sources({ raw: enabled }))?.wolfFormActive).toBe(true);
+  });
+
+  /** A revoked grant leaves the flag stranded; clearing it is the GM's job, not the rest's. */
+  it('should treat Wolf Form as inactive when transformations are not enabled', () => {
+    const revoked = raw({ transformationEnabled: false, wolfFormActive: true });
+
+    expect(toRestCharacterState(sources({ raw: revoked }))?.wolfFormActive).toBe(false);
+  });
 });
 
 const CHANGES: RestResourceChanges = {
@@ -159,17 +172,28 @@ const CHANGES: RestResourceChanges = {
   wolfFormActive: false,
 };
 
+/** The pre-rest values `CHANGES` moved away from: every field differs. */
+const BEFORE: RestResourceChanges = {
+  hitPointMarked: 9,
+  stressMarked: 9,
+  armorMarked: 9,
+  hopeHeld: 9,
+  focusHeld: 9,
+  favor: 9,
+  wolfFormActive: true,
+};
+
 describe('restUpdateRequest', () => {
   it('should map hopeHeld onto the API’s hopeMarked', () => {
-    expect(restUpdateRequest(CHANGES).hopeMarked).toBe(4);
+    expect(restUpdateRequest(CHANGES, BEFORE).hopeMarked).toBe(4);
   });
 
   it('should map focusHeld onto the API’s focusMarked', () => {
-    expect(restUpdateRequest(CHANGES).focusMarked).toBe(5);
+    expect(restUpdateRequest(CHANGES, BEFORE).focusMarked).toBe(5);
   });
 
-  it('should send exactly the seven fields a rest can move', () => {
-    expect(Object.keys(restUpdateRequest(CHANGES)).sort()).toEqual([
+  it('should send exactly the seven fields a rest can move when all seven moved', () => {
+    expect(Object.keys(restUpdateRequest(CHANGES, BEFORE)).sort()).toEqual([
       'armorMarked',
       'favor',
       'focusMarked',
@@ -178,6 +202,26 @@ describe('restUpdateRequest', () => {
       'stressMarked',
       'wolfFormActive',
     ]);
+  });
+
+  it('should send only the fields the rest actually moved', () => {
+    const before: RestResourceChanges = { ...CHANGES, hitPointMarked: 4 };
+
+    expect(restUpdateRequest(CHANGES, before)).toEqual({ hitPointMarked: 1 });
+  });
+
+  /**
+   * The bug this guards: the backend rejects a player-side write to transformation state on a
+   * character whose GM has not enabled it, and a rejected body loses the HP the rest did clear.
+   */
+  it('should omit wolfFormActive when the rest left it alone', () => {
+    const before: RestResourceChanges = { ...CHANGES, stressMarked: 5 };
+
+    expect(restUpdateRequest(CHANGES, before)).not.toHaveProperty('wolfFormActive');
+  });
+
+  it('should send nothing when nothing moved', () => {
+    expect(restUpdateRequest(CHANGES, CHANGES)).toEqual({});
   });
 });
 

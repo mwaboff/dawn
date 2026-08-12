@@ -260,7 +260,7 @@ export class CharacterSheetBeta extends CharacterSheet {
     this.hfActionInFlight.set(true);
     this.restApply.set(null);
 
-    this.sheets.updateCharacterSheet(raw.id, restUpdateRequest(outcome.changes)).subscribe({
+    this.sheets.updateCharacterSheet(raw.id, restUpdateRequest(outcome.changes, outcome.previous)).subscribe({
       next: () => {
         this.hfActionInFlight.set(false);
         this.restApply.set({ status: 'saved' });
