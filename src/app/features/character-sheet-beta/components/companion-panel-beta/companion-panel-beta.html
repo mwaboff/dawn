@@ -19,6 +19,7 @@
           [canManage]="canManage()"
           [processing]="saving()"
           [armorAvailable]="armorAvailable()"
+          [armorInsteadUnavailableReason]="armorInsteadUnavailableReason()"
           [classFeatureReminders]="classFeatureReminders()"
           (editRequested)="openEditModal(companion)"
           (deleteConfirmed)="onDelete(companion.id)"

@@ -48,6 +48,16 @@ export interface DomainCardResponse {
   type: DomainCardType;
   createdAt: string;
   lastModifiedAt: string;
+  /** Whether this domain card is SRD-licensed content, freely usable without owning the
+   * sourcebook it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this domain card because the viewer lacks access to
+   * its expansion (SRD vs. paid-expansion content gating); every other field except `id` may
+   * then be omitted. See `domain-card.mapper.ts`'s `mapDomainCardResponseToCardData`. */
+  restricted?: boolean;
+  /** The paid book this domain card belongs to, present only alongside `restricted: true` and
+   * only when the backend knows it. */
+  expansionName?: string;
 }
 
 export interface DomainResponse {
@@ -61,4 +71,14 @@ export interface DomainResponse {
     name: string;
     isPublished: boolean;
   };
+  /** Whether this domain is SRD-licensed content, freely usable without owning the sourcebook
+   * it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this domain because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating); every other field except `id` may then be
+   * omitted. See `domain.mapper.ts`'s `mapDomainToCardData`. */
+  restricted?: boolean;
+  /** The paid book this domain belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }

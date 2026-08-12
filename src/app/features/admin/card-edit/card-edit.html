@@ -22,13 +22,30 @@
             <h3 class="panel__title">{{ section.title }}</h3>
             <div class="panel__grid">
               @for (field of section.fields; track field.name) {
-                <app-entity-form-field
-                  [field]="field"
-                  [control]="getControl(field.name)"
-                  [submitted]="submitted()"
-                  [dependsOnControl]="getDependsOnControl(field)"
-                  (createRequested)="openAddExpansionDialog()"
-                />
+                @if (isDerivedSubclassSrdField(field)) {
+                  <div class="form-group">
+                    <label class="form-label form-label--inline" for="srd">
+                      <input id="srd" type="checkbox" class="form-checkbox" disabled [checked]="getControl('srd').value" />
+                      SRD content
+                    </label>
+                    <p class="form-hint">
+                      Derived from this subclass's path.
+                      @if (subclassPathLink(); as link) {
+                        <a [routerLink]="link">Edit the subclass path</a> to change it.
+                      } @else {
+                        Select a subclass path to change it.
+                      }
+                    </p>
+                  </div>
+                } @else {
+                  <app-entity-form-field
+                    [field]="field"
+                    [control]="getControl(field.name)"
+                    [submitted]="submitted()"
+                    [dependsOnControl]="getDependsOnControl(field)"
+                    (createRequested)="openAddExpansionDialog()"
+                  />
+                }
               }
             </div>
           </section>

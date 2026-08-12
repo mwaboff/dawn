@@ -1,0 +1,14 @@
+/* Mirrors `character-sheet-restricted.css` (classic) -- Armor score/Major/Severe Damage Threshold
+   are all derived from the equipped armor's own numbers (`CharacterSheet.armorRestricted`,
+   inherited), so a restricted equipped armor swaps each of those three header badges for a lock
+   icon instead of the fallback 0 the mapper computes internally for the Armor pip tracker. */
+.shield__value--locked, .damage-marker__value--locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cp);
+  opacity: .55;
+}
+
+.shield__value--locked app-lock-icon { width: 1.4rem; height: 1.4rem; }
+.damage-marker__value--locked app-lock-icon { width: .9rem; height: .9rem; }

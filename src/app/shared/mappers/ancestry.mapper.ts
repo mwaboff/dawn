@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { AncestryCardResponse, AncestryFeatureResponse } from '../models/ancestry-api.model';
 
 function mapFeature(feature: AncestryFeatureResponse): CardFeature {
@@ -14,6 +14,10 @@ function mapFeature(feature: AncestryFeatureResponse): CardFeature {
 }
 
 export function mapAncestryResponseToCardData(response: AncestryCardResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'ancestry', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
 
   return {
@@ -24,6 +28,7 @@ export function mapAncestryResponseToCardData(response: AncestryCardResponse): C
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       features: response.features ?? [],
     },
   };

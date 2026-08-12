@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapDomainCardResponseToCardData, DOMAIN_THEME_COLORS } from './domain-card.mapper';
 import { DomainCardResponse } from '../models/domain-card-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildDomainCardResponse(overrides: Partial<DomainCardResponse> = {}): DomainCardResponse {
   return {
@@ -226,6 +227,29 @@ describe('mapDomainCardResponseToCardData', () => {
 
       expect(result.subtitle).toBe('Codex');
       expect(result.tags).toEqual(['Level 3', 'Grimoire', 'Recall: 2']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildDomainCardResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapDomainCardResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'domainCard',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildDomainCardResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapDomainCardResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

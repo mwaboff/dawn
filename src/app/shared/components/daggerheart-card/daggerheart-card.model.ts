@@ -94,4 +94,46 @@ export interface CardData {
   metadata?: Record<string, unknown>;
   /** Beta-only; see `CardEntityDisplay`. Classic rendering never reads it. */
   entityDisplay?: CardEntityDisplay;
+  /**
+   * True when the backend redacted this card because the viewer lacks access to its expansion
+   * (SRD vs. paid-expansion content gating). When true, every field except `id`, `cardType`, and
+   * `expansionName` may be absent -- mappers must check this before reading anything else off the
+   * source response. Both `daggerheart-card` and the beta `EntityCard` (via
+   * `cardDataToEntityCard`) render a locked placeholder instead of the normal face; see
+   * `RESTRICTED_CARD_TITLE` / `restrictedCardMessage`.
+   */
+  restricted?: boolean;
+  /** The paid book this card belongs to, present only alongside `restricted: true` and only when
+   * the backend knows it -- degrade gracefully (`restrictedCardMessage`) when absent. */
+  expansionName?: string;
+}
+
+/** The locked placeholder's title, shared by the classic and beta faces. */
+export const RESTRICTED_CARD_TITLE = 'Content Not Available';
+
+/**
+ * The locked placeholder's body copy, shared by the classic and beta faces. `expansionName` is
+ * optional on the wire (the backend does not always know it), so this degrades to a generic
+ * "an expansion" rather than interpolating "undefined" into the sentence.
+ */
+export function restrictedCardMessage(expansionName?: string): string {
+  const subject = expansionName ? `from ${expansionName}, which` : 'from an expansion that';
+  return `This card is ${subject} you don't have access to. Contact an administrator if this is a mistake.`;
+}
+
+/**
+ * Builds the redacted `CardData` a gated-DTO mapper returns in place of its normal mapping once
+ * `response.restricted` is true. Centralised so every mapper produces an identically-shaped
+ * placeholder (and so `name`/`description` -- required fields on `CardData` -- always hold real
+ * text even for the rare caller that renders them without checking `restricted` first).
+ */
+export function buildRestrictedCardData(id: number, cardType: CardType, expansionName?: string): CardData {
+  return {
+    id,
+    cardType,
+    name: RESTRICTED_CARD_TITLE,
+    description: restrictedCardMessage(expansionName),
+    restricted: true,
+    expansionName,
+  };
 }

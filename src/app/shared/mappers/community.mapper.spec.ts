@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapCommunityResponseToCardData } from './community.mapper';
 import { CommunityCardResponse } from '../models/community-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildCommunityCardResponse(overrides: Partial<CommunityCardResponse> = {}): CommunityCardResponse {
   return {
@@ -132,5 +133,28 @@ describe('mapCommunityResponseToCardData', () => {
     const result = mapCommunityResponseToCardData(response);
 
     expect(result.metadata?.['features']).toEqual(response.features);
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildCommunityCardResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapCommunityResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'community',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildCommunityCardResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapCommunityResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
+    });
   });
 });

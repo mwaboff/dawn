@@ -484,4 +484,89 @@ describe('InventoryItemRow', () => {
       expect(el.querySelector('button.remove-btn')).toBeTruthy();
     });
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    it('renders the placeholder instead of EquipmentCard for a restricted weapon', () => {
+      host.item.set({ ...weapon, restricted: true, expansionName: 'Hope & Fear' });
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-restricted-card-placeholder')).toBeTruthy();
+      expect(el.querySelector('app-equipment-card')).toBeFalsy();
+    });
+
+    it('renders the placeholder instead of EquipmentCard for a restricted armor', () => {
+      host.item.set({ ...armor, restricted: true, expansionName: 'Hope & Fear' });
+      host.itemType.set('armor');
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-restricted-card-placeholder')).toBeTruthy();
+      expect(el.querySelector('app-equipment-card')).toBeFalsy();
+    });
+
+    it('offers no equip-primary/equip-secondary buttons for a restricted, unequipped weapon', () => {
+      host.item.set({ ...weapon, restricted: true });
+      host.equipState.set(null);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelectorAll('.card-swap-btn--equip').length).toBe(0);
+    });
+
+    it('still offers Unequip for a restricted weapon that is equipped -- the removal exception', () => {
+      host.item.set({ ...weapon, restricted: true });
+      host.equipState.set('primary');
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const unequipBtn = el.querySelector<HTMLButtonElement>('.card-swap-btn--vault');
+      expect(unequipBtn).toBeTruthy();
+      expect(unequipBtn?.textContent).toContain('Unequip');
+
+      unequipBtn?.click();
+      expect(host.onUnequipClicked).toHaveBeenCalled();
+    });
+
+    it('offers no Equip button for a restricted, unequipped armor', () => {
+      host.item.set({ ...armor, restricted: true });
+      host.itemType.set('armor');
+      host.equipState.set(false);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.card-swap-btn--equip')).toBeFalsy();
+    });
+
+    it('still offers Unequip for a restricted armor that is equipped -- the removal exception', () => {
+      host.item.set({ ...armor, restricted: true });
+      host.itemType.set('armor');
+      host.equipState.set(true);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      const unequipBtn = el.querySelector<HTMLButtonElement>('.card-swap-btn--vault');
+      expect(unequipBtn).toBeTruthy();
+
+      unequipBtn?.click();
+      expect(host.onUnequipClicked).toHaveBeenCalled();
+    });
+
+    it('still offers Remove for a restricted, unequipped weapon', () => {
+      host.item.set({ ...weapon, restricted: true });
+      host.equipState.set(null);
+      host.isOwner.set(true);
+      fixture.detectChanges();
+
+      expect(el.querySelector('button.remove-btn')).toBeTruthy();
+    });
+
+    it('hides the Edit affordance for a restricted item -- a redacted stub carries no author, so canEditItem never matches', () => {
+      host.currentUserId.set(42);
+      // No `createdByUserId` -- a real restricted response never sends one (see
+      // `buildRestrictedWeaponDisplay`), so this is the shape the row actually receives.
+      host.item.set({ ...weapon, restricted: true });
+      fixture.detectChanges();
+
+      expect(el.querySelector('.edit-btn')).toBeFalsy();
+    });
+  });
 });

@@ -66,6 +66,15 @@ export class MartialStanceStep {
       : 'Choose an additional stance from your tier or lower',
   );
 
+  /**
+   * `knownStanceIds` is ungated (every stance the character knows, restricted or not) but `cards`
+   * is the SRD-filtered browse list, so a known-but-restricted stance has no matching entry here
+   * and never renders at all -- unlike the sheet's own Martial Stances panel, which shows it as a
+   * locked placeholder. That inconsistency is an accepted product decision, not a bug: fixing it
+   * would need the backend to hand this step a redacted stub for known-but-gated stances (there is
+   * no such stub to build one from client-side), and that's been decided against. Don't re-derive
+   * this from scratch if it comes up again.
+   */
   isKnown(card: CardData): boolean {
     return this.knownStanceIds().includes(card.id);
   }

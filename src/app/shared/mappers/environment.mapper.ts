@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { EnvironmentFeatureResponse, EnvironmentResponse } from '../models/environment-api.model';
 import { parseFeatureTiming } from '../utils/feature-timing.utils';
 import { titleCase } from '../utils/text.utils';
@@ -25,6 +25,10 @@ function mapFeature(feature: EnvironmentFeatureResponse): CardFeature {
 }
 
 export function mapEnvironmentToCardData(response: EnvironmentResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'environment', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
 
   return {
@@ -51,6 +55,7 @@ export function mapEnvironmentToCardData(response: EnvironmentResponse): CardDat
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       environmentType: response.environmentType,
       tier: response.tier,
       difficulty: response.difficulty,

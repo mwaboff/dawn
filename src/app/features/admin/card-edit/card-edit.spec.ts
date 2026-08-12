@@ -567,4 +567,70 @@ describe('CardEdit — schema-driven orchestrator', () => {
       expect(component.addExpansionOpen()).toBe(false);
     });
   });
+
+  describe('subclass srd field — derived from subclass path, not directly editable', () => {
+    const SUBCLASS_CARD_RAW = {
+      id: 3,
+      name: 'Stalwart',
+      description: 'A subclass',
+      expansionId: 1,
+      isOfficial: false,
+      srd: true,
+      level: 'FOUNDATION',
+      associatedClassId: 1,
+      subclassPathId: 7,
+      cardType: 'subclass',
+      features: [],
+    };
+
+    it('isDerivedSubclassSrdField is true only for the srd field on a subclass card', async () => {
+      await setup('subclass', SUBCLASS_CARD_RAW);
+      const srdField = component.schema().sections
+        .flatMap(s => s.fields).find(f => f.name === 'srd')!;
+      const nameField = component.schema().sections
+        .flatMap(s => s.fields).find(f => f.name === 'name')!;
+
+      expect(component.isDerivedSubclassSrdField(srdField)).toBe(true);
+      expect(component.isDerivedSubclassSrdField(nameField)).toBe(false);
+    });
+
+    it('is false for the srd field on a non-subclass card type', async () => {
+      await setup('domainCard', { ...DOMAIN_CARD_RAW, srd: false });
+      const srdField = component.schema().sections
+        .flatMap(s => s.fields).find(f => f.name === 'srd')!;
+
+      expect(component.isDerivedSubclassSrdField(srdField)).toBe(false);
+    });
+
+    it('disables the srd control on load for a subclass card', async () => {
+      await setup('subclass', SUBCLASS_CARD_RAW);
+      expect(component.cardForm.get('srd')?.disabled).toBe(true);
+    });
+
+    it('leaves the srd control enabled for a non-subclass card', async () => {
+      await setup('domainCard', { ...DOMAIN_CARD_RAW, srd: false });
+      expect(component.cardForm.get('srd')?.disabled).toBe(false);
+    });
+
+    it('subclassPathLink returns the path editor route when subclassPathId is set', async () => {
+      await setup('subclass', SUBCLASS_CARD_RAW);
+      expect(component.subclassPathLink()).toEqual(['/admin/cards', 'subclassPath', 7]);
+    });
+
+    it('subclassPathLink returns null when no subclass path is selected', async () => {
+      await setup('subclass', { ...SUBCLASS_CARD_RAW, subclassPathId: null });
+      expect(component.subclassPathLink()).toBeNull();
+    });
+
+    it('renders a disabled checkbox reflecting the loaded srd value instead of app-entity-form-field for srd', async () => {
+      await setup('subclass', SUBCLASS_CARD_RAW);
+      const disabledCheckbox: HTMLInputElement | null = fixture.nativeElement.querySelector('input#srd');
+      expect(disabledCheckbox).toBeTruthy();
+      expect(disabledCheckbox!.disabled).toBe(true);
+      expect(disabledCheckbox!.checked).toBe(true);
+
+      const link = fixture.debugElement.query(By.css('.form-hint a'));
+      expect(link.nativeElement.getAttribute('href')).toBe('/admin/cards/subclassPath/7');
+    });
+  });
 });

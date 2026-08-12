@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { MartialStanceResponse } from '../../../../shared/models/martial-stance-api.model';
 import { FormatTextPipe } from '../../../../shared/pipes/format-text.pipe';
+import { RestrictedCardPlaceholder } from '../restricted-card-placeholder/restricted-card-placeholder';
+import { RESTRICTED_CARD_TITLE } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 /** Drop conditions shown as a static reminder -- never varies per character, per rules text. */
 export const MARTIAL_STANCE_DROP_CONDITIONS: readonly string[] = [
@@ -22,7 +24,7 @@ export const MARTIAL_STANCE_DROP_CONDITIONS: readonly string[] = [
   templateUrl: './martial-stance-panel.html',
   styleUrl: './martial-stance-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe],
+  imports: [FormatTextPipe, RestrictedCardPlaceholder],
 })
 export class MartialStancePanel {
   readonly knownStances = input<MartialStanceResponse[]>([]);
@@ -38,17 +40,25 @@ export class MartialStancePanel {
 
   private readonly expandedIds = signal<ReadonlySet<number>>(new Set());
 
-  /** Tier carries the same weight here as on a beastform card -- a meta badge, not a group heading. */
+  /**
+   * Tier carries the same weight here as on a beastform card -- a meta badge, not a group heading.
+   * A restricted stance's `name` is redacted (SRD vs. paid-expansion content gating), so the
+   * comparator falls back to `''` rather than reading `.localeCompare` off `undefined` -- it sorts
+   * first within its tier, which is fine since nothing about a locked stance's printed order is
+   * knowable anyway.
+   */
   readonly stances = computed(() =>
-    [...this.knownStances()].sort((a, b) => (a.tier ?? 0) - (b.tier ?? 0) || a.name.localeCompare(b.name)),
+    [...this.knownStances()].sort((a, b) => (a.tier ?? 0) - (b.tier ?? 0) || (a.name ?? '').localeCompare(b.name ?? '')),
   );
 
   readonly canActivateAnotherStance = computed(() => this.canAct() && !this.actionInFlight() && this.focusMarked() >= 1);
 
-  /** The collapsed badge is visual only, so the state change is announced separately. */
+  /** The collapsed badge is visual only, so the state change is announced separately. A
+   * restricted active stance announces the shared placeholder title rather than `undefined`. */
   readonly activeStanceAnnouncement = computed(() => {
     const active = this.stances().find(stance => stance.id === this.activeStanceId());
-    return active ? `Active stance: ${active.name}` : 'No stance active';
+    if (!active) return 'No stance active';
+    return `Active stance: ${active.restricted ? RESTRICTED_CARD_TITLE : active.name}`;
   });
 
   isActive(stanceId: number): boolean {

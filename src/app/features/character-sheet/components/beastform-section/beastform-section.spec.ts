@@ -344,4 +344,78 @@ describe('BeastformSection', () => {
       expect(component.isFormExpanded(1)).toBe(false);
     });
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedBeastform(overrides: Partial<BeastformResponse> = {}): BeastformResponse {
+      // `name` is real API shape only because the response type keeps it required -- a restricted
+      // response never actually sends it. Every stat field is left off too, matching the wire.
+      return {
+        id: 9,
+        name: 'ignored',
+        expansionId: 2,
+        isOfficial: false,
+        isPublic: false,
+        createdAt: '',
+        lastModifiedAt: '',
+        restricted: true,
+        ...overrides,
+      };
+    }
+
+    it('does not throw sorting a mix of restricted and normal beastforms', () => {
+      setUp(1);
+      component.toggleSection();
+      fixture.detectChanges();
+
+      expect(() => {
+        httpTesting.expectOne(r => r.url === baseUrl).flush(buildPage([buildRestrictedBeastform(), buildBeastform()]));
+        fixture.detectChanges();
+      }).not.toThrow();
+    });
+
+    it('stays in the list even though its tier is unknown -- the tier filter cannot evaluate it', () => {
+      // Character level 1 (tier 1): a normal tier-4 form would be filtered out, but a restricted
+      // stub's tier is redacted, not high, so it must not be silently dropped from the list either.
+      setUpAndFlush(1, [buildRestrictedBeastform()]);
+
+      expect(component.availableCount()).toBe(1);
+    });
+
+    it('shows the shared locked title and message, not the raw response fields', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform({ expansionName: 'Hope & Fear' })]);
+
+      expect(text()).toContain('Content Not Available');
+      expect(text()).not.toContain('ignored');
+    });
+
+    it('shows no Tier badge for a restricted form -- its tier is absent, not fabricated as a number', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform()]);
+
+      const badge = (fixture.nativeElement as HTMLElement).querySelector('.expandable-card--nested .expandable-card__meta-badge--beastform');
+      expect(badge).toBeFalsy();
+    });
+
+    it('shows a lock icon and locked message instead of attack/advantages/features once expanded', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform({ expansionName: 'Hope & Fear' })]);
+
+      component.toggleForm(9);
+      fixture.detectChanges();
+
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.beastform-locked app-lock-icon')).toBeTruthy();
+      expect(el.querySelector('.beastform-locked__message')?.textContent).toContain('Hope & Fear');
+      expect(el.querySelector('.beastform__attack')).toBeFalsy();
+      expect(el.querySelector('.feature-row__name')).toBeFalsy();
+    });
+
+    it('degrades to a generic message rather than interpolating "undefined" when expansionName is absent', () => {
+      setUpAndFlush(1, [buildRestrictedBeastform({ expansionName: undefined })]);
+
+      component.toggleForm(9);
+      fixture.detectChanges();
+
+      const message = (fixture.nativeElement as HTMLElement).querySelector('.beastform-locked__message')!.textContent!;
+      expect(message).not.toContain('undefined');
+    });
+  });
 });

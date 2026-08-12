@@ -58,8 +58,14 @@
         <div class="shield">
           <span class="shield__label">Armor</span>
           <span class="shield__value-row">
-            <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
-            <app-modifier-indicator [stat]="sheet.armorScore" statLabel="Armor score" />
+            @if (armorRestricted()) {
+              <span class="shield__value shield__value--locked" role="img" [attr.aria-label]="lockedStatLabel('Armor score')">
+                <app-lock-icon />
+              </span>
+            } @else {
+              <span class="shield__value" [class.shield__value--modified]="sheet.armorScore.hasModifier">{{ sheet.armorScore.modified }}</span>
+              <app-modifier-indicator [stat]="sheet.armorScore" statLabel="Armor score" />
+            }
           </span>
         </div>
         <div class="shield">
@@ -121,15 +127,27 @@
               <span class="damage-zone__label">Minor</span>
             </div>
             <div class="damage-marker">
-              <span class="damage-marker__value">{{ sheet.majorDamageThreshold.modified }}</span>
-              <app-modifier-indicator [stat]="sheet.majorDamageThreshold" statLabel="Major damage threshold" />
+              @if (armorRestricted()) {
+                <span class="damage-marker__value damage-marker__value--locked" role="img" [attr.aria-label]="lockedStatLabel('Major damage threshold')">
+                  <app-lock-icon />
+                </span>
+              } @else {
+                <span class="damage-marker__value">{{ sheet.majorDamageThreshold.modified }}</span>
+                <app-modifier-indicator [stat]="sheet.majorDamageThreshold" statLabel="Major damage threshold" />
+              }
             </div>
             <div class="damage-zone damage-zone--major">
               <span class="damage-zone__label">Major</span>
             </div>
             <div class="damage-marker">
-              <span class="damage-marker__value">{{ sheet.severeDamageThreshold.modified }}</span>
-              <app-modifier-indicator [stat]="sheet.severeDamageThreshold" statLabel="Severe damage threshold" />
+              @if (armorRestricted()) {
+                <span class="damage-marker__value damage-marker__value--locked" role="img" [attr.aria-label]="lockedStatLabel('Severe damage threshold')">
+                  <app-lock-icon />
+                </span>
+              } @else {
+                <span class="damage-marker__value">{{ sheet.severeDamageThreshold.modified }}</span>
+                <app-modifier-indicator [stat]="sheet.severeDamageThreshold" statLabel="Severe damage threshold" />
+              }
             </div>
             <div class="damage-zone damage-zone--severe">
               <span class="damage-zone__label">Severe</span>
@@ -240,6 +258,9 @@
         <div class="panel">
           <h2 class="panel__title">Equipped Weapons</h2>
           @if (sheet.activePrimaryWeapon) {
+            @if (sheet.activePrimaryWeapon.restricted) {
+              <app-restricted-card-placeholder [expansionName]="sheet.activePrimaryWeapon.expansionName" />
+            } @else {
             <div class="equipment-card">
               <div class="equipment-card__header">
                 <span class="equipment-card__name">{{ sheet.activePrimaryWeapon.name }}</span>
@@ -308,8 +329,12 @@
                 </div>
               }
             </div>
+            }
           }
           @if (sheet.activeSecondaryWeapon) {
+            @if (sheet.activeSecondaryWeapon.restricted) {
+              <app-restricted-card-placeholder [expansionName]="sheet.activeSecondaryWeapon.expansionName" />
+            } @else {
             <div class="equipment-card">
               <div class="equipment-card__header">
                 <span class="equipment-card__name">{{ sheet.activeSecondaryWeapon.name }}</span>
@@ -348,6 +373,7 @@
                 </div>
               }
             </div>
+            }
           }
           @if (!sheet.activePrimaryWeapon && !sheet.activeSecondaryWeapon) {
             <p class="empty-state">No weapons equipped.</p>
@@ -357,6 +383,9 @@
         <div class="panel">
           <h2 class="panel__title">Equipped Armor</h2>
           @if (sheet.activeArmor) {
+            @if (sheet.activeArmor.restricted) {
+              <app-restricted-card-placeholder [expansionName]="sheet.activeArmor.expansionName" />
+            } @else {
             <div class="equipment-card">
               <div class="equipment-card__header">
                 <span class="equipment-card__name">{{ sheet.activeArmor.name }}</span>
@@ -395,6 +424,7 @@
                 </div>
               }
             </div>
+            }
           } @else {
             <p class="empty-state">No armor equipped.</p>
           }
@@ -436,6 +466,9 @@
           </div>
           <div class="card-group__list">
             @for (card of sheet.classCards; track card.id) {
+              @if (card.restricted) {
+                <app-restricted-card-placeholder [expansionName]="card.expansionName" />
+              } @else {
               <div class="expandable-card expandable-card--class">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -466,6 +499,7 @@
                   </div>
                 }
               </div>
+              }
             }
           </div>
         </div>
@@ -478,6 +512,9 @@
           </div>
           <div class="card-group__list">
             @for (card of sheet.subclassCards; track card.id) {
+              @if (card.restricted) {
+                <app-restricted-card-placeholder [expansionName]="card.expansionName" />
+              } @else {
               <div class="expandable-card expandable-card--subclass">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -519,6 +556,7 @@
                   </div>
                 }
               </div>
+              }
             }
           </div>
         </div>
@@ -531,6 +569,9 @@
           </div>
           <div class="card-group__list">
             @for (card of sheet.ancestryCards; track card.id) {
+              @if (card.restricted) {
+                <app-restricted-card-placeholder [expansionName]="card.expansionName" />
+              } @else {
               <div class="expandable-card expandable-card--ancestry">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -561,6 +602,7 @@
                   </div>
                 }
               </div>
+              }
             }
           </div>
         </div>
@@ -573,6 +615,9 @@
           </div>
           <div class="card-group__list">
             @for (card of sheet.communityCards; track card.id) {
+              @if (card.restricted) {
+                <app-restricted-card-placeholder [expansionName]="card.expansionName" />
+              } @else {
               <div class="expandable-card expandable-card--community">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -603,6 +648,7 @@
                   </div>
                 }
               </div>
+              }
             }
           </div>
         </div>
@@ -650,6 +696,7 @@
           [canCreate]="canAddCompanion()"
           [saving]="companionActionInFlight()"
           [armorAvailable]="companionArmorAvailable()"
+          [armorInsteadUnavailableReason]="armorInsteadUnavailableReason()"
           [errorMessage]="companionError()"
           [classFeatureReminders]="companionFeatureReminders()"
           (companionCreated)="onCompanionCreated($event)"
@@ -669,6 +716,17 @@
           </div>
           <div class="card-group__list card-group__list--grid">
             @for (card of sheet.equippedDomainCards; track card.id) {
+              @if (card.restricted) {
+                <app-restricted-card-placeholder [expansionName]="card.expansionName">
+                  @if (isOwner()) {
+                    <div class="card-swap-action">
+                      <button class="card-swap-btn card-swap-btn--vault" (click)="onVaultCard(card.id)" aria-label="Move restricted card to vault">
+                        <span class="card-swap-btn__arrow" aria-hidden="true">&#8595;</span> Vault
+                      </button>
+                    </div>
+                  }
+                </app-restricted-card-placeholder>
+              } @else {
               <div class="expandable-card expandable-card--domain">
                 <button class="expandable-card__header" (click)="toggleCard(card.id)"
                         [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -720,6 +778,7 @@
                   </div>
                 }
               </div>
+              }
             }
           </div>
         </div>
@@ -758,6 +817,12 @@
         </div>
         <div class="vault-list">
           @for (card of sheet.vaultDomainCards; track card.id) {
+            @if (card.restricted) {
+              <!-- No Equip action here -- a vaulted card is already in the "off" state a locked
+                   card's removal-only exception exists to reach, and equipping would let the
+                   player activate rules they can't see. -->
+              <app-restricted-card-placeholder [expansionName]="card.expansionName" />
+            } @else {
             <div class="expandable-card expandable-card--domain expandable-card--vaulted">
               <button class="expandable-card__header" (click)="toggleCard(card.id)"
                       [attr.aria-expanded]="isCardExpanded(card.id)"
@@ -815,6 +880,7 @@
                 </div>
               }
             </div>
+            }
           }
         </div>
       </section>

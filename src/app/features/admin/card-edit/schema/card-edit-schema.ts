@@ -18,6 +18,7 @@ const BASICS_FIELDS_FULL = [
   { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
   { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
   { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+  { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
   { name: 'backgroundImageUrl', label: 'Background image URL', kind: 'url' as const, maxLength: 500, column: 'full' as const },
 ];
 
@@ -116,6 +117,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 100, column: 'full' as const },
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 2 as const },
           { name: 'startingClassItems', label: 'Starting class items', kind: 'textarea' as const, column: 'full' as const },
         ],
       },
@@ -147,7 +149,8 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
         fields: [
           { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
-          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 2 as const },
         ],
       },
     ],
@@ -169,6 +172,10 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
         title: 'Details',
         fields: [
           { name: 'spellcastingTrait', label: 'Spellcasting trait', kind: 'enum', column: 1, options: TRAIT_OPTIONS },
+          // The single writable srd flag for a subclass path + its 3 subclass cards, which all
+          // derive their own (disabled, read-only) srd checkbox from this one. See the `subclass`
+          // schema entry below for the disabled-derivative side of this pairing.
+          { name: 'srd', label: 'SRD content', kind: 'checkbox', column: 2 },
           { name: 'associatedDomainIds', label: 'Associated domains', kind: 'entityMulti', lookup: 'domains', column: 'full' },
         ],
       },
@@ -188,6 +195,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -282,6 +290,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -309,6 +318,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -336,6 +346,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -416,6 +427,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea', column: 'full' },
           { name: 'expansionId', label: 'Expansion', kind: 'entity', lookup: 'expansions', required: true, allowCreate: true, column: 1 },
           { name: 'featureType', label: 'Feature type', kind: 'enum', required: true, column: 2, options: FEATURE_TYPE_OPTIONS },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox', column: 1 },
         ],
       },
     ],
@@ -432,7 +444,8 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
         fields: [
           { name: 'name', label: 'Name', kind: 'text' as const, required: true, maxLength: 200, column: 'full' as const },
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
-          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 'full' as const },
+          { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 2 as const },
         ],
       },
     ],
@@ -450,6 +463,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
           { name: 'isPublic', label: 'Publicly visible', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -499,6 +513,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -525,6 +540,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
           { name: 'isPublic', label: 'Publicly visible', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
       {
@@ -628,6 +644,7 @@ export const CARD_EDIT_SCHEMAS: Record<string, EntityFormSchema> = {
           { name: 'description', label: 'Description', kind: 'textarea' as const, column: 'full' as const },
           { name: 'expansionId', label: 'Expansion', kind: 'entity' as const, lookup: 'expansions' as const, required: true, allowCreate: true, column: 1 as const },
           { name: 'isOfficial', label: 'Official content', kind: 'checkbox' as const, column: 2 as const },
+          { name: 'srd', label: 'SRD content', kind: 'checkbox' as const, column: 1 as const },
         ],
       },
     ],

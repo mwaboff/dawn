@@ -60,6 +60,7 @@ export class UserEdit implements OnInit {
     username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
     avatarUrl: ['', [Validators.maxLength(500)]],
     role: ['USER' as UserRole],
+    accessAllExpansions: [false],
   });
 
   readonly user = computed<AdminUserRecord | null>(() => this.detail()?.user ?? null);
@@ -142,6 +143,9 @@ export class UserEdit implements OnInit {
     const currentAvatar = current.avatarUrl ?? '';
     if ((raw.avatarUrl || '') !== currentAvatar) patch.avatarUrl = raw.avatarUrl ?? '';
     if (raw.role !== current.role) patch.role = raw.role as UserRole;
+    if (raw.accessAllExpansions !== (current.accessAllExpansions ?? false)) {
+      patch.accessAllExpansions = raw.accessAllExpansions as boolean;
+    }
 
     if (Object.keys(patch).length === 0) {
       this.form.markAsPristine();
@@ -218,6 +222,7 @@ export class UserEdit implements OnInit {
       username: user.username,
       avatarUrl: user.avatarUrl ?? '',
       role: user.role === 'OWNER' ? 'OWNER' : user.role,
+      accessAllExpansions: user.accessAllExpansions ?? false,
     });
     this.submitted.set(false);
   }

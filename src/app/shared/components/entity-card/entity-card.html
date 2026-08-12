@@ -3,12 +3,12 @@
 <ng-template #headerContent>
   <span class="entity-card__tab">{{ typeLabel() }}</span>
   <span class="entity-card__title">
-    <span class="entity-card__name">{{ card().name }}</span>
+    <span class="entity-card__name">{{ displayName() }}</span>
     @if (displaySize() === 'compact') {
       @if (compactLine(); as line) {
         <span class="entity-card__headline">{{ line }}</span>
       }
-    } @else if (card().subtitle) {
+    } @else if (!card().restricted && card().subtitle) {
       <span class="entity-card__subtitle">{{ card().subtitle }}</span>
     }
   </span>
@@ -68,10 +68,16 @@
   [class.entity-card__clip--expanded]="displaySize() === 'expanded'"
   [attr.tabindex]="displaySize() === 'expanded' ? 0 : null"
   [attr.role]="displaySize() === 'expanded' ? 'group' : null"
-  [attr.aria-label]="displaySize() === 'expanded' ? card().name + ' details' : null"
+  [attr.aria-label]="displaySize() === 'expanded' ? displayName() + ' details' : null"
 >
   @if (displaySize() !== 'compact') {
     <div class="entity-card__body">
+      @if (card().restricted) {
+        <div class="entity-card__locked">
+          <app-lock-icon class="entity-card__locked-icon" />
+          <p class="entity-card__locked-message">{{ lockedMessage() }}</p>
+        </div>
+      } @else {
       @if (card().stats?.length) {
         <div class="entity-card__stats">
           @for (stat of card().stats; track $index) {
@@ -121,8 +127,9 @@
           }
         </div>
       }
+      }
     </div>
-    @if (displaySize() === 'normal' && overflows()) {
+    @if (!card().restricted && displaySize() === 'normal' && overflows()) {
       <div class="entity-card__fade" aria-hidden="true"></div>
     }
   }

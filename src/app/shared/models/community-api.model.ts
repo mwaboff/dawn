@@ -30,4 +30,14 @@ export interface CommunityCardResponse {
   costTags: CommunityCostTag[];
   createdAt: string;
   lastModifiedAt: string;
+  /** Whether this community is SRD-licensed content, freely usable without owning the
+   * sourcebook it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this community because the viewer lacks access to
+   * its expansion (SRD vs. paid-expansion content gating); every other field except `id` may
+   * then be omitted. See `community.mapper.ts`'s `mapCommunityResponseToCardData`. */
+  restricted?: boolean;
+  /** The paid book this community belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }

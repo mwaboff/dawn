@@ -1,7 +1,11 @@
-import { CardData } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData } from '../components/daggerheart-card/daggerheart-card.model';
 import { SubclassPathApiResponse } from '../models/subclass-path-api.model';
 
 export function mapSubclassPathToCardData(response: SubclassPathApiResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'subclassPath', response.expansionName);
+  }
+
   const tags: string[] = [];
   // Both facts are words rather than numbers, so the beta face names them instead of showing the
   // spellcasting trait and each domain as undifferentiated chips in one row.

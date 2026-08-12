@@ -19,6 +19,7 @@ function view(overrides: Partial<CharacterSheetView> = {}): CharacterSheetView {
     armorScore: stat(3),
     majorDamageThreshold: stat(8),
     severeDamageThreshold: stat(16),
+    armorRestricted: false,
     hopeMax: stat(6),
     stressMax: stat(6),
     hitPointMarked: 2,
@@ -96,5 +97,38 @@ describe('PartyMemberDetail', () => {
 
     expect(fixture.componentInstance.equippedWeapons()).toHaveLength(1);
     expect(host.textContent).toContain('Shortsword');
+  });
+
+  describe('restricted equipped armor (SRD vs. paid-expansion content gating)', () => {
+    it('shows "score unavailable" rather than the mapper\'s internal 0 fallback', () => {
+      fixture.componentRef.setInput('sheet', view({
+        armorScore: stat(0),
+        armorRestricted: true,
+        activeArmor: {
+          id: 20, inventoryEntryId: 200, name: 'Content Not Available',
+          baseScore: 0, baseMajorThreshold: 0, baseSevereThreshold: 0, features: [],
+          restricted: true, expansionName: 'Hope & Fear',
+        },
+      }));
+      fixture.detectChanges();
+
+      expect(host.textContent).toContain('score unavailable');
+      expect(host.textContent).not.toContain('score 0');
+    });
+
+    it('still shows the placeholder armor name, not "None"', () => {
+      fixture.componentRef.setInput('sheet', view({
+        armorScore: stat(0),
+        armorRestricted: true,
+        activeArmor: {
+          id: 20, inventoryEntryId: 200, name: 'Content Not Available',
+          baseScore: 0, baseMajorThreshold: 0, baseSevereThreshold: 0, features: [],
+          restricted: true, expansionName: 'Hope & Fear',
+        },
+      }));
+      fixture.detectChanges();
+
+      expect(host.textContent).toContain('Content Not Available');
+    });
   });
 });

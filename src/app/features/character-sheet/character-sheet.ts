@@ -32,6 +32,9 @@ import { ItemFormModal, ItemCreatedEvent } from './components/item-form-modal/it
 import { ItemKind, itemEditPath } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from './components/modifier-indicator/modifier-indicator';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
+import { RestrictedCardPlaceholder } from './components/restricted-card-placeholder/restricted-card-placeholder';
+import { restrictedCardMessage } from '../../shared/components/daggerheart-card/daggerheart-card.model';
+import { LockIcon } from '../../shared/components/lock-icon/lock-icon';
 import { WeaponResponse } from '../../shared/models/weapon-api.model';
 import { ArmorResponse } from '../../shared/models/armor-api.model';
 import { LootApiResponse } from '../../shared/models/loot-api.model';
@@ -55,9 +58,9 @@ import {
 @Component({
   selector: 'app-character-sheet',
   templateUrl: './character-sheet.html',
-  styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css'],
+  styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css', './character-sheet-restricted.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemFormModal],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemFormModal, RestrictedCardPlaceholder, LockIcon],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -125,6 +128,18 @@ export class CharacterSheet implements OnInit {
   });
   readonly markedArmor = computed(() => this.localArmorMarked() ?? (this.characterSheet()?.armorMarked ?? 0));
   readonly currentGold = computed(() => (this.characterSheet()?.gold ?? 0) + this.localGoldAdjustment());
+
+  /**
+   * Armor score, Major Damage Threshold and Severe Damage Threshold are all derived from the
+   * equipped armor's own base numbers (`mapToCharacterSheetView`). When that armor is restricted,
+   * those base numbers are redacted, so the mapper falls back to 0 purely to keep the Armor pip
+   * tracker's `max` computable -- showing that 0 as the visible stat itself would present a
+   * fabricated fact as real, exactly what this redaction scheme exists to prevent.
+   * `CharacterSheetView.armorRestricted` (computed once by the mapper, not re-derived here from
+   * `activeArmor?.restricted`) is the one signal the header needs to swap each of those three
+   * badges for a lock icon instead of a number.
+   */
+  readonly armorRestricted = computed(() => this.characterSheet()?.armorRestricted === true);
 
   readonly focusMax = computed(() => this.rawSheet()?.focusMax ?? 0);
   readonly markedFocus = computed(() => this.localFocusMarked() ?? (this.rawSheet()?.focusMarked ?? 0));
@@ -226,6 +241,19 @@ export class CharacterSheet implements OnInit {
    * unambiguously calls the util rather than shadowing itself. */
   readonly companionFeatureReminders = computed(() => companionClassFeatureReminders(this.rawSheet()?.subclassCards));
   readonly companionArmorAvailable = computed(() => this.markedArmor() < (this.characterSheet()?.armorScore.modified ?? 0));
+  /**
+   * Non-null only while the equipped armor is restricted -- passed down through `CompanionPanel`
+   * so the Armored training's "mark Armor instead" offer can stay visible but disabled, with an
+   * explanation, rather than silently vanishing the way `companionArmorAvailable` alone would
+   * make it (that computed reads the same `armorScore.modified` 0-fallback `armorRestricted`'s own
+   * doc comment covers, so a restricted armor reads identically to "no slots free" today -- the
+   * choice just never appears, with no way for the player to tell why). Threading a pre-built
+   * label down, rather than a bare boolean, keeps `lockedStatLabel`'s wording as the single
+   * definition instead of a second copy in `CompanionCard`.
+   */
+  readonly armorInsteadUnavailableReason = computed(() =>
+    this.armorRestricted() ? this.lockedStatLabel('Mark Armor Instead') : null,
+  );
 
   private readonly localNotes = signal<string | null>(null);
   readonly notesExpanded = signal(false);
@@ -561,6 +589,12 @@ export class CharacterSheet implements OnInit {
 
   formatModifier(value: number): string {
     return value >= 0 ? `+${value}` : `${value}`;
+  }
+
+  /** The accessible label behind a locked header stat's lock icon. The copy itself lives in
+   * `daggerheart-card.model.ts` so this reads identically to every other locked face on the sheet. */
+  lockedStatLabel(statLabel: string): string {
+    return `${statLabel} unavailable. ${restrictedCardMessage(this.characterSheet()?.activeArmor?.expansionName)}`;
   }
 
   toggleCard(id: number): void {
@@ -1036,9 +1070,14 @@ export class CharacterSheet implements OnInit {
     });
   }
 
-  /** Routes through the existing Armor pipeline (`setResourceMarked`) rather than a
-   * companion-specific one -- see recon §7. */
+  /**
+   * Routes through the existing Armor pipeline (`setResourceMarked`) rather than a
+   * companion-specific one -- see recon §7. The `armorRestricted` guard is defense in depth, not
+   * the primary control -- the button that fires this is already `disabled` in that case
+   * (`companion-card.html`), so this only matters if something reaches the handler another way.
+   */
   onCompanionMarkArmorInstead(): void {
+    if (this.armorRestricted()) return;
     const max = this.characterSheet()?.armorScore.modified ?? 0;
     this.setResourceMarked('armor', Math.min(this.markedArmor() + 1, max));
   }

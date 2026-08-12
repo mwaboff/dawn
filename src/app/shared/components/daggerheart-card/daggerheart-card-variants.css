@@ -30,6 +30,19 @@
 
 .card--disabled { opacity: 0.5; pointer-events: none; filter: grayscale(0.3); }
 
+/* Locked, not broken: keeps the type's --ca accent (muted) and footprint so a restricted domain
+   card still reads as "a domain card", just unavailable -- dashed border instead of the solid one
+   real cards get, no hover lift/glow, no corner decoration. */
+.card--restricted { border-style: dashed; border-color: var(--cd); cursor: default; }
+.card--restricted:hover { transform: none; box-shadow: 0 4px 16px rgba(0,0,0,.5); border-color: var(--cd); }
+.card--restricted::before { display: none; }
+.card--restricted .card__decoration { display: none; }
+.card--restricted .card__type-badge { opacity: .5; }
+.card__content--restricted { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: .6rem; }
+.card__restricted-icon { width: 30px; height: 30px; color: var(--ca); opacity: .55; }
+.card__restricted-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ca); opacity: .8; margin: 0; }
+.card__restricted-message { font-family: var(--font-body); font-size: .9rem; color: #ddd0c2; opacity: .6; line-height: 1.55; margin: 0; max-width: 24ch; }
+
 /* A reference stat block, not a selection option -- full height, no clip/scroll cap, no hover
    lift (nothing happens on click), and no bottom fade (that gradient signals "more below,
    expand me", which doesn't apply once there's no cap to lift). */

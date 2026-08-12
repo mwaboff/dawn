@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { ArmorFeatureResponse, ArmorModifierResponse, ArmorResponse } from '../models/armor-api.model';
 import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
@@ -14,6 +14,10 @@ function mapFeature(feature: ArmorFeatureResponse): CardFeature {
 }
 
 export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'armor', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
 
   const modifiers: ArmorModifierResponse[] = (response.features ?? [])
@@ -48,6 +52,7 @@ export function mapArmorResponseToCardData(response: ArmorResponse): CardData {
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       baseScore: response.baseScore,
       baseMajorThreshold: response.baseMajorThreshold,
       baseSevereThreshold: response.baseSevereThreshold,

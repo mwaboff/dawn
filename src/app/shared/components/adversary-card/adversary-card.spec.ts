@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 
 import { AdversaryCard } from './adversary-card';
 import { AdversaryData } from './adversary-card.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../daggerheart-card/daggerheart-card.model';
 
 const MOCK_ADVERSARY: AdversaryData = {
   id: 1,
@@ -34,6 +35,17 @@ const MINIMAL_ADVERSARY: AdversaryData = {
   name: 'Shadow',
   tier: 2,
   adversaryType: 'BRUISER',
+};
+
+// Shaped exactly like `mapAdversaryToAdversaryData`'s redacted-stub return (`adversary.mapper.ts`):
+// `tier: 0`/`adversaryType: ''` placeholders that must never reach the page as fabricated fact.
+const RESTRICTED_ADVERSARY: AdversaryData = {
+  id: 99,
+  name: RESTRICTED_CARD_TITLE,
+  tier: 0,
+  adversaryType: '',
+  restricted: true,
+  expansionName: 'Hope & Fear',
 };
 
 @Component({
@@ -684,6 +696,87 @@ describe('AdversaryCard', () => {
       // `1.25rem` (comfortable) vs. `.85rem` (compact) top padding -- a real spacing cut, not a
       // font-size-only change that would leave the same amount of chrome around a smaller word.
       expect(getComputedStyle(header).paddingTop).toBe('0.85rem');
+    });
+  });
+
+  describe('Restricted adversary', () => {
+    it('should render the classic face unchanged when restricted is absent', () => {
+      const card = fixture.nativeElement.querySelector('.adversary-card');
+      expect(card.classList.contains('adversary-card--restricted')).toBe(false);
+      expect(fixture.nativeElement.querySelector('.adversary-card__restricted-message')).toBeFalsy();
+    });
+
+    it('should render the placeholder face and mark the card as restricted', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.adversary-card');
+      expect(card.classList.contains('adversary-card--restricted')).toBe(true);
+
+      expect(fixture.nativeElement.querySelector('.adversary-card__name').textContent.trim()).toBe(RESTRICTED_CARD_TITLE);
+
+      const message = fixture.nativeElement.querySelector('.adversary-card__restricted-message');
+      expect(message.textContent.trim()).toBe(restrictedCardMessage('Hope & Fear'));
+    });
+
+    it('should not render the type badge for a restricted adversary', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.adversary-card__type-badge')).toBeFalsy();
+    });
+
+    it('should not render the fabricated tier subtitle for a restricted adversary', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.adversary-card__subtitle--secondary')).toBeFalsy();
+      expect(fixture.nativeElement.textContent).not.toContain('Tier 0');
+    });
+
+    it('should not render the stats/thresholds/attack/features body for a restricted adversary', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.adversary-card__stats')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.adversary-card__thresholds')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.adversary-card__attack')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.adversary-card__features')).toBeFalsy();
+    });
+
+    it('should degrade the message gracefully when expansionName is absent', () => {
+      host.adversary.set({ ...RESTRICTED_ADVERSARY, expansionName: undefined });
+      fixture.detectChanges();
+
+      const message = fixture.nativeElement.querySelector('.adversary-card__restricted-message');
+      expect(message.textContent).not.toContain('undefined');
+    });
+
+    it('should build the aria-label from the placeholder title, not the stub name field', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      fixture.detectChanges();
+
+      const card = fixture.nativeElement.querySelector('.adversary-card');
+      expect(card.getAttribute('aria-label')).toBe(`${RESTRICTED_CARD_TITLE}, restricted adversary`);
+    });
+
+    it('should still render projected card-actions, so an already-possessed instance can still be removed/renamed', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      host.showActions.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[card-actions]')).toBeTruthy();
+    });
+
+    it('still shows the placeholder body when the whole card is expanded from collapsed', () => {
+      host.adversary.set(RESTRICTED_ADVERSARY);
+      host.collapsible.set(true);
+      fixture.detectChanges();
+
+      fixture.nativeElement.querySelector('.adversary-card__toggle').click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.adversary-card__restricted-message')).toBeTruthy();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import {
   TransformationCardFeatureResponse,
   TransformationCardQuestionResponse,
@@ -20,6 +20,10 @@ function mapFeature(feature: TransformationCardFeatureResponse): CardFeature {
  * `?expand=features,questions`, mirroring `beastform.mapper.ts`'s defensive style.
  */
 export function mapTransformationCardToCardData(response: TransformationCardResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'transformationCard', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
   const questions: TransformationCardQuestionResponse[] = response.questions ?? [];
 
@@ -31,6 +35,7 @@ export function mapTransformationCardToCardData(response: TransformationCardResp
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       questionIds: response.questionIds,
       questions,
     },

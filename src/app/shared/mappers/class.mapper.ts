@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { ClassFeatureResponse, ClassResponse } from '../models/class-api.model';
 
 function mapFeature(feature: ClassFeatureResponse, subtitle: string): CardFeature {
@@ -11,6 +11,10 @@ function mapFeature(feature: ClassFeatureResponse, subtitle: string): CardFeatur
 }
 
 export function mapClassResponseToCardData(response: ClassResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'class', response.expansionName);
+  }
+
   const tags: string[] = [];
   // The classic chips bake the label into the string because that row has nothing to separate a
   // label from its value; the beta ledger draws the label above the number, so it takes the pair.
@@ -39,6 +43,7 @@ export function mapClassResponseToCardData(response: ClassResponse): CardData {
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       startingEvasion: response.startingEvasion,
       startingHitPoints: response.startingHitPoints,
     },

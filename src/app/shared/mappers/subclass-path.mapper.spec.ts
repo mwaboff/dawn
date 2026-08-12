@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapSubclassPathToCardData } from './subclass-path.mapper';
 import { SubclassPathApiResponse } from '../models/subclass-path-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildSubclassPathResponse(overrides: Partial<SubclassPathApiResponse> = {}): SubclassPathApiResponse {
   return {
@@ -115,6 +116,29 @@ describe('mapSubclassPathToCardData', () => {
       const result = mapSubclassPathToCardData(response);
 
       expect(result.tags).toEqual(['Spellcasting: KNOWLEDGE', 'Blade', 'Bone']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildSubclassPathResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapSubclassPathToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'subclassPath',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildSubclassPathResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapSubclassPathToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

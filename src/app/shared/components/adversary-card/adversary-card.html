@@ -2,7 +2,8 @@
   class="adversary-card"
   [class.adversary-card--wide]="layout() === 'wide'"
   [class.adversary-card--compact]="compact()"
-  [attr.aria-label]="adversary().name + ', ' + typeLabel + ' adversary'"
+  [class.adversary-card--restricted]="adversary().restricted"
+  [attr.aria-label]="adversary().restricted ? restrictedTitle + ', restricted adversary' : adversary().name + ', ' + typeLabel + ' adversary'"
 >
   <div class="adversary-card__header">
     <div class="adversary-card__header-main">
@@ -15,26 +16,28 @@
           (click)="toggleCard()"
         >
           <span class="adversary-card__chevron" [class.adversary-card__chevron--open]="isExpanded()" aria-hidden="true">&#9656;</span>
-          <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+          <h3 class="adversary-card__name">{{ adversary().restricted ? restrictedTitle : adversary().name }}</h3>
         </button>
       } @else {
-        <h3 class="adversary-card__name">{{ adversary().name }}</h3>
+        <h3 class="adversary-card__name">{{ adversary().restricted ? restrictedTitle : adversary().name }}</h3>
       }
       <ng-content select="[card-actions]" />
     </div>
 
-    <p
-      class="adversary-card__subtitle adversary-card__type-badge"
-      [class.adversary-card__type-badge--elite]="isEliteType"
-      [class.adversary-card__type-badge--minion]="isMinionType"
-      [class.adversary-card__type-badge--solo]="isSoloType"
-      [attr.data-glyph]="typeGlyph"
-    >{{ typeLabel }}</p>
-    <p class="adversary-card__subtitle adversary-card__subtitle--secondary">{{ tierLabel }}</p>
-    @if (isRetiered()) {
-      <p class="adversary-card__subtitle adversary-card__subtitle--retiered">
-        <span aria-hidden="true">&#10227;</span> {{ retieredFromLabel }}
-      </p>
+    @if (!adversary().restricted) {
+      <p
+        class="adversary-card__subtitle adversary-card__type-badge"
+        [class.adversary-card__type-badge--elite]="isEliteType"
+        [class.adversary-card__type-badge--minion]="isMinionType"
+        [class.adversary-card__type-badge--solo]="isSoloType"
+        [attr.data-glyph]="typeGlyph"
+      >{{ typeLabel }}</p>
+      <p class="adversary-card__subtitle adversary-card__subtitle--secondary">{{ tierLabel }}</p>
+      @if (isRetiered()) {
+        <p class="adversary-card__subtitle adversary-card__subtitle--retiered">
+          <span aria-hidden="true">&#10227;</span> {{ retieredFromLabel }}
+        </p>
+      }
     }
 
     <!-- Rendered whether the card is collapsed or expanded -- a GM scanning a long fight needs
@@ -43,6 +46,12 @@
   </div>
 
   @if (isExpanded()) {
+    @if (adversary().restricted) {
+      <div class="adversary-card__body adversary-card__body--restricted" [id]="bodyId">
+        <app-lock-icon class="adversary-card__restricted-icon" />
+        <p class="adversary-card__restricted-message">{{ restrictedMessage(adversary().expansionName) }}</p>
+      </div>
+    } @else {
     <div class="adversary-card__body" [id]="bodyId">
       @if (adversary().hitPointMax !== undefined || adversary().stressMax !== undefined || adversary().evasion !== undefined || adversary().difficulty !== undefined) {
         <div class="adversary-card__stats">
@@ -155,5 +164,6 @@
         </div>
       }
     </div>
+    }
   }
 </div>

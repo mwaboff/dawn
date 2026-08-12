@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapAncestryResponseToCardData } from './ancestry.mapper';
 import { AncestryCardResponse } from '../models/ancestry-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildAncestryCardResponse(overrides: Partial<AncestryCardResponse> = {}): AncestryCardResponse {
   return {
@@ -150,5 +151,28 @@ describe('mapAncestryResponseToCardData', () => {
     });
     const result = mapAncestryResponseToCardData(response);
     expect(result.features![0].id).toBe(42);
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildAncestryCardResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapAncestryResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'ancestry',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildAncestryCardResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapAncestryResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
+    });
   });
 });

@@ -61,6 +61,25 @@
         <span id="role-error" class="field-error" role="alert">{{ backendError('role') }}</span>
       }
     </div>
+
+    <div class="form-group">
+      <label class="form-label form-label--inline" for="accessAllExpansions">
+        <input
+          id="accessAllExpansions"
+          type="checkbox"
+          class="form-checkbox"
+          formControlName="accessAllExpansions"
+          aria-describedby="accessAllExpansions-hint"
+        />
+        Access all expansions
+      </label>
+      <p id="accessAllExpansions-hint" class="form-hint">
+        Lets this user see paid-expansion content without changing their role. ADMIN and OWNER
+        always see this content regardless of this setting. Unlike a role change, granting or
+        revoking this does not revoke the user's session — it takes effect the next time they load
+        their profile.
+      </p>
+    </div>
   </div>
 
   <div class="identity-readonly">

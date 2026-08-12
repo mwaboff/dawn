@@ -41,7 +41,11 @@
         <div class="armor-instead-prompt">
           <span class="armor-instead-prompt__text">Mark {{ companion().name }}'s Stress, or mark an Armor Slot instead?</span>
           <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkStress()">Mark Stress</button>
-          <button type="button" class="armor-instead-prompt__btn" (click)="confirmMarkArmorInstead()">Mark Armor Instead</button>
+          <button type="button" class="armor-instead-prompt__btn"
+                  [disabled]="armorInsteadDisabled()"
+                  [attr.aria-label]="armorInsteadDisabled() ? armorInsteadUnavailableReason() : null"
+                  [attr.title]="armorInsteadDisabled() ? armorInsteadUnavailableReason() : null"
+                  (click)="confirmMarkArmorInstead()">Mark Armor Instead</button>
           <button type="button" class="armor-instead-prompt__cancel" (click)="cancelPendingStress()">Cancel</button>
         </div>
       }

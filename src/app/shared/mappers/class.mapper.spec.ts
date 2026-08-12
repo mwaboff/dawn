@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapClassResponseToCardData } from './class.mapper';
 import { ClassResponse } from '../models/class-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -133,6 +134,29 @@ describe('mapClassResponseToCardData', () => {
       const result = mapClassResponseToCardData(response);
 
       expect(result.tags).toEqual(['Evasion: 10', 'Hit Points: 8']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildClassResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapClassResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'class',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildClassResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapClassResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

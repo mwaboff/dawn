@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapWeaponResponseToCardData } from './weapon.mapper';
 import { WeaponResponse } from '../models/weapon-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildWeaponResponse(overrides: Partial<WeaponResponse> = {}): WeaponResponse {
   return {
@@ -326,6 +327,29 @@ describe('mapWeaponResponseToCardData', () => {
       expect(result.subtitle).toBe('Physical Weapon');
       expect(result.subtitleSecondary).toBe('Tier 3');
       expect(result.tags).toEqual(['1d8', 'Far', 'Two-Handed', 'Agility', 'Custom']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildWeaponResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapWeaponResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'weapon',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildWeaponResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapWeaponResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapSubclassResponseToCardData } from './subclass.mapper';
 import { SubclassCardResponse } from '../models/subclass-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildSubclassCardResponse(overrides: Partial<SubclassCardResponse> = {}): SubclassCardResponse {
   return {
@@ -285,6 +286,29 @@ describe('mapSubclassResponseToCardData', () => {
       expect(result.subtitle).toBe('Bard');
       expect(result.subtitleSecondary).toBe('Arcana · Sage');
       expect(result.tags).toEqual(['Spellcasting: Presence']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildSubclassCardResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'subclass',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildSubclassCardResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapSubclassResponseToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

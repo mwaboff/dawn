@@ -1,14 +1,21 @@
 import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 
-import { CardData, CardType, CARD_TYPE_LABELS } from './daggerheart-card.model';
+import {
+  CardData,
+  CardType,
+  CARD_TYPE_LABELS,
+  RESTRICTED_CARD_TITLE,
+  restrictedCardMessage,
+} from './daggerheart-card.model';
 import { CardFeatureItem } from './card-feature-item/card-feature-item';
 import { FormatTextPipe } from '../../pipes/format-text.pipe';
+import { LockIcon } from '../lock-icon/lock-icon';
 
 @Component({
   selector: 'app-daggerheart-card',
   templateUrl: './daggerheart-card.html',
   styleUrls: ['./daggerheart-card.css', './daggerheart-card-variants.css', './daggerheart-card-wide.css'],
-  imports: [CardFeatureItem, FormatTextPipe],
+  imports: [CardFeatureItem, FormatTextPipe, LockIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DaggerheartCard {
@@ -30,6 +37,10 @@ export class DaggerheartCard {
   readonly collapsibleFeatures = input<boolean>(false);
   readonly cardClicked = output<CardData>();
 
+  /** Exposed for the template; the copy itself lives in `daggerheart-card.model.ts` so the
+   * classic and beta (`cardDataToEntityCard`) faces never drift apart. */
+  readonly restrictedTitle = RESTRICTED_CARD_TITLE;
+
   private readonly featuresExpanded = signal(false);
 
   get isFeaturesExpanded(): boolean {
@@ -37,16 +48,20 @@ export class DaggerheartCard {
   }
 
   onCardClick(): void {
-    if (this.disabled() || this.readOnly()) return;
+    if (this.disabled() || this.readOnly() || this.card().restricted) return;
     this.cardClicked.emit(this.card());
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (this.disabled() || this.readOnly()) return;
+    if (this.disabled() || this.readOnly() || this.card().restricted) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       this.onCardClick();
     }
+  }
+
+  restrictedMessage(expansionName: string | undefined): string {
+    return restrictedCardMessage(expansionName);
   }
 
   toggleFeatures(event: Event): void {

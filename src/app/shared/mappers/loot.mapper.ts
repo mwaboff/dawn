@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { LootApiResponse, LootFeature } from '../models/loot-api.model';
 import { CUSTOM_CONTENT_TAG, isCustomContent } from './custom-content.util';
 
@@ -10,6 +10,10 @@ function mapLootFeature(feature: LootFeature): CardFeature {
 }
 
 export function mapLootToCardData(response: LootApiResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'loot', response.expansionName);
+  }
+
   const features = response.features?.map(mapLootFeature);
   const tags: string[] = [];
 
@@ -45,6 +49,7 @@ export function mapLootToCardData(response: LootApiResponse): CardData {
       tier: response.tier,
       isConsumable: response.isConsumable,
       expansionId: response.expansionId,
+      srd: response.srd,
       isOfficial: response.isOfficial,
       createdByUserId: response.createdByUserId ?? null,
     },

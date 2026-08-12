@@ -73,7 +73,11 @@
           <div class="unequip-list">
             @for (card of equippedDomainCards(); track card.id) {
               <button class="unequip-card" [class.selected]="unequipCardId() === card.id"
+                [class.unequip-card--restricted]="card.restricted"
                 (click)="onUnequipCard(card.id)">
+                @if (card.restricted) {
+                  <span class="unequip-card__lock" aria-hidden="true">&#128274;</span>
+                }
                 <span class="unequip-card__name">{{ card.name }}</span>
                 @if (card.domainName) {
                   <span class="unequip-card__domain">{{ card.domainName }}</span>

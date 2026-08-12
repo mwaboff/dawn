@@ -162,6 +162,47 @@ describe('EncounterRoster', () => {
     expect(fixture.nativeElement.querySelector('.adversary-card__body')).toBeTruthy();
   });
 
+  describe('restricted adversary instances (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedInstance(overrides: Partial<EncounterRosterInstance> = {}): EncounterRosterInstance {
+      return buildInstance({
+        adversary: { id: 1, name: 'Content Not Available', restricted: true, expansionName: 'Hope & Fear' },
+        ...overrides,
+      });
+    }
+
+    it('offers no nickname or retier control for a restricted adversary, in classic', () => {
+      fixture.componentRef.setInput('instances', [buildRestrictedInstance()]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeFalsy();
+    });
+
+    it('still offers the remove control for a restricted adversary, in classic', () => {
+      fixture.componentRef.setInput('instances', [buildRestrictedInstance()]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-delete-btn')).toBeTruthy();
+    });
+
+    it('offers no nickname or retier control for a restricted adversary, in beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildRestrictedInstance()]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeFalsy();
+    });
+
+    it('still offers the remove control for a restricted adversary, in beta', () => {
+      TestBed.inject(PreferencesService).setSheetLayout('beta');
+      fixture.componentRef.setInput('instances', [buildRestrictedInstance()]);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.roster-delete-btn')).toBeTruthy();
+    });
+  });
+
   describe('selectedEnvironment', () => {
     it('does not render an environment card when none is selected', () => {
       fixture.componentRef.setInput('instances', []);

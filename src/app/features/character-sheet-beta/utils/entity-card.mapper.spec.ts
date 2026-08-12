@@ -20,6 +20,7 @@ import {
   SubclassCardSummary,
   WeaponDisplay,
 } from '../../character-sheet/models/character-sheet-view.model';
+import { RESTRICTED_CARD_TITLE } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function buildFeature(overrides: Partial<FeatureDisplay> = {}): FeatureDisplay {
   return { name: 'Shadowblighted', description: 'A dark gift.', tags: [], modifiers: [], ...overrides };
@@ -345,6 +346,88 @@ describe('entity-card.mapper', () => {
 
     it('omits stats when there are no cost tags', () => {
       expect(lootToEntity(buildLoot({ costTags: [] })).stats).toBeUndefined();
+    });
+  });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    const restrictedCard: CardSummary = {
+      id: 9,
+      name: RESTRICTED_CARD_TITLE,
+      description: 'This card is from Hope & Fear, which you don’t have access to.',
+      features: [],
+      restricted: true,
+      expansionName: 'Hope & Fear',
+    };
+
+    it('draws class/ancestry/community cards as a locked 2-field card, no name/description/badges/features', () => {
+      for (const toEntity of [classCardToEntity, ancestryCardToEntity, communityCardToEntity]) {
+        const entity = toEntity(restrictedCard);
+        // `EntityCard` draws its own locked face off `restricted`/`expansionName` -- no
+        // name/description is fabricated here for it to read instead.
+        expect(entity.restricted).toBe(true);
+        expect(entity.expansionName).toBe('Hope & Fear');
+        expect(entity.name).toBeUndefined();
+        expect(entity.description).toBeUndefined();
+        expect(entity.badges).toBeUndefined();
+        expect(entity.features).toBeUndefined();
+      }
+    });
+
+    it('draws a restricted subclass card without its subclass-only meta', () => {
+      const card: SubclassCardSummary = { ...restrictedCard, associatedClassName: 'Druid', level: 'FOUNDATION' };
+
+      const entity = subclassCardToEntity(card);
+
+      expect(entity.cardType).toBe('subclass');
+      expect(entity.subtitle).toBeUndefined();
+      expect(entity.meta).toBeUndefined();
+    });
+
+    it('draws a restricted domain card without its domain-only meta', () => {
+      const card: DomainCardSummary = { ...restrictedCard, domainName: 'Valor', level: 3, recallCost: 1 };
+
+      const entity = domainCardToEntity(card);
+
+      expect(entity.cardType).toBe('domainCard');
+      expect(entity.subtitle).toBeUndefined();
+      expect(entity.badges).toBeUndefined();
+      expect(entity.meta).toBeUndefined();
+    });
+
+    it('draws a restricted weapon as a locked card, ignoring its (safe-default) stats', () => {
+      const weapon = buildWeapon({ restricted: true, expansionName: 'Hope & Fear', name: RESTRICTED_CARD_TITLE });
+
+      const entity = weaponToEntity(weapon, 'primary');
+
+      expect(entity.restricted).toBe(true);
+      expect(entity.expansionName).toBe('Hope & Fear');
+      expect(entity.name).toBeUndefined();
+      expect(entity.badges).toBeUndefined();
+      expect(entity.stats).toBeUndefined();
+      expect(entity.features).toBeUndefined();
+    });
+
+    it('draws a restricted armor as a locked card', () => {
+      const armor = buildArmor({ restricted: true, expansionName: undefined, name: RESTRICTED_CARD_TITLE });
+
+      const entity = armorToEntity(armor, true);
+
+      expect(entity.restricted).toBe(true);
+      expect(entity.expansionName).toBeUndefined();
+      expect(entity.name).toBeUndefined();
+      expect(entity.stats).toBeUndefined();
+    });
+
+    it('draws restricted loot as a locked card', () => {
+      const loot = buildLoot({ restricted: true, expansionName: 'Hope & Fear', name: RESTRICTED_CARD_TITLE });
+
+      const entity = lootToEntity(loot);
+
+      expect(entity.restricted).toBe(true);
+      expect(entity.expansionName).toBe('Hope & Fear');
+      expect(entity.name).toBeUndefined();
+      expect(entity.stats).toBeUndefined();
+      expect(entity.subtitle).toBeUndefined();
     });
   });
 });

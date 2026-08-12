@@ -32,6 +32,7 @@ export interface AdminUserRecord extends AdminUserSummary {
   lastModifiedAt?: string | null;
   usernameChosen?: boolean;
   deletedAt?: string | null;
+  accessAllExpansions?: boolean;
 }
 
 export interface AdminUserIdentity {
@@ -79,6 +80,7 @@ export interface AdminUserPatchRequest {
   username?: string;
   avatarUrl?: string;
   role?: UserRole;
+  accessAllExpansions?: boolean;
 }
 
 export interface AdminUserListParams {

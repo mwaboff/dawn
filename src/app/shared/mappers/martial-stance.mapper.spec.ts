@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapMartialStanceToCardData } from './martial-stance.mapper';
 import { MartialStanceResponse } from '../models/martial-stance-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildMartialStanceResponse(overrides: Partial<MartialStanceResponse> = {}): MartialStanceResponse {
   return {
@@ -63,6 +64,29 @@ describe('mapMartialStanceToCardData', () => {
 
       expect(result.subtitleSecondary).toBeUndefined();
       expect(result.tags).toEqual([]);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildMartialStanceResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapMartialStanceToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'martialStance',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildMartialStanceResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapMartialStanceToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

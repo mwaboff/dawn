@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { MartialStanceFeatureResponse, MartialStanceResponse } from '../models/martial-stance-api.model';
 
 function mapFeature(feature: MartialStanceFeatureResponse): CardFeature {
@@ -17,6 +17,10 @@ function mapFeature(feature: MartialStanceFeatureResponse): CardFeature {
  * `beastform.mapper.ts`'s defensive style.
  */
 export function mapMartialStanceToCardData(response: MartialStanceResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'martialStance', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
 
   return {
@@ -33,6 +37,7 @@ export function mapMartialStanceToCardData(response: MartialStanceResponse): Car
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       tier: response.tier,
       isOfficial: response.isOfficial,
       originalMartialStanceId: response.originalMartialStanceId,

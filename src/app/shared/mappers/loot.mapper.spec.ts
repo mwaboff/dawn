@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { mapLootToCardData } from './loot.mapper';
 import { LootApiResponse } from '../models/loot-api.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../components/daggerheart-card/daggerheart-card.model';
 
 function buildLootResponse(overrides: Partial<LootApiResponse> = {}): LootApiResponse {
   return {
@@ -136,6 +137,29 @@ describe('mapLootToCardData', () => {
       const result = mapLootToCardData(response);
 
       expect(result.tags).toEqual(['Tier 2', 'Consumable', '1 HANDFUL', 'Custom']);
+    });
+  });
+
+  describe('restricted', () => {
+    it('short-circuits to a locked CardData without reading any other field', () => {
+      const response = buildLootResponse({ id: 99, restricted: true, expansionName: 'Hope & Fear' });
+      const result = mapLootToCardData(response);
+
+      expect(result).toEqual({
+        id: 99,
+        cardType: 'loot',
+        name: RESTRICTED_CARD_TITLE,
+        description: restrictedCardMessage('Hope & Fear'),
+        restricted: true,
+        expansionName: 'Hope & Fear',
+      });
+    });
+
+    it('degrades the message gracefully when expansionName is absent', () => {
+      const response = buildLootResponse({ id: 99, restricted: true, expansionName: undefined });
+      const result = mapLootToCardData(response);
+
+      expect(result.description).not.toContain('undefined');
     });
   });
 });

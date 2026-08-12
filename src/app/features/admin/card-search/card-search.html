@@ -52,8 +52,28 @@
       }
     </div>
   } @else if (hasResults()) {
+    <div class="selection-bar">
+      <span class="toolbar__count" aria-live="polite">{{ selectedCount() }} selected</span>
+      <button type="button" class="page-btn" [disabled]="selectedCount() === 0 || bulkPending()" (click)="clearSelection()">Clear</button>
+      <button type="button" class="page-btn" [disabled]="selectedCount() === 0 || bulkPending()" (click)="runBulkAction(true)">Mark SRD</button>
+      <button type="button" class="page-btn" [disabled]="selectedCount() === 0 || bulkPending()" (click)="runBulkAction(false)">Unmark SRD</button>
+    </div>
+
+    @if (bulkResult(); as result) {
+      <div class="bulk-result" role="status" aria-live="polite">
+        {{ resultMessage(result) }}
+        @if (result.unknownIds.length) {
+          <p class="bulk-result__detail">Not found: {{ result.unknownIds.join(', ') }}</p>
+        }
+        @for (err of result.errors; track err.type) {
+          <p class="bulk-result__detail">{{ err.type }}: {{ err.message }}</p>
+        }
+      </div>
+    }
+
     <app-card-table [rows]="rows()" [columns]="columns()" [sort]="state().sort" [showType]="isAllTypes()"
-      (sortChanged)="onSortChanged($event)" />
+      [selectedKeys]="selectedKeys()" (sortChanged)="onSortChanged($event)"
+      (rowSelectionToggled)="onRowSelectionToggled($event)" (pageSelectionToggled)="onPageSelectionToggled($event)" />
 
     <div class="table-footer">
       <p class="table-footer__note">Sorting applies to the loaded page — the API paginates by ID.</p>

@@ -35,7 +35,7 @@
           }
 
           @for (form of beastforms(); track form.id) {
-            <div class="expandable-card expandable-card--beastform expandable-card--nested">
+            <div class="expandable-card expandable-card--beastform expandable-card--nested" [class.expandable-card--restricted]="form.restricted">
               <button type="button" class="expandable-card__header" (click)="toggleForm(form.id)"
                       [attr.aria-expanded]="isFormExpanded(form.id)"
                       [attr.aria-controls]="'beastform-body-' + form.id">
@@ -45,28 +45,37 @@
                   @if (form.statLine) {
                     <span class="expandable-card__stats">{{ form.statLine }}</span>
                   }
-                  <span class="expandable-card__meta-badge expandable-card__meta-badge--beastform">Tier {{ form.tier }}</span>
+                  @if (form.tier !== undefined) {
+                    <span class="expandable-card__meta-badge expandable-card__meta-badge--beastform">Tier {{ form.tier }}</span>
+                  }
                 </div>
               </button>
 
               @if (isFormExpanded(form.id)) {
                 <div class="expandable-card__body" [id]="'beastform-body-' + form.id">
-                  @if (form.attackLine) {
-                    <p class="beastform__attack">{{ form.attackLine }}</p>
-                  }
-                  @if (form.advantages) {
-                    <div>
-                      <strong class="feature-row__name">Gain advantage on</strong>
-                      <p class="feature-row__description" [innerHTML]="form.advantages | formatText"></p>
+                  @if (form.restricted) {
+                    <div class="beastform-locked">
+                      <app-lock-icon class="beastform-locked__icon" />
+                      <p class="beastform-locked__message">{{ restrictedMessage(form.expansionName) }}</p>
                     </div>
-                  }
-                  @for (feature of form.features; track feature.id) {
-                    <div>
-                      @if (feature.name) {
-                        <strong class="feature-row__name">{{ feature.name }}</strong>
-                      }
-                      <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
-                    </div>
+                  } @else {
+                    @if (form.attackLine) {
+                      <p class="beastform__attack">{{ form.attackLine }}</p>
+                    }
+                    @if (form.advantages) {
+                      <div>
+                        <strong class="feature-row__name">Gain advantage on</strong>
+                        <p class="feature-row__description" [innerHTML]="form.advantages | formatText"></p>
+                      </div>
+                    }
+                    @for (feature of form.features; track feature.id) {
+                      <div>
+                        @if (feature.name) {
+                          <strong class="feature-row__name">{{ feature.name }}</strong>
+                        }
+                        <p class="feature-row__description" [innerHTML]="feature.description | formatText"></p>
+                      </div>
+                    }
                   }
                 </div>
               }

@@ -4,7 +4,7 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, ParamMap, convertToParamMap } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, catchError, debounceTime, map, of } from 'rxjs';
+import { Subject, catchError, debounceTime, forkJoin, map, of } from 'rxjs';
 import { CardTable } from './card-table/card-table';
 import { SearchService } from '../../../shared/services/search.service';
 import { CodexBrowseService } from '../../../shared/services/codex-browse.service';
@@ -14,8 +14,11 @@ import { mapSearchResult } from '../../../shared/mappers/search-result.mapper';
 import {
   ADMIN_CATEGORIES, ALL_TYPES_COLUMNS, ALL_TYPES_ID, PAGE_SIZES, SortState,
 } from './card-table.model';
-import { buildRows, categoryForSearchType, RowItem, sortRows } from './card-table.utils';
+import { buildRows, categoryForSearchType, rowKey, RowItem, sortRows } from './card-table.utils';
 import { MIN_QUERY_LENGTH, readSearchParams, SearchState } from './card-search.params';
+import { AdminContentService } from './services/admin-content.service';
+import { BulkSrdGroupOutcome, BulkSrdSummary } from './models/bulk-srd.model';
+import { bulkResultMessage, extractErrorMessage, groupSelectedRows, summarizeBulkOutcomes } from './bulk-srd.utils';
 
 export { ADMIN_CATEGORIES } from './card-table.model';
 
@@ -33,6 +36,7 @@ export class CardSearch {
   private readonly browseService = inject(CodexBrowseService);
   private readonly searchService = inject(SearchService);
   private readonly expansionService = inject(ExpansionService);
+  private readonly adminContentService = inject(AdminContentService);
 
   /**
    * Expansion names are looked up once (the service caches with `shareReplay`) and
@@ -86,7 +90,17 @@ export class CardSearch {
     : ADMIN_CATEGORIES.find(c => c.id === this.activeCategory())?.columns ?? []);
   private readonly builtRows = computed(() =>
     buildRows(this.items(), this.columns(), this.expansionNames()));
-  readonly rows = computed(() => sortRows(this.builtRows(), this.state().sort));
+  /**
+   * Rows the table renders, with a successful bulk action's `srd` change applied on top of
+   * whatever the fetch returned (see `srdOverrides`) so the Expansion column's `(SRD)` suffix
+   * reflects the new state immediately, without a refetch.
+   */
+  readonly rows = computed(() => {
+    const sorted = sortRows(this.builtRows(), this.state().sort);
+    const overrides = this.srdOverrides();
+    if (overrides.size === 0) return sorted;
+    return sorted.map(row => overrides.has(rowKey(row)) ? { ...row, srd: overrides.get(rowKey(row)) } : row);
+  });
   readonly hasResults = computed(() => this.builtRows().length > 0);
   readonly isSearchMode = computed(() => this.state().query.length >= MIN_QUERY_LENGTH);
   readonly isShortQuery = computed(() => {
@@ -104,6 +118,96 @@ export class CardSearch {
     const rows = this.builtRows().length;
     return rows === this.fetchedCount() ? range : `${range} · ${rows} rows`;
   });
+
+  /**
+   * Keys (see `rowKey`) of the rows selected for the bulk SRD-flagging action. Scoped to the
+   * currently loaded page of results -- cleared whenever the category, query, or page changes
+   * (see `reset`/`executeSearch`/`executeBrowse`) so a selection never silently refers to rows
+   * that are no longer on screen.
+   */
+  readonly selectedKeys = signal<ReadonlySet<string>>(new Set());
+  readonly selectedCount = computed(() => this.selectedKeys().size);
+  readonly bulkPending = signal(false);
+  readonly bulkResult = signal<BulkSrdSummary | null>(null);
+  /**
+   * `srd` for rows a bulk action changed, keyed by `rowKey` -- applied on top of `builtRows` in
+   * `rows` above. Populated only from `updatedIds`, never the whole selection, since a batch's
+   * `unknownIds` did not actually change. Cleared on the next fetch (`reset`/`executeSearch`/
+   * `executeBrowse`), not by `clearSelection`, since it reflects confirmed server state rather
+   * than selection state -- clicking "Clear" should not un-annotate rows that really did change.
+   */
+  private readonly srdOverrides = signal<ReadonlyMap<string, boolean>>(new Map());
+
+  onRowSelectionToggled(key: string): void {
+    const next = new Set(this.selectedKeys());
+    if (next.has(key)) next.delete(key); else next.add(key);
+    this.selectedKeys.set(next);
+    this.bulkResult.set(null);
+  }
+
+  onPageSelectionToggled(selectAll: boolean): void {
+    const next = new Set(this.selectedKeys());
+    for (const row of this.rows()) {
+      if (!row.srdType) continue;
+      if (selectAll) next.add(rowKey(row)); else next.delete(rowKey(row));
+    }
+    this.selectedKeys.set(next);
+    this.bulkResult.set(null);
+  }
+
+  clearSelection(): void {
+    this.selectedKeys.set(new Set());
+    this.bulkResult.set(null);
+  }
+
+  resultMessage(summary: BulkSrdSummary): string {
+    return bulkResultMessage(summary);
+  }
+
+  /**
+   * Applies `srd` to every selected row. Rows are grouped by their backing type first (a
+   * cross-type search selection can mix, say, weapons and adversaries) since the endpoint takes
+   * one type per call; each group's call is caught independently so one type's failure (a stale
+   * id, a permissions error) doesn't hide the others' results -- the summary reports every group.
+   */
+  runBulkAction(srd: boolean): void {
+    const groups = groupSelectedRows(this.rows(), this.selectedKeys());
+    if (groups.size === 0) return;
+
+    this.bulkPending.set(true);
+    this.bulkResult.set(null);
+
+    const calls = Array.from(groups.entries()).map(([type, ids]) => this.adminContentService
+      .updateSrd({ type, ids, srd })
+      .pipe(
+        map((res): BulkSrdGroupOutcome => (
+          { type, requestedIds: ids, updatedIds: res.updatedIds, unknownIds: res.unknownIds }
+        )),
+        catchError(err => of<BulkSrdGroupOutcome>({
+          type, requestedIds: ids, updatedIds: [], unknownIds: [],
+          error: extractErrorMessage(err, `Failed to update ${ids.length} item(s).`),
+        })),
+      ));
+
+    forkJoin(calls)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(outcomes => {
+        // Clears the selection without clearSelection()'s bulkResult reset, which would
+        // immediately hide the summary this call just produced.
+        this.selectedKeys.set(new Set());
+        this.bulkResult.set(summarizeBulkOutcomes(srd, outcomes));
+        this.bulkPending.set(false);
+        this.applySrdOverrides(outcomes, srd);
+      });
+  }
+
+  private applySrdOverrides(outcomes: readonly BulkSrdGroupOutcome[], srd: boolean): void {
+    const next = new Map(this.srdOverrides());
+    for (const outcome of outcomes) {
+      for (const id of outcome.updatedIds) next.set(`${outcome.type}:${id}`, srd);
+    }
+    this.srdOverrides.set(next);
+  }
 
   private readonly queryInput$ = new Subject<string>();
 
@@ -175,6 +279,8 @@ export class CardSearch {
     this.totalPages.set(0);
     this.loading.set(false);
     this.error.set(false);
+    this.clearSelection();
+    this.srdOverrides.set(new Map());
   }
 
   private searchTypes(category: string): SearchableEntityType[] {
@@ -188,6 +294,8 @@ export class CardSearch {
   private executeSearch(category: string, q: string, page: number, size: number): void {
     this.loading.set(true);
     this.error.set(false);
+    this.clearSelection();
+    this.srdOverrides.set(new Map());
     this.searchService
       .search({ q, types: this.searchTypes(category), page, size })
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -214,6 +322,8 @@ export class CardSearch {
     if (!type) return;
     this.loading.set(true);
     this.error.set(false);
+    this.clearSelection();
+    this.srdOverrides.set(new Map());
     this.browseService.browse(type, {}, page, size)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

@@ -1,4 +1,4 @@
-import { CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
+import { buildRestrictedCardData, CardData, CardFeature } from '../components/daggerheart-card/daggerheart-card.model';
 import { CommunityCardResponse, CommunityFeatureResponse } from '../models/community-api.model';
 
 function mapFeature(feature: CommunityFeatureResponse): CardFeature {
@@ -13,6 +13,10 @@ function mapFeature(feature: CommunityFeatureResponse): CardFeature {
 }
 
 export function mapCommunityResponseToCardData(response: CommunityCardResponse): CardData {
+  if (response.restricted) {
+    return buildRestrictedCardData(response.id, 'community', response.expansionName);
+  }
+
   const features: CardFeature[] = (response.features ?? []).map(mapFeature);
 
   return {
@@ -23,6 +27,7 @@ export function mapCommunityResponseToCardData(response: CommunityCardResponse):
     features: features.length > 0 ? features : undefined,
     metadata: {
       expansionId: response.expansionId,
+      srd: response.srd,
       features: response.features ?? [],
     },
   };

@@ -187,4 +187,55 @@ describe('TransformationPanelBeta', () => {
 
     expect(host.lastSelected).toBe(CATALOG[1].id);
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedCard(overrides: Partial<TransformationCardResponse> = {}): TransformationCardResponse {
+      return { id: 9, name: 'ignored', expansionId: 2, createdAt: '', lastModifiedAt: '', restricted: true, ...overrides };
+    }
+
+    it('maps to the locked 2-field card and lets EntityCard draw the locked face itself', () => {
+      host.card.set(buildRestrictedCard({ expansionName: 'Hope & Fear' }));
+      fixture.detectChanges();
+
+      const data = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+      expect(data.restricted).toBe(true);
+      expect(data.expansionName).toBe('Hope & Fear');
+      expect(data.name).toBeUndefined();
+      expect(data.description).toBeUndefined();
+      expect(data.features).toBeUndefined();
+      expect(data.badges).toBeUndefined();
+    });
+
+    it('renders the shared locked face through EntityCard', () => {
+      host.card.set(buildRestrictedCard({ expansionName: 'Hope & Fear' }));
+      fixture.detectChanges();
+
+      expect(el.querySelector('.entity-card__locked')).toBeTruthy();
+      expect(el.textContent).toContain('Hope & Fear');
+    });
+
+    it('projects no Feed-token stepper or Wolf Form toggle for a restricted card, even one named Vampire/Werewolf', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+
+      expect(el.querySelector('[card-controls]')).toBeFalsy();
+    });
+
+    it('offers no Change action on a restricted card -- swapping is not the removal exception', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+
+      const buttons = Array.from(el.querySelectorAll<HTMLButtonElement>('[card-actions] button')).map(b => b.textContent?.trim());
+      expect(buttons).toEqual(['Remove']);
+    });
+
+    it('still offers Remove on a restricted card -- otherwise the player is stuck in a form they cannot see', () => {
+      host.card.set(buildRestrictedCard());
+      fixture.detectChanges();
+
+      el.querySelector<HTMLButtonElement>('[card-actions] button')?.click();
+
+      expect(host.removedCalled).toBe(true);
+    });
+  });
 });

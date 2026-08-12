@@ -197,6 +197,33 @@ describe('DomainCardStep', () => {
     expect(host.lastUnequipId).toBe(20);
   });
 
+  it('shows a locked look for a restricted equipped card in the unequip list, not raw fabricated data', () => {
+    host.equippedDomainCardCount.set(3);
+    host.maxEquippedDomainCards.set(3);
+    host.equippedDomainCards.set([
+      // `name`/`description` already hold the safe placeholder text (see
+      // `buildRestrictedCardSummary` in character-sheet-view.mapper.ts) -- domainName/level are
+      // genuinely absent, matching what a redacted response sends.
+      { id: 20, name: 'Content Not Available', features: [], restricted: true, expansionName: 'Hope & Fear' },
+      MOCK_EQUIPPED[1],
+    ]);
+    fixture.detectChanges();
+
+    const cardButton = el.querySelector('app-daggerheart-card .card') as HTMLElement;
+    cardButton.click();
+    fixture.detectChanges();
+
+    const checkbox = el.querySelector('.equip-toggle input') as HTMLInputElement;
+    checkbox.click();
+    fixture.detectChanges();
+
+    const restrictedBtn = el.querySelector('.unequip-card--restricted') as HTMLButtonElement;
+    expect(restrictedBtn).toBeTruthy();
+    expect(restrictedBtn.querySelector('.unequip-card__lock')).toBeTruthy();
+    expect(restrictedBtn.querySelector('.unequip-card__name')?.textContent).toBe('Content Not Available');
+    expect(restrictedBtn.querySelector('.unequip-card__domain')).toBeFalsy();
+  });
+
   it('should not show unequip section when under max equipped', () => {
     host.equippedDomainCardCount.set(1);
     host.maxEquippedDomainCards.set(3);

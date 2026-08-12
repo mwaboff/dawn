@@ -31,6 +31,16 @@ export interface FeatureResponse {
   modifiers?: FeatureModifierResponse[];
   createdAt: string;
   lastModifiedAt: string;
+  /** Whether this feature is SRD-licensed content, freely usable without owning the sourcebook
+   * it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this feature because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating); every other field except `id` may then be
+   * omitted. See `feature.mapper.ts`'s `mapFeatureResponseToCardData`. */
+  restricted?: boolean;
+  /** The paid book this feature belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }
 
 /**

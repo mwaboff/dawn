@@ -171,4 +171,48 @@ describe('MartialStancePanelBeta', () => {
     expect(cardEl.contains(status)).toBe(false);
     expect(cardEl.contains(reminderItems[0])).toBe(false);
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedStance(id: number, expansionName?: string): MartialStanceResponse {
+      // `name` is real API shape only because the response type keeps it required -- a restricted
+      // response never actually sends it.
+      return { id, name: 'ignored', expansionId: 2, createdAt: '', lastModifiedAt: '', restricted: true, expansionName };
+    }
+
+    it('maps to the locked 2-field card and lets EntityCard draw the locked face itself', () => {
+      host.stances.set([buildRestrictedStance(1, 'Hope & Fear')]);
+      fixture.detectChanges();
+
+      const card = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card();
+      expect(card.restricted).toBe(true);
+      expect(card.expansionName).toBe('Hope & Fear');
+      expect(card.name).toBeUndefined();
+      expect(card.description).toBeUndefined();
+      expect(card.badges).toBeUndefined();
+    });
+
+    it('does not throw sorting a mix of restricted and normal stances', () => {
+      host.stances.set([buildRestrictedStance(1), buildStance(2, 'Aggressive Stance', 1)]);
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+    });
+
+    it('offers no Enter action on a restricted, inactive stance -- activating rules the player cannot see', () => {
+      host.stances.set([buildRestrictedStance(1)]);
+      host.focus.set(2);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.stance-actions')).toBeFalsy();
+    });
+
+    it('still offers the Drop action on a restricted stance that is already active -- the removal exception', () => {
+      host.stances.set([buildRestrictedStance(1)]);
+      host.activeId.set(1);
+      fixture.detectChanges();
+
+      const dropBtn = el.querySelector<HTMLButtonElement>('.btn--danger-ghost');
+      expect(dropBtn).toBeTruthy();
+      expect(dropBtn?.textContent).toContain('Drop stance');
+    });
+  });
 });

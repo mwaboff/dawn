@@ -62,6 +62,14 @@ import { improvisedTierStats } from '../utils/improvised-tier-stats.utils';
  * the EFFECTIVE tier, so it is new information rather than the same scalar twice.
  */
 export function adversaryToEntityCard(adversary: AdversaryData, effectiveTier?: number): EntityCardData {
+  // Same redacted-stub short-circuit as `cardDataToEntityCard` -- a restricted adversary carries
+  // nothing else safe to read, and the retier controls below make no sense against placeholder
+  // numbers. `EntityCard` draws the locked face itself off the flag, so this stops short of
+  // inventing a name/description the way it used to.
+  if (adversary.restricted) {
+    return { id: adversary.id, cardType: 'adversary', restricted: true, expansionName: adversary.expansionName };
+  }
+
   const isRetiered = effectiveTier !== undefined && effectiveTier !== adversary.tier;
   const retiered = isRetiered ? improvisedTierStats(effectiveTier!) : undefined;
   const difficulty = retiered?.difficulty ?? adversary.difficulty;

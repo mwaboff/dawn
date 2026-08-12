@@ -182,4 +182,55 @@ describe('MartialStancePanel', () => {
     const items = el.querySelectorAll('.stance-drop-reminder__list li');
     expect(items.length).toBe(4);
   });
+
+  describe('restricted content (SRD vs. paid-expansion content gating)', () => {
+    function buildRestrictedStance(id: number, expansionName?: string): MartialStanceResponse {
+      // `name` is real API shape only because the response type keeps it required -- a restricted
+      // response never actually sends it. Left off `description`/`tier` too, matching the wire.
+      return { id, name: 'ignored', expansionId: 2, createdAt: '', lastModifiedAt: '', restricted: true, expansionName };
+    }
+
+    it('does not throw sorting a mix of restricted and normal stances', () => {
+      host.stances.set([buildRestrictedStance(1), buildStance(2, 'Aggressive Stance', 1)]);
+
+      expect(() => fixture.detectChanges()).not.toThrow();
+    });
+
+    it('draws a locked placeholder instead of the expandable card', () => {
+      host.stances.set([buildRestrictedStance(1, 'Hope & Fear')]);
+      fixture.detectChanges();
+
+      expect(el.querySelector('app-restricted-card-placeholder')).toBeTruthy();
+      expect(el.querySelector('.expandable-card--martialStance')).toBeFalsy();
+    });
+
+    it('announces the shared placeholder title, not undefined, when the active stance is restricted', () => {
+      host.stances.set([buildRestrictedStance(1)]);
+      host.activeId.set(1);
+      fixture.detectChanges();
+
+      expect(el.querySelector('[role="status"]')?.textContent).toContain('Content Not Available');
+      expect(el.querySelector('[role="status"]')?.textContent).not.toContain('undefined');
+    });
+
+    it('offers no Enter action on a restricted, inactive stance -- activating rules the player cannot see', () => {
+      host.stances.set([buildRestrictedStance(1)]);
+      host.focus.set(2);
+      fixture.detectChanges();
+
+      expect(el.querySelector('.stance-actions')).toBeFalsy();
+    });
+
+    it('still offers the Drop action on a restricted stance that is already active -- the removal exception', () => {
+      host.stances.set([buildRestrictedStance(1)]);
+      host.activeId.set(1);
+      fixture.detectChanges();
+
+      const dropBtn = el.querySelector<HTMLButtonElement>('.stance-btn--clear');
+      expect(dropBtn).toBeTruthy();
+      expect(dropBtn?.textContent).toContain('Drop stance');
+      dropBtn?.click();
+      expect(host.cleared).toBe(true);
+    });
+  });
 });

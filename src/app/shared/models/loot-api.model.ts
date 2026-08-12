@@ -27,6 +27,16 @@ export interface LootApiResponse {
   /** Campaigns this loot has been explicitly shared with. */
   campaignIds?: number[];
   originalLootId?: number | null;
+  /** Whether this loot is SRD-licensed content, freely usable without owning the sourcebook
+   * it belongs to. Sent on every response regardless of `restricted`. */
+  srd?: boolean;
+  /** Present only when the backend redacted this loot because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating); every other field except `id` may then be
+   * omitted. See `loot.mapper.ts`'s `mapLootToCardData`. */
+  restricted?: boolean;
+  /** The paid book this loot belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }
 
 /**

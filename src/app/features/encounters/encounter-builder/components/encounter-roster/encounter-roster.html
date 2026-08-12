@@ -19,27 +19,32 @@
      branch: a slot is resolved from a static attribute on that literal node, so the two can't share
      one wrapping <div>. -->
 <ng-template #rosterActions let-instance="instance">
-  <input
-    type="text"
-    class="form-input roster-panel__label-input"
-    placeholder="Nickname"
-    [attr.aria-label]="'Nickname for ' + instance.adversary.name"
-    [value]="instance.label ?? ''"
-    (change)="onLabelInput(instance.localId, $event)"
-  />
-  <select
-    class="form-select roster-panel__retier-select"
-    [attr.aria-label]="'Retier ' + instance.adversary.name"
-    [value]="instance.tierOverride ?? ''"
-    (change)="onRetierChange(instance.localId, $event)"
-  >
-    <option value="">Tier {{ instance.adversary.tier }}</option>
-    @for (tier of tierOptions; track tier) {
-      @if (tier !== instance.adversary.tier) {
-        <option [value]="tier">Retier to {{ tier }}</option>
+  <!-- A restricted adversary offers no nickname/retier -- both act on stats the GM can't see, and
+       neither is the removal exception a locked card carries. Only the delete confirm below stays,
+       so a restricted instance can still be cleared off the roster. -->
+  @if (!instance.adversary.restricted) {
+    <input
+      type="text"
+      class="form-input roster-panel__label-input"
+      placeholder="Nickname"
+      [attr.aria-label]="'Nickname for ' + instance.adversary.name"
+      [value]="instance.label ?? ''"
+      (change)="onLabelInput(instance.localId, $event)"
+    />
+    <select
+      class="form-select roster-panel__retier-select"
+      [attr.aria-label]="'Retier ' + instance.adversary.name"
+      [value]="instance.tierOverride ?? ''"
+      (change)="onRetierChange(instance.localId, $event)"
+    >
+      <option value="">Tier {{ instance.adversary.tier }}</option>
+      @for (tier of tierOptions; track tier) {
+        @if (tier !== instance.adversary.tier) {
+          <option [value]="tier">Retier to {{ tier }}</option>
+        }
       }
-    }
-  </select>
+    </select>
+  }
   <app-inline-delete-confirm
     [itemLabel]="instance.adversary.name"
     [active]="confirmingId() === instance.localId"

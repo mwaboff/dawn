@@ -7,6 +7,8 @@ import {
   BeastformResponse,
 } from '../../../../shared/models/beastform-api.model';
 import { tierForLevel } from '../../../../shared/utils/tier.utils';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
+import { LockIcon } from '../../../../shared/components/lock-icon/lock-icon';
 
 export interface BeastformFeatureView {
   id: number;
@@ -17,7 +19,14 @@ export interface BeastformFeatureView {
 export interface BeastformView {
   id: number;
   name: string;
-  tier: number;
+  /** Absent only on a `restricted` stub -- the server redacts tier along with everything else. */
+  tier?: number;
+  /** True when the backend redacted this beastform because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating). Every field below is null/empty then. */
+  restricted?: boolean;
+  /** The paid book this beastform belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
   /** Compact collapsed-row summary, e.g. `Agility +1 · Ev +2 · d6 phy`. Null for stat-less cards. */
   statLine: string | null;
   /** Expanded attack line, e.g. `Melee · Instinct · d6 phy`. Null for stat-less cards. */
@@ -77,7 +86,28 @@ function toTraitParts(form: BeastformResponse): string[] {
   });
 }
 
+/**
+ * A redacted stub carries nothing else safe to read -- no tier, traits, evasion, damage,
+ * advantages or features. `name` holds the shared placeholder title (same convention
+ * `AdversaryData`/`CardSummary` use) since the classic template reads it directly rather than
+ * branching through a shared component's own locked face.
+ */
+function restrictedBeastformView(form: BeastformResponse): BeastformView {
+  return {
+    id: form.id,
+    name: RESTRICTED_CARD_TITLE,
+    restricted: true,
+    expansionName: form.expansionName,
+    statLine: null,
+    attackLine: null,
+    advantages: null,
+    features: [],
+  };
+}
+
 function toBeastformView(form: BeastformResponse): BeastformView {
+  if (form.restricted) return restrictedBeastformView(form);
+
   const damage = formatDamage(form.damage);
   const statParts = [
     ...toTraitParts(form),
@@ -111,7 +141,7 @@ function toBeastformView(form: BeastformResponse): BeastformView {
   templateUrl: './beastform-section.html',
   styleUrl: './beastform-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe],
+  imports: [FormatTextPipe, LockIcon],
 })
 export class BeastformSection {
   private readonly beastformService = inject(BeastformService);
@@ -131,26 +161,40 @@ export class BeastformSection {
   /**
    * Beastform grants every option "of your tier or lower", so this is a pure tier filter -- there
    * is nothing per-character to unlock. Forms with no tier at all are excluded rather than
-   * defaulted, since we cannot tell whether the character has reached them.
+   * defaulted, since we cannot tell whether the character has reached them -- EXCEPT a `restricted`
+   * stub, whose tier the backend redacted along with everything else: the client has no way to
+   * evaluate its tier eligibility, and the server chose to include it in the catalog response
+   * anyway, so it stays visible (locked) rather than silently vanishing from the list.
    */
   private readonly accessibleForms = computed(() => {
     const maxTier = this.tier();
-    return this.forms().filter(form => form.tier != null && form.tier <= maxTier);
+    return this.forms().filter(form => form.restricted || (form.tier != null && form.tier <= maxTier));
   });
 
   readonly availableCount = computed(() => this.accessibleForms().length);
 
-  /** Flat list in the sheet's card-group order: lowest tier first, alphabetical within a tier. */
+  /**
+   * Flat list in the sheet's card-group order: lowest tier first, alphabetical within a tier. A
+   * restricted form's tier is unknown (redacted), not zero -- sorting it as `Infinity` puts it
+   * after every real tier instead of falsely claiming Tier 1. `name` is always a real string, even
+   * on a restricted stub (the shared placeholder title), so the comparator never reads `undefined`.
+   */
   readonly beastforms = computed<BeastformView[]>(() =>
     this.accessibleForms()
       .map(toBeastformView)
-      .sort((a, b) => a.tier - b.tier || a.name.localeCompare(b.name)),
+      .sort((a, b) => (a.tier ?? Number.POSITIVE_INFINITY) - (b.tier ?? Number.POSITIVE_INFINITY) || a.name.localeCompare(b.name)),
   );
 
   readonly isEmpty = computed(() => this.loaded() && this.availableCount() === 0);
 
   isFormExpanded(id: number): boolean {
     return this.expandedFormIds().has(id);
+  }
+
+  /** Exposed for the template; the copy itself lives in `daggerheart-card.model.ts` so this face
+   * never drifts from the shared/adversary/martial-stance/transformation locked faces. */
+  restrictedMessage(expansionName: string | undefined): string {
+    return restrictedCardMessage(expansionName);
   }
 
   /** Lazy load: nothing is fetched until the player first opens the Beastform Options card. */

@@ -11,5 +11,6 @@
 .armor-instead-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .4rem .6rem; border-radius: 4px; background: color-mix(in srgb, var(--color-accent-text) 6%, transparent); border: 1px solid color-mix(in srgb, var(--color-accent-text) 20%, transparent); }
 .armor-instead-prompt__text { flex-basis: 100%; font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-parchment-a80); }
 .armor-instead-prompt__btn { font-family: var(--font-display); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em; padding: .25rem .6rem; border-radius: 2px; border: 1px solid var(--color-accent-text); background: transparent; color: var(--color-accent-text); cursor: pointer; }
-.armor-instead-prompt__btn:hover { background: color-mix(in srgb, var(--color-accent-text) 10%, transparent); }
+.armor-instead-prompt__btn:hover:not(:disabled) { background: color-mix(in srgb, var(--color-accent-text) 10%, transparent); }
+.armor-instead-prompt__btn:disabled { opacity: .4; cursor: not-allowed; }
 .armor-instead-prompt__cancel { font-family: var(--font-body); font-size: var(--text-sm); background: none; border: none; color: var(--color-parchment-a50); cursor: pointer; text-decoration: underline; }

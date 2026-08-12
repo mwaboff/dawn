@@ -32,6 +32,7 @@ import {
 import { LootApiResponse } from '../../../shared/models/loot-api.model';
 import { applyModifiers, collectAllModifiers, SourcedModifier } from './modifier-calculator.utils';
 import { DiceType, DICE_TYPES } from '../../../shared/models/dice-roller.model';
+import { RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../../../shared/components/daggerheart-card/daggerheart-card.model';
 
 function formatEnumLabel(s: string): string {
   return s.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
@@ -80,6 +81,84 @@ function buildDamageDice(damage: DamageRollResponse | undefined | null): WeaponD
   return { type, diceCount: damage.diceCount ?? null, modifier: damage.modifier ?? 0 };
 }
 
+/**
+ * The placeholder a redacted response mapper returns in place of its normal mapping, for the four
+ * card-summary types (class/ancestry/community/subclass/domain all extend or alias `CardSummary`).
+ * Mirrors `buildRestrictedCardData` (`daggerheart-card.model.ts`): `name`/`description` are filled
+ * with the same shared copy rather than left absent, so a caller that renders them without checking
+ * `restricted` first still gets real text, and the classic template's `@if (card.restricted)`
+ * branches are what actually draw the locked look.
+ */
+function buildRestrictedCardSummary(id: number, expansionName?: string): CardSummary {
+  return {
+    id,
+    name: RESTRICTED_CARD_TITLE,
+    description: restrictedCardMessage(expansionName),
+    features: [],
+    restricted: true,
+    expansionName,
+  };
+}
+
+/** See `buildRestrictedCardSummary`. `WeaponDisplay` has no `description` slot, so the locked
+ * message is read from `restrictedCardMessage` directly wherever it's needed (the classic
+ * template, `entity-card.mapper.ts`) rather than baked in here.
+ *
+ * `isPrimary: false` -- NOT `true`, even though it happens to be inert today (every restricted
+ * weapon's slot-eligibility UI is already gated on `.restricted` before it would read this field;
+ * see `weaponCardEntry`/`weaponEquipActions`). `isPrimary` is one of the fields this weapon's own
+ * doc comment on `WeaponDisplay.restricted` says is redacted, so defaulting it to `true` would
+ * read as "yes, this is genuinely a primary-slot weapon" the moment any future caller reads it
+ * without checking `restricted` first -- the exact fabricated-fact failure this whole redaction
+ * scheme exists to prevent. `false` is the inert default; nothing downstream treats "not primary"
+ * as an affirmative claim the way "primary" would be.
+ */
+function buildRestrictedWeaponDisplay(entryId: number, id: number, expansionName?: string): WeaponDisplay {
+  return {
+    id,
+    inventoryEntryId: entryId,
+    name: RESTRICTED_CARD_TITLE,
+    isPrimary: false,
+    damage: '',
+    trait: '',
+    range: '',
+    burden: '',
+    features: [],
+    restricted: true,
+    expansionName,
+  };
+}
+
+/** See `buildRestrictedWeaponDisplay`. */
+function buildRestrictedArmorDisplay(entryId: number, id: number, expansionName?: string): ArmorDisplay {
+  return {
+    id,
+    inventoryEntryId: entryId,
+    name: RESTRICTED_CARD_TITLE,
+    baseScore: 0,
+    baseMajorThreshold: 0,
+    baseSevereThreshold: 0,
+    features: [],
+    restricted: true,
+    expansionName,
+  };
+}
+
+/** See `buildRestrictedCardSummary` -- `LootDisplay` does carry a `description`, so (like
+ * `CardSummary`) the locked message is baked in here. */
+function buildRestrictedLootDisplay(entryId: number, id: number, expansionName?: string): LootDisplay {
+  return {
+    id,
+    inventoryEntryId: entryId,
+    name: RESTRICTED_CARD_TITLE,
+    description: restrictedCardMessage(expansionName),
+    isConsumable: false,
+    costTags: [],
+    restricted: true,
+    expansionName,
+  };
+}
+
 function formatModifierLabel(target: string, operation: string, value: number): string {
   const label = formatEnumLabel(target);
   if (operation === 'ADD') return `${value >= 0 ? '+' : ''}${value} ${label}`;
@@ -101,6 +180,10 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     ? (equippedArmor.baseSevereThreshold ?? 0) + level
     : level * 2;
   const armorScoreBase = equippedArmor ? (equippedArmor.baseScore ?? 0) : 0;
+  // Surfaced to the view so a template can mark Armor Score/Major/Severe as incomplete rather
+  // than trusting the `?? 0` fallback above as the whole story -- see `CharacterSheetView
+  // .armorRestricted`'s own doc comment for why the arithmetic itself is deliberately unchanged.
+  const armorRestricted = equippedArmor?.restricted === true;
 
   return {
     id: sheet.id,
@@ -116,6 +199,7 @@ export function mapToCharacterSheetView(sheet: CharacterSheetResponse): Characte
     armorScore: applyModifiers(armorScoreBase, modifiers, 'ARMOR_SCORE'),
     majorDamageThreshold: applyModifiers(majorBase, modifiers, 'MAJOR_DAMAGE_THRESHOLD'),
     severeDamageThreshold: applyModifiers(severeBase, modifiers, 'SEVERE_DAMAGE_THRESHOLD'),
+    armorRestricted,
     hopeMax: applyModifiers(sheet.hopeMax, modifiers, 'HOPE_MAX'),
     stressMax: applyModifiers(sheet.stressMax, modifiers, 'STRESS_MAX'),
 
@@ -174,6 +258,7 @@ function mapTraits(sheet: CharacterSheetResponse, modifiers: SourcedModifier[]):
  * only and never serialized back into an inventory payload.
  */
 export function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, proficiency: number): WeaponDisplay {
+  if (weapon.restricted) return buildRestrictedWeaponDisplay(entryId, weapon.id, weapon.expansionName);
   return {
     id: weapon.id,
     inventoryEntryId: entryId,
@@ -192,6 +277,7 @@ export function buildWeaponDisplay(entryId: number, weapon: WeaponResponse, prof
 
 /** See `buildWeaponDisplay` for why this is exported and what `entryId` means to a catalogue item. */
 export function buildArmorDisplay(entryId: number, armor: ArmorResponse): ArmorDisplay {
+  if (armor.restricted) return buildRestrictedArmorDisplay(entryId, armor.id, armor.expansionName);
   return {
     id: armor.id,
     inventoryEntryId: entryId,
@@ -222,6 +308,7 @@ function mapFeature(feature: FeatureResponse): FeatureDisplay {
 }
 
 function mapClassCardSummary(card: ClassCardResponse): CardSummary {
+  if (card.restricted) return buildRestrictedCardSummary(card.id, card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -234,6 +321,7 @@ function mapClassCardSummary(card: ClassCardResponse): CardSummary {
 }
 
 function mapCardSummary(card: CommunityCardResponse | AncestryCardResponse): CardSummary {
+  if (card.restricted) return buildRestrictedCardSummary(card.id, card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -243,6 +331,7 @@ function mapCardSummary(card: CommunityCardResponse | AncestryCardResponse): Car
 }
 
 function mapSubclassCardSummary(card: SubclassCardResponse): SubclassCardSummary {
+  if (card.restricted) return buildRestrictedCardSummary(card.id, card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -257,6 +346,7 @@ function mapSubclassCardSummary(card: SubclassCardResponse): SubclassCardSummary
 }
 
 function mapDomainCardSummary(card: DomainCardResponse): DomainCardSummary {
+  if (card.restricted) return buildRestrictedCardSummary(card.id, card.expansionName);
   return {
     id: card.id,
     name: card.name,
@@ -271,6 +361,7 @@ function mapDomainCardSummary(card: DomainCardResponse): DomainCardSummary {
 
 /** See `buildWeaponDisplay` for why this is exported and what `entryId` means to a catalogue item. */
 export function buildLootDisplay(entryId: number, loot: LootApiResponse): LootDisplay {
+  if (loot.restricted) return buildRestrictedLootDisplay(entryId, loot.id, loot.expansionName);
   return {
     id: loot.id,
     inventoryEntryId: entryId,

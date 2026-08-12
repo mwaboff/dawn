@@ -1,0 +1,16 @@
+/* Split out of character-sheet.css, which is already at the 4kB budget warning -- this file has
+   its own headroom. Armor score/Major/Severe Damage Threshold are all derived from the equipped
+   armor's own numbers (character-sheet.ts's `armorRestricted`), so a restricted equipped armor
+   swaps each of those three header badges for a lock icon instead of the fallback 0 the mapper
+   computes internally for the Armor pip tracker -- same "locked, not broken" rule every other
+   card face in this app follows, applied to a stat badge instead of a card. */
+.shield__value--locked, .damage-marker__value--locked {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cp);
+  opacity: .55;
+}
+
+.shield__value--locked app-lock-icon { width: 1.4rem; height: 1.4rem; }
+.damage-marker__value--locked app-lock-icon { width: .9rem; height: .9rem; }

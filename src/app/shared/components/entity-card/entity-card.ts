@@ -12,7 +12,8 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormatTextPipe } from '../../pipes/format-text.pipe';
-import { CARD_TYPE_LABELS } from '../daggerheart-card/daggerheart-card.model';
+import { CARD_TYPE_LABELS, RESTRICTED_CARD_TITLE, restrictedCardMessage } from '../daggerheart-card/daggerheart-card.model';
+import { LockIcon } from '../lock-icon/lock-icon';
 import { EntityCardData, EntityCardSize } from './entity-card.model';
 
 /**
@@ -29,13 +30,17 @@ import { EntityCardData, EntityCardSize } from './entity-card.model';
  */
 @Component({
   selector: 'app-entity-card',
-  imports: [FormatTextPipe, NgTemplateOutlet],
+  imports: [FormatTextPipe, NgTemplateOutlet, LockIcon],
   templateUrl: './entity-card.html',
-  styleUrl: './entity-card.css',
+  // `entity-card-restricted.css` is split out for the same reason `adversary-card-restricted.css`
+  // is: `entity-card.css` is already at the 4kB budget warning (see that file's own note), so the
+  // locked face's rules get their own budget instead of pushing the main file toward the 8kB error.
+  styleUrls: ['./entity-card.css', './entity-card-restricted.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.data-card-type]': 'card().cardType',
     '[class.entity-card--muted]': 'muted()',
+    '[class.entity-card--restricted]': 'card().restricted',
     // Lets the stylesheet reach the two slot elements, which are template nodes here rather than
     // projected ones, and tighten their padding when the card is drawn as a single row.
     '[class.entity-card--compact]': "displaySize() === 'compact'",
@@ -76,6 +81,20 @@ export class EntityCard {
 
   readonly typeLabel = computed(() => this.card().eyebrow ?? CARD_TYPE_LABELS[this.card().cardType]);
 
+  /** Exposed for the template; the copy itself lives in `daggerheart-card.model.ts` so this face
+   * and the classic `DaggerheartCard`/`AdversaryCard` faces never drift apart. */
+  readonly lockedTitle = RESTRICTED_CARD_TITLE;
+
+  readonly lockedMessage = computed(() => restrictedCardMessage(this.card().expansionName));
+
+  /**
+   * The name shown in the header. A `restricted` card's own `.name` is absent (see
+   * `EntityCardData.name`'s doc comment) -- this is the one place that fact and the fixed locked
+   * title get resolved into a single string, so nothing downstream (`headerLabel`, the clip's
+   * `aria-label`, the header template) has to repeat the branch or risk concatenating `undefined`.
+   */
+  readonly displayName = computed(() => (this.card().restricted ? this.lockedTitle : (this.card().name ?? '')));
+
   /**
    * Ids are per-source-table (a domain card, a companion, and a beastform can all be database id
    * 3), so the id alone collides across types -- the type qualifies it.
@@ -103,6 +122,10 @@ export class EntityCard {
    * separator means the same thing here as everywhere else on the card.
    */
   readonly compactLine = computed(() => {
+    // A locked card has nothing behind `subtitle`/`headline`/`badges` to draw here -- they are
+    // already absent (the redacted-stub mappers never set them), but this short-circuits rather
+    // than relying on that, so a compact restricted row never assembles a line from stray fields.
+    if (this.card().restricted) return undefined;
     const { subtitle, headline, badges } = this.card();
     // The power-level scalar, as TEXT rather than as a chip. `EntityCardData`'s slot contract puts
     // it first and it is the only badge carrying a `value`, which is what distinguishes it from a
@@ -122,7 +145,7 @@ export class EntityCard {
    * and the homebrew chip wait for the expand, where there is width for them.
    */
   readonly headerBadges = computed(() =>
-    this.displaySize() === 'compact' ? [] : this.card().badges ?? [],
+    this.displaySize() === 'compact' || this.card().restricted ? [] : this.card().badges ?? [],
   );
 
   /**
@@ -132,7 +155,7 @@ export class EntityCard {
    * both. The badge is left out: it renders as real text beside the name, so it is already read.
    */
   readonly headerLabel = computed(() => {
-    const label = `${this.toggleLabel()} ${this.card().name}`;
+    const label = `${this.toggleLabel()} ${this.displayName()}`;
     const line = this.compactLine();
     return this.displaySize() === 'compact' && line ? `${label}, ${line}` : label;
   });

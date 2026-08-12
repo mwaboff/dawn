@@ -16,6 +16,24 @@
   }
 }
 
+/* Layout delta for the one field (subclass's derived `srd` checkbox) rendered directly in this
+   template instead of through app-entity-form-field -- `.form-label` (inline by default) can't
+   give the checkbox+text row a flex layout on its own. Same pattern as entity-form-field.css and
+   user-edit-identity-panel.css; duplicated here because Angular's emulated encapsulation scopes
+   styles per-component. */
+.form-label--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.form-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: rgba(245, 230, 211, 0.55);
+  font-style: italic;
+}
+
 .card-edit-loading {
   text-align: center;
   padding: 3rem;

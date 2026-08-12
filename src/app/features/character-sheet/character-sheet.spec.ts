@@ -754,6 +754,136 @@ describe('CharacterSheet', () => {
 
       expect(mockService.updateCharacterSheet).not.toHaveBeenCalled();
     });
+
+    describe('restricted domain cards (SRD vs. paid-expansion content gating)', () => {
+      const restrictedSheetResponse: CharacterSheetResponse = {
+        ...mockResponse,
+        equippedDomainCardIds: [10],
+        vaultDomainCardIds: [12],
+        domainCards: [
+          { id: 10, name: 'Content Not Available', features: [], restricted: true, expansionName: 'Hope & Fear' },
+          { id: 12, name: 'Content Not Available', features: [], restricted: true, expansionName: 'Hope & Fear' },
+        ],
+      };
+
+      it('offers no Equip action on a restricted vaulted card -- activating rules the player cannot see', () => {
+        createComponent('1', of(restrictedSheetResponse));
+        fixture.detectChanges();
+
+        const vaultSection = fixture.nativeElement.querySelector('.vault-section');
+        expect(vaultSection.querySelector('app-restricted-card-placeholder')).toBeTruthy();
+        expect(vaultSection.querySelector('.card-swap-btn--equip')).toBeFalsy();
+      });
+
+      it('still offers the Vault action on a restricted equipped card -- the removal exception', () => {
+        createComponent('1', of(restrictedSheetResponse));
+        fixture.detectChanges();
+
+        const cardsSection = fixture.nativeElement.querySelector('.cards-section');
+        const placeholder = cardsSection.querySelector('app-restricted-card-placeholder');
+        expect(placeholder).toBeTruthy();
+        const vaultBtn = placeholder.querySelector('.card-swap-btn--vault');
+        expect(vaultBtn).toBeTruthy();
+        expect(vaultBtn.textContent).toContain('Vault');
+      });
+    });
+  });
+
+  describe('header stats for a restricted equipped armor (SRD vs. paid-expansion content gating)', () => {
+    // Armor score/Major/Severe Damage Threshold are all derived from the equipped armor's own
+    // base numbers, which `mapToCharacterSheetView` falls back to 0 for internally (see that
+    // mapper's own spec) once the armor is restricted. That fallback must never reach the player
+    // as the literal displayed number -- a "0" there reads as fact, not as "we don't know".
+    const restrictedArmorResponse: CharacterSheetResponse = {
+      ...mockResponse,
+      inventoryArmors: [{
+        id: 200, armorId: 20, equipped: true,
+        armor: { id: 20, name: 'ignored', restricted: true, expansionName: 'Hope & Fear' },
+      }],
+    };
+
+    function shieldFor(label: string): HTMLElement {
+      const el = fixture.nativeElement as HTMLElement;
+      const shields = Array.from(el.querySelectorAll<HTMLElement>('.shield'));
+      return shields.find(s => s.querySelector('.shield__label')?.textContent?.trim() === label)!;
+    }
+
+    it('shows a lock icon in the Armor shield instead of a fabricated 0', () => {
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+
+      const armorShield = shieldFor('Armor');
+      expect(armorShield.querySelector('.shield__value--locked app-lock-icon')).toBeTruthy();
+      expect(armorShield.textContent?.trim()).not.toContain('0');
+    });
+
+    it('does not render the Armor score as plain "0" text anywhere in the shield', () => {
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+
+      const armorShield = shieldFor('Armor');
+      expect(armorShield.querySelector('.shield__value:not(.shield__value--locked)')).toBeFalsy();
+    });
+
+    it('shows a lock icon for Major and Severe Damage Threshold instead of level-only numbers presented as fact', () => {
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+
+      const markers = fixture.nativeElement.querySelectorAll('.damage-marker__value--locked app-lock-icon');
+      expect(markers.length).toBe(2);
+      expect(fixture.nativeElement.querySelector('.damage-marker__value:not(.damage-marker__value--locked)')).toBeFalsy();
+    });
+
+    it('gives the locked Armor score badge an accessible label mentioning the expansion, not just an icon', () => {
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+
+      const label = shieldFor('Armor').querySelector('.shield__value--locked')?.getAttribute('aria-label');
+      expect(label).toContain('Armor score unavailable');
+      expect(label).toContain('Hope & Fear');
+    });
+
+    it('shows real numbers, not lock icons, once the equipped armor is unrestricted', () => {
+      createComponent('1', of({
+        ...mockResponse,
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4, features: [] } }],
+      }));
+      fixture.detectChanges();
+
+      expect(shieldFor('Armor').querySelector('.shield__value--locked')).toBeFalsy();
+      expect(fixture.nativeElement.querySelector('.damage-marker__value--locked')).toBeFalsy();
+    });
+
+    it('sets armorInsteadUnavailableReason (for the companion "mark Armor instead" offer) when armor is restricted', () => {
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+
+      expect(component.armorInsteadUnavailableReason()).toContain('Mark Armor Instead unavailable');
+      expect(component.armorInsteadUnavailableReason()).toContain('Hope & Fear');
+    });
+
+    it('leaves armorInsteadUnavailableReason null once armor is unrestricted', () => {
+      createComponent('1', of({
+        ...mockResponse,
+        inventoryArmors: [{ id: 200, armorId: 20, equipped: true, armor: { id: 20, name: 'Chainmail', baseScore: 4, features: [] } }],
+      }));
+      fixture.detectChanges();
+
+      expect(component.armorInsteadUnavailableReason()).toBeNull();
+    });
+
+    it('no-ops onCompanionMarkArmorInstead as defense in depth while armor is restricted', () => {
+      // `setResourceMarked` debounces its actual save, so the reliable, synchronous signal to
+      // check is `markedArmor()` itself -- the guard should leave it untouched, not just leave the
+      // (already-async) save call unobserved within this test.
+      createComponent('1', of(restrictedArmorResponse));
+      fixture.detectChanges();
+      const before = component.markedArmor();
+
+      component.onCompanionMarkArmorInstead();
+
+      expect(component.markedArmor()).toBe(before);
+    });
   });
 
   describe('equipment equip/unequip', () => {

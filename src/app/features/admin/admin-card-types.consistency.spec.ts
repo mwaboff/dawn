@@ -100,6 +100,19 @@ describe('admin card type registration consistency', () => {
     }
   });
 
+  // 'expansion' is deliberately absent from the srd field: a sourcebook is not content, it's the
+  // container content belongs to (see the comment on the `expansion` schema entry itself, which
+  // for the same reason also doesn't reuse BASICS_FIELDS_FULL).
+  const SRD_FIELD_ALLOWED_OMISSIONS = new Set(['expansion']);
+
+  it('every CARD_EDIT_SCHEMAS key has an srd field, or is an explicit allowlisted omission with a reason', () => {
+    for (const [cardType, schema] of Object.entries(CARD_EDIT_SCHEMAS)) {
+      const hasSrdField = schema.sections.some(section => section.fields.some(f => f.name === 'srd'));
+      const allowlisted = SRD_FIELD_ALLOWED_OMISSIONS.has(cardType);
+      expect(hasSrdField || allowlisted).toBe(true);
+    }
+  });
+
   it('FEATURE_TYPE_LABELS is exhaustive over the FeatureType union', () => {
     const allFeatureTypes: FeatureType[] = [
       'HOPE', 'ANCESTRY', 'CLASS', 'COMMUNITY', 'DOMAIN', 'ITEM', 'SUBCLASS', 'OTHER',

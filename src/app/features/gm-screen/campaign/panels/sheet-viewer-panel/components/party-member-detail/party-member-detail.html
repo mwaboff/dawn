@@ -23,7 +23,12 @@
     <div class="gm-panel__kv-row">
       <span class="gm-panel__kv-key">Armor</span>
       <span class="gm-panel__kv-value">
-        {{ s.activeArmor?.name || 'None' }} &middot; score {{ s.armorScore.modified }} &middot;
+        {{ s.activeArmor?.name || 'None' }} &middot;
+        <!-- The score is derived from the equipped armor's own base numbers, which the backend
+             redacts along with everything else once that armor is restricted -- the mapper's
+             internal 0 fallback (kept only so the sheet's own Armor pip tracker has a number to
+             render against) must never reach the GM as a literal "score 0". -->
+        {{ s.armorRestricted ? 'score unavailable' : 'score ' + s.armorScore.modified }} &middot;
         {{ s.armorMarked }}/{{ s.armorMax }} marked
       </span>
     </div>

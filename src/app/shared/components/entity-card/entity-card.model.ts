@@ -73,8 +73,28 @@ export interface EntityCardFeature {
  */
 export interface EntityCardData {
   id: string | number;
-  name: string;
   cardType: CardType;
+  /**
+   * True when the backend redacted the source of this card because the viewer lacks access to its
+   * expansion (SRD vs. paid-expansion content gating). `EntityCard` itself draws the locked face
+   * off this flag -- a lock icon and `restrictedCardMessage(expansionName)`, nothing else -- so a
+   * `restricted` object carries `id`/`cardType` and nothing more; every mapper's redacted-stub
+   * branch (`cardDataToEntityCard`, `adversaryToEntityCard`, `restrictedEntity`, ...) returns
+   * exactly that instead of inventing a `name`/`description` for a normal-looking card to read.
+   */
+  restricted?: boolean;
+  /** The paid book this card belongs to, present only alongside `restricted: true` and only when
+   * the backend knows it -- `restrictedCardMessage` degrades gracefully when absent. */
+  expansionName?: string;
+  /**
+   * Absent only on a `restricted` stub -- every non-restricted mapper still supplies it, and
+   * `EntityCard` never reads this field itself when `restricted` is true (it shows its own fixed
+   * locked title instead), so a caller that reaches `.name` unconditionally (a sort comparator, an
+   * aria-label built by string-concatenation) has to fall back explicitly. That fallback is the
+   * point: it is what surfaces every place a locked card's absent fields were being read as if they
+   * were real.
+   */
+  name?: string;
   /**
    * Overrides the type tab's text. Reserved for a kind `CardType` cannot name; a subtype belongs in
    * `subtitle`, so that the tab answers "what am I looking at" identically on every card.

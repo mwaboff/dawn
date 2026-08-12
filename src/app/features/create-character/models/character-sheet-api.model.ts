@@ -209,6 +209,13 @@ export interface WeaponResponse {
   damage?: DamageRollResponse;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** Present only when the backend redacted this embedded weapon because the viewer lacks access
+   * to its expansion (SRD vs. paid-expansion content gating); every other field except `id` may
+   * then be omitted. See `buildWeaponDisplay`. */
+  restricted?: boolean;
+  /** The paid book this weapon belongs to, present only alongside `restricted: true` and only
+   * when the backend knows it. */
+  expansionName?: string;
 }
 
 export interface ArmorResponse {
@@ -228,6 +235,10 @@ export interface ArmorResponse {
   baseScore?: number;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface CommunityCardResponse {
@@ -236,6 +247,10 @@ export interface CommunityCardResponse {
   description?: string;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface AncestryCardResponse {
@@ -244,6 +259,10 @@ export interface AncestryCardResponse {
   description?: string;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface ClassCardResponse {
@@ -252,6 +271,10 @@ export interface ClassCardResponse {
   description?: string;
   hopeFeatures?: FeatureResponse[];
   classFeatures?: FeatureResponse[];
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface SubclassCardResponse {
@@ -269,6 +292,10 @@ export interface SubclassCardResponse {
    * always includes it (null when the path has no spellcasting). Shares its type with the
    * catalogue's `SubclassCardResponse` in `shared/models/subclass-api.model.ts`. */
   spellcastingTrait?: SpellcastingTraitResponse | null;
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface DomainCardResponse {
@@ -282,6 +309,10 @@ export interface DomainCardResponse {
   type?: string;
   featureIds?: number[];
   features?: FeatureResponse[];
+  /** See `WeaponResponse.restricted`. */
+  restricted?: boolean;
+  /** See `WeaponResponse.expansionName`. */
+  expansionName?: string;
 }
 
 export interface CharacterSheetResponse {
