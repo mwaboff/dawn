@@ -35,7 +35,7 @@
         />
       }
       @case ('summary') {
-        <app-rest-summary-step [outcome]="savedOutcome()!" />
+        <app-rest-summary-step [outcome]="savedOutcome()!" [companionSaveFailed]="companionSaveFailed()" />
       }
     }
   </div>

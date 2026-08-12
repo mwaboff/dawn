@@ -93,6 +93,7 @@
             [access]="restAccess()"
             [processing]="hfActionInFlight()"
             [applyResult]="restApply()"
+            [companionSaveFailed]="restCompanionSaveFailed()"
             (submitted)="onRestSubmitted($event)"
             (closed)="restApply.set(null)"
           />

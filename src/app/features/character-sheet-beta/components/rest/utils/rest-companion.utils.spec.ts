@@ -270,7 +270,29 @@ describe('Creature Comfort', () => {
     const outcome = rest('short', state({ companions: [downed] }), [], scriptedRoller(), { 1: 'stress' });
 
     expect(stressOf(outcome, 1)).toBe(3);
-    expect(outcome.summary).toEqual([]);
+    expect(outcome.unchanged).toBe(true);
+  });
+
+  /** Silently dropping a choice the player made is worse than saying why it didn't land. */
+  it('says why a dropped election did nothing rather than vanishing', () => {
+    const downed = companion({ hasCreatureComfort: true, stressMarked: 3, stressMax: 3 });
+    const outcome = rest('short', state({ companions: [downed] }), [], scriptedRoller(), { 1: 'stress' });
+
+    expect(outcome.summary[0].detail).toContain('still out of the scene');
+    expect(outcome.summary[0].noChange).toBe(true);
+  });
+
+  /**
+   * The backend does not clamp `stressMarked` to the max, so a companion marked PAST its max is
+   * not un-downed by the long rest's single clear -- the one path where the modal offers a choice
+   * that then cannot land.
+   */
+  it('explains an election that a long rest’s return could not enable', () => {
+    const overMarked = companion({ hasCreatureComfort: true, stressMarked: 5, stressMax: 3 });
+    const outcome = rest('long', state({ companions: [overMarked] }), [], scriptedRoller(), { 1: 'stress' });
+
+    expect(stressOf(outcome, 1)).toBe(4);
+    expect(outcome.summary[1].detail).toContain('still out of the scene');
   });
 
   /** The long rest returns them first, which is exactly what makes the election legal. */

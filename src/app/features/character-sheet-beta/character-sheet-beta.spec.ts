@@ -695,6 +695,64 @@ describe('CharacterSheetBeta', () => {
         expect(sheetService().updateCharacterSheet).not.toHaveBeenCalled();
         expect(component.restApply()).toEqual({ status: 'saved' });
       });
+
+      /**
+       * A failed sheet save leaves the modal on the moves step with its selections and Creature
+       * Comfort elections intact, and a resubmit re-resolves against the LIVE companion state --
+       * so a companion cleared before the failure would be cleared twice, spending one
+       * once-per-rest Creature Comfort on two clears. Nothing may be written until the sheet is.
+       */
+      it('writes no companion when the sheet save fails, so a retry cannot double-clear', () => {
+        configure('1', of(mockResponse), { id: 1 }, [COMPANION]);
+        TestBed.overrideProvider(CharacterSheetService, {
+          useValue: {
+            getCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)),
+            updateCharacterSheet: vi.fn().mockReturnValue(throwError(() => new Error('boom'))),
+          },
+        });
+        fixture = TestBed.createComponent(CharacterSheetBeta);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.onRestSubmitted({
+          ...OUTCOME,
+          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+        });
+
+        expect(companionService().updateCompanion).not.toHaveBeenCalled();
+        expect(component.companions()[0].stressMarked).toBe(3);
+        expect(component.restApply()).toEqual({ status: 'error' });
+      });
+
+      it('reports a failed companion write so the summary cannot claim it saved', () => {
+        configure('1', of(mockResponse), { id: 1 }, [COMPANION]);
+        TestBed.overrideProvider(CompanionService, {
+          useValue: {
+            getCompanions: vi.fn().mockReturnValue(of([COMPANION])),
+            updateCompanion: vi.fn().mockReturnValue(throwError(() => new Error('boom'))),
+          },
+        });
+        fixture = TestBed.createComponent(CharacterSheetBeta);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+
+        component.onRestSubmitted({
+          ...OUTCOME,
+          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+        });
+
+        expect(component.restCompanionSaveFailed()).toBe(true);
+      });
+
+      /** The banner is scoped to this rest, not inherited from an earlier companion edit. */
+      it('does not report a stale companion error against a fresh rest', () => {
+        createWithCompanion();
+        component.companionError.set('Failed to update Stress.');
+
+        component.onRestSubmitted(OUTCOME);
+
+        expect(component.restCompanionSaveFailed()).toBe(false);
+      });
     });
 
     /** The default fixture is undamaged, which would make a "cleared the HP" assertion vacuous. */

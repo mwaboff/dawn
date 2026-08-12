@@ -204,6 +204,12 @@ export class CharacterSheetBeta extends CharacterSheet {
   /** Null while the modal is closed or a rest is in flight; drives its summary-or-retry step. */
   readonly restApply = signal<RestApplyResult | null>(null);
 
+  /**
+   * True when a companion write from the rest just taken failed. Scoped to this rest by
+   * `onRestSubmitted` clearing `companionError` before it saves anything.
+   */
+  readonly restCompanionSaveFailed = computed(() => this.companionError() !== null);
+
   /** The two gated downtime moves, reusing the predicates the header shields already run on. */
   readonly restAccess = computed<RestMoveAccess>(() => ({
     warlockResources: this.showWarlockResources(),
@@ -244,24 +250,21 @@ export class CharacterSheetBeta extends CharacterSheet {
     const view = this.characterSheet();
     if (!raw || !view || !this.isOwner() || this.hfActionInFlight()) return;
 
+    // Cleared up front, not inside `saveRestCompanions`, so that whatever `restCompanionSaveFailed`
+    // reports on the summary belongs to THIS rest -- including the rest that writes no companion at
+    // all, which must not inherit the banner from an earlier companion edit that failed.
+    this.companionError.set(null);
+
     // Nothing moved, so there is nothing to save -- go straight to an honest summary.
     if (outcome.unchanged) {
       this.restApply.set({ status: 'saved' });
       return;
     }
 
-    // Each companion is its own endpoint, so these are separate writes from the sheet's, and
-    // deliberately not folded into the modal's saved/error result. `onCompanionStressChanged`
-    // already carries the right shape -- optimistic update, per-companion rollback, and the
-    // companion panel's own error banner -- and routing through it means a companion write that
-    // fails cannot discard a character rest the server already accepted.
-    for (const change of outcome.companionChanges) {
-      this.onCompanionStressChanged({ companionId: change.id, stressMarked: change.stressMarked });
-    }
-
     // A rest that only cleared companion Stress has nothing left to send for the sheet itself.
     const request = restUpdateRequest(outcome.changes, outcome.previous);
     if (Object.keys(request).length === 0) {
+      this.saveRestCompanions(outcome);
       this.restApply.set({ status: 'saved' });
       return;
     }
@@ -279,6 +282,7 @@ export class CharacterSheetBeta extends CharacterSheet {
 
     this.sheets.updateCharacterSheet(raw.id, request).subscribe({
       next: () => {
+        this.saveRestCompanions(outcome);
         this.hfActionInFlight.set(false);
         this.restApply.set({ status: 'saved' });
       },
@@ -289,5 +293,26 @@ export class CharacterSheetBeta extends CharacterSheet {
         this.restApply.set({ status: 'error' });
       },
     });
+  }
+
+  /**
+   * The rest's companion writes: one PUT per companion whose Stress moved, routed through
+   * `onCompanionStressChanged` for its optimistic update, per-companion rollback and error banner.
+   *
+   * Fired only once the sheet write has been accepted, never before. A failed sheet write leaves
+   * the modal on the moves step with its selections and Creature Comfort elections intact, and a
+   * resubmit re-resolves the rest against the LIVE companion state -- so a companion cleared ahead
+   * of a failure would be cleared a second time by the retry, spending one once-per-rest Creature
+   * Comfort twice. Deferring them also makes the modal's "nothing on your sheet changed" message
+   * true, since on the failure path nothing has been written anywhere.
+   *
+   * A write that fails rolls its own companion back and raises `companionError`, which the rest's
+   * summary reports through `restCompanionSaveFailed` -- the sheet's banner sits behind the open
+   * modal, so on its own it would let the summary claim a clear that never persisted.
+   */
+  private saveRestCompanions(outcome: RestOutcome): void {
+    for (const change of outcome.companionChanges) {
+      this.onCompanionStressChanged({ companionId: change.id, stressMarked: change.stressMarked });
+    }
   }
 }

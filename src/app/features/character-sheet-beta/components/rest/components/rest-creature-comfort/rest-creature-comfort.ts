@@ -17,6 +17,16 @@ interface ComfortRow {
   readonly name: string;
 }
 
+/**
+ * The three answers, as data. Opting out is `null` rather than a third `CreatureComfortChoice`,
+ * so an absent key stays the whole answer everywhere downstream.
+ */
+const COMFORT_OPTIONS: readonly { readonly value: CreatureComfortChoice | null; readonly label: string }[] = [
+  { value: null, label: 'Don’t use it' },
+  { value: 'hope', label: 'Gain a Hope' },
+  { value: 'stress', label: 'You both clear a Stress' },
+];
+
 /** Ids and radio-group names must be document-unique across concurrent modals. */
 let nextComfortId = 0;
 
@@ -42,6 +52,7 @@ export class RestCreatureComfort {
 
   private readonly uid = nextComfortId++;
   protected readonly headingId = `rest-comfort-heading-${this.uid}`;
+  protected readonly options = COMFORT_OPTIONS;
 
   protected readonly rows = computed<readonly ComfortRow[]>(() =>
     this.companions().map(companion => ({
@@ -56,8 +67,8 @@ export class RestCreatureComfort {
     return `rest-comfort-${this.uid}-${companionId}`;
   }
 
-  protected optionId(companionId: number, value: string): string {
-    return `rest-comfort-${this.uid}-${companionId}-${value}`;
+  protected optionId(companionId: number, value: CreatureComfortChoice | null): string {
+    return `rest-comfort-${this.uid}-${companionId}-${value ?? 'none'}`;
   }
 
   protected onChoose(companionId: number, choice: CreatureComfortChoice | null): void {

@@ -66,8 +66,13 @@ export interface TakenCompanionTraining {
    * Armor all render exactly that as `.resource-box` buttons), and Training is not editable here.
    */
   readonly countLabel: string;
-  /** The Vicious steps picked, in the order taken. Empty for every other option. */
+  /**
+   * The Vicious steps picked, in the order taken -- "Damage Die, Range". Empty for every other
+   * option. Joined here rather than in a template, which would re-join it on every change
+   * detection pass, and which the beta card could not reuse.
+   */
   readonly viciousAxes: readonly string[];
+  readonly viciousAxesLabel: string;
 }
 
 /**
@@ -81,6 +86,10 @@ export function groupCompanionTrainings(
   return COMPANION_TRAINING_OPTIONS.flatMap(meta => {
     const taken = trainings.filter(training => training.option === meta.option);
     if (taken.length === 0) return [];
+    const viciousAxes = taken
+      .map(training => training.viciousAxis)
+      .filter((axis): axis is ViciousAxis => axis !== undefined)
+      .map(axis => VICIOUS_AXIS_LABELS[axis]);
     return [
       {
         option: meta.option,
@@ -89,10 +98,8 @@ export function groupCompanionTrainings(
         taken: taken.length,
         maxSelections: meta.maxSelections,
         countLabel: meta.maxSelections > 1 ? `Taken ${taken.length} of ${meta.maxSelections}` : '',
-        viciousAxes: taken
-          .map(training => training.viciousAxis)
-          .filter((axis): axis is ViciousAxis => axis !== undefined)
-          .map(axis => VICIOUS_AXIS_LABELS[axis]),
+        viciousAxes,
+        viciousAxesLabel: viciousAxes.join(', '),
       },
     ];
   });

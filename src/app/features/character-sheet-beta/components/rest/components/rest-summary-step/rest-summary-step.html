@@ -1,5 +1,12 @@
 <h3 class="rest-step__heading" tabindex="-1">Step 3 of 3</h3>
 
+@if (companionSaveFailed()) {
+  <p class="rest-summary__warning" role="alert">
+    Your companion’s Stress didn’t save. The rest below is what should have happened — set their
+    Stress by hand on their card.
+  </p>
+}
+
 @if (outcome().summary.length === 0) {
   <p class="rest-step__lede">You rested and took no downtime moves.</p>
 } @else {

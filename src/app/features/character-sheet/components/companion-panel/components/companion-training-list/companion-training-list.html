@@ -11,8 +11,8 @@
             }
           </div>
           <p class="training-taken__effect">{{ training.effect }}</p>
-          @if (training.viciousAxes.length > 0) {
-            <p class="training-taken__axes">{{ training.viciousAxes.join(', ') }}</p>
+          @if (training.viciousAxesLabel) {
+            <p class="training-taken__axes">{{ training.viciousAxesLabel }}</p>
           }
         </li>
       }

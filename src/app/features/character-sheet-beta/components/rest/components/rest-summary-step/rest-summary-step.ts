@@ -9,4 +9,10 @@ import { RestOutcome } from '../../models/rest.model';
 })
 export class RestSummaryStep {
   readonly outcome = input.required<RestOutcome>();
+  /**
+   * True when a companion write from this rest failed. The summary lines below describe what the
+   * rest resolved, not what persisted, so without this the step would claim a companion clear that
+   * was rolled back -- the sheet's own companion banner sits behind this modal.
+   */
+  readonly companionSaveFailed = input(false);
 }

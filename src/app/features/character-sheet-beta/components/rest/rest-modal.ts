@@ -64,6 +64,8 @@ export class RestModal {
   /** True while the host's PUT is in flight. Blocks dismissal and a second submit. */
   readonly processing = input(false);
   readonly applyResult = input<RestApplyResult | null>(null);
+  /** True when a companion write from this rest failed. Reported on the summary. */
+  readonly companionSaveFailed = input(false);
 
   readonly submitted = output<RestOutcome>();
   readonly dismissed = output<void>();

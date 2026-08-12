@@ -13,41 +13,19 @@
         }
       </legend>
 
-      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'none')">
-        <input
-          type="radio"
-          class="form-radio"
-          [id]="optionId(row.companion.id, 'none')"
-          [name]="groupName(row.companion.id)"
-          [checked]="row.choice === null"
-          (change)="onChoose(row.companion.id, null)"
-        />
-        <span>Don’t use it</span>
-      </label>
-
-      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'hope')">
-        <input
-          type="radio"
-          class="form-radio"
-          [id]="optionId(row.companion.id, 'hope')"
-          [name]="groupName(row.companion.id)"
-          [checked]="row.choice === 'hope'"
-          (change)="onChoose(row.companion.id, 'hope')"
-        />
-        <span>Gain a Hope</span>
-      </label>
-
-      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'stress')">
-        <input
-          type="radio"
-          class="form-radio"
-          [id]="optionId(row.companion.id, 'stress')"
-          [name]="groupName(row.companion.id)"
-          [checked]="row.choice === 'stress'"
-          (change)="onChoose(row.companion.id, 'stress')"
-        />
-        <span>You both clear a Stress</span>
-      </label>
+      @for (option of options; track option.label) {
+        <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, option.value)">
+          <input
+            type="radio"
+            class="form-radio"
+            [id]="optionId(row.companion.id, option.value)"
+            [name]="groupName(row.companion.id)"
+            [checked]="row.choice === option.value"
+            (change)="onChoose(row.companion.id, option.value)"
+          />
+          <span>{{ option.label }}</span>
+        </label>
+      }
     </fieldset>
   }
 </section>

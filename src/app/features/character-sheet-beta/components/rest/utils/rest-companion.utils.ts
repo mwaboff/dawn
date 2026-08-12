@@ -72,13 +72,13 @@ export function returnDownedCompanions(state: RestCharacterState): {
   );
 
   const names = joinNames(returning.map(companion => companion.name));
-  const verb = returning.length === 1 ? 'was' : 'were';
+  const one = returning.length === 1;
   return {
     state: { ...state, companions },
     line: {
       moveKey: null,
       title: 'Companions return',
-      detail: `${names} ${verb} out of the scene and ${returning.length === 1 ? 'returns' : 'return'} with 1 Stress cleared`,
+      detail: `${names} ${one ? 'returns' : 'return'} from being out of the scene with 1 Stress cleared${one ? '' : ' each'}`,
       noChange: false,
     },
   };
@@ -154,7 +154,21 @@ export function applyCreatureComfort(
     // Re-read the companion from `current`: an earlier move may have cleared its Stress, and a
     // long rest's return may have brought it back since `choices` was elected in the modal.
     const live = current.companions.find(entry => entry.id === companion.id);
-    if (!live || !canUseCreatureComfort(live)) continue;
+    if (!live) continue;
+
+    // The modal offers a long rest's downed companions this choice on the strength of the Stress
+    // the return will clear. Clearing 1 un-downs any legal companion, but the backend does not
+    // clamp `stressMarked` to the max, so one marked PAST its max is still out of the scene here.
+    // Saying so beats dropping an election the player made with no explanation.
+    if (!canUseCreatureComfort(live)) {
+      lines.push({
+        moveKey: null,
+        title: `Creature Comfort (${live.name})`,
+        detail: 'they are still out of the scene, so the quiet moment never happened',
+        noChange: true,
+      });
+      continue;
+    }
 
     if (choice === 'hope') {
       const { next, gained } = gainCapped(current.hopeHeld, CREATURE_COMFORT_AMOUNT, current.hopeCap);
