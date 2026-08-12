@@ -11,7 +11,7 @@
   @if (companions().length === 0) {
     <p class="empty-state">No companions yet.</p>
   } @else {
-    <div class="card-group__list">
+    <div class="entity-card-grid entity-card-grid--2col">
       @for (companion of companions(); track companion.id) {
         <app-companion-card-beta
           [companion]="companion"

@@ -97,25 +97,6 @@
   font-size: .72rem;
 }
 
-.roster-panel__remove-btn {
-  width: 1.6rem;
-  height: 1.6rem;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 1px solid rgba(196, 68, 68, .35);
-  background: transparent;
-  color: #c47a7a;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all .15s ease;
-}
-
-.roster-panel__remove-btn:hover {
-  background: rgba(196, 68, 68, .12);
-  border-color: #c44;
-  color: #d49090;
-}
 
 /* Confirms *where* an added adversary landed, for the case the roster is on-screen (the browse
    button's own checkmark carries the confirmation when it isn't -- see adversary-browser.css).

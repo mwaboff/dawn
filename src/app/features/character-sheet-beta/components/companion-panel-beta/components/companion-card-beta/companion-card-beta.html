@@ -24,8 +24,21 @@
 
   @if (canManage()) {
     <div card-actions class="companion-card-beta__actions">
-      <button type="button" class="btn btn--secondary btn--sm" [disabled]="processing()" (click)="onEditClicked()">Edit</button>
+      <button
+        type="button"
+        class="card-swap-btn card-swap-btn--icon"
+        [disabled]="processing()"
+        [attr.aria-label]="'Edit ' + companion().name"
+        [attr.title]="'Edit ' + companion().name"
+        (click)="onEditClicked()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+      </button>
       <app-inline-delete-confirm
+        size="sm"
         [itemLabel]="companion().name"
         [active]="deleteConfirmActive()"
         (requested)="onDeleteRequested()"

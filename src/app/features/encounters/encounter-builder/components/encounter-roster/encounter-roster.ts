@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { AdversaryData } from '../../../../../shared/components/adversary-card/adversary-card.model';
 import { DaggerheartCard } from '../../../../../shared/components/daggerheart-card/daggerheart-card';
 import { EntityCard } from '../../../../../shared/components/entity-card/entity-card';
+import { InlineDeleteConfirm } from '../../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 import { CardSurfaceDirective } from '../../../../../shared/directives/card-surface.directive';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { EntityCardData } from '../../../../../shared/components/entity-card/entity-card.model';
@@ -34,7 +35,7 @@ export interface LabelChangeEvent {
   selector: 'app-encounter-roster',
   templateUrl: './encounter-roster.html',
   styleUrl: './encounter-roster.css',
-  imports: [AdversaryCard, DaggerheartCard, EntityCard, CardSurfaceDirective, NgTemplateOutlet],
+  imports: [AdversaryCard, DaggerheartCard, EntityCard, InlineDeleteConfirm, CardSurfaceDirective, NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EncounterRoster {
@@ -56,6 +57,9 @@ export class EncounterRoster {
 
   readonly tierOptions = TIER_OPTIONS;
 
+  /** localId of the instance whose remove is mid-confirm. Only one row confirms at a time. */
+  readonly confirmingId = signal<string | null>(null);
+
   /**
    * The environment only when the beta face is on, where it is the first cell of the roster grid
    * rather than a labelled row of its own above it. Classic keeps the separate group: its
@@ -76,6 +80,19 @@ export class EncounterRoster {
 
   onLabelInput(localId: string, event: Event): void {
     this.labelChange.emit({ localId, label: (event.target as HTMLInputElement).value });
+  }
+
+  onRemoveRequested(localId: string): void {
+    this.confirmingId.set(localId);
+  }
+
+  onRemoveConfirmed(localId: string): void {
+    this.confirmingId.set(null);
+    this.removeInstance.emit(localId);
+  }
+
+  onRemoveCancelled(): void {
+    this.confirmingId.set(null);
   }
 
   environmentEntityCard(card: CardData): EntityCardData {

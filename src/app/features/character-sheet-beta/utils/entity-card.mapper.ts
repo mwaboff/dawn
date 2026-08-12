@@ -198,8 +198,12 @@ export function lootToEntity(loot: LootDisplay): EntityCardData {
  * The three facts on the printed card's header land in three different slots, by kind rather than by
  * where they sit on the card: the domain and the card type are what qualifies this card within
  * domain cards ("Valor · Spell"), so they are the subtitle; level is the power-level scalar, so it
- * is the one badge; recall cost is a number, so it is a stat. `card.type` is a raw server enum, so
- * it is title-cased into the printed spelling.
+ * is the one badge. `card.type` is a raw server enum, so it is title-cased into the printed spelling.
+ *
+ * Recall cost is a deliberate exception to `EntityCardData`'s stats-are-numbers rule (see that
+ * model's doc comment): a domain card only ever has this one number, and a whole boxed ledger around
+ * a single small value reads heavier than the fact warrants, so it renders as a plain `meta` row
+ * instead.
  */
 export function domainCardToEntity(card: DomainCardSummary): EntityCardData {
   const subtitleParts = [card.domainName, card.type ? titleCase(card.type) : undefined].filter(Boolean);
@@ -210,7 +214,7 @@ export function domainCardToEntity(card: DomainCardSummary): EntityCardData {
     cardType: 'domainCard',
     subtitle: subtitleParts.length ? subtitleParts.join(' · ') : undefined,
     badges: card.level !== undefined ? [{ label: 'Level', value: String(card.level) }] : undefined,
-    stats: card.recallCost !== undefined ? [{ label: 'Recall', value: String(card.recallCost) }] : undefined,
+    meta: card.recallCost !== undefined ? [{ label: 'Recall', value: String(card.recallCost) }] : undefined,
     description: card.description,
     features: mapFeatures(card.features),
   };

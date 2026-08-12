@@ -11,6 +11,12 @@
 
 .entity-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: var(--space-4); }
 
+/* For a group whose cards carry more controls (a companion's stress tracker, edit/delete) than a
+   catalogue card does -- capped at 2-up instead of however many 19rem columns fit, so the group
+   reads as a deliberately roomier list rather than the same dense tiling as Class/Subclass or
+   Domain Cards. */
+.entity-card-grid--2col { grid-template-columns: repeat(2, minmax(19rem, 1fr)); }
+
 /* The 19rem (304px) column floor plus the page frame's side padding -- `--shell-pad-inline`, which
    is 1.25rem (20px) at the widths that matter here, per the ≤768px step-down in styles.css -- stops
    fitting below a 344px viewport. Below that, `body{overflow-x:hidden}` clips the remainder with no

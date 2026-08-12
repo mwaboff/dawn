@@ -1,20 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  afterNextRender,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { EntityCard } from '../../../../shared/components/entity-card/entity-card';
 import { InventoryTab, InventoryTabs } from '../../../../shared/components/inventory-tabs/inventory-tabs';
 import { CustomizeItemAction } from '../../../../shared/components/customize-item-action/customize-item-action';
+import { InlineDeleteConfirm } from '../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { SearchableEntityType } from '../../../../shared/models/search.model';
 import { ArmorDisplay, LootDisplay, WeaponDisplay } from '../../../character-sheet/models/character-sheet-view.model';
@@ -58,7 +46,7 @@ import {
   templateUrl: './inventory-section-beta.html',
   styleUrl: './inventory-section-beta.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [EntityCard, InventoryTabs, ItemFinder, CustomizeItemAction],
+  imports: [EntityCard, InventoryTabs, ItemFinder, CustomizeItemAction, InlineDeleteConfirm],
 })
 export class InventorySectionBeta {
   readonly weapons = input.required<WeaponDisplay[]>();
@@ -125,29 +113,9 @@ export class InventorySectionBeta {
     }
   });
 
-  /**
-   * Only one card can be confirming at a time, so a single `viewChild` reaches whichever confirm
-   * button is currently rendered. Focus has to be moved deliberately: the `@if` swap destroys the
-   * Remove button the user just activated, and a destroyed element takes focus to `<body>` with it.
-   */
-  private readonly confirmButton = viewChild<ElementRef<HTMLButtonElement>>('confirmButton');
-  private readonly injector = inject(Injector);
-
-  constructor() {
-    effect(() => this.confirmButton()?.nativeElement.focus());
-  }
-
   /** Ids are qualified by type as well as entry id -- a weapon and a loot entry can share one. */
   private entryKey(entry: InventoryCardEntry): string {
     return `${entry.type}-${entry.inventoryEntryId}`;
-  }
-
-  promptId(entry: InventoryCardEntry): string {
-    return `inv-confirm-${this.entryKey(entry)}`;
-  }
-
-  removeButtonId(entry: InventoryCardEntry): string {
-    return `inv-remove-${this.entryKey(entry)}`;
   }
 
   hintId(entry: InventoryCardEntry): string {
@@ -202,9 +170,9 @@ export class InventorySectionBeta {
     this.createItem.emit(type);
   }
 
+  /** The blocked case never reaches this handler -- the template renders a plain disabled-look
+   * icon button instead of `app-inline-delete-confirm` while `removeBlockedReason` is set. */
   onRemoveClicked(entry: InventoryCardEntry): void {
-    // The button stays focusable while blocked (see the template), so the guard lives here.
-    if (entry.removeBlockedReason !== null) return;
     this.confirmingRemoveEntryId.set(entry.inventoryEntryId);
   }
 
@@ -213,15 +181,8 @@ export class InventorySectionBeta {
     this.removeItem.emit({ type: entry.type, inventoryEntryId: entry.inventoryEntryId });
   }
 
-  onRemoveCancelled(entry: InventoryCardEntry): void {
+  onRemoveCancelled(): void {
     this.confirmingRemoveEntryId.set(null);
-    // Hands focus back to the Remove button the confirm replaced. By id rather than by element
-    // reference: the original button was destroyed by the swap, so this is a different node.
-    this.focusAfterRender(this.removeButtonId(entry));
-  }
-
-  private focusAfterRender(elementId: string): void {
-    afterNextRender(() => document.getElementById(elementId)?.focus(), { injector: this.injector });
   }
 
   /** Carries the catalogue id, not the inventory entry id -- the editor edits the item itself. */
