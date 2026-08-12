@@ -1,0 +1,31 @@
+<section class="rest-comfort" [attr.aria-labelledby]="headingId">
+  <h4 class="rest-comfort__heading" [id]="headingId">Creature Comfort</h4>
+  <p class="rest-comfort__lede">
+    Once per rest, take a quiet moment with your companion. This costs no downtime move.
+  </p>
+
+  @for (row of rows(); track row.companion.id) {
+    <fieldset class="rest-comfort__group">
+      <legend class="rest-comfort__legend">
+        {{ row.name }}
+        @if (row.returning) {
+          <span class="rest-comfort__note">returns from out of the scene this rest</span>
+        }
+      </legend>
+
+      @for (option of options; track option.label) {
+        <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, option.value)">
+          <input
+            type="radio"
+            class="form-radio"
+            [id]="optionId(row.companion.id, option.value)"
+            [name]="groupName(row.companion.id)"
+            [checked]="row.choice === option.value"
+            (change)="onChoose(row.companion.id, option.value)"
+          />
+          <span>{{ option.label }}</span>
+        </label>
+      }
+    </fieldset>
+  }
+</section>

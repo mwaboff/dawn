@@ -9,6 +9,7 @@ import {
 import { RestResourceChanges } from '../models/rest.model';
 import { CharacterSheetView, DisplayStat, TraitDisplay } from '../../../../character-sheet/models/character-sheet-view.model';
 import { CharacterSheetResponse } from '../../../../create-character/models/character-sheet-api.model';
+import { CompanionApiResponse } from '../../../../../shared/models/companion-api.model';
 
 function stat(value: number): DisplayStat {
   return { base: value, modified: value, hasModifier: false, modifierSources: [] };
@@ -57,6 +58,18 @@ function raw(overrides: Partial<CharacterSheetResponse> = {}): CharacterSheetRes
   return { id: 1, instinctModifier: 3, ...overrides } as CharacterSheetResponse;
 }
 
+function companion(overrides: Partial<CompanionApiResponse> = {}): CompanionApiResponse {
+  return {
+    id: 9,
+    name: 'Rex',
+    stressMarked: 2,
+    stressMax: 5,
+    baseStressMax: 3,
+    trainings: [],
+    ...overrides,
+  } as CompanionApiResponse;
+}
+
 function sources(overrides: Partial<RestStateSources> = {}): RestStateSources {
   return {
     view: view(),
@@ -69,6 +82,7 @@ function sources(overrides: Partial<RestStateSources> = {}): RestStateSources {
     focusHeld: 0,
     focusMax: 6,
     favor: 3,
+    companions: [],
     ...overrides,
   };
 }
@@ -159,6 +173,45 @@ describe('toRestCharacterState', () => {
     const revoked = raw({ transformationEnabled: false, wolfFormActive: true });
 
     expect(toRestCharacterState(sources({ raw: revoked }))?.wolfFormActive).toBe(false);
+  });
+
+  it('should carry no companions for a character without any', () => {
+    expect(toRestCharacterState(sources())?.companions).toEqual([]);
+  });
+
+  it('should map a companion’s live Stress track', () => {
+    const state = toRestCharacterState(sources({ companions: [companion()] }));
+
+    expect(state?.companions[0]).toEqual({
+      id: 9,
+      name: 'Rex',
+      stressMarked: 2,
+      stressMax: 5,
+      hasCreatureComfort: false,
+    });
+  });
+
+  /** `stressMax` is the derived value (base + Resilient), never the printed `baseStressMax`. */
+  it('should take the derived Stress max rather than the printed base', () => {
+    const state = toRestCharacterState(
+      sources({ companions: [companion({ stressMax: 5, baseStressMax: 3 })] }),
+    );
+
+    expect(state?.companions[0].stressMax).toBe(5);
+  });
+
+  it('should flag a companion holding the Creature Comfort training', () => {
+    const trained = companion({
+      trainings: [{ id: 1, option: 'CREATURE_COMFORT', acquiredAtLevel: 2 }],
+    });
+
+    expect(toRestCharacterState(sources({ companions: [trained] }))?.companions[0].hasCreatureComfort).toBe(true);
+  });
+
+  it('should not flag Creature Comfort for a companion trained in something else', () => {
+    const trained = companion({ trainings: [{ id: 1, option: 'AWARE', acquiredAtLevel: 2 }] });
+
+    expect(toRestCharacterState(sources({ companions: [trained] }))?.companions[0].hasCreatureComfort).toBe(false);
   });
 });
 

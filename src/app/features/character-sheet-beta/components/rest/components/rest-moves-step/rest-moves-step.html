@@ -76,4 +76,13 @@
       <span class="rest-toggle__help" [id]="longRestHelpId">Clank’s Efficient, the Recovery card.</span>
     </div>
   }
+
+  @if (comfortCandidates().length > 0) {
+    <app-rest-creature-comfort
+      [companions]="comfortCandidates()"
+      [choices]="comfortChoices()"
+      [restType]="restType()"
+      (choiceChanged)="comfortChanged.emit($event)"
+    />
+  }
 </div>

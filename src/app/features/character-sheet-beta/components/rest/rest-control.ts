@@ -25,6 +25,8 @@ export class RestControl {
   /** True while the rest's PUT is in flight. */
   readonly processing = input(false);
   readonly applyResult = input<RestApplyResult | null>(null);
+  /** True when a companion write from this rest failed; the summary says so rather than claiming it. */
+  readonly companionSaveFailed = input(false);
 
   readonly submitted = output<RestOutcome>();
   /** Fired when the dialog closes, so the host can clear its `applyResult`. */

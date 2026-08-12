@@ -16,6 +16,7 @@ const BASE_STATE: RestCharacterState = {
   spellcastTraitName: 'PRESENCE',
   instinct: 3,
   wolfFormActive: false,
+  companions: [],
 };
 
 function state(overrides: Partial<RestCharacterState> = {}): RestCharacterState {

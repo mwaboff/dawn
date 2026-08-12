@@ -173,4 +173,18 @@ describe('RestMovesStep', () => {
 
     expect(chip.componentInstance.definition().id).toBe('prepare');
   });
+
+  /* The overwhelming majority of characters have no companion; their rest must not grow a block. */
+  it('should offer no Creature Comfort block without a candidate companion', () => {
+    expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).toBeFalsy();
+  });
+
+  it('should offer the Creature Comfort block once a companion qualifies', () => {
+    fixture.componentRef.setInput('comfortCandidates', [
+      { id: 1, name: 'Rex', stressMarked: 0, stressMax: 3, hasCreatureComfort: true },
+    ]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).toBeTruthy();
+  });
 });

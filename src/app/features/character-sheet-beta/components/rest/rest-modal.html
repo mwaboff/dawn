@@ -23,6 +23,9 @@
           [selections]="selections()"
           [slots]="slots()"
           [useLongRestMove]="useLongRestMove()"
+          [comfortCandidates]="comfortCandidates()"
+          [comfortChoices]="comfortChoices()"
+          (comfortChanged)="setComfortChoice($event)"
           (moveAdded)="addMove($event)"
           (moveRemoved)="removeMove($event)"
           (targetChanged)="setTarget($event)"
@@ -32,7 +35,7 @@
         />
       }
       @case ('summary') {
-        <app-rest-summary-step [outcome]="savedOutcome()!" />
+        <app-rest-summary-step [outcome]="savedOutcome()!" [companionSaveFailed]="companionSaveFailed()" />
       }
     }
   </div>

@@ -1,23 +1,32 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { CompanionCard } from '../../../../../character-sheet/components/companion-panel/components/companion-card/companion-card';
-import { COMPANION_TRAINING_LABELS, VICIOUS_AXIS_LABELS } from '../../../../../character-sheet/components/companion-panel/components/companion-training-list/companion-training-list.model';
+import {
+  TakenCompanionTraining,
+  groupCompanionTrainings,
+} from '../../../../../character-sheet/components/companion-panel/components/companion-training-list/companion-training-list.model';
 import { EntityCard } from '../../../../../../shared/components/entity-card/entity-card';
 import { EntityCardData, EntityCardFeature } from '../../../../../../shared/components/entity-card/entity-card.model';
 import { ResourceTracker } from '../../../../../../shared/components/resource-tracker/resource-tracker';
 import { InlineDeleteConfirm } from '../../../../../../shared/components/inline-delete-confirm/inline-delete-confirm';
-import { CompanionTrainingApiResponse } from '../../../../../../shared/models/companion-api.model';
 
 function formatModifier(modifier: number): string {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
-/** Mirrors `companion-training-list.html`'s own formatting -- reusing the shared
- * `COMPANION_TRAINING_LABELS`/`VICIOUS_AXIS_LABELS` lookups (not re-deriving the labels) rather
- * than the `CompanionTrainingList` component itself, which has no slot to render into here; see
- * the class doc comment below. */
-function formatTraining(training: CompanionTrainingApiResponse): string {
-  const label = COMPANION_TRAINING_LABELS[training.option];
-  return training.viciousAxis ? `${label} (${VICIOUS_AXIS_LABELS[training.viciousAxis]})` : label;
+/**
+ * One taken Training as an `EntityCardFeature`: name and rules text, the same shape every other
+ * feature on this card uses.
+ *
+ * The repeat count rides in the name because `EntityCardFeature` has no slot of its own for it, and
+ * it is the same "Taken 2 of 3" wording the classic list renders -- shared via `countLabel` rather
+ * than formatted twice, so the two cards can never word it differently.
+ */
+function trainingFeature(training: TakenCompanionTraining): EntityCardFeature {
+  return {
+    name: training.countLabel ? `${training.label} — ${training.countLabel}` : training.label,
+    description: training.effect,
+    ...(training.viciousAxes.length > 0 ? { tags: [...training.viciousAxes] } : {}),
+  };
 }
 
 /**
@@ -33,14 +42,13 @@ function formatTraining(training: CompanionTrainingApiResponse): string {
  * see the "keeps the Stress tracker reachable" spec.
  *
  * Experiences, taken Training, and the Bonded/Creature Comfort/Battle-Bonded/Loyal Friend
- * reminders all fold into `card().features` instead. Training in particular collapses to one
- * "Training" feature summarising every taken option, because `EntityCardFeature.description` is
- * required and a bare label-only entry (no rules text at this point -- the full effect text only
- * shows during the level-up wizard's `TrainingStep`) has nowhere else to go without either
- * embedding the whole `CompanionTrainingList` component (which has no read-only body slot to
- * render into -- `EntityCard`'s only two `ng-content` slots are `[card-controls]`/`[card-actions]`,
- * both meant for interactive content and both rendered outside the clip) or re-deriving its label
- * map by hand. This reuses that map instead of duplicating it.
+ * reminders all fold into `card().features` instead. Each taken Training is its own feature, name
+ * and rules text like every other entry, grouped by `groupCompanionTrainings` so a thrice-taken
+ * Vicious is one entry carrying its count rather than three copies of the same paragraph. The
+ * grouping and the rules text are shared with `CompanionTrainingList` rather than re-derived; the
+ * component itself can't be embedded here, since `EntityCard`'s only `ng-content` slots are
+ * `[card-controls]`/`[card-actions]`, both meant for interactive content and both rendered outside
+ * the clipped body.
  */
 @Component({
   selector: 'app-companion-card-beta',
@@ -59,9 +67,7 @@ export class CompanionCardBeta extends CompanionCard {
         name: formatModifier(exp.modifier),
         description: exp.description,
       })),
-      ...(companion.trainings.length > 0
-        ? [{ name: 'Training', description: companion.trainings.map(formatTraining).join(', ') }]
-        : []),
+      ...groupCompanionTrainings(companion.trainings).map(trainingFeature),
       ...this.reminders().map(text => ({ description: text })),
       ...this.classFeatureReminders().map(feature => ({ name: feature.label, description: feature.text })),
     ];

@@ -4,7 +4,8 @@ import {
 } from '../../../../create-character/models/character-sheet-api.model';
 import { CharacterSheetView } from '../../../../character-sheet/models/character-sheet-view.model';
 import { tierForLevel } from '../../../../../shared/utils/tier.utils';
-import { RestCharacterState, RestResourceChanges } from '../models/rest.model';
+import { CompanionApiResponse } from '../../../../../shared/models/companion-api.model';
+import { RestCharacterState, RestCompanionState, RestResourceChanges } from '../models/rest.model';
 
 /**
  * The live values a rest reads. Marked resources come from the sheet's optimistic computeds rather
@@ -21,6 +22,24 @@ export interface RestStateSources {
   readonly focusHeld: number;
   readonly focusMax: number;
   readonly favor: number;
+  /** The sheet's active companions, straight off `CharacterSheet.companions`. */
+  readonly companions: readonly CompanionApiResponse[];
+}
+
+/**
+ * Companions as a rest sees them. `stressMax` is the response's derived value (base + Resilient),
+ * never `baseStressMax`; `outOfScene` is deliberately dropped rather than carried, because a rest
+ * clears Stress in stages and only a value derived from the live track stays true through that --
+ * see `isCompanionDowned`.
+ */
+function toRestCompanions(companions: readonly CompanionApiResponse[]): readonly RestCompanionState[] {
+  return companions.map(companion => ({
+    id: companion.id,
+    name: companion.name,
+    stressMarked: companion.stressMarked,
+    stressMax: companion.stressMax,
+    hasCreatureComfort: companion.trainings.some(training => training.option === 'CREATURE_COMFORT'),
+  }));
 }
 
 /** The trait name the view uses for Instinct. Must match `mapTraits` in the view mapper. */
@@ -78,6 +97,7 @@ export function toRestCharacterState(sources: RestStateSources): RestCharacterSt
     // and the backend rejects a player-side write to it while the grant is off. A sheet left with
     // a stale `wolfFormActive` after a revoked grant is the GM's to clear, not a rest's.
     wolfFormActive: (raw.transformationEnabled ?? false) && (raw.wolfFormActive ?? false),
+    companions: toRestCompanions(sources.companions),
   };
 }
 

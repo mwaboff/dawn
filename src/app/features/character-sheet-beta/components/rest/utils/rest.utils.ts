@@ -1,5 +1,6 @@
 import { DiceRollFn, rollFocusRefresh } from '../../../../character-sheet/utils/focus-refresh.utils';
 import {
+  CreatureComfortChoices,
   RestCharacterState,
   RestMoveId,
   RestOutcome,
@@ -8,6 +9,13 @@ import {
   RestSummaryLine,
   RestType,
 } from '../models/rest.model';
+import {
+  applyCreatureComfort,
+  clearCompanionStress,
+  returnDownedCompanions,
+  toCompanionChanges,
+} from './rest-companion.utils';
+import { clearMarked, gainCapped } from './rest-track.utils';
 
 /** Injected so `applyRestMoves` stays pure and specs can script the dice. */
 export type RestDiceRoller = DiceRollFn;
@@ -17,25 +25,6 @@ interface ResolvedMove {
   readonly title: string;
   readonly detail: string;
   readonly noChange: boolean;
-}
-
-/**
- * Clears up to `amount` from a damage track. Never clears more than is marked and never goes below
- * zero -- the backend deliberately does not enforce `marked <= max`, so this is the only guard.
- */
-function clearMarked(marked: number, amount: number): { readonly next: number; readonly cleared: number } {
-  const cleared = Math.max(0, Math.min(marked, Math.trunc(amount)));
-  return { next: marked - cleared, cleared };
-}
-
-/** Gains up to `amount`, never past the cap. A value already over the cap is left alone. */
-function gainCapped(
-  held: number,
-  amount: number,
-  cap: number,
-): { readonly next: number; readonly gained: number } {
-  const next = Math.min(Math.max(cap, held), held + Math.max(0, Math.trunc(amount)));
-  return { next, gained: next - held };
 }
 
 function clearedDetail(prefix: string, cleared: number, before: number, label: string): string {
@@ -87,14 +76,17 @@ const RESOLVERS: Readonly<Record<RestMoveId, RestMoveResolver>> = {
     };
   },
 
+  // Sympathetic clearing passes the ROLLED number, not the number that came off this character's
+  // own track -- see `clearCompanionStress`.
   clearStress: (state, _selection, roll) => {
     const { amount, prefix } = tierPool(state, roll);
     const { next, cleared } = clearMarked(state.stressMarked, amount);
+    const sympathetic = clearCompanionStress(state.companions, amount);
     return {
-      state: { ...state, stressMarked: next },
+      state: { ...state, stressMarked: next, companions: sympathetic.companions },
       title: 'Clear Stress',
-      noChange: cleared === 0,
-      detail: clearedDetail(prefix, cleared, state.stressMarked, 'Stress'),
+      noChange: cleared === 0 && sympathetic.cleared === 0,
+      detail: clearedDetail(prefix, cleared, state.stressMarked, 'Stress') + sympathetic.detail,
     };
   },
 
@@ -132,13 +124,16 @@ const RESOLVERS: Readonly<Record<RestMoveId, RestMoveResolver>> = {
     };
   },
 
+  // "Clear All Stress" names no number, so the equal number a companion clears is likewise all of
+  // theirs -- `Infinity` is how `clearMarked` expresses that without a second code path.
   clearAllStress: state => {
     const cleared = state.stressMarked;
+    const sympathetic = clearCompanionStress(state.companions, Infinity);
     return {
-      state: { ...state, stressMarked: 0 },
+      state: { ...state, stressMarked: 0, companions: sympathetic.companions },
       title: 'Clear All Stress',
-      noChange: cleared === 0,
-      detail: clearedAllDetail(cleared, 'Stress'),
+      noChange: cleared === 0 && sympathetic.cleared === 0,
+      detail: clearedAllDetail(cleared, 'Stress') + sympathetic.detail,
     };
   },
 
@@ -224,15 +219,34 @@ function toChanges(state: RestCharacterState): RestResourceChanges {
  * Selections are applied in order, threading state through, so two Tend to Wounds in a row
  * correctly see the HP the first one already cleared. `roll` is called exactly once per rolling
  * move and never for a move that rolls nothing.
+ *
+ * Companion bookkeeping brackets the downtime moves, in the order the rules put it:
+ *
+ * 1. On a long rest ONLY, every companion out of the scene returns with 1 Stress cleared. This is
+ *    "the start of your next long rest" (core-01:1343), so it lands before any move and a returned
+ *    companion is present for the sympathetic clearing that follows.
+ * 2. The moves themselves; Clear Stress and Clear All Stress carry companions along.
+ * 3. Creature Comfort, which is not a downtime move and spends no slot.
+ *
+ * `comforts` trails `roll` and defaults to "none elected" because the overwhelming majority of
+ * rests have no companion to elect for, and every caller that predates companions reads correctly
+ * against that default.
  */
 export function applyRestMoves(
   restType: RestType,
   state: RestCharacterState,
   selections: readonly RestSelection[],
   roll: RestDiceRoller,
+  comforts: CreatureComfortChoices = {},
 ): RestOutcome {
   const summary: RestSummaryLine[] = [];
   let current = state;
+
+  if (restType === 'long') {
+    const returned = returnDownedCompanions(current);
+    current = returned.state;
+    if (returned.line) summary.push(returned.line);
+  }
 
   for (const selection of selections) {
     const resolved = RESOLVERS[selection.moveId](current, selection, roll);
@@ -244,6 +258,10 @@ export function applyRestMoves(
       noChange: resolved.noChange,
     });
   }
+
+  const comforted = applyCreatureComfort(current, comforts);
+  current = comforted.state;
+  summary.push(...comforted.lines);
 
   // Automatic bookkeeping: not downtime moves, they just happen when the rest ends.
   // Expiring conditions and per-rest feature-use refreshes belong here when those are modelled;
@@ -260,9 +278,10 @@ export function applyRestMoves(
 
   const changes = toChanges(current);
   const before = toChanges(state);
-  const unchanged = (Object.keys(changes) as (keyof RestResourceChanges)[]).every(
-    key => changes[key] === before[key],
-  );
+  const companionChanges = toCompanionChanges(state.companions, current.companions);
+  const unchanged =
+    companionChanges.length === 0 &&
+    (Object.keys(changes) as (keyof RestResourceChanges)[]).every(key => changes[key] === before[key]);
 
-  return { restType, nextState: current, changes, previous: before, summary, unchanged };
+  return { restType, nextState: current, changes, previous: before, companionChanges, summary, unchanged };
 }
