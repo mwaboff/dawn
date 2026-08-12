@@ -18,6 +18,7 @@ const STATE: RestCharacterState = {
   spellcastTraitName: null,
   instinct: 3,
   wolfFormActive: false,
+  companions: [],
 };
 
 const NO_ACCESS: RestMoveAccess = { warlockResources: false, martialStances: false };

@@ -154,8 +154,50 @@ describe('CompanionCardBeta', () => {
 
     const features = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card().features;
     expect(features).toContainEqual({ name: '+2', description: 'Loves the outdoors' });
-    expect(features).toContainEqual({ name: 'Training', description: 'Aware, Vicious (Damage Die)' });
     expect(features).toContainEqual({ name: 'Battle-Bonded', description: 'A Beastbound Specialization reminder.' });
+  });
+
+  it('gives each taken Training its own feature carrying the printed rules text', () => {
+    host.companion.set(buildCompanion({
+      trainings: [{ id: 1, option: 'AWARE', acquiredAtLevel: 2 }, { id: 2, option: 'VICIOUS', viciousAxis: 'DAMAGE_DIE', acquiredAtLevel: 2 }],
+    }));
+    fixture.detectChanges();
+
+    const features = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card().features;
+    expect(features).toContainEqual({
+      name: 'Aware — Taken 1 of 3',
+      description: 'Your companion gains a permanent +2 bonus to their Evasion.',
+    });
+    expect(features).toContainEqual({
+      name: 'Vicious — Taken 1 of 3',
+      description: "Increase your companion's damage dice or range by one step (d6 to d8, Close to Far, etc.).",
+      tags: ['Damage Die'],
+    });
+  });
+
+  it('collapses a repeated Training into one feature carrying its count', () => {
+    host.companion.set(buildCompanion({
+      trainings: [
+        { id: 1, option: 'VICIOUS', viciousAxis: 'DAMAGE_DIE', acquiredAtLevel: 2 },
+        { id: 2, option: 'VICIOUS', viciousAxis: 'RANGE', acquiredAtLevel: 3 },
+      ],
+    }));
+    fixture.detectChanges();
+
+    const features = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card().features;
+    const vicious = features.filter((feature: { name?: string }) => feature.name?.startsWith('Vicious'));
+    expect(vicious).toHaveLength(1);
+    expect(vicious[0].name).toBe('Vicious — Taken 2 of 3');
+    expect(vicious[0].tags).toEqual(['Damage Die', 'Range']);
+  });
+
+  /** A once-only option has nothing to count, so it carries no "1 of 1". */
+  it('leaves a single-pick Training unmarked', () => {
+    host.companion.set(buildCompanion({ trainings: [{ id: 1, option: 'BONDED', acquiredAtLevel: 2 }] }));
+    fixture.detectChanges();
+
+    const features = fixture.debugElement.query(By.directive(EntityCard)).componentInstance.card().features;
+    expect(features.some((feature: { name?: string }) => feature.name === 'Bonded')).toBe(true);
   });
 
   it('places the Stress ResourceTracker and armor-instead prompt in [card-controls]', () => {

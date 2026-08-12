@@ -110,6 +110,17 @@
   cursor: pointer;
 }
 
+/* Themed radio, native for exactly the reasons `.form-checkbox` above is: `accent-color` themes the
+   checked dot with no custom markup, and staying native keeps the free forced-colors substitution.
+   Same 24x24 hit target, differing only in the shape the browser draws. */
+.form-radio {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 .form-input--sm {
   flex: 1;
   min-width: 0;

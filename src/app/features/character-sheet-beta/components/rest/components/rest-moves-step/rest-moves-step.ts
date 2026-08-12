@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import {
   BASE_REST_MOVES,
+  CreatureComfortChoices,
   MAX_REST_MOVES,
+  RestCompanionState,
   RestMoveDefinition,
   RestMoveTarget,
   RestSelection,
@@ -9,6 +11,7 @@ import {
 } from '../../models/rest.model';
 import { REST_MOVES_BY_ID } from '../../utils/rest-catalog';
 import { RestSelectionChip } from '../rest-selection-chip/rest-selection-chip';
+import { CreatureComfortChange, RestCreatureComfort } from '../rest-creature-comfort/rest-creature-comfort';
 
 /** A chosen slot paired with the definition it points at, so the template never looks moves up. */
 export interface RestSelectionView {
@@ -31,7 +34,7 @@ let nextStepId = 0;
 
 @Component({
   selector: 'app-rest-moves-step',
-  imports: [RestSelectionChip],
+  imports: [RestSelectionChip, RestCreatureComfort],
   templateUrl: './rest-moves-step.html',
   styleUrls: ['../../rest-step.css', './rest-moves-step.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,8 +45,16 @@ export class RestMovesStep {
   readonly selections = input.required<readonly RestSelection[]>();
   readonly slots = input.required<number>();
   readonly useLongRestMove = input(false);
+  /**
+   * Companions eligible for a Creature Comfort election this rest. Defaulted rather than required
+   * because empty is the honest answer for every character without companions, and an empty list
+   * is what keeps the block off their rest entirely.
+   */
+  readonly comfortCandidates = input<readonly RestCompanionState[]>([]);
+  readonly comfortChoices = input<CreatureComfortChoices>({});
 
   readonly moveAdded = output<RestMoveDefinition>();
+  readonly comfortChanged = output<CreatureComfortChange>();
   readonly moveRemoved = output<string>();
   readonly targetChanged = output<RestTargetChange>();
   readonly withPartyChanged = output<RestPartyChange>();

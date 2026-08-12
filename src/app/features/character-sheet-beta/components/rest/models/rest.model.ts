@@ -21,6 +21,37 @@ export type RestMoveTarget = 'self' | 'ally';
 /** A gate the sheet already computes. The catalogue never re-derives class membership itself. */
 export type RestMoveRequirement = 'warlockResources' | 'martialStances';
 
+/**
+ * What a companion's Creature Comfort training does this rest: "you can gain a Hope or you can both
+ * clear a Stress" (core-01:1355). A companion missing from the elections map simply didn't use it.
+ */
+export type CreatureComfortChoice = 'hope' | 'stress';
+
+/** Per-companion Creature Comfort elections, keyed by companion id. */
+export type CreatureComfortChoices = Readonly<Record<number, CreatureComfortChoice>>;
+
+/**
+ * One companion as a rest sees it.
+ *
+ * `stressMax` is the Training-adjusted maximum the backend derives (base + 1 per Resilient), never
+ * the printed base -- clearing has to measure against the track the player actually has.
+ */
+export interface RestCompanionState {
+  readonly id: number;
+  readonly name: string;
+  readonly stressMarked: number;
+  readonly stressMax: number;
+  /** True when this companion has taken the Creature Comfort training at least once. */
+  readonly hasCreatureComfort: boolean;
+}
+
+/** Absolute new Stress for one companion the rest moved. Never a delta. */
+export interface RestCompanionChange {
+  readonly id: number;
+  readonly stressMarked: number;
+  readonly previousStressMarked: number;
+}
+
 export type RestMoveRoll =
   /** 1d4 + tier. */
   | { readonly kind: 'tierPool' }
@@ -80,6 +111,11 @@ export interface RestCharacterState {
   readonly spellcastTraitName: string | null;
   readonly instinct: number;
   readonly wolfFormActive: boolean;
+  /**
+   * Every active companion on the sheet, in panel order. Empty for the overwhelming majority of
+   * characters, which is what keeps every companion affordance off their rest entirely.
+   */
+  readonly companions: readonly RestCompanionState[];
 }
 
 /** Absolute new values for every field a rest can move. Never deltas. */
@@ -116,8 +152,13 @@ export interface RestOutcome {
    * server-side gate on a resource this character doesn't have (transformations, for one).
    */
   readonly previous: RestResourceChanges;
+  /**
+   * Only the companions whose Stress actually moved. Each is its own `PUT /api/dh/companions/{id}`,
+   * so an empty list means the rest touched no companion and issues no companion write at all.
+   */
+  readonly companionChanges: readonly RestCompanionChange[];
   readonly summary: readonly RestSummaryLine[];
-  /** True when nothing moved. Submit skips the PUT entirely. */
+  /** True when nothing moved, on the sheet or on any companion. Submit skips every write. */
   readonly unchanged: boolean;
 }
 

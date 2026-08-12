@@ -226,6 +226,7 @@ export class CharacterSheetBeta extends CharacterSheet {
       focusHeld: this.markedFocus(),
       focusMax: this.focusMax(),
       favor: this.currentFavor(),
+      companions: this.companions(),
     }),
   );
 
@@ -249,6 +250,22 @@ export class CharacterSheetBeta extends CharacterSheet {
       return;
     }
 
+    // Each companion is its own endpoint, so these are separate writes from the sheet's, and
+    // deliberately not folded into the modal's saved/error result. `onCompanionStressChanged`
+    // already carries the right shape -- optimistic update, per-companion rollback, and the
+    // companion panel's own error banner -- and routing through it means a companion write that
+    // fails cannot discard a character rest the server already accepted.
+    for (const change of outcome.companionChanges) {
+      this.onCompanionStressChanged({ companionId: change.id, stressMarked: change.stressMarked });
+    }
+
+    // A rest that only cleared companion Stress has nothing left to send for the sheet itself.
+    const request = restUpdateRequest(outcome.changes, outcome.previous);
+    if (Object.keys(request).length === 0) {
+      this.restApply.set({ status: 'saved' });
+      return;
+    }
+
     this.rawSheet.set(applyRestToRaw(raw, outcome.changes));
     this.characterSheet.set(applyRestToView(view, outcome.changes));
     this.localHpMarked.set(null);
@@ -260,7 +277,7 @@ export class CharacterSheetBeta extends CharacterSheet {
     this.hfActionInFlight.set(true);
     this.restApply.set(null);
 
-    this.sheets.updateCharacterSheet(raw.id, restUpdateRequest(outcome.changes, outcome.previous)).subscribe({
+    this.sheets.updateCharacterSheet(raw.id, request).subscribe({
       next: () => {
         this.hfActionInFlight.set(false);
         this.restApply.set({ status: 'saved' });

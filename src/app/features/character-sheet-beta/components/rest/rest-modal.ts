@@ -17,6 +17,7 @@ import { DiceType } from '../../../../shared/models/dice-roller.model';
 import { ModalShell } from '../../../../shared/components/modal-shell/modal-shell';
 import {
   BASE_REST_MOVES,
+  CreatureComfortChoices,
   MAX_REST_MOVES,
   RestApplyResult,
   RestCharacterState,
@@ -28,6 +29,8 @@ import {
 } from './models/rest.model';
 import { movesForRest, REST_MOVES_BY_ID } from './utils/rest-catalog';
 import { applyRestMoves, RestDiceRoller } from './utils/rest.utils';
+import { creatureComfortCandidates } from './utils/rest-companion.utils';
+import { CreatureComfortChange } from './components/rest-creature-comfort/rest-creature-comfort';
 import {
   addSelection,
   pruneIllegalSelections,
@@ -71,6 +74,16 @@ export class RestModal {
 
   readonly useLongRestMove = signal(false);
   readonly selections = signal<readonly RestSelection[]>([]);
+  readonly comfortChoices = signal<CreatureComfortChoices>({});
+
+  /**
+   * Which companions get offered the Creature Comfort choice. Depends on the rest type, because a
+   * companion out of the scene sits out a whole short rest but returns at the start of a long one.
+   */
+  protected readonly comfortCandidates = computed(() => {
+    const type = this.restType();
+    return type === null ? [] : creatureComfortCandidates(this.state().companions, type);
+  });
 
   protected readonly slots = computed(() => BASE_REST_MOVES + this.extraSlots());
   protected readonly chosenType = computed(() => this.restType());
@@ -153,6 +166,20 @@ export class RestModal {
     this.selections.set([]);
     this.useLongRestMove.set(false);
     this.extraSlots.set(0);
+    this.comfortChoices.set({});
+  }
+
+  /**
+   * Records a Creature Comfort election. Choosing "don't use it" deletes the key rather than
+   * storing a null, so `applyCreatureComfort` can treat an absent key as the whole answer.
+   */
+  protected setComfortChoice(change: CreatureComfortChange): void {
+    this.comfortChoices.update(choices => {
+      const next = { ...choices };
+      if (change.choice === null) delete next[change.companionId];
+      else next[change.companionId] = change.choice;
+      return next;
+    });
   }
 
   protected addMove(move: RestMoveDefinition): void {
@@ -191,7 +218,13 @@ export class RestModal {
   protected submit(): void {
     const type = this.restType();
     if (type === null || this.processing()) return;
-    const outcome = applyRestMoves(type, this.state(), this.selections(), this.rollDice);
+    const outcome = applyRestMoves(
+      type,
+      this.state(),
+      this.selections(),
+      this.rollDice,
+      this.comfortChoices(),
+    );
     this.outcome.set(outcome);
     this.submitted.emit(outcome);
   }

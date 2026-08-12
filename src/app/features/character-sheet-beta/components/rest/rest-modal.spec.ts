@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RestModal } from './rest-modal';
 import { DiceRollerService } from '../../../../core/services/dice-roller.service';
-import { RestCharacterState, RestMoveAccess, RestOutcome } from './models/rest.model';
+import { RestCharacterState, RestCompanionState, RestMoveAccess, RestOutcome } from './models/rest.model';
 
 const STATE: RestCharacterState = {
   tier: 2,
@@ -18,6 +18,7 @@ const STATE: RestCharacterState = {
   spellcastTraitName: null,
   instinct: 3,
   wolfFormActive: false,
+  companions: [],
 };
 
 const NO_ACCESS: RestMoveAccess = { warlockResources: false, martialStances: false };
@@ -293,5 +294,78 @@ describe('RestModal', () => {
 
   it('should say nothing before anything has happened', () => {
     expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent.trim()).toBe('');
+  });
+
+  describe('companions', () => {
+    const REX: RestCompanionState = {
+      id: 1,
+      name: 'Rex',
+      stressMarked: 0,
+      stressMax: 3,
+      hasCreatureComfort: true,
+    };
+
+    function withCompanions(companions: RestCompanionState[]): void {
+      fixture.componentRef.setInput('state', { ...STATE, companions });
+      fixture.detectChanges();
+    }
+
+    function comfortRadios(): HTMLInputElement[] {
+      const host = fixture.nativeElement as HTMLElement;
+      return [...host.querySelectorAll<HTMLInputElement>('.rest-comfort__option input')];
+    }
+
+    it('should show no Creature Comfort prompt for a character without companions', () => {
+      chooseShortRest();
+
+      expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).toBeNull();
+    });
+
+    it('should show no prompt for a companion lacking the training', () => {
+      withCompanions([{ ...REX, hasCreatureComfort: false }]);
+      chooseShortRest();
+
+      expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).toBeNull();
+    });
+
+    it('should prompt for a trained companion', () => {
+      withCompanions([REX]);
+      chooseShortRest();
+
+      expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).not.toBeNull();
+    });
+
+    it('should withhold the prompt from a downed companion on a short rest', () => {
+      withCompanions([{ ...REX, stressMarked: 3 }]);
+      chooseShortRest();
+
+      expect(fixture.nativeElement.querySelector('app-rest-creature-comfort')).toBeNull();
+    });
+
+    it('should carry the election into the outcome', () => {
+      let outcome: RestOutcome | undefined;
+      fixture.componentInstance.submitted.subscribe(value => (outcome = value));
+      withCompanions([{ ...REX, stressMarked: 2 }]);
+      chooseShortRest();
+      comfortRadios()[2].click();
+      fixture.detectChanges();
+
+      actionButton('Take the rest')!.click();
+
+      expect(outcome!.companionChanges).toEqual([{ id: 1, stressMarked: 1, previousStressMarked: 2 }]);
+    });
+
+    it('should discard elections on Back', () => {
+      withCompanions([{ ...REX, stressMarked: 2 }]);
+      chooseShortRest();
+      comfortRadios()[1].click();
+      fixture.detectChanges();
+
+      actionButton('Back')!.click();
+      fixture.detectChanges();
+      chooseShortRest();
+
+      expect(comfortRadios()[0].checked).toBe(true);
+    });
   });
 });

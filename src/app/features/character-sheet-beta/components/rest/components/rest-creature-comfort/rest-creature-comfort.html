@@ -1,0 +1,53 @@
+<section class="rest-comfort" [attr.aria-labelledby]="headingId">
+  <h4 class="rest-comfort__heading" [id]="headingId">Creature Comfort</h4>
+  <p class="rest-comfort__lede">
+    Once per rest, take a quiet moment with your companion. This costs no downtime move.
+  </p>
+
+  @for (row of rows(); track row.companion.id) {
+    <fieldset class="rest-comfort__group">
+      <legend class="rest-comfort__legend">
+        {{ row.name }}
+        @if (row.returning) {
+          <span class="rest-comfort__note">returns from out of the scene this rest</span>
+        }
+      </legend>
+
+      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'none')">
+        <input
+          type="radio"
+          class="form-radio"
+          [id]="optionId(row.companion.id, 'none')"
+          [name]="groupName(row.companion.id)"
+          [checked]="row.choice === null"
+          (change)="onChoose(row.companion.id, null)"
+        />
+        <span>Don’t use it</span>
+      </label>
+
+      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'hope')">
+        <input
+          type="radio"
+          class="form-radio"
+          [id]="optionId(row.companion.id, 'hope')"
+          [name]="groupName(row.companion.id)"
+          [checked]="row.choice === 'hope'"
+          (change)="onChoose(row.companion.id, 'hope')"
+        />
+        <span>Gain a Hope</span>
+      </label>
+
+      <label class="rest-comfort__option" [attr.for]="optionId(row.companion.id, 'stress')">
+        <input
+          type="radio"
+          class="form-radio"
+          [id]="optionId(row.companion.id, 'stress')"
+          [name]="groupName(row.companion.id)"
+          [checked]="row.choice === 'stress'"
+          (change)="onChoose(row.companion.id, 'stress')"
+        />
+        <span>You both clear a Stress</span>
+      </label>
+    </fieldset>
+  }
+</section>

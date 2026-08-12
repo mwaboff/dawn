@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CompanionTrainingApiResponse } from '../../../../../../shared/models/companion-api.model';
-import { COMPANION_TRAINING_LABELS, VICIOUS_AXIS_LABELS } from './companion-training-list.model';
+import { groupCompanionTrainings } from './companion-training-list.model';
 
 /**
- * Read-only record of the Training options a companion has already taken.
+ * Read-only record of the Training options a companion has already taken, rendered the way features
+ * are rendered everywhere else: a name, then the rules text under it.
  *
  * Taking a Training is a level-up choice, so it belongs to the level-up wizard's `TrainingStep`
  * and nowhere else -- the sheet shows what the companion has, the way it shows the rest of an
@@ -19,6 +20,5 @@ import { COMPANION_TRAINING_LABELS, VICIOUS_AXIS_LABELS } from './companion-trai
 export class CompanionTrainingList {
   readonly trainings = input.required<CompanionTrainingApiResponse[]>();
 
-  readonly trainingLabels = COMPANION_TRAINING_LABELS;
-  readonly axisLabels = VICIOUS_AXIS_LABELS;
+  protected readonly taken = computed(() => groupCompanionTrainings(this.trainings()));
 }

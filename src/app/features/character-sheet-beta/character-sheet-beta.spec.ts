@@ -103,7 +103,12 @@ describe('CharacterSheetBeta', () => {
 
   /** Configures a fresh TestBed module. Does not create or flush the component, so callers that
    * need to inspect pre-ngOnInit state can create it themselves before the first detectChanges. */
-  function configure(routeId: string, serviceResponse = of(mockResponse), authUser: object | null = { id: 1 }) {
+  function configure(
+    routeId: string,
+    serviceResponse = of(mockResponse),
+    authUser: object | null = { id: 1 },
+    companions: object[] = [],
+  ) {
     TestBed.configureTestingModule({
       imports: [CharacterSheetBeta],
       providers: [
@@ -113,7 +118,7 @@ describe('CharacterSheetBeta', () => {
         { provide: CharacterSheetService, useValue: { getCharacterSheet: vi.fn().mockReturnValue(serviceResponse), updateCharacterSheet: vi.fn().mockReturnValue(of(mockResponse)) } },
         { provide: AuthService, useValue: { user: vi.fn().mockReturnValue(authUser), isAdmin: vi.fn().mockReturnValue(false), isLoggedIn: vi.fn().mockReturnValue(true) } },
         { provide: TransformationCardService, useValue: { getAllTransformationCards: vi.fn().mockReturnValue(of([])) } },
-        { provide: CompanionService, useValue: { getCompanions: vi.fn().mockReturnValue(of([])) } },
+        { provide: CompanionService, useValue: { getCompanions: vi.fn().mockReturnValue(of(companions)), updateCompanion: vi.fn().mockReturnValue(of({})) } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => routeId } } } },
       ],
     });
@@ -540,6 +545,7 @@ describe('CharacterSheetBeta', () => {
         favor: 0,
         wolfFormActive: false,
       },
+      companionChanges: [],
       summary: [],
       unchanged: false,
     };
@@ -607,6 +613,88 @@ describe('CharacterSheetBeta', () => {
       component.onRestSubmitted({ ...OUTCOME, unchanged: true });
 
       expect(component.restApply()).toEqual({ status: 'saved' });
+    });
+
+    describe('companion writes', () => {
+      /** Full enough to render: the companion panel mounts a real card, which needs the attack. */
+      const COMPANION = {
+        id: 7,
+        characterSheetId: 1,
+        name: 'Rex',
+        evasion: 10,
+        baseEvasion: 10,
+        attackName: 'Bite',
+        attackRange: 'MELEE',
+        baseAttackRange: 'MELEE',
+        damageDice: 'D6',
+        baseDamageDice: 'D6',
+        attackDiceCount: 1,
+        damageType: 'PHYSICAL',
+        stressMarked: 3,
+        stressMax: 4,
+        baseStressMax: 4,
+        outOfScene: false,
+        origin: 'MANUAL',
+        advancesOnLevelUp: true,
+        trainings: [],
+        remainingByOption: {},
+        createdAt: '2026-01-01T00:00:00',
+        lastModifiedAt: '2026-01-01T00:00:00',
+      };
+
+      function companionService() {
+        return TestBed.inject(CompanionService) as unknown as {
+          updateCompanion: ReturnType<typeof vi.fn>;
+        };
+      }
+
+      function createWithCompanion() {
+        configure('1', of(mockResponse), { id: 1 }, [COMPANION]);
+        fixture = TestBed.createComponent(CharacterSheetBeta);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+      }
+
+      it('offers the rest the sheet’s companions', () => {
+        createWithCompanion();
+
+        expect(component.restState()?.companions).toEqual([
+          { id: 7, name: 'Rex', stressMarked: 3, stressMax: 4, hasCreatureComfort: false },
+        ]);
+      });
+
+      it('sends one companion update per companion the rest moved', () => {
+        createWithCompanion();
+
+        component.onRestSubmitted({
+          ...OUTCOME,
+          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+        });
+
+        expect(companionService().updateCompanion).toHaveBeenCalledWith(7, { stressMarked: 1 });
+      });
+
+      it('sends no companion update when the rest moved none', () => {
+        createWithCompanion();
+
+        component.onRestSubmitted(OUTCOME);
+
+        expect(companionService().updateCompanion).not.toHaveBeenCalled();
+      });
+
+      /** A rest whose only effect was on a companion still has to reach its summary. */
+      it('reaches the summary without a sheet update when only a companion moved', () => {
+        createWithCompanion();
+
+        component.onRestSubmitted({
+          ...OUTCOME,
+          changes: OUTCOME.previous,
+          companionChanges: [{ id: 7, stressMarked: 1, previousStressMarked: 3 }],
+        });
+
+        expect(sheetService().updateCharacterSheet).not.toHaveBeenCalled();
+        expect(component.restApply()).toEqual({ status: 'saved' });
+      });
     });
 
     /** The default fixture is undamaged, which would make a "cleared the HP" assertion vacuous. */

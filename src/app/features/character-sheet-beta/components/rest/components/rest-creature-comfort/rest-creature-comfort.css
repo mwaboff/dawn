@@ -1,0 +1,63 @@
+.rest-comfort {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Matches `.rest-stepper__label` -- this is a field label for the group below it, not a section
+   title, so it takes the same small caps treatment rather than a heavier heading face. */
+.rest-comfort__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-parchment);
+}
+
+.rest-comfort__lede {
+  margin: 0;
+  color: var(--color-parchment-a55);
+  font-size: var(--text-xs);
+}
+
+.rest-comfort__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--color-accent-a30);
+}
+
+.rest-comfort__legend {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-parchment);
+}
+
+.rest-comfort__note {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--color-parchment-a55);
+}
+
+.rest-comfort__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-parchment);
+}

@@ -11,6 +11,7 @@ function outcome(summary: RestSummaryLine[], restType: RestOutcome['restType'] =
     nextState: {} as RestOutcome['nextState'],
     changes: {} as RestOutcome['changes'],
     previous: {} as RestOutcome['previous'],
+    companionChanges: [],
   };
 }
 
