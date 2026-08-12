@@ -531,6 +531,15 @@ describe('CharacterSheetBeta', () => {
         favor: 0,
         wolfFormActive: false,
       },
+      previous: {
+        hitPointMarked: 2,
+        stressMarked: 0,
+        armorMarked: 0,
+        hopeHeld: 2,
+        focusHeld: 0,
+        favor: 0,
+        wolfFormActive: false,
+      },
       summary: [],
       unchanged: false,
     };
@@ -564,20 +573,16 @@ describe('CharacterSheetBeta', () => {
       expect(sheetService().updateCharacterSheet).toHaveBeenCalledTimes(1);
     });
 
-    it('sends the outcome’s changes as the update body', () => {
+    /**
+     * Only what the rest moved: a body that also restated `wolfFormActive` would be rejected
+     * outright for a character whose GM has not enabled transformations.
+     */
+    it('sends only the fields the rest moved as the update body', () => {
       createComponent();
 
       component.onRestSubmitted(OUTCOME);
 
-      expect(sheetService().updateCharacterSheet).toHaveBeenCalledWith(1, {
-        hitPointMarked: 0,
-        stressMarked: 0,
-        armorMarked: 0,
-        hopeMarked: 2,
-        focusMarked: 0,
-        favor: 0,
-        wolfFormActive: false,
-      });
+      expect(sheetService().updateCharacterSheet).toHaveBeenCalledWith(1, { hitPointMarked: 0 });
     });
 
     it('reports the save so the modal can show its summary', () => {

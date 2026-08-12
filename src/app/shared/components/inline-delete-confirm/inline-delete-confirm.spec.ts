@@ -98,6 +98,18 @@ describe('InlineDeleteConfirm', () => {
 
       expect(spy).toHaveBeenCalled();
     });
+
+    // The trash button is destroyed by the `@if`/`@else` swap to the confirm view -- without this,
+    // focus falls back to <body> and a keyboard user loses their place.
+    it('moves focus to the Yes button once the confirm view renders', async () => {
+      const btn = el.querySelector('.roster-delete-btn') as HTMLButtonElement;
+      btn.click();
+      host.active.set(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(document.activeElement).toBe(el.querySelector('.roster-inline-confirm-btn'));
+    });
   });
 
   describe('Yes button click', () => {
@@ -143,6 +155,18 @@ describe('InlineDeleteConfirm', () => {
       btn.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalled();
+    });
+
+    // Mirrors the Yes-button case above, for the reverse transition: Cancel destroys the confirm
+    // view and the trash button that replaces it needs to pick up focus, not <body>.
+    it('moves focus back to the trash button once it re-renders', async () => {
+      const btn = el.querySelector('.roster-inline-cancel-btn') as HTMLButtonElement;
+      btn.click();
+      host.active.set(false);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(document.activeElement).toBe(el.querySelector('.roster-delete-btn'));
     });
   });
 

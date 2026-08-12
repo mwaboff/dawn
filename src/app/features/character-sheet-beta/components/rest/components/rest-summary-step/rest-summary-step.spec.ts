@@ -10,6 +10,7 @@ function outcome(summary: RestSummaryLine[], restType: RestOutcome['restType'] =
     unchanged: summary.length === 0,
     nextState: {} as RestOutcome['nextState'],
     changes: {} as RestOutcome['changes'],
+    previous: {} as RestOutcome['previous'],
   };
 }
 

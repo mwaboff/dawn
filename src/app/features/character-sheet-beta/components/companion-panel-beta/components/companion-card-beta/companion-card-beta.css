@@ -1,5 +1,5 @@
-/* Lets `app-entity-card` participate directly in the parent's `.card-group__list` flex layout,
-   the same way `InlineDeleteConfirm` disappears from layout inside a roster row. */
+/* Lets `app-entity-card` participate directly in the parent's `.entity-card-grid` layout, the
+   same way `InlineDeleteConfirm` disappears from layout inside a roster row. */
 :host { display: contents; }
 
 .companion-card-beta__controls { display: flex; flex-direction: column; gap: var(--space-3); }

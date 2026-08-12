@@ -6,29 +6,19 @@
    `--cp`/`--ca` are declared on `:host` in character-sheet-beta.css and read here via the normal
    CSS cascade -- one component, several stylesheets, same host element. */
 .traits-row { display: grid; grid-template-columns: repeat(6,1fr); gap: var(--space-3); }
-.trait-badge { display: flex; flex-direction: column; align-items: center; padding: var(--space-3) var(--space-1) .35rem; background: rgba(212,160,86,.04); border: 1px solid rgba(212,160,86,.15); border-radius: 4px; gap: .15rem; position: relative; }
+.trait-badge { position: relative; }
 .trait-badge__abbr { font-size: .9rem; text-transform: uppercase; letter-spacing: .1em; color: var(--cl); }
+/* `app-modifier-indicator` renders `role="button"`/`tabindex` of its own (for keyboard access to
+   its hover tooltip, not real click behavior), so it stays a DOM sibling of `.trait-badge__roll`
+   rather than a child -- nesting it inside a real <button> would be invalid interactive-content
+   nesting. It's positioned absolutely over the roll button's corner; that corner pixel is the
+   only part of the tile that doesn't trigger a roll, which matches its pre-existing behavior. */
 .trait-badge__indicator { position: absolute; top: 3px; left: 5px; font-size: .75rem; line-height: 1; }
-/* The clickable hit target is the abbr+modifier pair only, not the whole tile (see the roll-trigger
-   plan: `app-modifier-indicator` already renders its own `role="button"`, so nesting the tile's
-   border/background onto this button too would double up two interactive-looking boxes in one
-   small tile). Revised after review: an earlier pass kept this transparent at rest, relying on
-   hover to signal clickability -- invisible to touch users and to a mouse user who never hovers.
-   A visible-at-rest chip is required, so this now borrows the SAME hairline-border-pill idiom as
-   `.equip-stat--roll` (character-sheet-beta-equipment.css) and `.equipment-card__badge` --
-   already this app's own vernacular for "a bordered shape nested inside a bordered container"
-   (a `.shield` sits inside the bordered `.sheet-header` the same way). Border+fill is a shape and
-   lightness change, not a hue-only cue, so it reads without color vision and without hover.
-   Fill/hover values derive from `--color-accent` (`color-mix`, same technique the dice roller's
-   history badges use) or an existing named alpha token, never a hard-coded rgba literal --
-   `dawn/CLAUDE.md`'s tokens-first rule applies to new component CSS even though the palette here
-   happens to be the same warm gold the rest of this file was already hand-tuned in rgba.
-   Border is `--color-accent-a75`, not the fainter `--cb`/`--color-secondary-border` used
-   elsewhere in this file for decorative hairlines -- WCAG 1.4.11 needs 3:1 for a non-text UI
-   boundary, and `--cb` (.2 alpha) against this tile's background measures ~1.46:1. `-a75`
-   measures ~4.7-5:1, clearing the floor with margin; the effectively-invisible border it replaces
-   was defeating the whole point of making this chip visible at rest instead of only on hover. */
-.trait-badge__roll { display: flex; flex-direction: column; align-items: center; gap: .15rem; padding: .1rem var(--space-3) .05rem; margin: -.1rem 0 -.05rem; border: 1px solid var(--color-accent-a75); border-radius: 3px; background: color-mix(in srgb, var(--color-accent) 5%, transparent); font: inherit; cursor: pointer; transition: background-color .12s, border-color .12s; }
+/* Border is `--color-accent-a75`, not the fainter `--cb`/`--color-secondary-border` used elsewhere
+   in this file for decorative hairlines -- WCAG 1.4.11 needs 3:1 for a non-text UI boundary, and
+   `--cb` (.2 alpha) measures ~1.46:1 against this background. `-a75` measures ~4.7-5:1, so the
+   whole tile reads as clickable at rest, not just on hover. */
+.trait-badge__roll { display: flex; flex-direction: column; align-items: center; width: 100%; gap: .15rem; padding: var(--space-3) var(--space-1) .35rem; border: 1px solid var(--color-accent-a75); border-radius: 4px; background: color-mix(in srgb, var(--color-accent) 5%, transparent); font: inherit; cursor: pointer; position: relative; transition: background-color .12s, border-color .12s; }
 .trait-badge__roll:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); border-color: var(--color-accent); }
 .trait-badge__roll:active { background: var(--cb); }
 .trait-badge__modifier { font-size: 1.4rem; font-weight: 700; color: var(--cp); line-height: 1; }

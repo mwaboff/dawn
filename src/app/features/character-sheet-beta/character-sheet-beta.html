@@ -117,15 +117,15 @@
             >
               <span class="trait-badge__abbr" aria-hidden="true">{{ trait.name }}</span>
               <span class="trait-badge__modifier" [class.trait-badge__modifier--modified]="trait.modifier.hasModifier" aria-hidden="true">{{ formatModifier(trait.modifier.modified) }}</span>
-            </button>
-            @if (trait.marked) {
-              <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
-            }
-            <div class="trait-badge__subskills" aria-hidden="true">
-              @for (skill of getSubSkills(trait.name); track skill) {
-                <span class="trait-badge__subskill">{{ skill }}</span>
+              @if (trait.marked) {
+                <span class="trait-badge__marked-dot" aria-hidden="true">&#9679;</span>
               }
-            </div>
+              <div class="trait-badge__subskills" aria-hidden="true">
+                @for (skill of getSubSkills(trait.name); track skill) {
+                  <span class="trait-badge__subskill">{{ skill }}</span>
+                }
+              </div>
+            </button>
           </div>
         }
       </div>

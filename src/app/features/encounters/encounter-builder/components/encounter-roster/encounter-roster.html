@@ -40,12 +40,13 @@
       }
     }
   </select>
-  <button
-    type="button"
-    class="roster-panel__remove-btn"
-    [attr.aria-label]="'Remove ' + instance.adversary.name"
-    (click)="removeInstance.emit(instance.localId)"
-  >&times;</button>
+  <app-inline-delete-confirm
+    [itemLabel]="instance.adversary.name"
+    [active]="confirmingId() === instance.localId"
+    (requested)="onRemoveRequested(instance.localId)"
+    (confirmed)="onRemoveConfirmed(instance.localId)"
+    (cancelled)="onRemoveCancelled()"
+  />
 </ng-template>
 
 @if (betaEnvironment() || instances().length) {

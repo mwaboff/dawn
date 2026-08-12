@@ -195,18 +195,18 @@ describe('InventorySectionBeta', () => {
     function openRemoveConfirm(): void {
       host.isOwner.set(true);
       fixture.detectChanges();
-      el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!.click();
+      el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .roster-delete-btn')!.click();
       fixture.detectChanges();
     }
 
     it('clears a pending remove confirmation when the tab is switched', () => {
       openRemoveConfirm();
-      expect(el.querySelector('.inline-confirm')).toBeTruthy();
+      expect(el.querySelector('.roster-inline-confirm')).toBeTruthy();
 
       tabButtons()[1].click();
       fixture.detectChanges();
 
-      expect(el.querySelector('.inline-confirm')).toBeNull();
+      expect(el.querySelector('.roster-inline-confirm')).toBeNull();
     });
 
     it('marks the Remove button aria-disabled and shows the reason when the item is equipped', () => {
@@ -235,28 +235,25 @@ describe('InventorySectionBeta', () => {
       expect(removeBtn.getAttribute('aria-describedby')).toBe(hint.id);
     });
 
-    it('does not open the confirm when a blocked Remove button is clicked', () => {
+    it('does not render a delete-confirm trigger for a blocked item, only the disabled icon', () => {
       const equipped = buildWeapon({ inventoryEntryId: 1 });
       host.weapons.set([equipped]);
       host.activePrimaryWeapon.set(equipped);
       host.isOwner.set(true);
       fixture.detectChanges();
 
-      el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!.click();
-      fixture.detectChanges();
-
-      expect(el.querySelector('.inline-confirm')).toBeNull();
+      expect(el.querySelector('[card-controls] .card-action-row__manage .roster-delete-btn')).toBeNull();
     });
 
     it('returns focus to the Remove button when the confirm is cancelled', async () => {
       host.weapons.set([buildWeapon({ inventoryEntryId: 1 })]);
       openRemoveConfirm();
 
-      el.querySelector<HTMLButtonElement>('.inline-confirm__btn--cancel')!.click();
+      el.querySelector<HTMLButtonElement>('.roster-inline-cancel-btn')!.click();
       fixture.detectChanges();
       await fixture.whenStable();
 
-      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .card-swap-btn--vault')!;
+      const removeBtn = el.querySelector<HTMLButtonElement>('[card-controls] .card-action-row__manage .roster-delete-btn')!;
       expect(document.activeElement).toBe(removeBtn);
     });
 
@@ -264,7 +261,7 @@ describe('InventorySectionBeta', () => {
       host.weapons.set([buildWeapon({ inventoryEntryId: 7 })]);
       openRemoveConfirm();
 
-      el.querySelector<HTMLButtonElement>('.inline-confirm__btn--confirm')!.click();
+      el.querySelector<HTMLButtonElement>('.roster-inline-confirm-btn')!.click();
 
       expect(host.removeEvents).toEqual([{ type: 'weapon', inventoryEntryId: 7 }]);
     });
@@ -471,7 +468,7 @@ describe('InventorySectionBeta', () => {
 
       const manage = el.querySelector('.card-action-row__manage')!;
       expect(manage.querySelector('.card-swap-btn:not(.card-swap-btn--vault)')).toBeTruthy();
-      expect(manage.querySelector('.card-swap-btn--vault')).toBeTruthy();
+      expect(manage.querySelector('.roster-delete-btn')).toBeTruthy();
     });
   });
 

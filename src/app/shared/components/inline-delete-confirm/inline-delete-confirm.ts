@@ -1,4 +1,15 @@
-import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ElementRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 const DEFAULT_CONFIRM_TEXT = 'Delete?';
 
@@ -12,6 +23,10 @@ const DEFAULT_CONFIRM_TEXT = 'Delete?';
 export class InlineDeleteConfirm {
   readonly itemLabel = input.required<string>();
   readonly active = input(false);
+  /** `md` (32px, the roster row default) or `sm` (26px), to sit on the same baseline as the 26px
+   * icon-only controls in an `EntityCard`'s `[card-actions]` slot (`.card-swap-btn--icon`) instead
+   * of towering over them. */
+  readonly size = input<'md' | 'sm'>('md');
   /** Defaults to the terse "Delete?" every existing call site relies on. A caller whose delete has
    * consequences beyond the item itself (the run screen's Delete Encounter also destroys the
    * in-progress run's live HP/Stress/tokens/notes -- see `RunLifecycleActions`) can override this
@@ -36,9 +51,21 @@ export class InlineDeleteConfirm {
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
 
+  /**
+   * Neither transition has anywhere else to send focus once its own button is destroyed by the
+   * `@if`/`@else` swap -- a destroyed element takes focus to `<body>` with it, same problem the
+   * beta inventory's own bespoke remove-confirm solved before this component existed. Both target
+   * elements are looked up by `viewChild` and moved to imperatively (not via a reactive `effect`,
+   * which would also fire on initial mount and steal focus from wherever the page already put it).
+   */
+  private readonly trashButton = viewChild<ElementRef<HTMLButtonElement>>('trashButton');
+  private readonly confirmButton = viewChild<ElementRef<HTMLButtonElement>>('confirmButton');
+  private readonly injector = inject(Injector);
+
   onTrashClick(event: Event): void {
     event.stopPropagation();
     this.requested.emit();
+    this.focusAfterRender(() => this.confirmButton());
   }
 
   onYesClick(event: Event): void {
@@ -49,5 +76,10 @@ export class InlineDeleteConfirm {
   onNoClick(event: Event): void {
     event.stopPropagation();
     this.cancelled.emit();
+    this.focusAfterRender(() => this.trashButton());
+  }
+
+  private focusAfterRender(target: () => ElementRef<HTMLButtonElement> | undefined): void {
+    afterNextRender(() => target()?.nativeElement.focus(), { injector: this.injector });
   }
 }

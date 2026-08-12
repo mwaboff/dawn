@@ -1,7 +1,8 @@
 /* Only this section's own chrome lives here. The tab strip is `InventoryTabs`, the cards are
    `EntityCard`, and the grid / action buttons / remove confirm are global (shared/styles/
-   entity-card-actions.css, inline-confirm.css) so the classic sheet and this one draw them from one
-   source. Class names are prefixed rather than reusing classic's `.add-btn` / `.inventory-error`:
+   entity-card-actions.css, and `app-inline-delete-confirm`'s own roster.css) so the classic sheet
+   and this one draw them from one source. Class names are prefixed rather than reusing classic's
+   `.add-btn` / `.inventory-error`:
    `.add-btn` is already declared with different values in two components, and dawn/CLAUDE.md rules
    out a third meaning for the same name. */
 :host { display: block; }

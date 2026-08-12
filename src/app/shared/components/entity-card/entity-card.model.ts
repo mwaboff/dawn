@@ -67,7 +67,9 @@ export interface EntityCardFeature {
  * - `badges` -- the power-level scalar and live state, nothing else. At most three chips, or the
  *   header stops being scannable.
  * - `stats` -- the numbers, as the body's ledger.
- * - `meta` -- named facts that are words rather than numbers.
+ * - `meta` -- named facts that are words rather than numbers. One deliberate exception: a domain
+ *   card's recall cost (see `domainCardToEntity`) -- a lone stat still draws the full boxed ledger,
+ *   which is too much weight for one small number, so it renders as a `meta` row instead.
  */
 export interface EntityCardData {
   id: string | number;

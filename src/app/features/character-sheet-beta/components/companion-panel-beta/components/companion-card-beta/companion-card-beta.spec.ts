@@ -179,7 +179,7 @@ describe('CompanionCardBeta', () => {
 
   it('places Edit and the InlineDeleteConfirm in [card-actions] for a manager', () => {
     const actions = el.querySelector('.entity-card__actions')!;
-    expect(Array.from(actions.querySelectorAll('button')).some(b => b.textContent?.trim() === 'Edit')).toBe(true);
+    expect(actions.querySelector('[aria-label^="Edit"]')).toBeTruthy();
     expect(actions.querySelector('app-inline-delete-confirm')).toBeTruthy();
   });
 
@@ -211,8 +211,7 @@ describe('CompanionCardBeta', () => {
   });
 
   it('emits editRequested via the inherited handler when Edit is clicked', () => {
-    const editBtn = Array.from(el.querySelectorAll<HTMLButtonElement>('.entity-card__actions button'))
-      .find(b => b.textContent?.trim() === 'Edit')!;
+    const editBtn = el.querySelector<HTMLButtonElement>('.entity-card__actions [aria-label^="Edit"]')!;
     editBtn.click();
 
     expect(host.editRequestedCount).toBe(1);

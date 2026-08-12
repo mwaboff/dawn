@@ -45,15 +45,34 @@ describe('EncounterRoster', () => {
     expect(fixture.nativeElement.querySelectorAll('app-adversary-card')).toHaveLength(2);
   });
 
-  it('emits removeInstance with the localId when the remove button is clicked', () => {
+  it('emits removeInstance with the localId once the remove is confirmed', () => {
     fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
     fixture.detectChanges();
     let removed: string | undefined;
     component.removeInstance.subscribe(id => (removed = id));
 
-    fixture.nativeElement.querySelector('.roster-panel__remove-btn').click();
+    fixture.nativeElement.querySelector('.roster-delete-btn').click();
+    fixture.detectChanges();
+    expect(removed).toBeUndefined();
+
+    fixture.nativeElement.querySelector('.roster-inline-confirm-btn').click();
 
     expect(removed).toBe('a');
+  });
+
+  it('does not emit removeInstance when the confirm is cancelled', () => {
+    fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
+    fixture.detectChanges();
+    let removed: string | undefined;
+    component.removeInstance.subscribe(id => (removed = id));
+
+    fixture.nativeElement.querySelector('.roster-delete-btn').click();
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.roster-inline-cancel-btn').click();
+    fixture.detectChanges();
+
+    expect(removed).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('.roster-delete-btn')).toBeTruthy();
   });
 
   it('emits retierInstance with the selected tier', () => {
@@ -118,7 +137,7 @@ describe('EncounterRoster', () => {
     // be in the DOM without the GM expanding the card first.
     expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.roster-panel__remove-btn')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.roster-delete-btn')).toBeTruthy();
   });
 
   it('still shows Name, type badge, and tier while collapsed', () => {
@@ -226,7 +245,7 @@ describe('EncounterRoster', () => {
 
       expect(fixture.nativeElement.querySelector('.roster-panel__label-input')).toBeTruthy();
       expect(fixture.nativeElement.querySelector('.roster-panel__retier-select')).toBeTruthy();
-      expect(fixture.nativeElement.querySelector('.roster-panel__remove-btn')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('.roster-delete-btn')).toBeTruthy();
     });
 
     it('still shows a "Retiered from Tier N" badge on a beta row once expanded', () => {

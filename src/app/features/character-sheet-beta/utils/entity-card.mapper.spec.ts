@@ -171,19 +171,19 @@ describe('entity-card.mapper', () => {
       expect(domainCardToEntity(card).badges).toBeUndefined();
     });
 
-    it('moves recall cost out of the badges and into the stat ledger', () => {
+    it('moves recall cost out of the badges and into a meta row', () => {
       const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3, recallCost: 2 };
-      expect(domainCardToEntity(card).stats).toEqual([{ label: 'Recall', value: '2' }]);
+      expect(domainCardToEntity(card).meta).toEqual([{ label: 'Recall', value: '2' }]);
     });
 
     it('keeps a zero recall cost, which is a real value rather than a missing one', () => {
       const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], recallCost: 0 };
-      expect(domainCardToEntity(card).stats).toEqual([{ label: 'Recall', value: '0' }]);
+      expect(domainCardToEntity(card).meta).toEqual([{ label: 'Recall', value: '0' }]);
     });
 
-    it('omits stats when the card has no recall cost', () => {
+    it('omits meta when the card has no recall cost', () => {
       const card: DomainCardSummary = { id: 3, name: 'Rock Barrage', features: [], level: 3 };
-      expect(domainCardToEntity(card).stats).toBeUndefined();
+      expect(domainCardToEntity(card).meta).toBeUndefined();
     });
   });
 

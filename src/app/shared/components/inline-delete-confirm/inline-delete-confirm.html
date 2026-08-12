@@ -1,11 +1,15 @@
 @if (active()) {
-  <span class="roster-inline-confirm" [class.roster-inline-confirm--wrap]="wrapsConfirmText()">
+  <span
+    class="roster-inline-confirm"
+    [class.roster-inline-confirm--wrap]="wrapsConfirmText()"
+    [class.roster-inline-confirm--sm]="size() === 'sm'"
+  >
     <span class="roster-inline-confirm-text">{{ confirmText() }}</span>
-    <button type="button" class="roster-inline-confirm-btn" (click)="onYesClick($event)">Yes</button>
+    <button #confirmButton type="button" class="roster-inline-confirm-btn" (click)="onYesClick($event)">Yes</button>
     <button type="button" class="roster-inline-cancel-btn" (click)="onNoClick($event)">No</button>
   </span>
 } @else {
-  <button type="button" class="roster-delete-btn"
+  <button #trashButton type="button" class="roster-delete-btn" [class.roster-delete-btn--sm]="size() === 'sm'"
           [attr.aria-label]="'Delete ' + itemLabel()"
           (click)="onTrashClick($event)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

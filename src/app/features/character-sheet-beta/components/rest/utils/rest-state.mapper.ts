@@ -74,21 +74,48 @@ export function toRestCharacterState(sources: RestStateSources): RestCharacterSt
     // should count toward the Focus roll is a pre-existing open question; this must not answer it
     // differently in two places.
     instinct: raw.instinctModifier ?? traitModifier(view, INSTINCT_TRAIT) ?? 0,
-    wolfFormActive: raw.wolfFormActive ?? false,
+    // Gated on the GM's grant, not just the flag: transformation state is a GM-granted resource
+    // and the backend rejects a player-side write to it while the grant is off. A sheet left with
+    // a stale `wolfFormActive` after a revoked grant is the GM's to clear, not a rest's.
+    wolfFormActive: (raw.transformationEnabled ?? false) && (raw.wolfFormActive ?? false),
   };
 }
 
-/** The one partial body a rest sends. Absolute values only -- the backend does not clamp. */
-export function restUpdateRequest(changes: RestResourceChanges): UpdateCharacterSheetRequest {
-  return {
-    hitPointMarked: changes.hitPointMarked,
-    stressMarked: changes.stressMarked,
-    armorMarked: changes.armorMarked,
-    hopeMarked: changes.hopeHeld,
-    focusMarked: changes.focusHeld,
-    favor: changes.favor,
-    wolfFormActive: changes.wolfFormActive,
-  };
+/** Maps each field a rest can move to the request field that carries it. */
+const REST_REQUEST_FIELDS: readonly {
+  readonly from: keyof RestResourceChanges;
+  readonly to: keyof UpdateCharacterSheetRequest;
+}[] = [
+  { from: 'hitPointMarked', to: 'hitPointMarked' },
+  { from: 'stressMarked', to: 'stressMarked' },
+  { from: 'armorMarked', to: 'armorMarked' },
+  { from: 'hopeHeld', to: 'hopeMarked' },
+  { from: 'focusHeld', to: 'focusMarked' },
+  { from: 'favor', to: 'favor' },
+  { from: 'wolfFormActive', to: 'wolfFormActive' },
+];
+
+/**
+ * The one partial body a rest sends: absolute values (the backend does not clamp) for the fields
+ * this rest actually moved, and nothing else.
+ *
+ * Restating an untouched field is not free. Several of these are gated server-side on a resource
+ * the character may not have -- `wolfFormActive` needs a GM-granted transformation -- and a gate
+ * that fires rejects the whole body, losing the HP and Stress the rest did clear. Sending only
+ * what moved keeps a rest independent of every resource it didn't touch.
+ */
+export function restUpdateRequest(
+  changes: RestResourceChanges,
+  previous: RestResourceChanges,
+): UpdateCharacterSheetRequest {
+  const request: UpdateCharacterSheetRequest = {};
+  for (const { from, to } of REST_REQUEST_FIELDS) {
+    if (changes[from] === previous[from]) continue;
+    // Each pair above maps a field to the request field of the same type; the assignment is
+    // sound but not provably so field-by-field, hence the one cast.
+    (request as Record<string, unknown>)[to] = changes[from];
+  }
+  return request;
 }
 
 export function applyRestToRaw(
