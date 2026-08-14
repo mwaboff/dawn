@@ -27,8 +27,10 @@
     @if (hasAnyAssignment()) {
       <button class="reset-btn" (click)="clearAll()">Reset All</button>
     }
-    @if (isComplete()) {
-      <span class="complete-badge" role="status">All traits assigned</span>
-    }
+    <div class="trait-footer__status" role="status">
+      @if (isComplete()) {
+        <span class="complete-badge">All traits assigned</span>
+      }
+    </div>
   </div>
 </div>
