@@ -2401,6 +2401,269 @@ describe('CharacterSheet', () => {
       });
     });
 
+    describe('Prayer Dice', () => {
+      function seraphClass(): ClassCardResponse {
+        return {
+          id: 40,
+          name: 'Seraph',
+          classFeatures: [{ id: 4, name: 'Prayer Dice', description: 'Roll d4s each session.' }],
+        };
+      }
+
+      function divineWielderSubclass(features: string[]): SubclassCardResponse {
+        return {
+          id: 41,
+          name: 'Divine Wielder',
+          spellcastingTrait: { trait: 'STRENGTH', description: '', examples: '' },
+          features: features.map((name, index) => ({ id: index + 1, name, description: '' })),
+        };
+      }
+
+      /** A Seraph whose Spellcast trait (Strength) is +2, so a roll places two dice. */
+      function seraphSheet(overrides: Partial<CharacterSheetResponse> = {}) {
+        return {
+          ...mockResponse,
+          classes: [seraphClass()],
+          subclassCards: [divineWielderSubclass(['Spirit Weapon'])],
+          strengthModifier: 2,
+          ...overrides,
+        };
+      }
+
+      function rollFaces(values: number[]) {
+        diceRollSpy.mockReturnValue({
+          id: '1', timestamp: 0, duality: null, total: 0,
+          diceResults: values.map(value => ({ type: 'd4', value })),
+        });
+      }
+
+      it('hides the panel for a character without the Prayer Dice feature', () => {
+        createComponent('1', of({ ...mockResponse, classes: [] }));
+        fixture.detectChanges();
+
+        expect(component.showPrayerDice()).toBe(false);
+        expect(fixture.nativeElement.querySelector('app-prayer-dice-tracker')).toBeNull();
+      });
+
+      it('shows the panel for a Seraph', () => {
+        createComponent('1', of(seraphSheet()));
+        fixture.detectChanges();
+
+        expect(component.showPrayerDice()).toBe(true);
+        expect(fixture.nativeElement.querySelector('app-prayer-dice-tracker')).not.toBeNull();
+      });
+
+      it('resolves the Spellcast trait that sets the dice count', () => {
+        createComponent('1', of(seraphSheet()));
+        fixture.detectChanges();
+
+        expect(component.prayerDiceSpellcastTrait()).toEqual({ name: 'STRENGTH', value: 2 });
+      });
+
+      it('rolls one d4 per point of the Spellcast trait', () => {
+        createComponent('1', of(seraphSheet()));
+        fixture.detectChanges();
+        rollFaces([3, 1]);
+
+        component.onRollPrayerDice();
+
+        expect(diceRollSpy).toHaveBeenCalledWith({ dice: [{ type: 'd4', count: 2 }], includeDuality: false });
+      });
+
+      it('places the rolled dice unspent', () => {
+        createComponent('1', of(seraphSheet()));
+        fixture.detectChanges();
+        rollFaces([3, 1]);
+
+        component.onRollPrayerDice();
+
+        expect(component.prayerDice()).toEqual([
+          { value: 3, spent: false },
+          { value: 1, spent: false },
+        ]);
+      });
+
+      it('rolls an extra die and drops the lowest for a Divine Wielder with Devout', () => {
+        createComponent('1', of(seraphSheet({
+          subclassCards: [divineWielderSubclass(['Devout'])],
+        })));
+        fixture.detectChanges();
+        rollFaces([4, 1, 3]);
+
+        component.onRollPrayerDice();
+
+        expect(diceRollSpy).toHaveBeenCalledWith({ dice: [{ type: 'd4', count: 3 }], includeDuality: false });
+        expect(component.prayerDice()).toEqual([
+          { value: 4, spent: false },
+          { value: 3, spent: false },
+        ]);
+      });
+
+      it('reports the die Devout dropped', () => {
+        createComponent('1', of(seraphSheet({
+          subclassCards: [divineWielderSubclass(['Devout'])],
+        })));
+        fixture.detectChanges();
+        rollFaces([4, 1, 3]);
+
+        component.onRollPrayerDice();
+
+        expect(component.lastPrayerDiceRoll()).toEqual({ rolledCount: 3, dropped: 1 });
+      });
+
+      it('skips the extra die when Devout is toggled off', () => {
+        createComponent('1', of(seraphSheet({
+          subclassCards: [divineWielderSubclass(['Devout'])],
+        })));
+        fixture.detectChanges();
+        component.setUseDevout(false);
+        rollFaces([4, 1]);
+
+        component.onRollPrayerDice();
+
+        expect(diceRollSpy).toHaveBeenCalledWith({ dice: [{ type: 'd4', count: 2 }], includeDuality: false });
+      });
+
+      it('rolls nothing when the Spellcast trait is zero', () => {
+        createComponent('1', of(seraphSheet({ strengthModifier: 0 })));
+        fixture.detectChanges();
+
+        component.onRollPrayerDice();
+
+        expect(diceRollSpy).not.toHaveBeenCalled();
+        expect(component.prayerDice()).toEqual([]);
+      });
+
+      it('does nothing for a non-owner', () => {
+        createComponent('1', of(seraphSheet()));
+        mockAuthService.user.mockReturnValue({ id: 999, username: 'other', email: '', role: 'USER', createdAt: '', lastModifiedAt: '' });
+        fixture.detectChanges();
+
+        component.onRollPrayerDice();
+
+        expect(diceRollSpy).not.toHaveBeenCalled();
+      });
+
+      it('marks a die spent', () => {
+        createComponent('1', of(seraphSheet({
+          prayerDice: [{ value: 3, spent: false }, { value: 1, spent: false }],
+        })));
+        fixture.detectChanges();
+
+        component.onTogglePrayerDie(1);
+
+        expect(component.prayerDice()).toEqual([
+          { value: 3, spent: false },
+          { value: 1, spent: true },
+        ]);
+      });
+
+      it('puts a mistakenly spent die back', () => {
+        createComponent('1', of(seraphSheet({
+          prayerDice: [{ value: 3, spent: true }],
+        })));
+        fixture.detectChanges();
+
+        component.onTogglePrayerDie(0);
+
+        expect(component.prayerDice()).toEqual([{ value: 3, spent: false }]);
+      });
+
+      it('clears the roll report when a die is spent, so it is not re-announced', () => {
+        createComponent('1', of(seraphSheet()));
+        fixture.detectChanges();
+        rollFaces([3, 1]);
+        component.onRollPrayerDice();
+
+        component.onTogglePrayerDie(0);
+
+        expect(component.lastPrayerDiceRoll()).toBeNull();
+      });
+
+      it('reads dice straight from the response before any local change', () => {
+        createComponent('1', of(seraphSheet({
+          prayerDice: [{ value: 2, spent: true }],
+        })));
+        fixture.detectChanges();
+
+        expect(component.prayerDice()).toEqual([{ value: 2, spent: true }]);
+      });
+
+      describe('debounced saving', () => {
+        beforeEach(() => {
+          vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+          vi.useRealTimers();
+        });
+
+        it('saves the whole set after a roll', () => {
+          createComponent('1', of(seraphSheet()));
+          fixture.detectChanges();
+          rollFaces([3, 1]);
+
+          component.onRollPrayerDice();
+          vi.advanceTimersByTime(800);
+
+          expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+            prayerDice: [{ value: 3, spent: false }, { value: 1, spent: false }],
+          });
+        });
+
+        it('saves the whole set after spending a die', () => {
+          createComponent('1', of(seraphSheet({
+            prayerDice: [{ value: 3, spent: false }],
+          })));
+          fixture.detectChanges();
+
+          component.onTogglePrayerDie(0);
+          vi.advanceTimersByTime(800);
+
+          expect(mockService.updateCharacterSheet).toHaveBeenCalledWith(1, {
+            prayerDice: [{ value: 3, spent: true }],
+          });
+        });
+
+        it('rolls back to the last saved dice when the save fails', () => {
+          createComponent('1', of(seraphSheet({
+            prayerDice: [{ value: 3, spent: false }],
+          })));
+          fixture.detectChanges();
+          mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+          component.onTogglePrayerDie(0);
+          vi.advanceTimersByTime(800);
+
+          expect(component.prayerDice()).toEqual([{ value: 3, spent: false }]);
+        });
+
+        it('drops the roll caption when the save fails', () => {
+          createComponent('1', of(seraphSheet()));
+          fixture.detectChanges();
+          rollFaces([3, 1]);
+          mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+          component.onRollPrayerDice();
+          vi.advanceTimersByTime(800);
+
+          expect(component.lastPrayerDiceRoll()).toBeNull();
+        });
+
+        it('clears the saving indicator after a failed save', () => {
+          createComponent('1', of(seraphSheet()));
+          fixture.detectChanges();
+          rollFaces([3, 1]);
+          mockService.updateCharacterSheet.mockReturnValue(throwError(() => new Error('fail')));
+
+          component.onRollPrayerDice();
+          vi.advanceTimersByTime(800);
+
+          expect(component.isSavingPrayerDice()).toBe(false);
+        });
+      });
+    });
+
     describe('martial stance activation', () => {
       it('activates a stance and spends 1 Focus', () => {
         createComponent('1', of({

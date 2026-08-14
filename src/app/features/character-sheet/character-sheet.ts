@@ -46,8 +46,16 @@ import {
   InventoryWeaponResponse,
   InventoryArmorResponse,
   InventoryLootResponse,
+  PrayerDie,
   UpdateCharacterSheetRequest,
 } from '../create-character/models/character-sheet-api.model';
+import { hasDevout, hasPrayerDice } from './utils/prayer-dice-access.utils';
+import { SpellcastTrait, resolveSpellcastTrait } from './utils/spellcast-trait.utils';
+import { rollPrayerDice, togglePrayerDieSpent } from './utils/prayer-dice.utils';
+import {
+  PrayerDiceRollSummary,
+  PrayerDiceTracker,
+} from './components/prayer-dice-tracker/prayer-dice-tracker';
 import {
   InventoryRemoveEvent,
   InventoryEquipWeaponEvent,
@@ -60,7 +68,7 @@ import {
   templateUrl: './character-sheet.html',
   styleUrls: ['./character-sheet.css', './character-sheet-layout.css', './character-sheet-panels.css', './character-sheet-equipment.css', './character-sheet-notes.css', './character-sheet-restricted.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemFormModal, RestrictedCardPlaceholder, LockIcon],
+  imports: [SavingSpinner, RouterLink, FormatTextPipe, InventorySection, ModifierIndicator, DiceRoller, DecimalPipe, LowerCasePipe, BeastformSection, MartialStancePanel, TransformationPanel, ResourceTracker, CompanionPanel, ItemFormModal, RestrictedCardPlaceholder, LockIcon, PrayerDiceTracker],
 })
 export class CharacterSheet implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -99,6 +107,16 @@ export class CharacterSheet implements OnInit {
   protected readonly localFavor = signal<number | null>(null);
   readonly lastFocusRoll = signal<number | null>(null);
 
+  protected readonly localPrayerDice = signal<readonly PrayerDie[] | null>(null);
+  readonly lastPrayerDiceRoll = signal<PrayerDiceRollSummary | null>(null);
+  /**
+   * Whether to apply Devout's extra die. Defaults on because rolling one more d4 and dropping the
+   * lowest can only improve the dice kept -- there is no reading where a Seraph wants the worse
+   * set. Deliberately not persisted: the toggle only has an effect at the instant of a roll, and
+   * Prayer Dice are rolled once a session.
+   */
+  readonly useDevout = signal(true);
+
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly healthSave$ = new Subject<void>();
@@ -107,6 +125,7 @@ export class CharacterSheet implements OnInit {
   private readonly notesSave$ = new Subject<void>();
   private readonly focusSave$ = new Subject<void>();
   private readonly favorSave$ = new Subject<void>();
+  private readonly prayerDiceSave$ = new Subject<void>();
 
   private readonly savingSections = signal<Set<string>>(new Set());
   readonly isSavingHealth = computed(() => this.savingSections().has('health'));
@@ -114,6 +133,7 @@ export class CharacterSheet implements OnInit {
   readonly isSavingGold = computed(() => this.savingSections().has('gold'));
   readonly isSavingFocus = computed(() => this.savingSections().has('focus'));
   readonly isSavingFavor = computed(() => this.savingSections().has('favor'));
+  readonly isSavingPrayerDice = computed(() => this.savingSections().has('prayerDice'));
 
   readonly markedHp = computed(() => this.localHpMarked() ?? (this.characterSheet()?.hitPointMarked ?? 0));
   readonly markedStress = computed(() => this.localStressMarked() ?? (this.characterSheet()?.stressMarked ?? 0));
@@ -156,6 +176,28 @@ export class CharacterSheet implements OnInit {
 
   /** Brawler's stored Combo Die, gated on the "Combo Strike" class feature. */
   readonly showBrawlerResources = computed(() => hasBrawlerResources(this.rawSheet()?.classes));
+
+  /** Seraph's Prayer Dice, gated on the "Prayer Dice" class feature. */
+  readonly showPrayerDice = computed(() => hasPrayerDice(this.rawSheet()?.classes));
+
+  /** Divine Wielder's "Devout", which lets a Prayer Dice roll drop its lowest die. */
+  readonly showDevoutToggle = computed(() => hasDevout(this.rawSheet()?.subclassCards));
+
+  readonly prayerDice = computed<readonly PrayerDie[]>(
+    () => this.localPrayerDice() ?? this.rawSheet()?.prayerDice ?? [],
+  );
+
+  /**
+   * The Spellcast trait that sets how many Prayer Dice a roll produces. Null until both the raw
+   * response and the view have loaded, which is also what keeps the panel from rendering a
+   * misleading "+0" against a half-loaded sheet.
+   */
+  readonly prayerDiceSpellcastTrait = computed<SpellcastTrait | null>(() => {
+    const raw = this.rawSheet();
+    const view = this.characterSheet();
+    if (!raw || !view) return null;
+    return resolveSpellcastTrait(raw, view);
+  });
 
   /** Combo Die is a player choice (once per tier) and is stored; it defaults to a d4 per the
    * printed rule until the player upgrades it via level-up. */
@@ -457,6 +499,46 @@ export class CharacterSheet implements OnInit {
     return this.diceRollerService
       .roll({ dice: [{ type: `d${sides}` as DiceType, count }], includeDuality: false })
       .diceResults.map(d => d.value);
+  }
+
+  /**
+   * Seraph "Prayer Dice": rolls a fresh set for a new session, replacing whatever was on the sheet.
+   * Like `refreshFocus`, this rolls through the shared client-side roller and deliberately skips
+   * the roll overlay -- the dice land on the sheet rather than in the roll log.
+   *
+   * The rules clear Prayer Dice at the end of a *session*, not on a rest, so this is a manual
+   * control and the rest workflow does not touch it.
+   */
+  onRollPrayerDice(): void {
+    if (!this.isOwner()) return;
+    const trait = this.prayerDiceSpellcastTrait();
+    if (!trait) return;
+
+    const result = rollPrayerDice(
+      trait.value ?? 0,
+      this.showDevoutToggle() && this.useDevout(),
+      (sides, count) => this.rollFaces(sides, count),
+    );
+    this.lastPrayerDiceRoll.set({
+      rolledCount: result.rolled.length,
+      dropped: result.dropped,
+    });
+    this.localPrayerDice.set(result.dice);
+    this.prayerDiceSave$.next();
+  }
+
+  /** Marks a Prayer Die spent, or puts a mistakenly-spent one back. */
+  onTogglePrayerDie(index: number): void {
+    if (!this.isOwner()) return;
+    // Drop the roll report: it describes the roll, not the spend, and leaving it set would make the
+    // panel's live region re-announce the whole roll every time a die is toggled.
+    this.lastPrayerDiceRoll.set(null);
+    this.localPrayerDice.set(togglePrayerDieSpent(this.prayerDice(), index));
+    this.prayerDiceSave$.next();
+  }
+
+  setUseDevout(use: boolean): void {
+    this.useDevout.set(use);
   }
 
   adjustFavor(amount: number): void {
@@ -1225,6 +1307,36 @@ export class CharacterSheet implements OnInit {
           catchError(() => {
             this.localFavor.set(snapshot);
             this.clearSaving('favor');
+            return EMPTY;
+          }),
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
+
+    this.prayerDiceSave$.pipe(
+      debounceTime(800),
+      switchMap(() => {
+        if (!this.isOwner()) return EMPTY;
+        const raw = this.rawSheet();
+        if (!raw) return EMPTY;
+        const newDice = this.prayerDice();
+        this.markSaving('prayerDice');
+        return this.characterSheetService.updateCharacterSheet(raw.id, {
+          prayerDice: [...newDice],
+        }).pipe(
+          tap(() => {
+            this.rawSheet.update(s => s ? { ...s, prayerDice: [...newDice] } : s);
+            this.localPrayerDice.set(null);
+            this.clearSaving('prayerDice');
+          }),
+          catchError(() => {
+            // Drop the optimistic override so the panel falls back to the last state the server
+            // confirmed. Snapshotting the local signal here would capture the value being sent,
+            // not the one before the change, and would leave unsaved dice looking persisted.
+            this.localPrayerDice.set(null);
+            this.lastPrayerDiceRoll.set(null);
+            this.clearSaving('prayerDice');
             return EMPTY;
           }),
         );

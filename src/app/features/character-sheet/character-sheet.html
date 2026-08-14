@@ -211,6 +211,24 @@
           </div>
         </div>
 
+        @if (showPrayerDice()) {
+          <div class="panel">
+            <h2 class="panel__title">Prayer Dice @if (isSavingPrayerDice()) { <app-saving-spinner /> }</h2>
+            <app-prayer-dice-tracker
+              [dice]="prayerDice()"
+              [traitName]="prayerDiceSpellcastTrait()?.name ?? null"
+              [traitValue]="prayerDiceSpellcastTrait()?.value ?? 0"
+              [readonly]="!isOwner()"
+              [showDevout]="showDevoutToggle()"
+              [useDevout]="useDevout()"
+              [lastRoll]="lastPrayerDiceRoll()"
+              (dieToggled)="onTogglePrayerDie($event)"
+              (rollRequested)="onRollPrayerDice()"
+              (useDevoutChange)="setUseDevout($event)"
+            />
+          </div>
+        }
+
         @if (showMartialStances()) {
           <div class="panel">
             <h2 class="panel__title">Focus @if (isSavingFocus()) { <app-saving-spinner /> }</h2>

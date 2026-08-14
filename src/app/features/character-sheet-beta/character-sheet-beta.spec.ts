@@ -901,4 +901,44 @@ describe('CharacterSheetBeta', () => {
       expect(component.restState()?.tier).toBe(3);
     });
   });
+
+  describe('Prayer Dice panel', () => {
+    const SERAPH_CLASS = {
+      id: 40,
+      name: 'Seraph',
+      classFeatures: [{ id: 4, name: 'Prayer Dice', description: 'Roll d4s each session.' }],
+    };
+
+    it('is absent for a character without the Prayer Dice feature', () => {
+      createComponent(of({ ...mockResponse, classes: [] }));
+
+      expect(fixture.nativeElement.querySelector('app-prayer-dice-tracker')).toBeNull();
+    });
+
+    it('renders for a Seraph', () => {
+      createComponent(of({ ...mockResponse, classes: [SERAPH_CLASS] }));
+
+      expect(fixture.nativeElement.querySelector('app-prayer-dice-tracker')).not.toBeNull();
+    });
+
+    it('sits directly after the Hope & Stress panel', () => {
+      createComponent(of({ ...mockResponse, classes: [SERAPH_CLASS] }));
+
+      const panels: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.panel'));
+      const hopeStress = panels.findIndex(p => p.classList.contains('panel--hope-stress'));
+      const prayerDice = panels.findIndex(p => p.querySelector('app-prayer-dice-tracker'));
+
+      expect(prayerDice).toBe(hopeStress + 1);
+    });
+
+    it('titles the panel Prayer Dice', () => {
+      createComponent(of({ ...mockResponse, classes: [SERAPH_CLASS] }));
+
+      const panel = fixture.nativeElement
+        .querySelector('app-prayer-dice-tracker')
+        ?.closest('.panel');
+
+      expect(panel?.querySelector('.panel__title')?.textContent?.trim()).toContain('Prayer Dice');
+    });
+  });
 });

@@ -1,4 +1,5 @@
 import { SubclassCardResponse } from '../../create-character/models/character-sheet-api.model';
+import { hasSubclassFeatureNamed } from './class-feature-access.utils';
 
 /**
  * Name of the subclass foundation feature that grants Martial Stances. "Stance Fighter" is a
@@ -17,9 +18,5 @@ const STANCE_FIGHTER_FEATURE_NAME = 'stance fighter';
  * so the martial stance section simply does not render instead of crashing.
  */
 export function hasMartialStances(subclassCards: SubclassCardResponse[] | undefined): boolean {
-  return (subclassCards ?? []).some(card =>
-    (card.features ?? []).some(
-      feature => feature.name?.trim().toLowerCase() === STANCE_FIGHTER_FEATURE_NAME,
-    ),
-  );
+  return hasSubclassFeatureNamed(subclassCards, STANCE_FIGHTER_FEATURE_NAME);
 }
