@@ -72,12 +72,22 @@
   text-align: center;
 }
 
+/* .btn--secondary's control tokens are bound for the app's dark surfaces -- on this light
+   parchment panel --color-control-text lands cream-on-cream at 1.15:1. Re-bound here the way
+   entity-card.css does for its light face; --color-accent-ink measures 5.24:1 on the panel, and
+   the border mix 3.28:1, clearing SC 1.4.3 and 1.4.11. Re-binding the tokens rather than
+   redeclaring .btn--secondary locally, per the encapsulation-specificity rule. */
 .trait-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 1rem;
   min-height: 2rem;
+  --color-control-text: var(--color-accent-ink);
+  --color-secondary-border: color-mix(in srgb, var(--color-accent-ink) 75%, transparent);
+  --color-secondary-hover-wash: color-mix(in srgb, var(--color-accent-ink) 10%, transparent);
+  --color-focus-ring: var(--color-accent-ink);
 }
 
 .reset-btn {

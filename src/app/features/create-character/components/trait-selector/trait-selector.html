@@ -19,11 +19,16 @@
   </div>
 
   <div class="trait-footer">
+    @if (suggestedAssignments()) {
+      <button type="button" class="btn btn--secondary btn--sm" (click)="applySuggested()">
+        Use Suggested Traits
+      </button>
+    }
     @if (hasAnyAssignment()) {
       <button class="reset-btn" (click)="clearAll()">Reset All</button>
     }
     @if (isComplete()) {
-      <span class="complete-badge">All traits assigned</span>
+      <span class="complete-badge" role="status">All traits assigned</span>
     }
   </div>
 </div>

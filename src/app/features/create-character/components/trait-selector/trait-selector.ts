@@ -7,6 +7,7 @@ import {
   TraitAssignments,
   TraitKey,
   INITIAL_ASSIGNMENTS,
+  suggestedTraitsFor,
 } from '../../models/trait.model';
 
 @Component({
@@ -17,6 +18,7 @@ import {
 })
 export class TraitSelector {
   readonly initialAssignments = input<TraitAssignments | null>(null);
+  readonly selectedClassName = input<string | null>(null);
   readonly traitsChanged = output<TraitAssignments>();
 
   readonly traits: TraitInfo[] = TRAITS;
@@ -37,6 +39,8 @@ export class TraitSelector {
   readonly isComplete = computed(() =>
     Object.values(this.assignments()).every((v) => v !== null),
   );
+
+  readonly suggestedAssignments = computed(() => suggestedTraitsFor(this.selectedClassName()));
 
   readonly hasAnyAssignment = computed(() =>
     Object.values(this.assignments()).some((v) => v !== null),
@@ -69,6 +73,15 @@ export class TraitSelector {
 
   clearAll(): void {
     this.assignments.set({ ...INITIAL_ASSIGNMENTS });
+    this.emitChange();
+  }
+
+  // Set as a whole rather than per trait: updateAssignment rejects values the pool no longer has
+  // free, so applying a spread one trait at a time would drop values partway through.
+  applySuggested(): void {
+    const suggested = this.suggestedAssignments();
+    if (!suggested) return;
+    this.assignments.set({ ...suggested });
     this.emitChange();
   }
 

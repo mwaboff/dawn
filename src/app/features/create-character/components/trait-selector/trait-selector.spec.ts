@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TraitSelector } from './trait-selector';
-import { TRAITS } from '../../models/trait.model';
+import { SUGGESTED_TRAITS, TRAITS } from '../../models/trait.model';
 
 describe('TraitSelector', () => {
   let component: TraitSelector;
@@ -144,6 +144,64 @@ describe('TraitSelector', () => {
     });
   });
 
+  describe('applySuggested', () => {
+    function selectClass(name: string): void {
+      fixture.componentRef.setInput('selectedClassName', name);
+      fixture.detectChanges();
+    }
+
+    it('should expose no suggestion when no class is selected', () => {
+      expect(component.suggestedAssignments()).toBeNull();
+    });
+
+    it('should expose no suggestion for an unrecognized class', () => {
+      selectClass('Homebrew Necromancer');
+      expect(component.suggestedAssignments()).toBeNull();
+    });
+
+    it('should fill every trait with the suggested spread for the class', () => {
+      selectClass('Wizard');
+      component.applySuggested();
+      expect(component.traitAssignments()).toEqual(SUGGESTED_TRAITS['wizard']);
+    });
+
+    it('should complete the step when applied', () => {
+      selectClass('Bard');
+      component.applySuggested();
+      expect(component.isComplete()).toBe(true);
+    });
+
+    it('should overwrite assignments already made', () => {
+      assignViaSelect('knowledge', '2');
+      selectClass('Guardian');
+      component.applySuggested();
+      expect(component.traitAssignments()).toEqual(SUGGESTED_TRAITS['guardian']);
+    });
+
+    it('should emit traitsChanged with the suggested spread', () => {
+      const spy = vi.fn();
+      component.traitsChanged.subscribe(spy);
+      selectClass('Rogue');
+      component.applySuggested();
+      expect(spy).toHaveBeenCalledWith(SUGGESTED_TRAITS['rogue']);
+    });
+
+    it('should leave assignments untouched for an unrecognized class', () => {
+      assignViaSelect('agility', '2');
+      selectClass('Homebrew Necromancer');
+      component.applySuggested();
+      expect(component.getAssignment('agility')).toBe(2);
+      expect(component.getAssignment('strength')).toBeNull();
+    });
+
+    it('should not mutate the shared constant', () => {
+      selectClass('Ranger');
+      component.applySuggested();
+      assignViaSelect('agility', '');
+      expect(SUGGESTED_TRAITS['ranger'].agility).toBe(2);
+    });
+  });
+
   describe('rendering', () => {
     it('should render the stepper grid', () => {
       const el = fixture.nativeElement as HTMLElement;
@@ -170,6 +228,51 @@ describe('TraitSelector', () => {
     it('should not show reset button when no assignments', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.querySelector('.reset-btn')).toBeNull();
+    });
+
+    it('should show the suggested-traits button for a known class', () => {
+      fixture.componentRef.setInput('selectedClassName', 'Seraph');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.btn--secondary')?.textContent?.trim()).toBe('Use Suggested Traits');
+    });
+
+    it('should hide the suggested-traits button when the class is unknown', () => {
+      fixture.componentRef.setInput('selectedClassName', 'Homebrew Necromancer');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.btn--secondary')).toBeNull();
+    });
+
+    it('should apply the suggested spread when the button is clicked', () => {
+      fixture.componentRef.setInput('selectedClassName', 'Druid');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      el.querySelector<HTMLButtonElement>('.btn--secondary')?.click();
+      expect(component.traitAssignments()).toEqual(SUGGESTED_TRAITS['druid']);
+    });
+
+    it('should reflect the applied spread in the select controls', () => {
+      fixture.componentRef.setInput('selectedClassName', 'Wizard');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      el.querySelector<HTMLButtonElement>('.btn--secondary')?.click();
+      fixture.detectChanges();
+      const selects = el.querySelectorAll<HTMLSelectElement>('.stepper-select');
+      const values = Array.from(selects).map((s) => s.value);
+      expect(values).toEqual(['-1', '0', '0', '1', '1', '2']);
+    });
+
+    it('should reflect the applied spread over a manual assignment', () => {
+      assignViaSelect('agility', '2');
+      fixture.detectChanges();
+      fixture.componentRef.setInput('selectedClassName', 'Wizard');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+      el.querySelector<HTMLButtonElement>('.btn--secondary')?.click();
+      fixture.detectChanges();
+      const agility = el.querySelector<HTMLSelectElement>('.stepper-select');
+      expect(agility?.value).toBe('-1');
     });
 
     it('should show complete badge when all traits assigned', () => {
