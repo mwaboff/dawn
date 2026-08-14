@@ -11,10 +11,10 @@
    Stress, Armor and Focus tracks. The face is an SVG so the outline stays crisp and the value
    stays real, selectable text. Focus rings come from the global :where() rule in
    shared/styles/buttons.css -- a local ring here measured 2.83:1 and failed SC 2.4.11. */
-.prayer-die { position: relative; width: 34px; height: 31px; padding: 0; border: none; background: transparent; color: var(--color-accent); cursor: pointer; display: flex; align-items: flex-end; justify-content: center; }
+.prayer-die { position: relative; width: 44px; height: 40px; padding: 0; border: none; background: transparent; color: var(--color-accent); cursor: pointer; display: flex; align-items: flex-end; justify-content: center; }
 .prayer-die__face { position: absolute; inset: 0; width: 100%; height: 100%; fill: rgba(212, 160, 86, .1); stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
 /* Sits low inside the triangle, where a d4 face is actually widest. */
-.prayer-die__value { position: relative; font-family: var(--font-display); font-size: .8rem; font-weight: 700; line-height: 1; color: var(--color-parchment); padding-bottom: .3rem; }
+.prayer-die__value { position: relative; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; line-height: 1; color: var(--color-parchment); padding-bottom: .35rem; }
 
 .prayer-die:hover:not(:disabled) .prayer-die__face { fill: rgba(212, 160, 86, .2); }
 
