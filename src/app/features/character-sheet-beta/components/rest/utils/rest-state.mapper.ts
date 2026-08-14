@@ -6,6 +6,7 @@ import { CharacterSheetView } from '../../../../character-sheet/models/character
 import { tierForLevel } from '../../../../../shared/utils/tier.utils';
 import { CompanionApiResponse } from '../../../../../shared/models/companion-api.model';
 import { RestCharacterState, RestCompanionState, RestResourceChanges } from '../models/rest.model';
+import { resolveSpellcastTrait } from '../../../../character-sheet/utils/spellcast-trait.utils';
 
 /**
  * The live values a rest reads. Marked resources come from the sheet's optimistic computeds rather
@@ -51,24 +52,6 @@ function traitModifier(view: CharacterSheetView, name: string): number | null {
 }
 
 /**
- * The Spellcast trait is named on the subclass card (`spellcastingTrait.trait`, an enum name such
- * as `PRESENCE`) while its value lives on the view's traits (`'Presence'`) -- hence the
- * case-insensitive match.
- *
- * A multiclass character can carry more than one spellcasting subclass; the first that names a
- * trait wins. That is correct for every real Warlock and is the honest simple rule; a character
- * with two spellcasting subclasses should check the Favor gain by hand.
- */
-function spellcastTrait(
-  raw: CharacterSheetResponse,
-  view: CharacterSheetView,
-): { readonly value: number | null; readonly name: string | null } {
-  const named = (raw.subclassCards ?? []).map(card => card.spellcastingTrait?.trait).find(Boolean);
-  if (!named) return { value: null, name: null };
-  return { value: traitModifier(view, named), name: named };
-}
-
-/**
  * Null until both the view and the raw response have loaded, which is also what keeps the Rest
  * button from rendering against a half-loaded sheet.
  */
@@ -76,7 +59,7 @@ export function toRestCharacterState(sources: RestStateSources): RestCharacterSt
   const { view, raw } = sources;
   if (!view || !raw) return null;
 
-  const spellcast = spellcastTrait(raw, view);
+  const spellcast = resolveSpellcastTrait(raw, view);
   return {
     tier: tierForLevel(view.level),
     hitPointMarked: sources.hitPointMarked,

@@ -17,6 +17,7 @@ import { InventorySectionBeta } from './components/inventory-section-beta/invent
 import { ItemKind } from '../../shared/utils/item-routes.utils';
 import { ModifierIndicator } from '../character-sheet/components/modifier-indicator/modifier-indicator';
 import { RestrictedCardPlaceholder } from '../character-sheet/components/restricted-card-placeholder/restricted-card-placeholder';
+import { PrayerDiceTracker } from '../character-sheet/components/prayer-dice-tracker/prayer-dice-tracker';
 import { LockIcon } from '../../shared/components/lock-icon/lock-icon';
 import { DiceRoller } from '../../shared/components/dice-roller/dice-roller';
 import { CollapsibleCardGroup } from './components/collapsible-card-group/collapsible-card-group';
@@ -96,6 +97,7 @@ interface DomainCardEntry {
     RestControl,
     RestrictedCardPlaceholder,
     LockIcon,
+    PrayerDiceTracker,
   ],
 })
 export class CharacterSheetBeta extends CharacterSheet {

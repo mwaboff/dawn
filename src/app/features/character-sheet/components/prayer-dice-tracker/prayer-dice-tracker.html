@@ -1,0 +1,76 @@
+<div class="prayer-dice">
+  <div class="prayer-dice__row">
+    @if (hasDice()) {
+      <ul class="prayer-dice__list" role="list" aria-label="Prayer Dice">
+        @for (die of dice(); track $index) {
+          <li>
+            <button
+              type="button"
+              class="prayer-die"
+              [class.prayer-die--spent]="die.spent"
+              [attr.aria-label]="dieAriaLabel(die, $index)"
+              [attr.aria-pressed]="die.spent"
+              [disabled]="readonly()"
+              (click)="onDieClick($index)"
+            >
+              <svg class="prayer-die__face" viewBox="0 0 26 24" aria-hidden="true" focusable="false">
+                <polygon points="13,2 24,22 2,22" />
+              </svg>
+              <span class="prayer-die__value">{{ die.value }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (!hasSpellcastTrait()) {
+      <p class="prayer-dice__empty">
+        This subclass has no Spellcast trait, so it grants no Prayer Dice.
+      </p>
+    } @else if (traitTooLow()) {
+      <p class="prayer-dice__empty">
+        Prayer Dice come from your Spellcast trait. At {{ traitLabel() | titlecase }}
+        {{ formattedTrait() }} you roll none.
+      </p>
+    } @else if (readonly()) {
+      <p class="prayer-dice__empty">No Prayer Dice rolled yet.</p>
+    } @else {
+      <p class="prayer-dice__empty">
+        Roll {{ diceOnRoll() }}d4 at the start of a session.
+      </p>
+    }
+
+    @if (canRoll()) {
+      <button
+        type="button"
+        class="prayer-dice__roll"
+        [title]="rollLabel()"
+        [attr.aria-label]="rollLabel()"
+        (click)="onRoll()"
+      >
+        <span class="prayer-dice__roll-glyph" aria-hidden="true">&#8635;</span>
+        <span class="prayer-dice__roll-text">{{ rollVerb() }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="prayer-dice__report" aria-live="polite">
+    @if (statusLine()) {
+      <p class="prayer-dice__status">{{ statusLine() }}</p>
+    }
+    @if (devoutNote(); as note) {
+      <p class="prayer-dice__note">{{ note }}</p>
+    }
+    <span class="sr-only">{{ rollAnnouncement() }}</span>
+  </div>
+
+  @if (showDevout() && !readonly()) {
+    <label class="prayer-dice__devout">
+      <input
+        type="checkbox"
+        class="form-checkbox"
+        [checked]="useDevout()"
+        (change)="onDevoutToggle($event)"
+      />
+      <span>Use Devout — roll an extra die, drop the lowest</span>
+    </label>
+  }
+</div>

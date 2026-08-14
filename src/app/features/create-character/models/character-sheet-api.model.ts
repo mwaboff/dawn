@@ -6,6 +6,18 @@ import { SpellcastingTraitResponse } from '../../../shared/models/subclass-api.m
 /** Dice size for the Brawler's stored Combo Die, serialized uppercase by the backend's `DiceType` enum. */
 export type ComboDieType = 'D4' | 'D6' | 'D8' | 'D10' | 'D12' | 'D20';
 
+/**
+ * One rolled Prayer Die (Seraph class feature). `value` is the d4 face, 1-4; `spent` marks a die
+ * whose value has already been used. Spent dice stay on the sheet -- and stay readable -- until the
+ * next session's roll clears them, because the rules clear Prayer Dice per session, not per rest.
+ *
+ * The backend stores the whole list as a compact string and only ever exposes it in this shape.
+ */
+export interface PrayerDie {
+  value: number;
+  spent: boolean;
+}
+
 export interface CreateCharacterSheetRequest {
   name: string;
   pronouns?: string;
@@ -50,6 +62,9 @@ export interface UpdateCharacterSheetRequest {
   focusMarked?: number;
   focusMax?: number;
   favor?: number;
+  /** Replaces the character's whole Prayer Dice set. Omit to leave unchanged; send an empty array
+   * to clear. */
+  prayerDice?: PrayerDie[];
   /**
    * ID of the transformation card to attach. Ignored (left unchanged) if
    * {@link clearTransformationCard} is true.
@@ -404,6 +419,9 @@ export interface CharacterSheetResponse {
   favor?: number;
   /** Current Combo Die size (Brawler resource), null when the character has no Combo Die. */
   comboDie?: ComboDieType;
+  /** Prayer Dice currently on the sheet (Seraph resource). Empty for characters without the
+   * feature, and empty until the first roll of a session. */
+  prayerDice?: PrayerDie[];
   /**
    * Whether transformations are unlocked for this character. The sheet hides the Transformation
    * panel entirely -- owner included -- until a GM enables it from the Campaign page, so it is

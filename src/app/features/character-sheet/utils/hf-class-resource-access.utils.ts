@@ -1,4 +1,5 @@
 import { ClassCardResponse } from '../../create-character/models/character-sheet-api.model';
+import { hasClassFeatureNamed } from './class-feature-access.utils';
 
 /**
  * Name of the Warlock class feature that grants the Patron Die and the Favor economy
@@ -11,14 +12,6 @@ const PATRONS_PACT_FEATURE_NAME = "patron's pact";
  * Name of the Brawler class feature that grants the Combo Die ("Combo Strike").
  */
 const COMBO_STRIKE_FEATURE_NAME = 'combo strike';
-
-function hasClassFeatureNamed(classes: ClassCardResponse[] | undefined, featureName: string): boolean {
-  return (classes ?? []).some(characterClass =>
-    (characterClass.classFeatures ?? []).some(
-      feature => feature.name?.trim().toLowerCase() === featureName,
-    ),
-  );
-}
 
 /**
  * True when any of the character's classes has the Warlock "Patron's Pact" feature, which grants
