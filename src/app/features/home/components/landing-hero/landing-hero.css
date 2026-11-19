@@ -2,9 +2,16 @@
 
 .hero {
   position: relative;
-  overflow: hidden;
+  padding: clamp(2.5rem, 6vh, 5.5rem) var(--landing-gutter) var(--landing-section-y);
+}
+
+/* The arrival surface fades out behind the screenshot instead of ending in a hard edge. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 35% 0;
   background: var(--surface-hero);
-  padding: 5.5rem var(--space-10) 4rem;
+  mask-image: linear-gradient(#000 70%, transparent);
 }
 
 .hero__grain { opacity: .3; }
@@ -16,17 +23,15 @@
   text-align: center;
 }
 
-.hero__eyebrow {
-  margin-bottom: var(--space-10);
-  animation: fadeIn .8s ease-out .1s both;
-}
+.hero__eyebrow { margin-bottom: var(--space-7); }
 
 .hero__title {
-  font-size: clamp(2.75rem, 7.5vw, 5.5rem);
+  font-size: clamp(2.25rem, 10.5vw, 5.5rem);
   font-weight: 400;
   line-height: 1.05;
   color: var(--color-parchment);
-  animation: fadeInUp .8s ease-out .2s both;
+  text-wrap: balance;
+  animation: fadeInUp .7s ease-out both;
 }
 
 .hero__line { display: block; }
@@ -38,38 +43,30 @@
 }
 
 .hero__lede {
-  max-width: 640px;
+  max-width: 600px;
   margin: var(--space-10) auto 0;
   font-size: clamp(1.05rem, 2vw, 1.25rem);
   line-height: 1.7;
   color: var(--color-parchment-a80);
-  animation: fadeIn .8s ease-out .4s both;
+  text-wrap: pretty;
 }
 
-.hero__cta {
-  margin-top: 2.5rem;
-  animation: fadeIn .8s ease-out .55s both;
-}
+.hero__cta { margin-top: var(--space-11); }
 
 .hero__fine {
   margin-top: var(--space-7);
   font-size: var(--text-sm);
   color: var(--color-parchment-a55);
-  animation: fadeIn .8s ease-out .6s both;
 }
 
 .hero__shot {
   position: relative;
-  max-width: 1240px;
-  margin: 4rem auto 0;
-  animation: fadeInUp 1s ease-out .7s both;
+  max-width: var(--landing-max);
+  margin-top: clamp(2rem, 5vh, 4rem);
+  animation: fadeInUp .6s ease-out .3s both;
 }
 
-@media (max-width: 600px) {
-  .hero { padding: 3.5rem var(--space-7) 3rem; }
-  .hero__shot { margin-top: 2.5rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero__eyebrow, .hero__title, .hero__lede, .hero__cta, .hero__fine, .hero__shot { animation: none; }
+/* Centred above phone width only; on phones the shot's own edge-to-edge margins apply. */
+@media (min-width: 601px) {
+  .hero__shot { margin-inline: auto; }
 }

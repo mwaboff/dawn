@@ -1,9 +1,6 @@
 <div class="showcase__text">
-  <p class="landing-eyebrow showcase__eyebrow">
-    <span class="showcase__number" aria-hidden="true">{{ index() + 1 }}</span>
-    {{ step().eyebrow }}
-  </p>
+  <p class="landing-eyebrow showcase__eyebrow">{{ step().eyebrow }}</p>
   <h3 class="showcase__title">{{ step().title }}</h3>
   <p class="showcase__body">{{ step().body }}</p>
 </div>
-<app-landing-shot class="showcase__shot" [shot]="step().shot" />
+<app-landing-shot [shot]="step().shot" />

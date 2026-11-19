@@ -12,7 +12,6 @@ import { LandingShot } from '../landing-shot/landing-shot';
 })
 export class LandingShowcase {
   readonly step = input.required<LandingStep>();
-  readonly index = input.required<number>();
   /** Puts the screenshot on the left so consecutive rows alternate sides. */
   readonly reversed = input(false);
 }

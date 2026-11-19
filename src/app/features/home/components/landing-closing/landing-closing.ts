@@ -4,7 +4,7 @@ import { LandingCtaLinks } from '../landing-cta-links/landing-cta-links';
 @Component({
   selector: 'app-landing-closing',
   templateUrl: './landing-closing.html',
-  styleUrl: './landing-closing.css',
+  styleUrls: ['../../landing-type.css', './landing-closing.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LandingCtaLinks],
 })

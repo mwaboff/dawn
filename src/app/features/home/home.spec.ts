@@ -55,7 +55,7 @@ describe('Home', () => {
 
     it('renders the steps section heading', () => {
       const el = setup();
-      expect(el.querySelector('#landing-steps-title')?.textContent).toContain('One hero, from first roll to legend');
+      expect(el.querySelector('#landing-steps-title')?.textContent).toContain('From first roll to final encounter');
     });
 
     it('renders the feature grid and closing call to action', () => {

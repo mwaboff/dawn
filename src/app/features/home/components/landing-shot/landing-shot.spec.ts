@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { LandingShot } from './landing-shot';
+import { LandingShot, landingShotLoader } from './landing-shot';
 import { LandingShot as LandingShotData } from '../../landing.model';
 
 const SHOT: LandingShotData = {
@@ -8,6 +8,7 @@ const SHOT: LandingShotData = {
   height: 1350,
   alt: 'A test screenshot',
   caption: 'A caption for the test shot.',
+  mobile: { src: '/landing/test-mobile.webp', width: 800, height: 1000 },
 };
 
 describe('LandingShot', () => {
@@ -22,14 +23,27 @@ describe('LandingShot', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('renders the image source', () => {
-    const img = setup().querySelector('img');
-    expect(img?.getAttribute('src')).toBe(SHOT.src);
+  it('renders the full-size image as the fallback source', () => {
+    expect(setup().querySelector('img')?.getAttribute('src')).toBe(SHOT.src);
+  });
+
+  it('offers the smaller desktop exports through srcset', () => {
+    const srcset = setup().querySelector('img')?.getAttribute('srcset');
+    expect(srcset).toBe('/landing/test-1080.webp 1080w, /landing/test-1620.webp 1620w, /landing/test.webp 2160w');
+  });
+
+  it('serves the phone capture to small viewports', () => {
+    const source = setup().querySelector('picture source');
+    expect([source?.getAttribute('media'), source?.getAttribute('srcset')]).toEqual(['(max-width: 600px)', SHOT.mobile.src]);
+  });
+
+  it('reserves the phone capture’s own aspect ratio', () => {
+    const source = setup().querySelector('picture source');
+    expect([source?.getAttribute('width'), source?.getAttribute('height')]).toEqual(['800', '1000']);
   });
 
   it('renders the alt text', () => {
-    const img = setup().querySelector('img');
-    expect(img?.getAttribute('alt')).toBe(SHOT.alt);
+    expect(setup().querySelector('img')?.getAttribute('alt')).toBe(SHOT.alt);
   });
 
   it('reserves the intrinsic size to avoid layout shift', () => {
@@ -38,17 +52,28 @@ describe('LandingShot', () => {
   });
 
   it('renders the caption', () => {
-    const caption = setup().querySelector('figcaption');
-    expect(caption?.textContent?.trim()).toBe(SHOT.caption);
+    expect(setup().querySelector('figcaption')?.textContent?.trim()).toBe(SHOT.caption);
   });
 
   it('lazy-loads by default', () => {
-    const img = setup().querySelector('img');
-    expect(img?.getAttribute('loading')).toBe('lazy');
+    expect(setup().querySelector('img')?.getAttribute('loading')).toBe('lazy');
   });
 
   it('loads eagerly with high fetch priority when marked as priority', () => {
-    const img = setup(true).querySelector('img');
-    expect(img?.getAttribute('fetchpriority')).toBe('high');
+    expect(setup(true).querySelector('img')?.getAttribute('fetchpriority')).toBe('high');
+  });
+});
+
+describe('landingShotLoader', () => {
+  it('returns the source untouched when no width is requested', () => {
+    expect(landingShotLoader({ src: '/landing/a.webp' })).toBe('/landing/a.webp');
+  });
+
+  it('maps a smaller width onto its exported file', () => {
+    expect(landingShotLoader({ src: '/landing/a.webp', width: 1080 })).toBe('/landing/a-1080.webp');
+  });
+
+  it('returns the full-size file for the largest width', () => {
+    expect(landingShotLoader({ src: '/landing/a.webp', width: 2160 })).toBe('/landing/a.webp');
   });
 });

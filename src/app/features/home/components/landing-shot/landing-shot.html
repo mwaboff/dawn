@@ -1,13 +1,21 @@
 <figure class="shot">
-  <div class="shot__frame">
+  <picture class="shot__frame">
+    <source
+      media="(max-width: 600px)"
+      [attr.srcset]="shot().mobile.src"
+      [attr.width]="shot().mobile.width"
+      [attr.height]="shot().mobile.height"
+    />
     <img
       class="shot__img"
       [ngSrc]="shot().src"
+      [ngSrcset]="srcset"
+      [sizes]="sizes()"
       [width]="shot().width"
       [height]="shot().height"
       [alt]="shot().alt"
       [priority]="priority()"
     />
-  </div>
+  </picture>
   <figcaption class="shot__caption">{{ shot().caption }}</figcaption>
 </figure>

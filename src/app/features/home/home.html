@@ -3,15 +3,14 @@
 
   <section class="steps" aria-labelledby="landing-steps-title">
     <header class="steps__header">
-      <p class="landing-eyebrow">How it plays</p>
-      <h2 id="landing-steps-title" class="landing-heading">One hero, from first roll to legend</h2>
-      <p class="steps__lede">Every screen on this page is the real app, following the same party.</p>
+      <h2 id="landing-steps-title" class="landing-heading">From first roll to final encounter</h2>
+      <p class="steps__lede">For players and GMs alike.</p>
     </header>
 
     <ol class="steps__list">
-      @for (step of steps; track step.id; let i = $index, odd = $odd) {
+      @for (step of steps; track step.id; let odd = $odd) {
         <li>
-          <app-landing-showcase [step]="step" [index]="i" [reversed]="odd" />
+          <app-landing-showcase [step]="step" [reversed]="odd" />
         </li>
       }
     </ol>

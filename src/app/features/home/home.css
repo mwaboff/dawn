@@ -4,17 +4,13 @@
   width: 100%;
 }
 
-.steps {
-  padding: 6rem var(--space-10) 7rem;
-}
+.steps { padding: var(--landing-section-y) var(--landing-gutter); }
 
 .steps__header {
   max-width: 720px;
-  margin: 0 auto 4.5rem;
+  margin: 0 auto var(--landing-stack);
   text-align: center;
 }
-
-
 
 .steps__lede {
   margin-top: var(--space-7);
@@ -25,17 +21,8 @@
 .steps__list {
   list-style: none;
   padding: 0;
-  max-width: 1240px;
+  max-width: var(--landing-max);
   margin: 0 auto;
   display: grid;
-  gap: 6.5rem;
-}
-
-@media (max-width: 900px) {
-  .steps__list { gap: 4.5rem; }
-}
-
-@media (max-width: 600px) {
-  .steps { padding: 4rem var(--space-7) 5rem; }
-  .steps__header { margin-bottom: 3rem; }
+  gap: var(--landing-stack);
 }

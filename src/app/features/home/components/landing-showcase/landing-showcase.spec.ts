@@ -6,26 +6,17 @@ describe('LandingShowcase', () => {
   const step = LANDING_STEPS[0];
   let fixture: ComponentFixture<LandingShowcase>;
 
-  function setup(index = 0, reversed?: boolean): HTMLElement {
+  function setup(reversed?: boolean): HTMLElement {
     TestBed.configureTestingModule({ imports: [LandingShowcase] });
     fixture = TestBed.createComponent(LandingShowcase);
     fixture.componentRef.setInput('step', step);
-    fixture.componentRef.setInput('index', index);
     if (reversed !== undefined) fixture.componentRef.setInput('reversed', reversed);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('numbers the step from one', () => {
-    expect(setup(2).querySelector('.showcase__number')?.textContent?.trim()).toBe('3');
-  });
-
-  it('hides the step number from assistive technology', () => {
-    expect(setup().querySelector('.showcase__number')?.getAttribute('aria-hidden')).toBe('true');
-  });
-
   it('renders the eyebrow', () => {
-    expect(setup().querySelector('.showcase__eyebrow')?.textContent).toContain(step.eyebrow);
+    expect(setup().querySelector('.showcase__eyebrow')?.textContent?.trim()).toBe(step.eyebrow);
   });
 
   it('renders the title as an h3', () => {
@@ -45,6 +36,6 @@ describe('LandingShowcase', () => {
   });
 
   it('marks the host as reversed when asked', () => {
-    expect(setup(1, true).classList.contains('reversed')).toBe(true);
+    expect(setup(true).classList.contains('reversed')).toBe(true);
   });
 });

@@ -7,13 +7,13 @@
 }
 
 .shot__frame {
+  display: block;
   border-radius: 8px;
   overflow: hidden;
   background: var(--color-bg-darker);
   box-shadow:
     0 0 0 1px var(--color-accent-a30),
-    0 24px 60px rgba(0, 0, 0, .55),
-    0 0 80px color-mix(in srgb, var(--color-accent) 8%, transparent);
+    0 24px 60px color-mix(in srgb, var(--color-text-darker) 55%, transparent);
 }
 
 .shot__img {
@@ -27,4 +27,14 @@
   font-style: italic;
   color: var(--color-parchment-a55);
   line-height: 1.5;
+}
+
+/* Phones get a portrait capture run edge to edge, so the screen inside it stays legible. */
+@media (max-width: 600px) {
+  :host { margin-inline: calc(-1 * var(--landing-gutter)); }
+  .shot__frame {
+    border-radius: 0;
+    box-shadow: 0 0 0 1px var(--color-accent-a30);
+  }
+  .shot__caption { padding-inline: var(--landing-gutter); }
 }
