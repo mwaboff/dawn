@@ -11,6 +11,7 @@ import { EntitySelectionGrid } from '../../../../shared/components/entity-select
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { DomainCardTradeRequest, TradeDisplayPair } from '../../models/level-up-api.model';
 import { DomainCardSummary } from '../../../character-sheet/models/character-sheet-view.model';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 const MOCK_CHARACTER_CARDS: DomainCardSummary[] = [
   { id: 1, name: 'Flame Strike', features: [], domainName: 'Arcana', level: 1 },
@@ -84,6 +85,7 @@ describe('DomainTradeStep', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
+    storeSheetLayout('classic');
     mockDomainService.getDomainCards.mockClear();
     mockDomainService.getDomainCards.mockReturnValue(of(MOCK_TRADABLE_CARDS));
 

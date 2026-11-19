@@ -126,33 +126,33 @@ describe('Preferences', () => {
       expect(values).toEqual(['classic', 'beta']);
     });
 
-    it('marks classic as checked by default', () => {
-      const classic = el.querySelector(
-        'input[name="sheetLayout"][value="classic"]',
-      ) as HTMLInputElement;
-      expect(classic.checked).toBe(true);
-    });
-
-    it('clicking beta calls setSheetLayout on the service', () => {
-      const service = TestBed.inject(PreferencesService);
-
+    it('marks beta as checked by default', () => {
       const beta = el.querySelector(
         'input[name="sheetLayout"][value="beta"]',
       ) as HTMLInputElement;
-      beta.checked = true;
-      beta.dispatchEvent(new Event('change'));
+      expect(beta.checked).toBe(true);
+    });
+
+    it('clicking classic calls setSheetLayout on the service', () => {
+      const service = TestBed.inject(PreferencesService);
+
+      const classic = el.querySelector(
+        'input[name="sheetLayout"][value="classic"]',
+      ) as HTMLInputElement;
+      classic.checked = true;
+      classic.dispatchEvent(new Event('change'));
       fixture.detectChanges();
 
-      expect(service.sheetLayout()).toBe('beta');
+      expect(service.sheetLayout()).toBe('classic');
     });
 
     it('applies the selected modifier class to the chosen option', () => {
-      component.onSheetLayoutChange('beta');
+      component.onSheetLayoutChange('classic');
       fixture.detectChanges();
 
-      const betaLabel = el.querySelector('input[name="sheetLayout"][value="beta"]')
+      const classicLabel = el.querySelector('input[name="sheetLayout"][value="classic"]')
         ?.closest('label');
-      expect(betaLabel?.classList.contains('preferences-option--selected')).toBe(true);
+      expect(classicLabel?.classList.contains('preferences-option--selected')).toBe(true);
     });
 
     it('states in the hint that the change applies the next time a character is opened', () => {

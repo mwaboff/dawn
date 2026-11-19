@@ -35,7 +35,7 @@ Router source of truth: `dawn/src/app/app.routes.ts`, `dawn/src/app/features/adm
 - **Route/Component**: `/preferences` → `features/preferences/preferences.ts`, backed by
   `core/services/preferences.service.ts`.
 - **Settings**: Density (`comfortable` default / `condensed`), Motion (`system` default /
-  `reduced` / `full`), Sheet Layout (`classic` default / `beta`), Card Theme (`default` /
+  `reduced` / `full`), Sheet Layout (`classic` / `beta` default), Card Theme (`default` /
   `light` beta-badged / `dark`). All persisted to `localStorage` only — not synced to the account
   server-side, so they are per-browser, not per-user.
 - **Sheet Layout** is the switch that decides which of the two character-sheet route
@@ -162,7 +162,7 @@ becomes available via level-up/character-sheet flows).
 
 ---
 
-## 3. Character Sheet — Classic (`/character/:id`, default layout)
+## 3. Character Sheet — Classic (`/character/:id`, opt-in via Preferences)
 
 Component: `features/character-sheet/character-sheet.ts` / `.html` (~1200 lines TS, ~880 lines
 HTML). Loads the sheet with a wide `?expand=` list (experiences, community/ancestry/subclass
@@ -335,7 +335,7 @@ backend omits the `notes` field for them rather than sending an empty string.
 
 ---
 
-## 4. Character Sheet — Beta (`character-sheet-beta`, opt-in via Preferences)
+## 4. Character Sheet — Beta (`character-sheet-beta`, default layout)
 
 Component: `features/character-sheet-beta/character-sheet-beta.ts`, which **inherits from and
 extends `CharacterSheet`** (classic) — same data loading, save pipelines, equip-constraint logic,
@@ -733,7 +733,7 @@ campaigns).
 
 | Preference | Values | What it changes |
 |---|---|---|
-| `sheetLayout` | `classic` (default) / `beta` | Which character-sheet **route implementation** loads (`canMatch` guard, zero-download of the unused chunk); also swaps card-rendering components (`CardSelectionGrid` → `EntitySelectionGrid`, plain cards → `EntityCard`) throughout Character Creation, Level-Up, and Reference wherever `sheetLayout` is read, so those flows get the new visual card treatment even though their *logic* is unchanged. |
+| `sheetLayout` | `classic` / `beta` (default) | Which character-sheet **route implementation** loads (`canMatch` guard, zero-download of the unused chunk); also swaps card-rendering components (`CardSelectionGrid` → `EntitySelectionGrid`, plain cards → `EntityCard`) throughout Character Creation, Level-Up, and Reference wherever `sheetLayout` is read, so those flows get the new visual card treatment even though their *logic* is unchanged. |
 | `cardTheme` | `default` (dark cards on dark bg / light elsewhere) / `light` (**Beta-badged**) / `dark` | Purely visual palette for card rendering; `dark` explicitly warns Character Creation/Level-Up pages don't have a matching dark page background yet. |
 | `density` | `comfortable` (default) / `condensed` | Global spacing/type scale. |
 | `motion` | `system` (default) / `reduced` / `full` | Animation/transition amount. |

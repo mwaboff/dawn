@@ -5,6 +5,7 @@ import { ResultCard } from './result-card';
 import { PreferencesService } from '../../../../core/services/preferences.service';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { AuthService } from '../../../../core/services/auth.service';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 @Component({
   template: `<app-result-card [result]="result" />`,
@@ -43,11 +44,26 @@ describe('ResultCard', () => {
     document.documentElement.removeAttribute('data-card-theme');
   });
 
-  describe('classic layout (default)', () => {
+  describe('with no stored layout', () => {
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    it('renders the beta EntityCard, since beta is the default', () => {
+      const { fixture, host } = setup();
+      host.result = CARD_RESULT;
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('app-entity-card')).toBeTruthy();
+    });
+  });
+
+  describe('classic layout', () => {
     let fixture: ComponentFixture<HostComponent>;
     let host: HostComponent;
 
     beforeEach(() => {
+      storeSheetLayout('classic');
       ({ fixture, host } = setup());
     });
 

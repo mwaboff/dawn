@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   CARD_THEMES,
   CardTheme,
+  DEFAULT_SHEET_LAYOUT,
   DENSITIES,
   Density,
   MOTION_PREFERENCES,
@@ -16,7 +17,6 @@ import {
 
 const DEFAULT_DENSITY: Density = 'comfortable';
 const DEFAULT_MOTION: MotionPreference = 'system';
-const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
 const DEFAULT_CARD_THEME: CardTheme = 'default';
 
 function isDensity(value: unknown): value is Density {

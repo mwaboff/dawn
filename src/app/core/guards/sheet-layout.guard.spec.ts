@@ -14,13 +14,13 @@ describe('classicSheetGuard', () => {
     localStorage.clear();
   });
 
-  it('matches the classic route when no preference is stored', () => {
+  it('falls through to the beta route when no preference is stored', () => {
     const result = classicSheetGuard(mockRoute, mockSegments);
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
-  it('matches the classic route when classic is stored', () => {
+  it('matches the classic route when classic is explicitly stored', () => {
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
 
     const result = classicSheetGuard(mockRoute, mockSegments);
@@ -36,11 +36,27 @@ describe('classicSheetGuard', () => {
     expect(result).toBe(false);
   });
 
-  it('fails safe to the classic route when the stored value is malformed JSON', () => {
+  it('falls through to the beta route when other preferences are stored without a sheetLayout', () => {
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ density: 'condensed' }));
+
+    const result = classicSheetGuard(mockRoute, mockSegments);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls through to the beta route for an unrecognized stored sheetLayout', () => {
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'psychedelic' }));
+
+    const result = classicSheetGuard(mockRoute, mockSegments);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls through to the beta route when the stored value is malformed JSON', () => {
     localStorage.setItem(PREFERENCES_STORAGE_KEY, 'not-json{{');
 
     const result = classicSheetGuard(mockRoute, mockSegments);
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 });
