@@ -62,11 +62,6 @@
 .hero__shot {
   position: relative;
   max-width: var(--landing-max);
-  margin-top: clamp(2rem, 5vh, 4rem);
+  margin: clamp(2rem, 5vh, 4rem) auto 0;
   animation: fadeInUp .6s ease-out .3s both;
-}
-
-/* Centred above phone width only; on phones the shot's own edge-to-edge margins apply. */
-@media (min-width: 601px) {
-  .hero__shot { margin-inline: auto; }
 }

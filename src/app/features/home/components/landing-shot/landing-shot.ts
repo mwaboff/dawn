@@ -9,11 +9,6 @@ export function landingShotLoader({ src, width }: ImageLoaderConfig): string {
   return width && width < FULL_WIDTH ? src.replace(/\.webp$/, `-${width}.webp`) : src;
 }
 
-/**
- * A framed screenshot. Phones get a portrait capture through `<picture>`; NgOptimizedImage has no
- * art-direction support, so in dev mode at phone width it logs NG02952 (the 4:5 phone image doesn't
- * match the img's 16:10 width/height). That check is dev-only and the warning is expected.
- */
 @Component({
   selector: 'app-landing-shot',
   templateUrl: './landing-shot.html',

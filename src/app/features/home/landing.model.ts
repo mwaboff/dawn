@@ -7,8 +7,6 @@ export interface LandingImage {
 export interface LandingShot extends LandingImage {
   alt: string;
   caption: string;
-  /** A capture of the same screen at phone width, served to small viewports instead of the desktop shot. */
-  mobile: LandingImage;
 }
 
 export interface LandingStep {
@@ -42,7 +40,6 @@ function shot(name: string, alt: string, caption: string): LandingShot {
     height: 1350,
     alt,
     caption,
-    mobile: { src: `/landing/${name}-mobile.webp`, width: 800, height: 1000 },
   };
 }
 

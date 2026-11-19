@@ -8,7 +8,6 @@ const SHOT: LandingShotData = {
   height: 1350,
   alt: 'A test screenshot',
   caption: 'A caption for the test shot.',
-  mobile: { src: '/landing/test-mobile.webp', width: 800, height: 1000 },
 };
 
 describe('LandingShot', () => {
@@ -30,16 +29,6 @@ describe('LandingShot', () => {
   it('offers the smaller desktop exports through srcset', () => {
     const srcset = setup().querySelector('img')?.getAttribute('srcset');
     expect(srcset).toBe('/landing/test-1080.webp 1080w, /landing/test-1620.webp 1620w, /landing/test.webp 2160w');
-  });
-
-  it('serves the phone capture to small viewports', () => {
-    const source = setup().querySelector('picture source');
-    expect([source?.getAttribute('media'), source?.getAttribute('srcset')]).toEqual(['(max-width: 600px)', SHOT.mobile.src]);
-  });
-
-  it('reserves the phone capture’s own aspect ratio', () => {
-    const source = setup().querySelector('picture source');
-    expect([source?.getAttribute('width'), source?.getAttribute('height')]).toEqual(['800', '1000']);
   });
 
   it('renders the alt text', () => {
