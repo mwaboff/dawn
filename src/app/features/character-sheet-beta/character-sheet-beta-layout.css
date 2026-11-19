@@ -67,6 +67,11 @@
 
 @media (max-width: 768px) {
   .sheet-header { flex-direction: column; gap: var(--space-5); align-items: flex-start; }
+  /* The identity block is an inline-size container (the name scales with it), and size containment
+     gives it no intrinsic width: left to shrink-to-fit in the stacked header it collapsed to zero,
+     wrapping the name one letter per line and sizing its height at that width. A definite full width
+     with no flex sizing keeps it whole. */
+  .sheet-header__identity { flex: none; width: 100%; }
   .sheet-columns { grid-template-columns: 1fr; }
   .traits-row { grid-template-columns: repeat(3, 1fr); }
 }
