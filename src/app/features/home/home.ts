@@ -1,40 +1,21 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { FormatTextPipe } from '../../shared/pipes/format-text.pipe';
 import { Dashboard } from '../dashboard/dashboard';
-
-interface Feature {
-  icon: string;
-  title: string;
-  description: string;
-}
+import { LANDING_STEPS } from './landing.model';
+import { LandingHero } from './components/landing-hero/landing-hero';
+import { LandingShowcase } from './components/landing-showcase/landing-showcase';
+import { LandingFeatures } from './components/landing-features/landing-features';
+import { LandingClosing } from './components/landing-closing/landing-closing';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
-  styleUrl: './home.css',
+  styleUrls: ['./landing-type.css', './home.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormatTextPipe, RouterLink, Dashboard],
+  imports: [Dashboard, LandingHero, LandingShowcase, LandingFeatures, LandingClosing],
 })
 export class Home {
   private readonly authService = inject(AuthService);
   readonly isLoggedIn = this.authService.isLoggedIn;
-  readonly features: Feature[] = [
-    {
-      icon: 'pen-paper',
-      title: 'Create Characters',
-      description: 'Build and manage your Daggerheart heroes. Track stats, abilities, and level up as you play.'
-    },
-    {
-      icon: 'map',
-      title: 'Run Campaigns',
-      description: 'Organize your adventures. Invite players, manage sessions, and keep your story moving forward.'
-    },
-    {
-      icon: 'dice',
-      title: 'Play Together',
-      description: 'Run your games in real-time. Roll dice, track initiative, and share the action with your party.'
-    }
-  ];
+  readonly steps = LANDING_STEPS;
 }

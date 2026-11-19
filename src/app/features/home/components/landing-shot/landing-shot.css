@@ -1,0 +1,30 @@
+:host { display: block; }
+
+.shot {
+  margin: 0;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.shot__frame {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg-darker);
+  box-shadow:
+    0 0 0 1px var(--color-accent-a30),
+    0 24px 60px rgba(0, 0, 0, .55),
+    0 0 80px color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.shot__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.shot__caption {
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-parchment-a55);
+  line-height: 1.5;
+}

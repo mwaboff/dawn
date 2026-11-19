@@ -1,0 +1,5 @@
+@for (cta of ctas; track cta.route) {
+  <a class="btn cta" [class.btn--primary]="cta.variant === 'primary'" [class.btn--secondary]="cta.variant === 'secondary'" [routerLink]="cta.route">
+    {{ cta.label }}
+  </a>
+}

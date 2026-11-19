@@ -1,0 +1,26 @@
+:host { display: block; }
+
+.closing {
+  padding: 6rem var(--space-10) 7rem;
+  text-align: center;
+  background: radial-gradient(60% 70% at 50% 100%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%);
+}
+
+.closing__title {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 700;
+  color: var(--color-accent);
+  text-shadow: 0 0 60px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.closing__lede {
+  margin: var(--space-9) auto 2.5rem;
+  max-width: 560px;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-parchment-a80);
+}
+
+@media (max-width: 600px) {
+  .closing { padding: 4rem var(--space-7) 5rem; }
+}
