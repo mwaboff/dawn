@@ -39,7 +39,12 @@ export interface UserPreferences {
 
 export const PREFERENCES_STORAGE_KEY = 'oh-sheet:preferences';
 
-const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
+/**
+ * The layout a user gets until they explicitly pick one, and the fallback for a missing or
+ * unrecognized stored value. Shared by `readStoredSheetLayout()` (the route guard) and
+ * `PreferencesService` (every in-page consumer) so the two can never disagree about it.
+ */
+export const DEFAULT_SHEET_LAYOUT: SheetLayout = 'beta';
 
 function isSheetLayoutValue(value: unknown): value is SheetLayout {
   return (SHEET_LAYOUTS as readonly unknown[]).includes(value);

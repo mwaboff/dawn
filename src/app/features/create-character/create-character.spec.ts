@@ -21,6 +21,7 @@ import { MartialStanceSelector } from './components/martial-stance-selector/mart
 import { WeaponSection } from './components/equipment-selector/components/weapon-section/weapon-section';
 import { ArmorSection } from './components/equipment-selector/components/armor-section/armor-section';
 import { EntitySelectionGrid } from '../../shared/components/entity-selection-grid/entity-selection-grid';
+import { storeSheetLayout } from '../../shared/testing/sheet-layout.stub';
 
 function buildClassResponse(overrides: Partial<ClassResponse> = {}): ClassResponse {
   return {
@@ -138,6 +139,8 @@ describe('CreateCharacter', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(async () => {
+    // Most of this file asserts on the classic builder; beta is the default, so opt in explicitly.
+    storeSheetLayout('classic');
     await TestBed.configureTestingModule({
       imports: [CreateCharacter],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -1464,7 +1467,7 @@ describe('CreateCharacter', () => {
       TestBed.inject(PreferencesService).setSheetLayout('beta');
     }
 
-    it('classic layout (default) is unaffected -- CardSelectionGrid still renders on the class tab', () => {
+    it('classic layout is unaffected -- CardSelectionGrid still renders on the class tab', () => {
       fixture.detectChanges();
       flushClassCards();
 

@@ -6,6 +6,7 @@ import { EnvironmentPicker } from './environment-picker';
 import { EnvironmentService } from '../../../../../shared/services/environment.service';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { PreferencesService } from '../../../../../core/services/preferences.service';
+import { storeSheetLayout } from '../../../../../shared/testing/sheet-layout.stub';
 
 function buildCard(overrides: Partial<CardData> = {}): CardData {
   return { id: 1, name: 'Collapsing Bridge', description: '', cardType: 'environment', ...overrides };
@@ -17,6 +18,7 @@ describe('EnvironmentPicker', () => {
   let environmentService: EnvironmentService;
 
   beforeEach(() => {
+    storeSheetLayout('classic');
     TestBed.configureTestingModule({ imports: [EnvironmentPicker] });
     fixture = TestBed.createComponent(EnvironmentPicker);
     component = fixture.componentInstance;
@@ -93,7 +95,7 @@ describe('EnvironmentPicker', () => {
   });
 
   describe('beta sheet layout', () => {
-    it('renders the classic card-selection-grid by default', () => {
+    it('renders the classic card-selection-grid when classic is chosen', () => {
       vi.spyOn(environmentService, 'getEnvironmentsPaginated').mockReturnValue(
         of({ cards: [buildCard()], currentPage: 0, totalPages: 1, totalElements: 1 }),
       );

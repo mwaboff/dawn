@@ -13,6 +13,7 @@ import { SubclassPathService } from '../../../../shared/services/subclass-path.s
 import { PreferencesService } from '../../../../core/services/preferences.service';
 import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 const mockCharacterSheet: CharacterSheetView = {
   id: 1,
@@ -134,6 +135,7 @@ describe('AdvancementConfig', () => {
   const mockSubclassPathService = { getSubclassPaths: vi.fn().mockReturnValue(of([])) };
 
   beforeEach(async () => {
+    storeSheetLayout('classic');
     mockDomainService.getDomainCards.mockClear();
     mockSubclassService.getSubclasses.mockClear();
     mockSubclassPathService.getSubclassPaths.mockClear();

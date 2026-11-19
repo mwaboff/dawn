@@ -18,8 +18,9 @@ import { PreferencesService } from '../../../../core/services/preferences.servic
  * adversary/card `@if`/`@else if` block verbatim -- three copies of the same branch, the template
  * duplication `.agents/rules/component-design.md` warns against.
  *
- * `sheetLayout() === 'classic'` (the default) renders exactly what all three call sites rendered
- * before this extraction, unchanged: `DaggerheartCard`/`AdversaryCard` at `layout="wide"`, followed
+ * `sheetLayout() === 'classic'` (opt-in; beta is the default) renders exactly what all three call
+ * sites rendered before this extraction, unchanged: `DaggerheartCard`/`AdversaryCard` at
+ * `layout="wide"`, followed
  * by `<app-customize-item-action [result]="result()" />` (its default `variant="classic"` --
  * classic `DaggerheartCard` has no action-row slot to project into, so this still renders as its
  * own block below the card, exactly as before).
