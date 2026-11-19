@@ -1,0 +1,22 @@
+:host { display: block; }
+
+.closing {
+  padding: var(--landing-section-y) var(--landing-gutter) calc(var(--landing-section-y) + 1rem);
+  text-align: center;
+  background: radial-gradient(60% 70% at 50% 100%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%);
+}
+
+.closing__title {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 700;
+  color: var(--color-parchment);
+  text-wrap: balance;
+}
+
+.closing__lede {
+  margin: var(--space-9) auto var(--space-11);
+  max-width: 560px;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-parchment-a80);
+}

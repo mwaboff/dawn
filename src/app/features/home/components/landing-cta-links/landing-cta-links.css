@@ -1,0 +1,23 @@
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-7);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: var(--space-11);
+  font-size: var(--text-base);
+  letter-spacing: .04em;
+}
+
+/* On the dark arrival surface the shared secondary border falls under 3:1; lift it here only. */
+.cta.btn--secondary { border-color: var(--color-accent-a75); }
+
+@media (max-width: 600px) {
+  :host { flex-direction: column; align-items: stretch; }
+}

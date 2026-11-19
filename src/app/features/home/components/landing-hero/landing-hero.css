@@ -1,0 +1,67 @@
+:host { display: block; }
+
+.hero {
+  position: relative;
+  padding: clamp(2.5rem, 6vh, 5.5rem) var(--landing-gutter) var(--landing-section-y);
+}
+
+/* The arrival surface fades out behind the screenshot instead of ending in a hard edge. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 35% 0;
+  background: var(--surface-hero);
+  mask-image: linear-gradient(#000 70%, transparent);
+}
+
+.hero__grain { opacity: .3; }
+
+.hero__text {
+  position: relative;
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero__eyebrow { margin-bottom: var(--space-7); }
+
+.hero__title {
+  font-size: clamp(2.25rem, 10.5vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--color-parchment);
+  text-wrap: balance;
+  animation: fadeInUp .7s ease-out both;
+}
+
+.hero__line { display: block; }
+
+.hero__line--accent {
+  font-weight: 900;
+  color: var(--color-accent);
+  text-shadow: 0 0 60px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.hero__lede {
+  max-width: 600px;
+  margin: var(--space-10) auto 0;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.7;
+  color: var(--color-parchment-a80);
+  text-wrap: pretty;
+}
+
+.hero__cta { margin-top: var(--space-11); }
+
+.hero__fine {
+  margin-top: var(--space-7);
+  font-size: var(--text-sm);
+  color: var(--color-parchment-a55);
+}
+
+.hero__shot {
+  position: relative;
+  max-width: var(--landing-max);
+  margin: clamp(2rem, 5vh, 4rem) auto 0;
+  animation: fadeInUp .6s ease-out .3s both;
+}

@@ -9,166 +9,75 @@ import { Home } from './home';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../shared/services/user.service';
 import { CampaignService } from '../../shared/services/campaign.service';
+import { LANDING_STEPS } from './landing.model';
 
 describe('Home', () => {
-  let component: Home;
   let fixture: ComponentFixture<Home>;
 
-  function setup(isLoggedIn = false) {
+  function setup(isLoggedIn = false): HTMLElement {
     const mockAuthService = {
       isLoggedIn: signal(isLoggedIn),
       user: signal(isLoggedIn ? { id: 1, username: 'Aragorn', usernameChosen: true, role: 'USER' } : null),
     };
-    const mockUserSvc = {
-      getUserCharacterSheets: vi.fn().mockReturnValue(
-        of({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 100 })
-      ),
-    };
-    const mockCampaignSvc = {
-      getMyCampaigns: vi.fn().mockReturnValue(
-        of({ content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 20 })
-      ),
-    };
-
+    const emptyPage = { content: [], totalElements: 0, totalPages: 0, currentPage: 0, pageSize: 20 };
     TestBed.configureTestingModule({
       imports: [Home],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
-        { provide: UserService, useValue: mockUserSvc },
-        { provide: CampaignService, useValue: mockCampaignSvc },
+        { provide: UserService, useValue: { getUserCharacterSheets: vi.fn().mockReturnValue(of(emptyPage)) } },
+        { provide: CampaignService, useValue: { getMyCampaigns: vi.fn().mockReturnValue(of(emptyPage)) } },
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
     });
-
     fixture = TestBed.createComponent(Home);
-    component = fixture.componentInstance;
     fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
   }
 
-  it('should create', () => {
-    setup();
-    expect(component).toBeTruthy();
+  describe('when logged out', () => {
+    it('renders the landing hero', () => {
+      const el = setup();
+      expect(el.querySelector('app-landing-hero')).toBeTruthy();
+    });
+
+    it('renders one showcase row per landing step', () => {
+      const el = setup();
+      expect(el.querySelectorAll('app-landing-showcase').length).toBe(LANDING_STEPS.length);
+    });
+
+    it('alternates showcase rows so every second one is reversed', () => {
+      const el = setup();
+      const reversed = Array.from(el.querySelectorAll('app-landing-showcase')).map(row => row.classList.contains('reversed'));
+      expect(reversed).toEqual(LANDING_STEPS.map((_, i) => i % 2 === 1));
+    });
+
+    it('renders the steps section heading', () => {
+      const el = setup();
+      expect(el.querySelector('#landing-steps-title')?.textContent).toContain('From first roll to final encounter');
+    });
+
+    it('renders the feature grid and closing call to action', () => {
+      const el = setup();
+      expect(el.querySelector('app-landing-features') && el.querySelector('app-landing-closing')).toBeTruthy();
+    });
+
+    it('does not render the dashboard', () => {
+      const el = setup();
+      expect(el.querySelector('app-dashboard')).toBeNull();
+    });
   });
 
-  it('should have three features', () => {
-    setup();
-    expect(component.features).toBeDefined();
-    expect(component.features.length).toBe(3);
-  });
+  describe('when logged in', () => {
+    it('renders the dashboard', () => {
+      const el = setup(true);
+      expect(el.querySelector('app-dashboard')).toBeTruthy();
+    });
 
-  it('should have Characters feature', () => {
-    setup();
-    const charactersFeature = component.features.find(f => f.title === 'Create Characters');
-    expect(charactersFeature).toBeDefined();
-    expect(charactersFeature?.icon).toBe('pen-paper');
-    expect(charactersFeature?.description).toContain('Build and manage your Daggerheart heroes');
-  });
-
-  it('should have Campaigns feature', () => {
-    setup();
-    const campaignsFeature = component.features.find(f => f.title === 'Run Campaigns');
-    expect(campaignsFeature).toBeDefined();
-    expect(campaignsFeature?.icon).toBe('map');
-    expect(campaignsFeature?.description).toContain('Organize your adventures');
-  });
-
-  it('should have Play Together feature', () => {
-    setup();
-    const playFeature = component.features.find(f => f.title === 'Play Together');
-    expect(playFeature).toBeDefined();
-    expect(playFeature?.icon).toBe('dice');
-    expect(playFeature?.description).toContain('Run your games in real-time');
-  });
-
-  it('should render hero section', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const heroSection = compiled.querySelector('.hero');
-    expect(heroSection).toBeTruthy();
-  });
-
-  it('should render hero title', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const heroTitle = compiled.querySelector('.hero-title');
-    expect(heroTitle?.textContent).toContain('Bring Your Table');
-    expect(heroTitle?.textContent).toContain('Together');
-  });
-
-  it('should render hero subtitle', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const subtitle = compiled.querySelector('.hero-subtitle');
-    expect(subtitle?.textContent).toContain('Oh Sheet is the Daggerheart toolset');
-  });
-
-  it('should render "Enlist in an Adventure" CTA when not logged in', () => {
-    setup(false);
-    const compiled = fixture.nativeElement as HTMLElement;
-    const links = compiled.querySelectorAll('.hero-cta a');
-    expect(links.length).toBe(2);
-    expect(links[0].textContent).toContain('Enlist in an Adventure');
-    expect(links[0].getAttribute('href')).toBe('/auth');
-    expect(links[1].textContent).toContain('Explore the Codex');
-    expect(links[1].getAttribute('href')).toBe('/reference');
-  });
-
-  it('should render <app-dashboard> when logged in', () => {
-    setup(true);
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-dashboard')).toBeTruthy();
-    expect(compiled.querySelector('.hero')).toBeFalsy();
-  });
-
-  it('should NOT render <app-dashboard> when not logged in', () => {
-    setup(false);
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-dashboard')).toBeFalsy();
-    expect(compiled.querySelector('.hero')).toBeTruthy();
-  });
-
-  it('should always show Explore the Codex link', () => {
-    setup(false);
-    const compiled = fixture.nativeElement as HTMLElement;
-    const codexLink = compiled.querySelector('.btn--secondary');
-    expect(codexLink?.textContent).toContain('Explore the Codex');
-    expect(codexLink?.getAttribute('href')).toBe('/reference');
-  });
-
-  it('should render features section title', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const featuresTitle = compiled.querySelector('.features-title');
-    expect(featuresTitle?.textContent).toContain('Your Adventure Awaits');
-  });
-
-  it('should render three feature cards', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const featureCards = compiled.querySelectorAll('.feature-card');
-    expect(featureCards.length).toBe(3);
-  });
-
-  it('should render feature icons', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const icons = compiled.querySelectorAll('.feature-icon svg');
-    expect(icons.length).toBe(3);
-  });
-
-  it('should have proper ARIA attributes on buttons', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const primaryButton = compiled.querySelector('.btn--primary');
-    expect(primaryButton).toBeTruthy();
-  });
-
-  it('should have decorative ornaments', () => {
-    setup();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const ornaments = compiled.querySelectorAll('.hero-ornament');
-    expect(ornaments.length).toBe(4);
+    it('does not render the landing page', () => {
+      const el = setup(true);
+      expect(el.querySelector('app-landing-hero')).toBeNull();
+    });
   });
 });

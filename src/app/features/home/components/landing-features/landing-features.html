@@ -1,0 +1,18 @@
+<section class="features" aria-labelledby="landing-features-title">
+  <div class="features__inner">
+    <h2 id="landing-features-title" class="landing-heading features__title">Everything your table reaches for</h2>
+    <ul class="features__grid">
+      @for (feature of features; track feature.title) {
+        <li class="feature">
+          <svg class="feature__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            @for (d of feature.iconPaths; track d) {
+              <path [attr.d]="d" />
+            }
+          </svg>
+          <h3 class="feature__title">{{ feature.title }}</h3>
+          <p class="feature__description">{{ feature.description }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

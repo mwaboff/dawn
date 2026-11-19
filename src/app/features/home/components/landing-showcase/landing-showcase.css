@@ -1,0 +1,32 @@
+:host {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 3.5rem;
+  align-items: center;
+}
+
+:host(.reversed) { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+:host(.reversed) .showcase__text { order: 2; }
+
+.showcase__eyebrow { margin-bottom: var(--space-7); }
+
+.showcase__title {
+  font-size: clamp(1.6rem, 2.6vw, 2.125rem);
+  line-height: 1.2;
+  color: var(--color-parchment);
+  text-wrap: balance;
+  margin-bottom: var(--space-8);
+}
+
+.showcase__body {
+  font-size: var(--text-md);
+  line-height: 1.75;
+  color: var(--color-parchment-a70);
+  text-wrap: pretty;
+}
+
+@media (max-width: 900px) {
+  :host, :host(.reversed) { grid-template-columns: minmax(0, 1fr); gap: var(--space-10); }
+  :host(.reversed) .showcase__text { order: 0; }
+  .showcase__text { max-width: 40rem; }
+}

@@ -1,0 +1,15 @@
+<figure class="shot">
+  <div class="shot__frame">
+    <img
+      class="shot__img"
+      [ngSrc]="shot().src"
+      [ngSrcset]="srcset"
+      [sizes]="sizes()"
+      [width]="shot().width"
+      [height]="shot().height"
+      [alt]="shot().alt"
+      [priority]="priority()"
+    />
+  </div>
+  <figcaption class="shot__caption">{{ shot().caption }}</figcaption>
+</figure>
