@@ -76,7 +76,7 @@ export const LANDING_STEPS: LandingStep[] = [
     body: 'Mark Hit Points, Stress and Hope with a tap. Tap a trait to roll your Duality Dice with the modifier already added, or roll weapon damage straight from your gear. Evasion, Armor Score and damage thresholds fold in the bonuses from your cards and gear, so your attention stays on the scene.',
     shot: shot(
       'step-play',
-      'The dice roller open beside the character sheet after a Strength roll: the Duality Dice came up with Hope, and the chronicle records the Strength +4 modifier.',
+      'The dice roller open beside the character sheet after a Strength roll, showing the Duality Dice total and a chronicle entry that records the Strength +4 modifier.',
       'One tap on Strength, and the modifier is already in the roll.',
     ),
   },
