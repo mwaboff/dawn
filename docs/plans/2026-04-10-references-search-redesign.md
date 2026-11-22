@@ -309,7 +309,7 @@ We pass `expand=all` (not `entity`) so each result's `expandedEntity` field is p
 
 **Action (phase 1):** Make a live API call against a local backend with a query that returns a weapon and inspect `expandedEntity`. Confirm that `features` (not just `featureIds`), `costTags`, `modifiers`, and `expansion` are all populated. If they are not:
 
-1. File a backend beads issue to extend search's `expand` parameter to support comma-separated sub-field expansion like the per-type endpoints (preferred fix).
+1. File a backend issue to extend search's `expand` parameter to support comma-separated sub-field expansion like the per-type endpoints (preferred fix).
 2. Until backend ships that, add a hydration step in `SearchService`: after search returns, for each result call the per-type `GET /{id}?expand=expansion,features,costTags,modifiers` in parallel to fill in the missing nested data. This keeps visual parity at the cost of N+1 requests per page.
 
 Do not ship phase 1 without either (a) confirming `expand=all` returns nested data, or (b) implementing the hydration fallback and filing the backend issue.
@@ -428,7 +428,7 @@ Files to delete at the end of implementation:
 2. **Card layout** → Full-width single-column `wide` layout in both mixed and focused views, matching the current reference page. Resolved §2.
 3. **Seal-badge glyphs** → Single Unicode glyph per type (⚔ ⛨ ◈ ☗ ✦ ❦ ⚜ ⬢ ✧ ❀ ⧫ ✺). Full glyph table in §7. During implementation, swap any glyphs that render poorly in Cinzel for siblings in the same Unicode block and flag the swap in the implementation issue.
 
-## 15. Implementation Phases (for beads issues)
+## 15. Implementation Phases
 
 Not filing issues yet — waiting on alignment on this doc first. Proposed phase breakdown:
 
@@ -446,7 +446,7 @@ Not filing issues yet — waiting on alignment on this doc first. Proposed phase
 
 ## 16. Next Step
 
-Review §4 (anatomy), §5 (search panel), §7 (aesthetic details), and the open questions in §14. Once those are confirmed, I'll file the phased beads issues and start on phase 1.
+Review §4 (anatomy), §5 (search panel), §7 (aesthetic details), and the open questions in §14. Once those are confirmed, I'll start on phase 1.
 
 ---
 

@@ -15,8 +15,7 @@ import { SearchParams, SearchResponse } from '../models/search.model';
  * `expand=expansion,features,costTags,modifiers`. This has NOT been verified against
  * a live backend from this implementation session. If the Codex tiles render with empty
  * feature lists (regression vs. the current reference page), see the hydration fallback
- * described in docs/plans/2026-04-10-references-search-redesign.md §8 and tracked in
- * beads issue dawn-3ny (filed alongside phase 1).
+ * described in docs/plans/2026-04-10-references-search-redesign.md §8.
  */
 @Injectable({ providedIn: 'root' })
 export class SearchService {

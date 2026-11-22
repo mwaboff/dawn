@@ -182,7 +182,7 @@ Work is split into three parallel streams (A/B/C). Stream C (tests) depends on A
 
 - Invoke the skill on the `inventory-item-row` component with the brief:
   > Redesign the inventory row to match the richness of the equipped `equipment-card` (name, tier/slot badge, stats, features, feature tags) while staying full-width. It should feel like a card inside the inventory list, with the same left-accent gold border treatment. Action buttons (equip primary, equip secondary, unequip, remove) should sit in a footer beneath the card. Respect the warm tavern aesthetic (dark browns, gold `#d4a056`, Cinzel/Lora fonts) and the `anyComponentStyle` 4kB/8kB budget.
-- Deliverable: a short design memo committed as a comment on the beads issue, plus any needed tweaks to `EquipmentCard` (e.g., a `subBadge` input if the team picks that option).
+- Deliverable: a short design memo committed alongside the plan, plus any needed tweaks to `EquipmentCard` (e.g., a `subBadge` input if the team picks that option).
 
 #### B2 — Refactor `inventory-item-row` to compose `EquipmentCard`
 
@@ -249,7 +249,7 @@ Work is split into three parallel streams (A/B/C). Stream C (tests) depends on A
 - `npm run lint`
 - `npm run test:run`
 - `npm run build`
-- `bd close <ids>`, `git add`, `git commit`, `git pull --rebase`, `bd dolt push`, `git push`.
+- `git add`, `git commit`, `git pull --rebase`, `git push`.
 
 ---
 

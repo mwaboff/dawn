@@ -33,9 +33,9 @@ marked ⚠ are review findings — do not regress them.
 | Motion three-state via `--motion` token; `prefers-reduced-motion` honored by default | Media query is two-state |
 | Minimum-shift colors: property-scoped floors, per-usage parchment ink edits, two hue lifts, dark ink on gold fills | The soul is lost through *blanket* mechanisms, not scoped ones |
 | `ExpandableCardList` deleted (verified: zero external references) | Michael 2026-08-01; HF panels set the global-CSS pattern |
-| Equipment-card markup adoption stays out of scope → bd issue | Medium-risk; CSS still consolidates |
+| Equipment-card markup adoption stays out of scope → follow-up issue | Medium-risk; CSS still consolidates |
 | The three `16px` input rules keep px | Real reason (⚠ fix the comments): a user with a *smaller browser default* would drop below 16px and re-trigger iOS zoom. Note `dice-roller.css:33` is a result line, not an input — migrate it normally |
-| `features/dashboard/` is unrouted dead code — bd issue to delete; no migration effort | Arch recon; project rule "deleting is a feature" |
+| `features/dashboard/` is unrouted dead code — follow-up issue to delete; no migration effort | Arch recon; project rule "deleting is a feature" |
 
 ## Token design (Phase A)
 
@@ -186,7 +186,7 @@ CDK drag inline transforms, nine chevron rotations — and opacity:1 would put t
 ## Phases, ownership, sequencing
 
 Branch `a11y-preferences` off `main`. Implementers on **Sonnet**. Quality gate per phase:
-`npm run lint && npm run test:run && npm run build` all green. bd: epic + issue per phase.
+`npm run lint && npm run test:run && npm run build` all green.
 
 ⚠ **Sequencing fix from review: D1/D2 run AFTER C1–C5** (v1's "parallel" had 23 file
 collisions — D2 touches templates in every C directory).
@@ -230,7 +230,7 @@ A (foundation) ──► B (preferences feature) ─┐
   unlabeled inputs; burden-icon sr-only text; `role` misuse fixes; `aria-hidden`
   stragglers; table captions.
 - **E**: fresh code-review agents over the full diff (findings verified before fixes);
-  gates green; QA checklist handed to Michael (he runs the server); bd close/file
+  gates green; QA checklist handed to Michael (he runs the server); file follow-ups
   (equipment-card adoption, dashboard deletion, remaining spacing migration); push; PR.
 
 ## Risk register (residual, post-amendment)
