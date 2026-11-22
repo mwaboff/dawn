@@ -38,8 +38,7 @@ export function shareableCampaignOptions(
  * `fieldErrors` is checked first and spelled out in full: this backend's `ValidationErrorResponse`
  * sends per-field messages with no top-level `message` at all, so reading only `message` would
  * replace "Severe threshold must not be null" with a shrug. Attaching these to the individual
- * controls would be better still, but that needs a new input on the presentational form -- see the
- * bd issue.
+ * controls would be better still, but that needs a new input on the presentational form.
  */
 export function readSaveErrorMessage(err: unknown): string {
   const body = (err as { error?: { message?: string; fieldErrors?: Record<string, string> } } | null)

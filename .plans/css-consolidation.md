@@ -366,7 +366,6 @@ This plan attacks the *cross-component duplication* problem holistically; it doe
 
 **Branch**: stay on `css-refactor2` (current). Push at end of session per project's mandatory workflow.
 
-**Beads tracking**: file one `bd` issue per slice before starting; close as each ships.
 
 ---
 
@@ -385,9 +384,9 @@ Slices 1, 5, 6 are unambiguous and ship without questions.
 
 ## Out of Scope (Documented for Future Work)
 
-1. **Per-file diets for the 13 component CSS files no slice touches** (each over 4 KB, listed in the "Expected after Slices 1-6" section above). Each is a feature-specific diet that does not benefit from cross-cutting extraction. **Action**: file ONE umbrella `bd` issue ("Per-file CSS budget diets for over-4KB components") or 13 individual issues. Each requires its own read-and-trim pass. Out of scope for this plan because the user's concern was *holistic cross-component redundancy*, not single-file bloat.
-2. **TS-level refactor of roster-list / campaign-roster**: the two `.ts` files (62 lines each) are nearly identical generics-over-entity-type. Could share a base class or generic component. File as separate `bd` issue; not part of this CSS-focused plan.
-3. **Tailwind utility migration**: Tailwind is imported but largely unused. Could refactor structural utilities (flex, grid, gap) to Tailwind to shrink raw CSS. Significant rewrite; file as separate `bd` issue.
+1. **Per-file diets for the 13 component CSS files no slice touches** (each over 4 KB, listed in the "Expected after Slices 1-6" section above). Each is a feature-specific diet that does not benefit from cross-cutting extraction. **Action**: file ONE umbrella issue ("Per-file CSS budget diets for over-4KB components") or 13 individual issues. Each requires its own read-and-trim pass. Out of scope for this plan because the user's concern was *holistic cross-component redundancy*, not single-file bloat.
+2. **TS-level refactor of roster-list / campaign-roster**: the two `.ts` files (62 lines each) are nearly identical generics-over-entity-type. Could share a base class or generic component. File as a separate issue; not part of this CSS-focused plan.
+3. **Tailwind utility migration**: Tailwind is imported but largely unused. Could refactor structural utilities (flex, grid, gap) to Tailwind to shrink raw CSS. Significant rewrite; file as a separate issue.
 4. **`auth-page.css` globalization**: only 2 components use it; per-component `@import` is currently fine. If a 3rd page joins the auth-chrome family, reconsider.
 5. **`home.css` ornament/gradient pattern**: visually overlaps `auth-page.css` ornaments but is a distinct hero layout. No consolidation planned.
 

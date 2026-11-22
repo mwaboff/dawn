@@ -468,7 +468,7 @@ Coverage target: service ≥ 90%, variants ≥ 80% (per project convention).
 
 ---
 
-## 13. Beads Issues to File (after plan approval)
+## 13. Issues to File (after plan approval)
 
 - **Parent (feature)**: "Dice roller with 5 themed variants for Character Sheet."
 - **Child (task)**: "Phase 1 — core infrastructure (service, model, host, picker, placeholders)." Blocks parent.

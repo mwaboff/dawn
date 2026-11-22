@@ -15,7 +15,7 @@ These are binding on every implementing agent:
 3. **CSS specificity rule:** Angular emulated encapsulation means a component-level rule (`.btn[_ngcontent]`, specificity 0,2,0) beats a global rule (0,1,0). Migrating a component onto a global/shared class **must delete the component's copy in the same commit** — leaving both means the global rule silently loses.
 4. **Pragmatic DRY:** consolidate only what this plan lists. The "Leave alone" section at the bottom is binding — those repetitions were audited and deliberately kept. Do not DRY beyond the plan.
 5. **Tests move, they don't duplicate:** when merging components, fold the specs together (per `.agents/rules/testing.md`); when extracting, move the relevant assertions to the new unit.
-6. **Task tracking:** file each WP as a `bd` issue before starting (per `AGENTS.md`); use the WP id (e.g. `WP3.1`) in the issue title. Follow the AGENTS.md session-completion workflow.
+6. **Task tracking:** use the WP id (e.g. `WP3.1`) to refer to each work package.
 7. **Sizing:** each WP below is scoped for one Sonnet subagent in one session. Dependencies are listed; anything not listed as a dependency can run in parallel.
 
 ---
@@ -26,7 +26,7 @@ These are binding on every implementing agent:
 `campaign-sheet-picker.ts:27` — the `submitting` signal is never set to `true`; its only reader is the button `[disabled]` (`campaign-sheet-picker.html:53`). Two fast clicks fire two POSTs. Set it around the request; reset on complete/error. Add a spec.
 
 ### WP1.2 [BEHAVIOR] Campaign mutation errors are swallowed
-`campaign.ts` lines 97, 115, 131, 139, 160, 172, 183: `error: () => this.reloadCampaign()` — a failed kick/approve/reject shows nothing. Surface an error signal + template banner consistent with the feature's existing error styling. While there, note (do NOT change yet) that `campaign.ts:212-217` refetches the full 7-expand payload after every mutation instead of using the returned `CampaignResponse` — file a bd issue for that as a follow-up optimization.
+`campaign.ts` lines 97, 115, 131, 139, 160, 172, 183: `error: () => this.reloadCampaign()` — a failed kick/approve/reject shows nothing. Surface an error signal + template banner consistent with the feature's existing error styling. While there, note (do NOT change yet) that `campaign.ts:212-217` refetches the full 7-expand payload after every mutation instead of using the returned `CampaignResponse` — file an issue for that as a follow-up optimization.
 
 ### WP1.3 [BEHAVIOR] `:global()` is not Angular CSS — mobile refine sheet doesn't lock scroll
 `reference.css:179` and `refine-sheet.css:76` use CSS-Modules `:global()` syntax, which browsers drop. Effect: `body-scroll-lock` (added by `refine-sheet.ts:54`) matches nothing, so the page scrolls behind the mobile sheet, and FilterRail keeps desktop `width:260px; position:sticky` inside the 280px sheet. Convert to the repo's established `::ng-deep` pattern. Also remove the duplicated "Refine" header (`refine-sheet.html:12` duplicates `filter-rail.html:2-7`).
@@ -232,7 +232,7 @@ Move spec blocks with each extraction; total `it()` count must not drop.
 ## Phase 8 — Guardrails (prevent recurrence)
 
 ### WP8.1 Lint & test hardening
-- Enable `tseslint.configs.recommendedTypeChecked` (expect an initial backlog; burn down in the same WP or file bd issues per rule).
+- Enable `tseslint.configs.recommendedTypeChecked` (expect an initial backlog; burn down in the same WP or file issues per rule).
 - Add the missing spec for `shared/components/confirm-dialog` (Escape-key + backdrop-vs-content click discrimination — a11y-critical, currently unverified). Optionally the three admin user-edit subcomponents and `masonry-item.directive`.
 - Add a keyboard path for `refine-sheet.html:1`'s backdrop dismiss (or verify Escape is handled on the sheet).
 ### WP8.2 Docs
