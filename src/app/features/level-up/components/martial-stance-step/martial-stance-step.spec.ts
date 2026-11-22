@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MartialStanceStep } from './martial-stance-step';
 import { CardData } from '../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { PreferencesService } from '../../../../core/services/preferences.service';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 function makeStance(id: number, tier: number, name = `Stance ${id}`): CardData {
   return {
@@ -23,12 +24,17 @@ describe('MartialStanceStep', () => {
   let component: MartialStanceStep;
 
   beforeEach(async () => {
+    storeSheetLayout('classic');
     await TestBed.configureTestingModule({
       imports: [MartialStanceStep],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MartialStanceStep);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   function setUp(opts: { maxTier?: number; knownStanceIds?: number[]; selectedStanceIds?: number[]; requiredCount?: number } = {}): void {

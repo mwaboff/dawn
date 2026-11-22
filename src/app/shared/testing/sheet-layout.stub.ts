@@ -7,5 +7,5 @@ import { PREFERENCES_STORAGE_KEY, SheetLayout } from '../models/preferences.mode
  * default for a user with nothing stored.
  */
 export function storeSheetLayout(layout: SheetLayout): void {
-  localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: layout }));
+  localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: layout, sheetLayoutChosen: true }));
 }

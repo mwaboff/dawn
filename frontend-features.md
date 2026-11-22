@@ -41,7 +41,13 @@ Router source of truth: `dawn/src/app/app.routes.ts`, `dawn/src/app/features/adm
 - **Sheet Layout** is the switch that decides which of the two character-sheet route
   implementations serves `/character/:id` (see §2). It is read by a router `canMatch` guard
   (`sheet-layout.guard.ts`) synchronously from localStorage before any HTTP call, so navigation
-  never even downloads the code chunk for the layout the player isn't using.
+  never even downloads the code chunk for the layout the player isn't using. A stored
+  `sheetLayout` only counts when the persisted record also carries `sheetLayoutChosen: true`,
+  which only `setSheetLayout` (the Preferences page) writes; otherwise the layout is the default,
+  `beta`. The other setters preserve the marker as-is. This is a one-time migration: a legacy
+  `classic` saved as a side effect of changing density/motion/card theme is indistinguishable
+  from a real choice, so everyone without the marker moves to beta and re-picks classic if wanted.
+  The single rule is `resolveStoredSheetLayout()` in `preferences.model.ts`.
 
 ---
 
@@ -733,7 +739,7 @@ campaigns).
 
 | Preference | Values | What it changes |
 |---|---|---|
-| `sheetLayout` | `classic` / `beta` (default) | Which character-sheet **route implementation** loads (`canMatch` guard, zero-download of the unused chunk); also swaps card-rendering components (`CardSelectionGrid` → `EntitySelectionGrid`, plain cards → `EntityCard`) throughout Character Creation, Level-Up, and Reference wherever `sheetLayout` is read, so those flows get the new visual card treatment even though their *logic* is unchanged. |
+| `sheetLayout` (+ `sheetLayoutChosen` marker; value ignored unless marker is `true`) | `classic` / `beta` (default) | Which character-sheet **route implementation** loads (`canMatch` guard, zero-download of the unused chunk); also swaps card-rendering components (`CardSelectionGrid` → `EntitySelectionGrid`, plain cards → `EntityCard`) throughout Character Creation, Level-Up, and Reference wherever `sheetLayout` is read, so those flows get the new visual card treatment even though their *logic* is unchanged. |
 | `cardTheme` | `default` (dark cards on dark bg / light elsewhere) / `light` (**Beta-badged**) / `dark` | Purely visual palette for card rendering; `dark` explicitly warns Character Creation/Level-Up pages don't have a matching dark page background yet. |
 | `density` | `comfortable` (default) / `condensed` | Global spacing/type scale. |
 | `motion` | `system` (default) / `reduced` / `full` | Animation/transition amount. |

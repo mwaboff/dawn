@@ -4,13 +4,14 @@ import {
   CARD_THEMES,
   CardTheme,
   DEFAULT_SHEET_LAYOUT,
+  isSheetLayoutChosen,
   DENSITIES,
   Density,
   MOTION_PREFERENCES,
   MotionPreference,
   PREFERENCES_STORAGE_KEY,
   resolveCardFace,
-  SHEET_LAYOUTS,
+  resolveStoredSheetLayout,
   SheetLayout,
   UserPreferences,
 } from '../../shared/models/preferences.model';
@@ -25,10 +26,6 @@ function isDensity(value: unknown): value is Density {
 
 function isMotion(value: unknown): value is MotionPreference {
   return (MOTION_PREFERENCES as readonly unknown[]).includes(value);
-}
-
-function isSheetLayout(value: unknown): value is SheetLayout {
-  return (SHEET_LAYOUTS as readonly unknown[]).includes(value);
 }
 
 function isCardTheme(value: unknown): value is CardTheme {
@@ -48,6 +45,10 @@ export class PreferencesService {
   // Unlike density/motion there is no pre-paint DOM attribute for sheet layout -- it initializes
   // from storage only.
   readonly sheetLayout = signal<SheetLayout>(this.readStorage()?.sheetLayout ?? DEFAULT_SHEET_LAYOUT);
+  // Whether the user has ever picked a layout; persisted so the guard can tell a real choice from
+  // a legacy value saved as a side effect of changing another preference. Only setSheetLayout
+  // ever turns it on.
+  private sheetLayoutChosen = this.readStorage()?.sheetLayoutChosen ?? false;
   // data-card-theme IS still pre-painted (see index.html), but as the *resolved* dark-capable
   // face ('light'/'dark') rather than the raw preference -- 'default' never appears there -- so
   // it can't be read back into this signal the same way density/motion are. cardTheme
@@ -86,6 +87,7 @@ export class PreferencesService {
       density,
       motion: this.motion(),
       sheetLayout: this.sheetLayout(),
+      sheetLayoutChosen: this.sheetLayoutChosen,
       cardTheme: this.cardTheme(),
     });
   }
@@ -96,16 +98,19 @@ export class PreferencesService {
       density: this.density(),
       motion,
       sheetLayout: this.sheetLayout(),
+      sheetLayoutChosen: this.sheetLayoutChosen,
       cardTheme: this.cardTheme(),
     });
   }
 
   setSheetLayout(sheetLayout: SheetLayout): void {
     this.sheetLayout.set(sheetLayout);
+    this.sheetLayoutChosen = true;
     this.persist({
       density: this.density(),
       motion: this.motion(),
       sheetLayout,
+      sheetLayoutChosen: true,
       cardTheme: this.cardTheme(),
     });
   }
@@ -116,6 +121,7 @@ export class PreferencesService {
       density: this.density(),
       motion: this.motion(),
       sheetLayout: this.sheetLayout(),
+      sheetLayoutChosen: this.sheetLayoutChosen,
       cardTheme,
     });
   }
@@ -152,7 +158,8 @@ export class PreferencesService {
       return {
         density: isDensity(candidate.density) ? candidate.density : DEFAULT_DENSITY,
         motion: isMotion(candidate.motion) ? candidate.motion : DEFAULT_MOTION,
-        sheetLayout: isSheetLayout(candidate.sheetLayout) ? candidate.sheetLayout : DEFAULT_SHEET_LAYOUT,
+        sheetLayout: resolveStoredSheetLayout(candidate),
+        sheetLayoutChosen: isSheetLayoutChosen(candidate),
         cardTheme: isCardTheme(candidate.cardTheme) ? candidate.cardTheme : DEFAULT_CARD_THEME,
       };
     } catch {

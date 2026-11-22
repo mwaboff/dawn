@@ -49,14 +49,53 @@ describe('readStoredSheetLayout', () => {
     expect(readStoredSheetLayout()).toBe('beta');
   });
 
-  it('keeps an explicitly stored classic layout', () => {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
+  it('keeps a classic layout the user explicitly chose (marker true)', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: true }),
+    );
 
     expect(readStoredSheetLayout()).toBe('classic');
   });
 
-  it('keeps an explicitly stored beta layout', () => {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'beta' }));
+  it('keeps a beta layout the user explicitly chose (marker true)', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'beta', sheetLayoutChosen: true }),
+    );
+
+    expect(readStoredSheetLayout()).toBe('beta');
+  });
+
+  it('resolves a legacy unmarked classic to beta', () => {
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
+
+    expect(readStoredSheetLayout()).toBe('beta');
+  });
+
+  it('resolves classic with marker false to beta', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: false }),
+    );
+
+    expect(readStoredSheetLayout()).toBe('beta');
+  });
+
+  it('only honours a marker that is exactly true', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: 'true' }),
+    );
+
+    expect(readStoredSheetLayout()).toBe('beta');
+  });
+
+  it('resolves to beta when the marker is present but the value is invalid', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'psychedelic', sheetLayoutChosen: true }),
+    );
 
     expect(readStoredSheetLayout()).toBe('beta');
   });
@@ -67,7 +106,7 @@ describe('readStoredSheetLayout', () => {
     expect(readStoredSheetLayout()).toBe('beta');
   });
 
-  it('resolves to beta for an unrecognized stored value', () => {
+  it('resolves to beta for an unrecognized stored value without a marker', () => {
     localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'psychedelic' }));
 
     expect(readStoredSheetLayout()).toBe('beta');

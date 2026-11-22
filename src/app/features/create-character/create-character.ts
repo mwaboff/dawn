@@ -69,7 +69,7 @@ export class CreateCharacter implements OnInit {
   private readonly preferences = inject(PreferencesService);
 
   /** Gates the beta `EntityCard`-based renderers throughout this template -- see dawn beta-cards
-   * work. `'classic'` (the default) must render byte-identical to today; only `'beta'` is new. */
+   * work. `'classic'` (an explicit choice) must render byte-identical to today; `'beta'` is the default. */
   readonly sheetLayout = this.preferences.sheetLayout;
 
   readonly activeTab = signal<TabId>('class');

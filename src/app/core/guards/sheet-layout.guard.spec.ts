@@ -20,16 +20,33 @@ describe('classicSheetGuard', () => {
     expect(result).toBe(false);
   });
 
-  it('matches the classic route when classic is explicitly stored', () => {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
+  it('matches the classic route when classic was explicitly chosen (marker true)', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: true }),
+    );
 
     const result = classicSheetGuard(mockRoute, mockSegments);
 
     expect(result).toBe(true);
   });
 
-  it('falls through to the beta route when beta is stored', () => {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'beta' }));
+  it('falls through to the beta route for a legacy unmarked classic', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ density: 'condensed', sheetLayout: 'classic' }),
+    );
+
+    const result = classicSheetGuard(mockRoute, mockSegments);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls through to the beta route when beta was explicitly chosen', () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'beta', sheetLayoutChosen: true }),
+    );
 
     const result = classicSheetGuard(mockRoute, mockSegments);
 
@@ -45,7 +62,10 @@ describe('classicSheetGuard', () => {
   });
 
   it('falls through to the beta route for an unrecognized stored sheetLayout', () => {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'psychedelic' }));
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ sheetLayout: 'psychedelic', sheetLayoutChosen: true }),
+    );
 
     const result = classicSheetGuard(mockRoute, mockSegments);
 
