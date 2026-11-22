@@ -34,15 +34,48 @@ export interface UserPreferences {
   density: Density;
   motion: MotionPreference;
   sheetLayout: SheetLayout;
+  /**
+   * True only once the user has picked a layout via the Preferences page. A stored `sheetLayout`
+   * counts only alongside this marker: before the marker existed, every density/motion/card-theme
+   * change also saved the then-default `'classic'`, so an unmarked value is indistinguishable
+   * from a real choice and is ignored (see `resolveStoredSheetLayout`).
+   */
+  sheetLayoutChosen: boolean;
   cardTheme: CardTheme;
 }
 
 export const PREFERENCES_STORAGE_KEY = 'oh-sheet:preferences';
 
-const DEFAULT_SHEET_LAYOUT: SheetLayout = 'classic';
+/**
+ * The layout a user gets until they explicitly pick one, and the fallback for a missing, unmarked
+ * or unrecognized stored value. Shared by `readStoredSheetLayout()` (the route guard) and
+ * `PreferencesService` (every in-page consumer) so the two can never disagree about it.
+ */
+export const DEFAULT_SHEET_LAYOUT: SheetLayout = 'beta';
 
-function isSheetLayoutValue(value: unknown): value is SheetLayout {
+export function isSheetLayoutValue(value: unknown): value is SheetLayout {
   return (SHEET_LAYOUTS as readonly unknown[]).includes(value);
+}
+
+/** True only for a stored blob whose `sheetLayoutChosen` marker is exactly `true`. */
+export function isSheetLayoutChosen(stored: unknown): boolean {
+  return (
+    typeof stored === 'object' &&
+    stored !== null &&
+    (stored as Partial<UserPreferences>).sheetLayoutChosen === true
+  );
+}
+
+/**
+ * The single rule for turning a parsed preferences blob into a layout: the stored `sheetLayout`
+ * counts only when the `sheetLayoutChosen` marker is `true` AND the value is valid; anything else
+ * (legacy unmarked values, missing marker, bad value, non-object) resolves to
+ * `DEFAULT_SHEET_LAYOUT`. Used by both `readStoredSheetLayout()` and `PreferencesService`.
+ */
+export function resolveStoredSheetLayout(stored: unknown): SheetLayout {
+  if (!isSheetLayoutChosen(stored)) return DEFAULT_SHEET_LAYOUT;
+  const candidate = (stored as Partial<UserPreferences>).sheetLayout;
+  return isSheetLayoutValue(candidate) ? candidate : DEFAULT_SHEET_LAYOUT;
 }
 
 /**
@@ -55,10 +88,7 @@ export function readStoredSheetLayout(): SheetLayout {
   try {
     const raw = localStorage.getItem(PREFERENCES_STORAGE_KEY);
     if (!raw) return DEFAULT_SHEET_LAYOUT;
-    const parsed: unknown = JSON.parse(raw);
-    if (typeof parsed !== 'object' || parsed === null) return DEFAULT_SHEET_LAYOUT;
-    const candidate = (parsed as Partial<UserPreferences>).sheetLayout;
-    return isSheetLayoutValue(candidate) ? candidate : DEFAULT_SHEET_LAYOUT;
+    return resolveStoredSheetLayout(JSON.parse(raw));
   } catch {
     return DEFAULT_SHEET_LAYOUT;
   }

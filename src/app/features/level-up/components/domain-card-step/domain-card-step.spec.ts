@@ -10,6 +10,7 @@ import { PreferencesService } from '../../../../core/services/preferences.servic
 import { EntitySelectionGrid } from '../../../../shared/components/entity-selection-grid/entity-selection-grid';
 import { CardSelectionGrid } from '../../../../shared/components/card-selection-grid/card-selection-grid';
 import { DomainCardSummary } from '../../../character-sheet/models/character-sheet-view.model';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 const MOCK_DOMAIN_CARDS: CardData[] = [
   { id: 10, name: 'Flame Strike', description: 'Fire spell', cardType: 'domain' },
@@ -83,9 +84,10 @@ describe('DomainCardStep', () => {
 
   beforeEach(async () => {
     // These tests assert on the classic layout, which PreferencesService resolves from localStorage
-    // at construction. Clear it so the file cannot inherit a 'beta' left behind by whatever ran
-    // before it in this worker, rather than relying on every other spec to clean up after itself.
+    // at construction. Beta is the default, so store an explicit classic choice rather than relying
+    // on whatever ran before this file in the worker to have left storage in a particular state.
     localStorage.clear();
+    storeSheetLayout('classic');
     mockDomainService.getDomainCards.mockClear();
     mockDomainService.getDomainCards.mockReturnValue(of(MOCK_DOMAIN_CARDS));
 

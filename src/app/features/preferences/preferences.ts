@@ -44,12 +44,12 @@ const SHEET_LAYOUT_OPTIONS: readonly PreferenceOption<SheetLayout>[] = [
   {
     value: 'classic',
     label: 'Classic',
-    description: 'The original character sheet layout — the default.',
+    description: 'The original character sheet layout.',
   },
   {
     value: 'beta',
     label: 'Beta',
-    description: 'An early look at the redesigned character sheet layout, still under active development.',
+    description: 'The redesigned character sheet layout, and the default. Still under active development.',
   },
 ];
 

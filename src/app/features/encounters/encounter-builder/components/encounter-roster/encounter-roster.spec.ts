@@ -4,6 +4,7 @@ import { EncounterRosterInstance } from '../../models/encounter-roster-instance.
 import { AdversaryCard } from '../../../../../shared/components/adversary-card/adversary-card';
 import { CardData } from '../../../../../shared/components/daggerheart-card/daggerheart-card.model';
 import { PreferencesService } from '../../../../../core/services/preferences.service';
+import { storeSheetLayout } from '../../../../../shared/testing/sheet-layout.stub';
 
 function buildInstance(overrides: Partial<EncounterRosterInstance> = {}): EncounterRosterInstance {
   return {
@@ -20,6 +21,7 @@ describe('EncounterRoster', () => {
   let component: EncounterRoster;
 
   beforeEach(() => {
+    storeSheetLayout('classic');
     TestBed.configureTestingModule({ imports: [EncounterRoster] });
     fixture = TestBed.createComponent(EncounterRoster);
     component = fixture.componentInstance;
@@ -260,7 +262,7 @@ describe('EncounterRoster', () => {
   });
 
   describe('beta sheet layout', () => {
-    it('keeps adversary rows as classic AdversaryCard by default', () => {
+    it('keeps adversary rows as classic AdversaryCard when classic is chosen', () => {
       fixture.componentRef.setInput('instances', [buildInstance({ localId: 'a' })]);
       fixture.detectChanges();
 

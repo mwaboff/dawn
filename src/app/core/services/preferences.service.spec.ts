@@ -36,6 +36,10 @@ describe('PreferencesService', () => {
     it('defaults cardTheme to default when nothing is stored or stamped', () => {
       expect(service.cardTheme()).toBe('default');
     });
+
+    it('defaults sheetLayout to beta when nothing is stored', () => {
+      expect(service.sheetLayout()).toBe('beta');
+    });
   });
 
   describe('setDensity / setMotion', () => {
@@ -59,7 +63,8 @@ describe('PreferencesService', () => {
       expect(stored).toEqual({
         density: 'condensed',
         motion: 'full',
-        sheetLayout: 'classic',
+        sheetLayout: 'beta',
+        sheetLayoutChosen: false,
         cardTheme: 'default',
       });
     });
@@ -72,7 +77,8 @@ describe('PreferencesService', () => {
       expect(stored).toEqual({
         density: 'condensed',
         motion: 'reduced',
-        sheetLayout: 'classic',
+        sheetLayout: 'beta',
+        sheetLayoutChosen: false,
         cardTheme: 'default',
       });
     });
@@ -95,8 +101,17 @@ describe('PreferencesService', () => {
         density: 'condensed',
         motion: 'reduced',
         sheetLayout: 'beta',
+        sheetLayoutChosen: true,
         cardTheme: 'default',
       });
+    });
+
+    it('writes the sheetLayoutChosen marker, even when choosing classic', () => {
+      service.setSheetLayout('classic');
+
+      const stored = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
+      expect(stored.sheetLayout).toBe('classic');
+      expect(stored.sheetLayoutChosen).toBe(true);
     });
   });
 
@@ -118,9 +133,62 @@ describe('PreferencesService', () => {
         density: 'condensed',
         motion: 'reduced',
         sheetLayout: 'beta',
+        sheetLayoutChosen: true,
         cardTheme: 'dark',
       });
     });
+  });
+
+  describe('sheetLayoutChosen marker survives the other setters', () => {
+    function freshService(): PreferencesService {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      return TestBed.inject(PreferencesService);
+    }
+
+    function storedBlob(): Record<string, unknown> {
+      return JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY)!);
+    }
+
+    const setters: [string, (s: PreferencesService) => void][] = [
+      ['setDensity', (s) => s.setDensity('condensed')],
+      ['setMotion', (s) => s.setMotion('reduced')],
+      ['setCardTheme', (s) => s.setCardTheme('dark')],
+    ];
+
+    for (const [name, apply] of setters) {
+      it(`${name} moves a legacy unmarked classic user to beta and keeps the marker off`, () => {
+        localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
+        const svc = freshService();
+        expect(svc.sheetLayout()).toBe('beta');
+
+        apply(svc);
+
+        expect(storedBlob()['sheetLayoutChosen']).toBe(false);
+        expect(freshService().sheetLayout()).toBe('beta');
+      });
+
+      it(`${name} keeps a user who explicitly chose classic on classic`, () => {
+        localStorage.setItem(
+          PREFERENCES_STORAGE_KEY,
+          JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: true }),
+        );
+        const svc = freshService();
+        expect(svc.sheetLayout()).toBe('classic');
+
+        apply(svc);
+
+        expect(storedBlob()['sheetLayoutChosen']).toBe(true);
+        expect(storedBlob()['sheetLayout']).toBe('classic');
+        expect(freshService().sheetLayout()).toBe('classic');
+      });
+
+      it(`${name} never sets the marker for a user with nothing stored`, () => {
+        apply(service);
+
+        expect(storedBlob()['sheetLayoutChosen']).toBe(false);
+      });
+    }
   });
 
   describe('darkCapableCardFace / lightOnlyCardFace', () => {
@@ -213,10 +281,33 @@ describe('PreferencesService', () => {
       expect(freshService.motion()).toBe('system');
     });
 
-    it('falls back to classic when sheetLayout is missing from the stored value', () => {
+    it('resolves a legacy unmarked classic sheetLayout to beta', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ sheetLayout: 'classic' }));
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('falls back to beta when the marker is present but the sheetLayout value is invalid', () => {
       localStorage.setItem(
         PREFERENCES_STORAGE_KEY,
-        JSON.stringify({ density: 'condensed', motion: 'full' }),
+        JSON.stringify({ sheetLayout: 'psychedelic', sheetLayoutChosen: true }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('keeps an explicitly chosen classic sheetLayout (marker true)', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ sheetLayout: 'classic', sheetLayoutChosen: true }),
       );
 
       TestBed.resetTestingModule();
@@ -226,7 +317,43 @@ describe('PreferencesService', () => {
       expect(freshService.sheetLayout()).toBe('classic');
     });
 
-    it('falls back to classic for an unknown sheetLayout value', () => {
+    it('keeps an explicitly chosen beta sheetLayout (marker true)', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ sheetLayout: 'beta', sheetLayoutChosen: true }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('falls back to beta for a malformed JSON value', () => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, 'not-json{{');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('falls back to beta when sheetLayout is missing from the stored value', () => {
+      localStorage.setItem(
+        PREFERENCES_STORAGE_KEY,
+        JSON.stringify({ density: 'condensed', motion: 'full' }),
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({});
+      const freshService = TestBed.inject(PreferencesService);
+
+      expect(freshService.sheetLayout()).toBe('beta');
+    });
+
+    it('falls back to beta for an unknown sheetLayout value', () => {
       localStorage.setItem(
         PREFERENCES_STORAGE_KEY,
         JSON.stringify({ density: 'condensed', motion: 'full', sheetLayout: 'psychedelic' }),
@@ -236,7 +363,7 @@ describe('PreferencesService', () => {
       TestBed.configureTestingModule({});
       const freshService = TestBed.inject(PreferencesService);
 
-      expect(freshService.sheetLayout()).toBe('classic');
+      expect(freshService.sheetLayout()).toBe('beta');
     });
 
     /* Pins the upgrade path for a user whose stored blob predates the cardTheme feature entirely

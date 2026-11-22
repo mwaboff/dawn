@@ -9,6 +9,7 @@ import { AdversaryService } from '../../../../../shared/services/adversary.servi
 import { AdversaryData } from '../../../../../shared/components/adversary-card/adversary-card.model';
 import { PreferencesService } from '../../../../../core/services/preferences.service';
 import { of, throwError } from 'rxjs';
+import { storeSheetLayout } from '../../../../../shared/testing/sheet-layout.stub';
 
 function buildAdversary(overrides: Partial<AdversaryData> = {}): AdversaryData {
   return { id: 1, name: 'Goblin Scout', tier: 1, adversaryType: 'MINION', ...overrides };
@@ -20,6 +21,7 @@ describe('AdversaryBrowser', () => {
   let adversaryService: AdversaryService;
 
   beforeEach(() => {
+    storeSheetLayout('classic');
     TestBed.configureTestingModule({
       imports: [AdversaryBrowser],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -211,7 +213,7 @@ describe('AdversaryBrowser', () => {
   });
 
   describe('beta sheet layout', () => {
-    it('renders classic AdversaryCard rows by default', () => {
+    it('renders classic AdversaryCard rows when classic is chosen', () => {
       vi.spyOn(adversaryService, 'getAdversaries').mockReturnValue(
         of({ adversaries: [buildAdversary()], currentPage: 0, totalPages: 1, totalElements: 1 }),
       );

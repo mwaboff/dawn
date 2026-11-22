@@ -8,6 +8,7 @@ import { ResultSection } from './result-section';
 import { AuthService } from '../../../../core/services/auth.service';
 import { MappedSearchResult } from '../../../../shared/mappers/search-result.mapper';
 import { SearchableEntityType } from '../../../../shared/models/search.model';
+import { storeSheetLayout } from '../../../../shared/testing/sheet-layout.stub';
 
 function makeCardResult(id: number, name = 'Test Card'): MappedSearchResult {
   return {
@@ -65,6 +66,7 @@ describe('ResultSection', () => {
   let host: HostComponent;
 
   beforeEach(async () => {
+    storeSheetLayout('classic');
     await TestBed.configureTestingModule({
       imports: [HostComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
