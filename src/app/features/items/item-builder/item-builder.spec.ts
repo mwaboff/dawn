@@ -134,7 +134,8 @@ describe('ItemBuilder', () => {
     });
 
     it('posts the mapped payload for the chosen kind', () => {
-      const { fixture, component, itemSubmit } = setup();
+      const { fixture, component, itemSubmit, router } = setup();
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
       const create = vi.spyOn(itemSubmit, 'create').mockReturnValue(of(buildWeapon()));
       fixture.detectChanges();
 
@@ -308,7 +309,8 @@ describe('ItemBuilder', () => {
     });
 
     it('copies the item through the endpoint for its kind', () => {
-      const { fixture, component, itemSubmit } = setup({ type: 'weapon', id: '7' });
+      const { fixture, component, itemSubmit, router } = setup({ type: 'weapon', id: '7' });
+      vi.spyOn(router, 'navigate').mockResolvedValue(true);
       vi.spyOn(itemSubmit, 'load').mockReturnValue(of(buildWeapon()));
       const copy = vi.spyOn(itemSubmit, 'copy').mockReturnValue(of(buildWeapon({ id: 12 })));
       fixture.detectChanges();
@@ -510,7 +512,8 @@ describe('ItemBuilder', () => {
    * instead, so the wiring itself is what fails if it goes missing.
    */
   it('saves when the rendered form emits, not just when the handler is called', () => {
-    const { fixture, itemSubmit } = setup();
+    const { fixture, itemSubmit, router } = setup();
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const create = vi.spyOn(itemSubmit, 'create').mockReturnValue(of(buildWeapon()));
     fixture.detectChanges();
 
