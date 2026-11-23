@@ -40,7 +40,7 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular/build": "^21.1.2",
+    "@angular/build": "^22.3.0",
     "@angular/cli": "^21.1.2",
     "@angular/compiler-cli": "^21.1.0",
     "@tailwindcss/postcss": "^4.1.12",
